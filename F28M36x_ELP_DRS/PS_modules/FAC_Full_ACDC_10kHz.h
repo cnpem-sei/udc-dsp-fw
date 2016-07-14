@@ -67,7 +67,7 @@
 #define TRANSDUCER_3_GAIN				(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
 #define HRADC_3_R_BURDEN				10.0				// Resistor Burden = 10 R
 
-#define HRADC_R_BURDEN				20.0				// Resistor Burden = 20 R
+#define HRADC_R_BURDEN				20.0					// Resistor Burden = 20 R
 #define HRADC_VIN_BI_P_GAIN			(20.0/262144.0)
 #define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))
 

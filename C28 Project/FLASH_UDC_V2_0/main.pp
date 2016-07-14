@@ -40,7 +40,7 @@ main.obj: D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_AnalogSysCtrl_defin
 main.obj: D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_set_pinout.h
 main.obj: D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_DefaultISR.h
 main.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/PS_modules.h
-main.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAC_Full_ACDC_10kHz.h
+main.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.h
 main.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.h
 main.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/HRADC_board/HRADC_boards.h
 main.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/HRADC_board/DMA_SPI_Interface.h
@@ -96,7 +96,7 @@ D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_AnalogSysCtrl_defines.h:
 D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_set_pinout.h: 
 D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_DefaultISR.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/PS_modules.h: 
-D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAC_Full_ACDC_10kHz.h: 
+D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/HRADC_board/HRADC_boards.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/HRADC_board/DMA_SPI_Interface.h: 

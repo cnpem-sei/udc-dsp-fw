@@ -65,6 +65,9 @@
 #pragma CODE_SECTION(isr_ePWM_CTR_ZERO_1st, "ramfuncs");
 #pragma CODE_SECTION(PS_turnOn, "ramfuncs");
 #pragma CODE_SECTION(PS_turnOff, "ramfuncs");
+#pragma CODE_SECTION(Set_SoftInterlock, "ramfuncs");
+#pragma CODE_SECTION(Set_HardInterlock, "ramfuncs");
+#pragma CODE_SECTION(isr_SoftInterlock, "ramfuncs");
 #pragma CODE_SECTION(isr_HardInterlock, "ramfuncs");
 
 static __interrupt void isr_ePWM_CTR_ZERO(void);
@@ -75,7 +78,10 @@ void main_FAC_ACDC_10kHz(void);
 static void PS_turnOn(void);
 static void PS_turnOff(void);
 
-static void isr_HardInterlock(Uint32 itlk);
+static void Set_SoftInterlock(Uint32 itlk);
+static void Set_HardInterlock(Uint32 itlk);
+static interrupt void isr_SoftInterlock(void);
+static interrupt void isr_HardInterlock(void);
 
 static void InitPeripheralsDrivers(void);
 static void InitControllers(void);
@@ -104,23 +110,23 @@ void main_FAC_ACDC_10kHz(void)
 		{
 			if(CHECK_INTERLOCK(EXTERNAL_INTERLOCK))
 			{
-				isr_HardInterlock(EXTERNAL_INTERLOCK);
+				Set_HardInterlock(EXTERNAL_INTERLOCK);
 			}
 		}
 
-		if(PIN_STATUS_DCDC_INTERLOCK)
+		/*if(PIN_STATUS_DCDC_INTERLOCK)
 		{
-			if(CHECK_INTERLOCK(DCDC_FAULT))
+			if(CHECK_SOFTINTERLOCK(DCDC_FAULT))
 			{
-				isr_HardInterlock(DCDC_FAULT);
+				Set_SoftInterlock(DCDC_FAULT);
 			}
-		}
+		}*/
 
 		if(IPC_CtoM_Msg.PSModule.OnOff && !PIN_STATUS_AC_CONTACTOR)
 		{
 			if(CHECK_INTERLOCK(AC_FAULT))
 			{
-				isr_HardInterlock(AC_FAULT);
+				Set_HardInterlock(AC_FAULT);
 			}
 		}
 
@@ -129,7 +135,7 @@ void main_FAC_ACDC_10kHz(void)
 			PIN_CLEAR_ACDC_INTERLOCK;
 		}
 
-		//TunningPWM_MEP_SFO();
+		TunningPWM_MEP_SFO();
 	}
 }
 
@@ -155,11 +161,11 @@ static void InitPeripheralsDrivers(void)
 	InitMcbspa20bit();
 
 	HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN);
+	Init_HRADC_Info2(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, &buffers_HRADC.buffer_1[0], TRANSDUCER_1_GAIN);
+	Init_HRADC_Info2(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, &buffers_HRADC.buffer_1[0], TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
@@ -226,7 +232,7 @@ static void InitPeripheralsDrivers(void)
 static void InitControllers(void)
 {
 	/* Initialization of IPC module */
-	InitIPC(&PS_turnOn, &PS_turnOff);
+	InitIPC(&PS_turnOn, &PS_turnOff, &isr_SoftInterlock, &isr_HardInterlock);
 
 	/* Initiaization of DP Framework */
 	InitDP_Framework(&DP_Framework, &(IPC_CtoM_Msg.PSModule.IRef));
@@ -250,21 +256,21 @@ static void InitControllers(void)
 	 * description: 	Cap bank voltage reference error
 	 *    DP class:     ELP_Error
 	 *     	    +:		NetSignals[0]
-	 *     	    -:		NetSignals[2]
-	 * 		   out:		NetSignals[3]
+	 *     	    -:		NetSignals[9]
+	 * 		   out:		NetSignals[10]
 	 */
 
-	Init_ELP_Error(V_ERROR_CALCULATOR, &DP_Framework.NetSignals[0], &DP_Framework.NetSignals[2], &DP_Framework.NetSignals[3]);
+	Init_ELP_Error(V_ERROR_CALCULATOR, &DP_Framework.NetSignals[0], &DP_Framework.NetSignals[9], &DP_Framework.NetSignals[10]);
 
 	/*
 	 * 	      name: 	PI_DAWU_CONTROLLER_VCAPBANK
 	 * description: 	Cap bank voltage PI controller
 	 *    DP class:     ELP_PI_dawu
-	 *     	    in:		NetSignals[3]
-	 * 		   out:		NetSignals[4]
+	 *     	    in:		NetSignals[10]
+	 * 		   out:		NetSignals[11]
 	 */
 
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK, 5.0264, 3.154, (CONTROL_FREQ/V_CONTROL_DECIMATION), MAX_IIN_REF, MIN_IIN_REF, &DP_Framework.NetSignals[3], &DP_Framework.NetSignals[4]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK, 5.0264, 3.154, (CONTROL_FREQ/V_CONTROL_DECIMATION), MAX_IIN_REF, -MAX_IIN_REF, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
 
 	/*
 	 * 	      name: 	NF_V_CAPBANK_2HZ
@@ -283,10 +289,10 @@ static void InitControllers(void)
 	 * description: 	Cap bank voltage notch filter (Fcut = 4 Hz)
 	 *    DP class:     ELP_IIR_2P2Z
 	 *     	    in:		NetSignals[8]
-	 * 		   out:		NetSignals[2]
+	 * 		   out:		NetSignals[9]
 	 */
 
-	Init_ELP_NF_IIR(NF_V_CAPBANK_4HZ, NF_ALPHA, 4.0, (CONTROL_FREQ/V_CONTROL_DECIMATION), FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[8], &DP_Framework.NetSignals[2]);
+	Init_ELP_NF_IIR(NF_V_CAPBANK_4HZ, NF_ALPHA, 4.0, (CONTROL_FREQ/V_CONTROL_DECIMATION), FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[8], &DP_Framework.NetSignals[9]);
 	//Init_ELP_IIR_2P2Z(NF_V_CAPBANK_4HZ, 0.998441278934479, -1.996281147003170, 0.998441278934479,
 	//					  -1.996281147003170, 0.996882617473602, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[8], &DP_Framework.NetSignals[2]);
 
@@ -298,32 +304,32 @@ static void InitControllers(void)
 	 * 	      name: 	I_ERROR_CALCULATOR
 	 * description: 	Input inductor current reference error
 	 *    DP class:     ELP_Error
-	 *     	     +:		NetSignals[4]
+	 *     	     +:		NetSignals[11]
 	 *     	     -:		NetSignals[5]
-	 * 		   out:		NetSignals[6]
+	 * 		   out:		NetSignals[12]
 	 */
 
-	Init_ELP_Error(I_ERROR_CALCULATOR, &DP_Framework.NetSignals[4], &DP_Framework.NetSignals[5], &DP_Framework.NetSignals[6]);
+	Init_ELP_Error(I_ERROR_CALCULATOR, &DP_Framework.NetSignals[11], &DP_Framework.NetSignals[5], &DP_Framework.NetSignals[12]);
 
 	/*
 	 * 	      name: 	PI_DAWU_CONTROLLER_IIN
 	 * description: 	Input inductor current PI controller
 	 *    DP class:     ELP_PI_dawu
-	 *     	    in:		NetSignals[6]
+	 *     	    in:		NetSignals[12]
 	 * 		   out:		DutySignals[0]
 	 */
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN, 0.002, 1.5, CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[6], &DP_Framework.DutySignals[0]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN, 0.002, 1.5, CONTROL_FREQ, PWM_MAX_DUTY, -PWM_MAX_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[0]);
 
 	/*
 	 * 	      name: 	IIR_3P3Z_CONTROLLER_IIN
 	 * description: 	Input inductor current IIR 3P3Z controller
 	 *    DP class:     ELP_IIR_3P3Z
-	 *     	    in:		NetSignals[6]
+	 *     	    in:		NetSignals[12]
 	 * 		   out:		DutySignals[0]
 	 */
 
 	Init_ELP_IIR_3P3Z(IIR_3P3Z_CONTROLLER_IIN, 4.018979021166166e-04, -3.464285079728809e-04, -4.002609202934738e-04, 3.480654897960237e-04, -2.459643017305727e+00,
-					  1.983576904041343e+00, -5.239338867356150e-01, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[6], &DP_Framework.DutySignals[0]);
+					  1.983576904041343e+00, -5.239338867356150e-01, PWM_MAX_DUTY, -PWM_MAX_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[0]);
 
 	/*********************************************/
 	/* INITIALIZATION OF SIGNAL GENERATOR MODULE */
@@ -337,27 +343,27 @@ static void InitControllers(void)
 
 	Disable_ELP_SigGen(&SignalGenerator);
 	Init_ELP_SigGen(&SignalGenerator, Sine, 0.0, 0.0, 10, (CONTROL_FREQ/V_CONTROL_DECIMATION), &IPC_MtoC_Msg.SigGen.Freq,
-					&DP_Framework.NetSignals[9], &DP_Framework.NetSignals[10], &IPC_MtoC_Msg.SigGen.Aux, DP_Framework.Ref);
+					&DP_Framework.NetSignals[N_MAX_NET_SIGNALS-2], &DP_Framework.NetSignals[N_MAX_NET_SIGNALS-1], &IPC_MtoC_Msg.SigGen.Aux, DP_Framework.Ref);
 
 	/*
 	 * 	      name: 	SRLIM_SIGGEN_AMP
 	 * description: 	Signal generator amplitude slew-rate limiter
 	 *    DP class:     ELP_SRLim
 	 *     	    in:		IPC_MtoC_Msg.SigGen.Amplitude
-	 * 		   out:		NetSignals[9]
+	 * 		   out:		NetSignals[N_MAX_NET_SIGNALS-2]
 	 */
 
-	Init_ELP_SRLim(SRLIM_SIGGEN_AMP, MAX_SR_SIGGEN_AMP, (CONTROL_FREQ/V_CONTROL_DECIMATION), IPC_MtoC_Msg.SigGen.Amplitude, &DP_Framework.NetSignals[9]);
+	Init_ELP_SRLim(SRLIM_SIGGEN_AMP, MAX_SR_SIGGEN_AMP, (CONTROL_FREQ/V_CONTROL_DECIMATION), IPC_MtoC_Msg.SigGen.Amplitude, &DP_Framework.NetSignals[N_MAX_NET_SIGNALS-2]);
 
 	/*
 	 * 	      name: 	SRLIM_SIGGEN_OFFSET
 	 * description: 	Signal generator offset slew-rate limiter
 	 *    DP class:     ELP_SRLim
 	 *     	    in:		IPC_MtoC_Msg.SigGen.Amplitude
-	 * 		   out:		NetSignals[10]
+	 * 		   out:		NetSignals[N_MAX_NET_SIGNALS-1]
 	 */
 
-	Init_ELP_SRLim(SRLIM_SIGGEN_OFFSET, MAX_SR_SIGGEN_OFFSET, (CONTROL_FREQ/V_CONTROL_DECIMATION), &IPC_MtoC_Msg.SigGen.Offset, &DP_Framework.NetSignals[10]);
+	Init_ELP_SRLim(SRLIM_SIGGEN_OFFSET, MAX_SR_SIGGEN_OFFSET, (CONTROL_FREQ/V_CONTROL_DECIMATION), &IPC_MtoC_Msg.SigGen.Offset, &DP_Framework.NetSignals[N_MAX_NET_SIGNALS-1]);
 
 
 	/**********************************/
@@ -435,6 +441,7 @@ static __interrupt void isr_ePWM_CTR_ZERO(void)
 
 	temp0 = 0.0;
 	temp1 = 0.0;
+
 	bypass_SRLim = USE_MODULE;
 
 	//SET_DEBUG_GPIO1;
@@ -467,7 +474,7 @@ static __interrupt void isr_ePWM_CTR_ZERO(void)
 	{
 		if(CHECK_INTERLOCK(LOAD_OVERVOLTAGE))
 		{
-			isr_HardInterlock(LOAD_OVERVOLTAGE);
+			Set_HardInterlock(LOAD_OVERVOLTAGE);
 		}
 	}
 
@@ -475,7 +482,7 @@ static __interrupt void isr_ePWM_CTR_ZERO(void)
 	{
 		if(CHECK_INTERLOCK(LOAD_OVERCURRENT))
 		{
-			isr_HardInterlock(LOAD_OVERCURRENT);
+			Set_HardInterlock(LOAD_OVERCURRENT);
 		}
 	}
 
@@ -598,7 +605,14 @@ static __interrupt void isr_ePWM_CTR_ZERO_1st(void)
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
 
-static void isr_HardInterlock(Uint32 itlk)
+static void Set_SoftInterlock(Uint32 itlk)
+{
+	PS_turnOff();
+	IPC_CtoM_Msg.PSModule.SoftInterlocks |= itlk;
+	//SendIpcFlag(SOFT_INTERLOCK_CTOM);
+}
+
+static void Set_HardInterlock(Uint32 itlk)
 {
 	PS_turnOff();
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= itlk;
@@ -606,12 +620,32 @@ static void isr_HardInterlock(Uint32 itlk)
 	PIN_SET_ACDC_INTERLOCK;
 }
 
+static interrupt void isr_SoftInterlock(void)
+{
+	CtoMIpcRegs.MTOCIPCACK.all = SOFT_INTERLOCK_MTOC;
+
+	PS_turnOff();
+	IPC_CtoM_Msg.PSModule.SoftInterlocks |= EXTERNAL_INTERLOCK;
+	//SendIpcFlag(SOFT_INTERLOCK_CTOM);
+
+	PieCtrlRegs.PIEACK.all |= M_INT11;
+}
+
+static interrupt void isr_HardInterlock(void)
+{
+	CtoMIpcRegs.MTOCIPCACK.all = HARD_INTERLOCK_MTOC;
+
+	PS_turnOff();
+	IPC_CtoM_Msg.PSModule.HardInterlocks |= EXTERNAL_INTERLOCK;
+	PIN_SET_ACDC_INTERLOCK;
+
+	PieCtrlRegs.PIEACK.all |= M_INT11;
+}
+
 static void PS_turnOn(void)
 {
-	if(CHECK_INTERLOCKS)
+	if(CHECK_INTERLOCKS && CHECK_SOFTINTERLOCK(DCDC_FAULT))
 	{
-		//ResetControllers();
-
 		PIN_CLOSE_AC_CONTACTOR;
 		DELAY_US(TIMEOUT_AC_CONTACTOR);
 
@@ -624,7 +658,7 @@ static void PS_turnOn(void)
 		}
 		else
 		{
-			isr_HardInterlock(AC_FAULT);
+			Set_HardInterlock(AC_FAULT);
 		}
 
 	}

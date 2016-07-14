@@ -11,9 +11,9 @@
 #define PWM_FREQ	   		10240.0		// Frequencia do sinal PWM gerado [Hz]
 #define PWM_DEAD_TIME		0			// Dead-time dos sinais PWM [ns]
 #define PWM_MAX_DUTY    	0.9         // Maximo ciclo de trabalho para o PWM (em p.u.)
-#define PWM_MIN_DUTY    	0			// Minimo ciclo de trabalho para o PWM (em p.u.)
+#define PWM_MIN_DUTY    	0.0			// Minimo ciclo de trabalho para o PWM (em p.u.)
 #define PWM_MAX_DUTY_OL		0.8			// Maximo ciclo de trabalho para o PWM em malha aberta (em p.u.)
-#define PWM_MIN_DUTY_OL		0			// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
+#define PWM_MIN_DUTY_OL		0.0			// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
 
 #define MAX_REF				90.0		// Valor máximo da referência de tensão no banco de capacitores [V]
 #define MIN_REF				0.0			// Valor máximo da referência de tensão no banco de capacitores [V]
@@ -47,13 +47,15 @@
 #define TRANSDUCER_0_OUTPUT_RATED		10.0				//   In_rated 	= +/- 110 V
 #define TRANSDUCER_0_OUTPUT_TYPE		Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_0_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
+#define HRADC_0_R_BURDEN				20.0				// Resistor Burden = 20 R
 
 #define TRANSDUCER_1_INPUT_RATED		200.0				// LEM LF 210-S
 #define TRANSDUCER_1_OUTPUT_RATED		-0.1				//   In_rated 	= +/- 200 A
 #define TRANSDUCER_1_OUTPUT_TYPE		Iin_bipolar			//   Out_rated 	= +/- 100 mA
 #define TRANSDUCER_1_GAIN				(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
+#define HRADC_1_R_BURDEN				10.0				// Resistor Burden = 10 R
 
-#define HRADC_R_BURDEN				5.0					// Resistor Burden = 5 R
+#define HRADC_R_BURDEN				5.0						// Resistor Burden = 5 R
 #define HRADC_VIN_BI_P_GAIN			(20.0/262144.0)
 #define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))
 
