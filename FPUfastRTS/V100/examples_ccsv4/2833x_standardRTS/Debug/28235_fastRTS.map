@@ -1,0 +1,196 @@
+******************************************************************************
+             TMS320C2000 Linker PC v6.4.6                      
+******************************************************************************
+>> Linked Thu Feb 11 10:16:30 2016
+
+OUTPUT FILE NAME:   <28235_fastRTS.out>
+ENTRY POINT SYMBOL: "code_start"  address: 00000000
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+PAGE 0:
+  BEGIN                 00000000   00000002  00000002  00000000  RWIX
+  BOOT_RSVD             00000002   0000004e  00000000  0000004e  RWIX
+  RAMM0                 00000050   000003b0  00000000  000003b0  RWIX
+  RAML0                 00008000   00001000  0000001a  00000fe6  RWIX
+  RAML1L2               00009000   00002000  0000039b  00001c65  RWIX
+  RAML3                 0000b000   00001000  00000000  00001000  RWIX
+  ZONE7A                00200000   0000fc00  00000000  0000fc00  RWIX
+  CSM_RSVD              0033ff80   00000076  00000000  00000076  RWIX
+  CSM_PWL               0033fff8   00000008  00000000  00000008  RWIX
+  ADC_CAL               00380080   00000009  00000000  00000009  RWIX
+  IQTABLES              003fe000   00000b50  00000000  00000b50  RWIX
+  IQTABLES2             003feb50   0000008c  00000000  0000008c  RWIX
+  FPUTABLES             003febdc   000006a0  00000000  000006a0  RWIX
+  BOOTROM               003ff27c   00000d44  00000000  00000d44  RWIX
+  RESET                 003fffc0   00000002  00000000  00000002  RWIX
+
+PAGE 1:
+  RAMM1                 00000400   00000400  00000190  00000270  RWIX
+  RAML4                 0000c000   00001000  000002c9  00000d37  RWIX
+  RAML5                 0000d000   00001000  00000008  00000ff8  RWIX
+  RAML6                 0000e000   00001000  00000000  00001000  RWIX
+  RAML7                 0000f000   00001000  00000000  00001000  RWIX
+  ZONE7B                0020fc00   00000400  00000000  00000400  RWIX
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+codestart 
+*          0    00000000    00000002     
+                  00000000    00000002     CodeStartBranch.obj (codestart)
+
+.cinit     0    00008000    0000001a     
+                  00008000    0000000a     rts2800_fpu32.lib : exit.obj (.cinit)
+                  0000800a    00000005                       : _lock.obj (.cinit:__lock)
+                  0000800f    00000005                       : _lock.obj (.cinit:__unlock)
+                  00008014    00000004                       : errno.obj (.cinit)
+                  00008018    00000002     --HOLE-- [fill = 0]
+
+.text      0    00009000    0000039b     
+                  00009000    0000013a     fastRTS_sample.obj (.text)
+                  0000913a    00000088     rts2800_fpu32.lib : fs_div.obj (.text)
+                  000091c2    00000072                       : atan.obj (.text)
+                  00009234    00000061                       : cos.obj (.text)
+                  00009295    00000058                       : sin.obj (.text)
+                  000092ed    00000046                       : boot.obj (.text)
+                  00009333    00000001     --HOLE-- [fill = 0]
+                  00009334    00000024                       : sqrt.obj (.text)
+                  00009358    00000019                       : args_main.obj (.text)
+                  00009371    00000019                       : exit.obj (.text)
+                  0000938a    00000009                       : _lock.obj (.text)
+                  00009393    00000008     CodeStartBranch.obj (.text)
+
+.pinit     0    00008000    00000000     UNINITIALIZED
+
+.stack     1    00000400    00000190     UNINITIALIZED
+                  00000400    00000190     --HOLE--
+
+.ebss      1    0000c000    000002c9     UNINITIALIZED
+                  0000c000    000002c0     fastRTS_sample.obj (.ebss)
+                  0000c2c0    00000004     rts2800_fpu32.lib : exit.obj (.ebss)
+                  0000c2c4    00000002                       : _lock.obj (.ebss:__lock)
+                  0000c2c6    00000002                       : _lock.obj (.ebss:__unlock)
+                  0000c2c8    00000001                       : errno.obj (.ebss)
+
+.econst    1    0000d000    00000008     
+                  0000d000    00000008     rts2800_fpu32.lib : atan.obj (.econst:_a$1)
+
+.reset     0    003fffc0    00000002     DSECT
+                  003fffc0    00000002     rts2800_fpu32.lib : boot.obj (.reset)
+
+csm_rsvd   0    0033ff80    00000000     DSECT
+
+csmpasswds 
+*          0    0033fff8    00000000     DSECT
+
+
+GLOBAL DATA SYMBOLS: SORTED BY DATA PAGE
+
+address     data page           name
+--------    ----------------    ----
+00000400      10 (00000400)     __stack
+
+0000c000     300 (0000c000)     _Step
+
+0000c040     301 (0000c040)     _Dlog
+
+0000c2c0     30b (0000c2c0)     ___TI_cleanup_ptr
+0000c2c2     30b (0000c2c0)     ___TI_dtors_ptr
+0000c2c4     30b (0000c2c0)     __lock
+0000c2c6     30b (0000c2c0)     __unlock
+0000c2c8     30b (0000c2c0)     _errno
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+page  address   name             
+----  -------   ----             
+0     00009000  .text            
+0     00009371  C$$EXIT          
+0     0000913a  FS$$DIV          
+1     0000c040  _Dlog            
+1     0000c000  _Step            
+1     00000590  __STACK_END      
+abs   00000190  __STACK_SIZE     
+1     0000c2c0  ___TI_cleanup_ptr
+1     0000c2c2  ___TI_dtors_ptr  
+abs   ffffffff  ___binit__       
+abs   ffffffff  ___c_args__      
+0     00008000  ___cinit__       
+0     0000939b  ___etext__       
+abs   ffffffff  ___pinit__       
+0     00009000  ___text__        
+0     00009358  __args_main      
+1     0000c2c4  __lock           
+0     00009392  __nop            
+0     0000938e  __register_lock  
+0     0000938a  __register_unlock
+1     00000400  __stack          
+1     0000c2c6  __unlock         
+0     00009371  _abort           
+0     000091c2  _atan            
+0     000092ed  _c_int00         
+0     00009234  _cos             
+0     00009137  _done            
+1     0000c2c8  _errno           
+0     00009373  _exit            
+0     00009000  _main            
+0     00009295  _sin             
+0     00009334  _sqrt            
+abs   ffffffff  binit            
+0     00008000  cinit            
+0     00000000  code_start       
+0     0000939b  etext            
+abs   ffffffff  pinit            
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+page  address   name             
+----  -------   ----             
+0     00000000  code_start       
+0     00008000  ___cinit__       
+0     00008000  cinit            
+0     00009000  .text            
+0     00009000  ___text__        
+0     00009000  _main            
+0     00009137  _done            
+0     0000913a  FS$$DIV          
+0     000091c2  _atan            
+0     00009234  _cos             
+0     00009295  _sin             
+0     000092ed  _c_int00         
+0     00009334  _sqrt            
+0     00009358  __args_main      
+0     00009371  C$$EXIT          
+0     00009371  _abort           
+0     00009373  _exit            
+0     0000938a  __register_unlock
+0     0000938e  __register_lock  
+0     00009392  __nop            
+0     0000939b  ___etext__       
+0     0000939b  etext            
+1     00000400  __stack          
+1     00000590  __STACK_END      
+1     0000c000  _Step            
+1     0000c040  _Dlog            
+1     0000c2c0  ___TI_cleanup_ptr
+1     0000c2c2  ___TI_dtors_ptr  
+1     0000c2c4  __lock           
+1     0000c2c6  __unlock         
+1     0000c2c8  _errno           
+abs   00000190  __STACK_SIZE     
+abs   ffffffff  ___binit__       
+abs   ffffffff  ___c_args__      
+abs   ffffffff  ___pinit__       
+abs   ffffffff  binit            
+abs   ffffffff  pinit            
+
+[37 symbols]
