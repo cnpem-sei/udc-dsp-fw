@@ -7,7 +7,7 @@ CMD_SRCS += \
 ../F28M36x_Headers_nonBIOS.cmd 
 
 LIB_SRCS += \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/lib/SFO_TI_Build_V7_FPU.lib 
+D:/ARQ/Projects/C28/F28M36x_common/lib/SFO_TI_Build_V7_FPU.lib 
 
 C_SRCS += \
 ../main.c 

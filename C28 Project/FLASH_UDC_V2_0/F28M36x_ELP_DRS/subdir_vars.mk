@@ -4,10 +4,10 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CMD_SRCS += \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd 
+D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd 
 
 C_SRCS += \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.c 
+D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.c 
 
 OBJS += \
 ./F28M36x_ELP_DRS/F28M36x_ELP_DRS.obj 
@@ -22,6 +22,6 @@ OBJS__QUOTED += \
 "F28M36x_ELP_DRS\F28M36x_ELP_DRS.obj" 
 
 C_SRCS__QUOTED += \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.c" 
+"D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.c" 
 
 

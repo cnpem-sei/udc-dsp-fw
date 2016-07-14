@@ -4,7 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_ELP_DRS/IPC_modules/IPC_modules.c 
+D:/ARQ/Projects/C28/F28M36x_ELP_DRS/IPC_modules/IPC_modules.c 
 
 OBJS += \
 ./F28M36x_ELP_DRS/IPC_modules/IPC_modules.obj 
@@ -19,6 +19,6 @@ OBJS__QUOTED += \
 "F28M36x_ELP_DRS\IPC_modules\IPC_modules.obj" 
 
 C_SRCS__QUOTED += \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_ELP_DRS/IPC_modules/IPC_modules.c" 
+"D:/ARQ/Projects/C28/F28M36x_ELP_DRS/IPC_modules/IPC_modules.c" 
 
 

@@ -4,24 +4,24 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 ASM_SRCS += \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_CodeStartBranch.asm \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_usDelay.asm 
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_CodeStartBranch.asm \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_usDelay.asm 
 
 C_SRCS += \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_Adc.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_Comp.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_CpuTimers.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_DMA.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_DefaultIsr.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_EPwm.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_Gpio.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_Mcbsp.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_PieCtrl.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_PieVect.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_Sci.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_Spi.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_SysCtrl.c \
-R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador\ Digital/Prototipos/V2.0/UDC/Software/Firmware\ Base/C28/F28M36x_common/source/F28M36x_TempSensorConv.c 
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Adc.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Comp.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_CpuTimers.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_DMA.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_DefaultIsr.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_EPwm.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Gpio.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Mcbsp.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_PieCtrl.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_PieVect.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Sci.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Spi.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_SysCtrl.c \
+D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_TempSensorConv.c 
 
 OBJS += \
 ./source/F28M36x_Adc.obj \
@@ -100,23 +100,23 @@ ASM_DEPS__QUOTED += \
 "source\F28M36x_usDelay.pp" 
 
 C_SRCS__QUOTED += \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_Adc.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_Comp.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_CpuTimers.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_DMA.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_DefaultIsr.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_EPwm.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_Gpio.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_Mcbsp.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_PieCtrl.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_PieVect.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_Sci.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_Spi.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_SysCtrl.c" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_TempSensorConv.c" 
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Adc.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Comp.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_CpuTimers.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_DMA.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_DefaultIsr.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_EPwm.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Gpio.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Mcbsp.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_PieCtrl.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_PieVect.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Sci.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Spi.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_SysCtrl.c" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_TempSensorConv.c" 
 
 ASM_SRCS__QUOTED += \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_CodeStartBranch.asm" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/source/F28M36x_usDelay.asm" 
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_CodeStartBranch.asm" \
+"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_usDelay.asm" 
 
 

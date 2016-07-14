@@ -31,7 +31,7 @@ ORDERED_OBJS += \
 "./source/F28M36x_TempSensorConv.obj" \
 "./source/F28M36x_usDelay.obj" \
 "./F28M36x_ELP_DRS/PWM_modules/PWM_modules.obj" \
-"./F28M36x_ELP_DRS/PS_modules/FAP_DCDC_20kHz.obj" \
+"./F28M36x_ELP_DRS/PS_modules/FAC_Full_ACDC_10kHz.obj" \
 "./F28M36x_ELP_DRS/IPC_modules/IPC_modules.obj" \
 "./F28M36x_ELP_DRS/HRADC_board/DMA_SPI_Interface.obj" \
 "./F28M36x_ELP_DRS/HRADC_board/HRADC_Boards.obj" \
@@ -46,11 +46,11 @@ ORDERED_OBJS += \
 "./F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.obj" \
 "./F28M36x_ELP_DRS/DP_framework/DP_framework.obj" \
 "../F28M36x_Headers_nonBIOS.cmd" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_common/lib/SFO_TI_Build_V7_FPU.lib" \
-"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd" \
+"D:/ARQ/Projects/C28/F28M36x_common/lib/SFO_TI_Build_V7_FPU.lib" \
+"D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd" \
 $(GEN_CMDS__FLAG) \
 -l"libc.a" \
--l"R:/LNLS/Grupos/ELP/Doctec/Sirius/Projetos/Controlador Digital/Prototipos/V2.0/UDC/Software/Firmware Base/C28/C28 Project/../FPUfastRTS/V100/lib/rts2800_fpu32_fast_supplement.lib" \
+-l"D:/ARQ/Projects/C28/C28 Project/../FPUfastRTS/V100/lib/rts2800_fpu32_fast_supplement.lib" \
 -l"rts2800_fpu32.lib" \
 
 -include ../makefile.init
@@ -211,8 +211,8 @@ C28_V2.0.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)$(BIN_OUTPUTS__QUOTED)
-	-$(RM) "main.pp" "source2\F28M36x_GlobalVariableDefs.pp" "source\F28M36x_Adc.pp" "source\F28M36x_Comp.pp" "source\F28M36x_CpuTimers.pp" "source\F28M36x_DMA.pp" "source\F28M36x_DefaultIsr.pp" "source\F28M36x_EPwm.pp" "source\F28M36x_Gpio.pp" "source\F28M36x_Mcbsp.pp" "source\F28M36x_PieCtrl.pp" "source\F28M36x_PieVect.pp" "source\F28M36x_Sci.pp" "source\F28M36x_Spi.pp" "source\F28M36x_SysCtrl.pp" "source\F28M36x_TempSensorConv.pp" "F28M36x_ELP_DRS\PWM_modules\PWM_modules.pp" "F28M36x_ELP_DRS\PS_modules\FAP_DCDC_20kHz.pp" "F28M36x_ELP_DRS\PS_modules\PS_modules.pp" "F28M36x_ELP_DRS\IPC_modules\IPC_modules.pp" "F28M36x_ELP_DRS\HRADC_board\DMA_SPI_Interface.pp" "F28M36x_ELP_DRS\HRADC_board\HRADC_Boards.pp" "F28M36x_ELP_DRS\HRADC_board\McBSP_SPI_Interface.pp" "F28M36x_ELP_DRS\F28M36x_ELP_DRS.pp" "F28M36x_ELP_DRS\DP_framework\TimeSlicer\TimeSlicer.pp" "F28M36x_ELP_DRS\DP_framework\SigGen\SigGen.pp" "F28M36x_ELP_DRS\DP_framework\ELP_DCL\ELP_DCL.pp" "F28M36x_ELP_DRS\DP_framework\DP_framework.pp" 
-	-$(RM) "main.obj" "source2\F28M36x_GlobalVariableDefs.obj" "source\F28M36x_Adc.obj" "source\F28M36x_CodeStartBranch.obj" "source\F28M36x_Comp.obj" "source\F28M36x_CpuTimers.obj" "source\F28M36x_DMA.obj" "source\F28M36x_DefaultIsr.obj" "source\F28M36x_EPwm.obj" "source\F28M36x_Gpio.obj" "source\F28M36x_Mcbsp.obj" "source\F28M36x_PieCtrl.obj" "source\F28M36x_PieVect.obj" "source\F28M36x_Sci.obj" "source\F28M36x_Spi.obj" "source\F28M36x_SysCtrl.obj" "source\F28M36x_TempSensorConv.obj" "source\F28M36x_usDelay.obj" "F28M36x_ELP_DRS\PWM_modules\PWM_modules.obj" "F28M36x_ELP_DRS\PS_modules\FAP_DCDC_20kHz.obj" "F28M36x_ELP_DRS\PS_modules\PS_modules.obj" "F28M36x_ELP_DRS\IPC_modules\IPC_modules.obj" "F28M36x_ELP_DRS\HRADC_board\DMA_SPI_Interface.obj" "F28M36x_ELP_DRS\HRADC_board\HRADC_Boards.obj" "F28M36x_ELP_DRS\HRADC_board\McBSP_SPI_Interface.obj" "F28M36x_ELP_DRS\F28M36x_ELP_DRS.obj" "F28M36x_ELP_DRS\DP_framework\TimeSlicer\TimeSlicer.obj" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_DF13.obj" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_DF22.obj" 
+	-$(RM) "main.pp" "source2\F28M36x_GlobalVariableDefs.pp" "source\F28M36x_Adc.pp" "source\F28M36x_Comp.pp" "source\F28M36x_CpuTimers.pp" "source\F28M36x_DMA.pp" "source\F28M36x_DefaultIsr.pp" "source\F28M36x_EPwm.pp" "source\F28M36x_Gpio.pp" "source\F28M36x_Mcbsp.pp" "source\F28M36x_PieCtrl.pp" "source\F28M36x_PieVect.pp" "source\F28M36x_Sci.pp" "source\F28M36x_Spi.pp" "source\F28M36x_SysCtrl.pp" "source\F28M36x_TempSensorConv.pp" "F28M36x_ELP_DRS\PWM_modules\PWM_modules.pp" "F28M36x_ELP_DRS\PS_modules\FAC_Full_ACDC_10kHz.pp" "F28M36x_ELP_DRS\PS_modules\PS_modules.pp" "F28M36x_ELP_DRS\IPC_modules\IPC_modules.pp" "F28M36x_ELP_DRS\HRADC_board\DMA_SPI_Interface.pp" "F28M36x_ELP_DRS\HRADC_board\HRADC_Boards.pp" "F28M36x_ELP_DRS\HRADC_board\McBSP_SPI_Interface.pp" "F28M36x_ELP_DRS\F28M36x_ELP_DRS.pp" "F28M36x_ELP_DRS\DP_framework\TimeSlicer\TimeSlicer.pp" "F28M36x_ELP_DRS\DP_framework\SigGen\SigGen.pp" "F28M36x_ELP_DRS\DP_framework\ELP_DCL\ELP_DCL.pp" "F28M36x_ELP_DRS\DP_framework\DP_framework.pp" 
+	-$(RM) "main.obj" "source2\F28M36x_GlobalVariableDefs.obj" "source\F28M36x_Adc.obj" "source\F28M36x_CodeStartBranch.obj" "source\F28M36x_Comp.obj" "source\F28M36x_CpuTimers.obj" "source\F28M36x_DMA.obj" "source\F28M36x_DefaultIsr.obj" "source\F28M36x_EPwm.obj" "source\F28M36x_Gpio.obj" "source\F28M36x_Mcbsp.obj" "source\F28M36x_PieCtrl.obj" "source\F28M36x_PieVect.obj" "source\F28M36x_Sci.obj" "source\F28M36x_Spi.obj" "source\F28M36x_SysCtrl.obj" "source\F28M36x_TempSensorConv.obj" "source\F28M36x_usDelay.obj" "F28M36x_ELP_DRS\PWM_modules\PWM_modules.obj" "F28M36x_ELP_DRS\PS_modules\FAC_Full_ACDC_10kHz.obj" "F28M36x_ELP_DRS\PS_modules\PS_modules.obj" "F28M36x_ELP_DRS\IPC_modules\IPC_modules.obj" "F28M36x_ELP_DRS\HRADC_board\DMA_SPI_Interface.obj" "F28M36x_ELP_DRS\HRADC_board\HRADC_Boards.obj" "F28M36x_ELP_DRS\HRADC_board\McBSP_SPI_Interface.obj" "F28M36x_ELP_DRS\F28M36x_ELP_DRS.obj" "F28M36x_ELP_DRS\DP_framework\TimeSlicer\TimeSlicer.obj" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_DF13.obj" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_DF22.obj" 
 	-$(RM) "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_DF23.obj" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_PI.obj" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_PID.obj" "F28M36x_ELP_DRS\DP_framework\SigGen\SigGen.obj" "F28M36x_ELP_DRS\DP_framework\ELP_DCL\ELP_DCL.obj" "F28M36x_ELP_DRS\DP_framework\DP_framework.obj" 
 	-$(RM) "source\F28M36x_CodeStartBranch.pp" "source\F28M36x_usDelay.pp" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_DF13.pp" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_DF22.pp" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_DF23.pp" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_PI.pp" "F28M36x_ELP_DRS\DP_framework\TI_DCL\DCL_PID.pp" 
 	-@echo 'Finished clean'
