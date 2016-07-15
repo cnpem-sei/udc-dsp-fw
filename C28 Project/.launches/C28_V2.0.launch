@@ -7,6 +7,9 @@
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:C28_V2.0}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.Texas Instruments XDS100v2 USB Debug Probe/C28xx_0" value="D:/ARQ\Projects\C28\C28 Project\FLASH_UDC_V2_0\C28_V2.0.out"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.Texas Instruments XDS100v2 USB Debug Probe/Cortex_M3_0" value="R:/LNLS\Grupos\ELP\Doctec\Sirius\Projetos\Controlador Digital\Prototipos\V2.0\UDC\Software\Firmware Base\Binarios\M3_V2.0_FAC_ACDC_10kHz.out"/>
+<mapAttribute key="com.ti.ccstudio.debug.ui.displayFormats">
+<mapEntry key="Texas Instruments XDS100v2 USB Debug Probe/C28xx_0@##separator##@1" value="16-Bit Hex - TI Style"/>
+</mapAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/C28_V2.0"/>
 </listAttribute>

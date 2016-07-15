@@ -97,6 +97,13 @@ void Init_HRADC_Info2(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_
 	hradcPtr->size_SamplesBuffer = buffer_size;
 	hradcPtr->SamplesBuffer = buffer;
 
+	while(hradcPtr->SamplesBuffer < &buffer[buffer_size])
+	{
+		*(hradcPtr->SamplesBuffer++) = 0.0;
+	}
+
+	hradcPtr->SamplesBuffer = buffer;
+
 	hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
 	hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
 
@@ -117,13 +124,6 @@ void Init_HRADC_Info2(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_
 
 	hradcPtr->CalibrationInfo.gain_Iin_unipolar_n = 	0.0;
 	hradcPtr->CalibrationInfo.offset_Iin_unipolar_n =	0.0;
-
-	while(hradcPtr->SamplesBuffer < &buffer[buffer_size])
-	{
-		*(hradcPtr->SamplesBuffer++) = 0.0;
-	}
-
-	hradcPtr->SamplesBuffer = buffer;
 }
 
 /**********************************************************************************************/

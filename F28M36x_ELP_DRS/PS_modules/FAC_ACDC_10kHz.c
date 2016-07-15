@@ -161,11 +161,11 @@ static void InitPeripheralsDrivers(void)
 	InitMcbspa20bit();
 
 	HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
-	Init_HRADC_Info2(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
+	Init_HRADC_Info2(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
-	Init_HRADC_Info2(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, &buffers_HRADC.buffer_1[0], TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
+	Init_HRADC_Info2(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
@@ -233,6 +233,7 @@ static void InitControllers(void)
 {
 	/* Initialization of IPC module */
 	InitIPC(&PS_turnOn, &PS_turnOff, &isr_SoftInterlock, &isr_HardInterlock);
+	IPC_CtoM_Msg.SamplesBuffer.BufferBusy = Buffer_All;
 
 	/* Initiaization of DP Framework */
 	InitDP_Framework(&DP_Framework, &(IPC_CtoM_Msg.PSModule.IRef));
@@ -566,8 +567,7 @@ static __interrupt void isr_ePWM_CTR_ZERO(void)
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[8]);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[0]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[7]);
 
 	END_TIMESLICE(1); /************************************************************/
 
