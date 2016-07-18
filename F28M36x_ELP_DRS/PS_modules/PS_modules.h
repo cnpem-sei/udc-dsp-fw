@@ -28,11 +28,11 @@ typedef enum
 	OPEN_LOOP
 } ePSLoopState;
 
-#define PS_MODEL	FAC_ACDC_10kHz
+#define PS_MODEL	FBP_100kHz
 
-//#include "FBP_100kHz.h"
+#include "FBP_100kHz.h"
 //#include "FBP_Parallel_100kHz.h"
-#include "FAC_ACDC_10kHz.h"
+//#include "FAC_ACDC_10kHz.h"
 //#include "FAC_DCDC_20kHz.h"
 //#include "FAC_Full_ACDC_10kHz.h"
 //#include "FAC_Full_DCDC_20kHz.h"
