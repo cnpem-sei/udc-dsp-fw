@@ -101,6 +101,12 @@ void main(void)
 				break;
 			}
 
+			case FAP_ACDC:
+			{
+				main_FAP_ACDC();
+				break;
+			}
+
 			case FAP_DCDC_20kHz:
 			{
 				main_FAP_DCDC_20kHz();
