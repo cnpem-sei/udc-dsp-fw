@@ -87,6 +87,6 @@ extern Uint16 WriteBuffer(tBuffer *ptrBuff, float data);
 extern Uint16 SizeBuffer(tBuffer *ptrBuff);
 extern Uint16 IndexBuffer(tBuffer *ptrBuff);
 
-
+extern void
 
 #endif
