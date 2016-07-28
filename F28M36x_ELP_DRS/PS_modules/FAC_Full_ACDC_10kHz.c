@@ -791,7 +791,6 @@ static void PS_turnOn(void)
 		{
 			Set_HardInterlock(AC_FAULT);
 		}
-
 	}
 }
 

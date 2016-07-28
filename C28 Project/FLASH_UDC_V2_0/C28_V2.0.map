@@ -1,10 +1,10 @@
 ******************************************************************************
              TMS320C2000 Linker PC v6.4.10                     
 ******************************************************************************
->> Linked Tue Jul 26 17:15:48 2016
+>> Linked Thu Jul 28 15:16:22 2016
 
 OUTPUT FILE NAME:   <C28_V2.0.out>
-ENTRY POINT SYMBOL: "_c_int00"  address: 0013adaa
+ENTRY POINT SYMBOL: "_c_int00"  address: 0013ae08
 
 
 MEMORY CONFIGURATION
@@ -12,7 +12,7 @@ MEMORY CONFIGURATION
          name            origin    length      used     unused   attr    fill
 ----------------------  --------  ---------  --------  --------  ----  --------
 PAGE 0:
-  RAML0L1               00008000   00002000  000006b1  0000194f  RWIX
+  RAML0L1               00008000   00002000  00000721  000018df  RWIX
   FLASHN                00100000   00002000  00000000  00002000  RWIX
   FLASHM                00102000   00002000  00000000  00002000  RWIX
   FLASHL                00104000   00002000  00000000  00002000  RWIX
@@ -23,8 +23,8 @@ PAGE 0:
   FLASHG                00120000   00008000  00000000  00008000  RWIX
   FLASHF                00128000   00008000  00000000  00008000  RWIX
   FLASHE                00130000   00008000  00000000  00008000  RWIX
-  FLASHD                00138000   00002000  0000044b  00001bb5  RWIX
-  FLASHCB               0013a000   00004000  00000f45  000030bb  RWIX
+  FLASHD                00138000   00002000  000004bb  00001b45  RWIX
+  FLASHCB               0013a000   00004000  00000fa3  0000305d  RWIX
   FLASHA                0013e000   00001f80  0000016f  00001e11  RWIX
   CSM_RSVD              0013ff80   00000070  00000000  00000070  RWIX
   BEGIN                 0013fff0   00000002  00000002  00000000  RWIX
@@ -103,7 +103,7 @@ PAGE 1:
   ADC1                  00007100   00000080  00000050  00000030  RWIX
   ADC2                  00007180   00000080  00000050  00000030  RWIX
   I2CA                  00007900   00000040  00000022  0000001e  RWIX
-  RAML2                 0000a000   00001000  000000b6  00000f4a  RWIX
+  RAML2                 0000a000   00001000  000000ba  00000f46  RWIX
   RAML3                 0000b000   00001000  00000000  00001000  RWIX
   RAMS0                 0000c000   00001000  00000330  00000cd0  RWIX
   RAMS1                 0000d000   00001000  00000330  00000cd0  RWIX
@@ -123,50 +123,50 @@ SECTION ALLOCATION MAP
  output                                  attributes/
 section   page    origin      length       input sections
 --------  ----  ----------  ----------   ----------------
-dclfuncs   0    0000844b    00000266     
-                  0000844b    000000af     DCL_DF13.obj (dclfuncs)
-                  000084fa    0000009d     DCL_DF23.obj (dclfuncs)
-                  00008597    00000079     DCL_DF22.obj (dclfuncs)
-                  00008610    00000067     DCL_PID.obj (dclfuncs)
-                  00008677    0000003a     DCL_PI.obj (dclfuncs)
+dclfuncs   0    000084bb    00000266     
+                  000084bb    000000af     DCL_DF13.obj (dclfuncs)
+                  0000856a    0000009d     DCL_DF23.obj (dclfuncs)
+                  00008607    00000079     DCL_DF22.obj (dclfuncs)
+                  00008680    00000067     DCL_PID.obj (dclfuncs)
+                  000086e7    0000003a     DCL_PI.obj (dclfuncs)
 
-ramfuncs   0    00138000    0000044b     RUN ADDR = 00008000
+ramfuncs   0    00138000    000004bb     RUN ADDR = 00008000
                   00138000    00000186     IPC_modules.obj (ramfuncs:retain)
-                  00138186    000000db     SigGen.obj (ramfuncs)
-                  00138261    000000b8     FAP_ACDC.obj (ramfuncs)
-                  00138319    00000073     F28M36x_SysCtrl.obj (ramfuncs)
-                  0013838c    00000070     FAP_ACDC.obj (ramfuncs:retain)
-                  001383fc    0000004b     IPC_modules.obj (ramfuncs)
-                  00138447    00000004     F28M36x_usDelay.obj (ramfuncs)
+                  00138186    00000128     FAP_ACDC.obj (ramfuncs)
+                  001382ae    000000db     SigGen.obj (ramfuncs)
+                  00138389    00000073     F28M36x_SysCtrl.obj (ramfuncs)
+                  001383fc    00000070     FAP_ACDC.obj (ramfuncs:retain)
+                  0013846c    0000004b     IPC_modules.obj (ramfuncs)
+                  001384b7    00000004     F28M36x_usDelay.obj (ramfuncs)
 
-.text      0    0013a000    00000f45     
+.text      0    0013a000    00000fa3     
                   0013a000    0000035f     F28M36x_DefaultIsr.obj (.text:retain)
                   0013a35f    0000021d     ELP_DCL.obj (.text)
                   0013a57c    00000167     DP_framework.obj (.text)
                   0013a6e3    00000140     SFO_TI_Build_V7_FPU.lib : SFO_v7_fpu_lib_build_c28.obj (.text)
                   0013a823    00000106     F28M36x_SysCtrl.obj (.text)
-                  0013a929    000000e5     SigGen.obj (.text)
-                  0013aa0e    00000092     FAP_ACDC.obj (.text)
-                  0013aaa0    00000089     IPC_modules.obj (.text)
-                  0013ab29    00000088     rts2800_fpu32.lib : fs_div.obj (.text)
-                  0013abb1    0000007c     DMA_SPI_Interface.obj (.text:retain)
-                  0013ac2d    00000068     rts2800_fpu32.lib : exp.obj (.text)
-                  0013ac95    00000061                       : cos.obj (.text)
-                  0013acf6    0000005c     F28M36x_CpuTimers.obj (.text)
-                  0013ad52    00000058     rts2800_fpu32.lib : sin.obj (.text)
-                  0013adaa    00000046                       : boot.obj (.text)
-                  0013adf0    00000037     F28M36x_ELP_DRS.obj (.text)
-                  0013ae27    00000034     rts2800_fpu32.lib : ldexp.obj (.text)
-                  0013ae5b    0000002d     F28M36x_PieCtrl.obj (.text)
-                  0013ae88    0000001e     rts2800_fpu32.lib : memcpy.obj (.text)
-                  0013aea6    0000001b     main.obj (.text)
-                  0013aec1    00000019     rts2800_fpu32.lib : args_main.obj (.text)
-                  0013aeda    00000019                       : exit.obj (.text)
-                  0013aef3    00000019                       : prolog.obj (.text)
-                  0013af0c    00000013     TimeSlicer.obj (.text)
-                  0013af1f    00000011     F28M36x_PieVect.obj (.text)
-                  0013af30    0000000c     rts2800_fpu32.lib : epilog.obj (.text)
-                  0013af3c    00000009                       : _lock.obj (.text)
+                  0013a929    000000f0     FAP_ACDC.obj (.text)
+                  0013aa19    000000e5     SigGen.obj (.text)
+                  0013aafe    00000089     IPC_modules.obj (.text)
+                  0013ab87    00000088     rts2800_fpu32.lib : fs_div.obj (.text)
+                  0013ac0f    0000007c     DMA_SPI_Interface.obj (.text:retain)
+                  0013ac8b    00000068     rts2800_fpu32.lib : exp.obj (.text)
+                  0013acf3    00000061                       : cos.obj (.text)
+                  0013ad54    0000005c     F28M36x_CpuTimers.obj (.text)
+                  0013adb0    00000058     rts2800_fpu32.lib : sin.obj (.text)
+                  0013ae08    00000046                       : boot.obj (.text)
+                  0013ae4e    00000037     F28M36x_ELP_DRS.obj (.text)
+                  0013ae85    00000034     rts2800_fpu32.lib : ldexp.obj (.text)
+                  0013aeb9    0000002d     F28M36x_PieCtrl.obj (.text)
+                  0013aee6    0000001e     rts2800_fpu32.lib : memcpy.obj (.text)
+                  0013af04    0000001b     main.obj (.text)
+                  0013af1f    00000019     rts2800_fpu32.lib : args_main.obj (.text)
+                  0013af38    00000019                       : exit.obj (.text)
+                  0013af51    00000019                       : prolog.obj (.text)
+                  0013af6a    00000013     TimeSlicer.obj (.text)
+                  0013af7d    00000011     F28M36x_PieVect.obj (.text)
+                  0013af8e    0000000c     rts2800_fpu32.lib : epilog.obj (.text)
+                  0013af9a    00000009                       : _lock.obj (.text)
 
 .econst    0    0013e000    00000100     
                   0013e000    00000100     F28M36x_PieVect.obj (.econst)
@@ -453,7 +453,7 @@ I2caRegsFile
 *          1    00007900    00000022     UNINITIALIZED
                   00007900    00000022     F28M36x_GlobalVariableDefs.obj (I2caRegsFile)
 
-.ebss      1    0000a000    000000b6     UNINITIALIZED
+.ebss      1    0000a000    000000ba     UNINITIALIZED
                   0000a000    0000002e     PWM_modules.obj (.ebss)
                   0000a02e    0000000c     TimeSlicer.obj (.ebss)
                   0000a03a    00000004     HRADC_Boards.obj (.ebss)
@@ -466,7 +466,9 @@ I2caRegsFile
                   0000a0a3    00000001     rts2800_fpu32.lib : errno.obj (.ebss)
                   0000a0a4    00000008     DMA_SPI_Interface.obj (.ebss)
                   0000a0ac    00000008     IPC_modules.obj (.ebss)
-                  0000a0b4    00000002     rts2800_fpu32.lib : _lock.obj (.ebss:__unlock)
+                  0000a0b4    00000003     FAP_ACDC.obj (.ebss)
+                  0000a0b7    00000001     --HOLE--
+                  0000a0b8    00000002     rts2800_fpu32.lib : _lock.obj (.ebss:__unlock)
 
 SHARERAMS0 
 *          1    0000c000    00000330     UNINITIALIZED
@@ -671,7 +673,7 @@ address     data page           name
 0000a0a8     282 (0000a080)     _DMATransferSize
 0000a0ac     282 (0000a080)     _wfmSyncFlag
 0000a0b0     282 (0000a080)     _IPC_PS_funcs
-0000a0b4     282 (0000a080)     __unlock
+0000a0b8     282 (0000a080)     __unlock
 
 0000c000     300 (0000c000)     _DP_Framework_MtoC
 
@@ -711,8 +713,8 @@ GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name
 page  address   name                      
 ----  -------   ----                      
 0     0013a000  .text                     
-0     0013aeda  C$$EXIT                   
-0     0013ab29  FS$$DIV                   
+0     0013af38  C$$EXIT                   
+0     0013ab87  FS$$DIV                   
 0     0013a355  _ADCINT1_ISR              
 0     0013a34b  _ADCINT2_ISR              
 0     0013a341  _ADCINT3_ISR              
@@ -741,10 +743,10 @@ page  address   name
 1     00006460  _Comp4Regs                
 1     00006480  _Comp5Regs                
 1     000064a0  _Comp6Regs                
-0     0013ad31  _ConfigCpuTimer           
+0     0013ad8f  _ConfigCpuTimer           
 0     0013a635  _ConfigDP_Module          
 0     0013a58f  _ConfigDP_Module_AllParam 
-0     00008401  _ConfigPSOpMode           
+0     00008471  _ConfigPSOpMode           
 1     0000a090  _CpuTimer0                
 1     00000c00  _CpuTimer0Regs            
 1     0000a080  _CpuTimer1                
@@ -756,17 +758,17 @@ page  address   name
 0     0013a8fc  _CsmUnlock                
 1     00004e00  _CtoMIpcRegs              
 0     0013a2dd  _DATALOG_ISR              
-0     0000844b  _DCL_runDF13              
-0     00008499  _DCL_runDF13i             
-0     000084a6  _DCL_runDF13p             
-0     00008597  _DCL_runDF22              
-0     000085d2  _DCL_runDF22i             
-0     000085e1  _DCL_runDF22p             
-0     000084fa  _DCL_runDF23              
-0     00008546  _DCL_runDF23i             
-0     00008555  _DCL_runDF23p             
-0     00008677  _DCL_runPI                
-0     00008610  _DCL_runPID               
+0     000084bb  _DCL_runDF13              
+0     00008509  _DCL_runDF13i             
+0     00008516  _DCL_runDF13p             
+0     00008607  _DCL_runDF22              
+0     00008642  _DCL_runDF22i             
+0     00008651  _DCL_runDF22p             
+0     0000856a  _DCL_runDF23              
+0     000085b6  _DCL_runDF23i             
+0     000085c5  _DCL_runDF23p             
+0     000086e7  _DCL_runPI                
+0     00008680  _DCL_runPID               
 0     0013a2d3  _DINTCH1_ISR              
 0     0013a2c9  _DINTCH2_ISR              
 0     0013a2bf  _DINTCH3_ISR              
@@ -776,9 +778,9 @@ page  address   name
 1     0000a0a8  _DMATransferSize          
 1     0000d000  _DP_Framework             
 1     0000c000  _DP_Framework_MtoC        
-0     00008447  _DSP28x_usDelay           
+0     000084b7  _DSP28x_usDelay           
 1     00000880  _DevEmuRegs               
-0     000081a6  _Disable_ELP_SigGen       
+0     000082ce  _Disable_ELP_SigGen       
 1     00001000  _DmaRegs                  
 0     0013a297  _ECAP1_INT_ISR            
 0     0013a28d  _ECAP2_INT_ISR            
@@ -831,13 +833,13 @@ page  address   name
 1     00005b80  _EQep3Regs                
 1     0013fff4  _EcslPwl                  
 0     0013a8d9  _EcslUnlock               
-0     0013ae7f  _EnableInterrupts         
-0     00008253  _Enable_ELP_SigGen        
+0     0013aedd  _EnableInterrupts         
+0     0000837b  _Enable_ELP_SigGen        
 1     00004000  _FlashCtrlRegs            
 1     00004300  _FlashEccRegs             
 1     0013fff2  _FlashExeOnly             
-0     0000837f  _FlashGainPump            
-0     00008374  _FlashLeavePump           
+0     000083ef  _FlashGainPump            
+0     000083e4  _FlashLeavePump           
 0     0013a8cf  _GetEXEstatus             
 1     00005f00  _GpioCtrlRegs             
 1     00005f00  _GpioDataRegs             
@@ -863,15 +865,15 @@ page  address   name
 1     0003fc00  _IPC_MtoC_Msg             
 1     0003fcc0  _IPC_MtoC_Param           
 1     0000a0b0  _IPC_PS_funcs             
-0     0013ae22  _IndexBuffer              
-0     0013ae17  _InitBuffer               
-0     0013acf6  _InitCpuTimers            
+0     0013ae80  _IndexBuffer              
+0     0013ae75  _InitBuffer               
+0     0013ad54  _InitCpuTimers            
 0     0013a57c  _InitDP_Framework         
-0     00008348  _InitFlash                
-0     0013aaa0  _InitIPC                  
+0     000083b8  _InitFlash                
+0     0013aafe  _InitIPC                  
 0     0013a82b  _InitPeripheralClocks     
-0     0013ae5b  _InitPieCtrl              
-0     0013af1f  _InitPieVectTable         
+0     0013aeb9  _InitPieCtrl              
+0     0013af7d  _InitPieVectTable         
 0     0013a892  _InitSysCtrl              
 0     0013a56e  _Init_ELP_Error           
 0     0013a548  _Init_ELP_IIR_2P2Z        
@@ -880,7 +882,7 @@ page  address   name
 0     0013a464  _Init_ELP_NF_IIR          
 0     0013a425  _Init_ELP_PI_dawu         
 0     0013a412  _Init_ELP_SRLim           
-0     0013a935  _Init_ELP_SigGen          
+0     0013aa25  _Init_ELP_SigGen          
 0     0013a140  _LUF_ISR                  
 0     0013a136  _LVF_ISR                  
 0     0013a823  _LockDevice               
@@ -905,28 +907,28 @@ page  address   name
 1     00004a00  _RAMErrRegs               
 1     00004900  _RAMRegs                  
 0     0013a0dc  _RTOSINT_ISR              
-0     0013844b  _RamfuncsLoadEnd          
-abs   0000044b  _RamfuncsLoadSize         
+0     001384bb  _RamfuncsLoadEnd          
+abs   000004bb  _RamfuncsLoadSize         
 0     00138000  _RamfuncsLoadStart        
-0     0000844b  _RamfuncsRunEnd           
-abs   0000044b  _RamfuncsRunSize          
+0     000084bb  _RamfuncsRunEnd           
+abs   000004bb  _RamfuncsRunSize          
 0     00008000  _RamfuncsRunStart         
-0     0013ae06  _ResetBuffer              
+0     0013ae64  _ResetBuffer              
 0     0013a40d  _Reset_ELP_Error          
 0     0013a3fd  _Reset_ELP_IIR_2P2Z       
 0     0013a3e9  _Reset_ELP_IIR_3P3Z       
 0     0013a3e0  _Reset_ELP_LPF            
 0     0013a3d0  _Reset_ELP_PI_dawu        
 0     0013a3cb  _Reset_ELP_SRLim          
-0     0013a929  _Reset_ELP_SigGen         
-0     0013af16  _Reset_TimeSlicers        
+0     0013aa19  _Reset_ELP_SigGen         
+0     0013af74  _Reset_TimeSlicers        
 0     0013a3bf  _Run_ELP_Error            
 0     0013a35f  _Run_ELP_IIR_3P3Z         
-0     00008201  _Run_ELP_SigGen_DampedSine
-0     000081fb  _Run_ELP_SigGen_FreqSweep 
-0     000081a8  _Run_ELP_SigGen_Sine      
-0     000081a0  _Run_ELP_SigGen_Square    
-0     0000819a  _Run_ELP_SigGen_Triangle  
+0     00008329  _Run_ELP_SigGen_DampedSine
+0     00008323  _Run_ELP_SigGen_FreqSweep 
+0     000082d0  _Run_ELP_SigGen_Sine      
+0     000082c8  _Run_ELP_SigGen_Square    
+0     000082c2  _Run_ELP_SigGen_Triangle  
 0     0013a0d2  _SCIRXINTA_ISR            
 0     0013a0c8  _SCITXINTA_ISR            
 0     0013a6e3  _SFO                      
@@ -935,11 +937,11 @@ abs   0000044b  _RamfuncsRunSize
 0     0013a0be  _SPIRXINTA_ISR            
 0     0013a0b4  _SPITXINTA_ISR            
 1     00007050  _SciaRegs                 
-0     000083fc  _SendIpcFlag              
-0     0013af0c  _Set_TimeSlicer           
-0     00008319  _SetupFlash               
+0     0000846c  _SendIpcFlag              
+0     0013af6a  _Set_TimeSlicer           
+0     00008389  _SetupFlash               
 1     0000a05e  _SignalGenerator          
-0     0013ae01  _SizeBuffer               
+0     0013ae5f  _SizeBuffer               
 1     00007040  _SpiaRegs                 
 1     00007010  _SysCtrlRegs              
 0     0013a0aa  _TINT0_ISR                
@@ -956,9 +958,9 @@ abs   0000044b  _RamfuncsRunSize
 0     0013a046  _USER7_ISR                
 0     0013a03c  _USER8_ISR                
 0     0013a032  _USER9_ISR                
-0     00008186  _Update_ELP_SigGen        
+0     000082ae  _Update_ELP_SigGen        
 0     0013a028  _WAKEINT_ISR              
-0     0013adf0  _WriteBuffer              
+0     0013ae4e  _WriteBuffer              
 0     0013a01e  _XINT1_ISR                
 0     0013a014  _XINT2_ISR                
 0     0013a00a  _XINT3_ISR                
@@ -970,55 +972,55 @@ abs   00000300  __STACK_SIZE
 abs   ffffffff  ___binit__                
 abs   ffffffff  ___c_args__               
 0     0013e100  ___cinit__                
-0     0013af45  ___etext__                
+0     0013afa3  ___etext__                
 abs   ffffffff  ___pinit__                
 0     0013a000  ___text__                 
-0     0013aec1  __args_main               
+0     0013af1f  __args_main               
 1     0000a03e  __lock                    
-0     0013af44  __nop                     
-0     0013af40  __register_lock           
-0     0013af3c  __register_unlock         
+0     0013afa2  __nop                     
+0     0013af9e  __register_lock           
+0     0013af9a  __register_unlock         
 1     00000080  __stack                   
-1     0000a0b4  __unlock                  
+1     0000a0b8  __unlock                  
 1     0000a044  _a_coeff_IIR_Vdc_ctrl     
 1     0000a048  _a_coeff_LPF_Iin          
 1     0000a040  _a_coeff_NF_Vdc           
-0     0013aeda  _abort                    
+0     0013af38  _abort                    
 1     0000a052  _b_coeff_IIR_Vdc_ctrl     
 1     0000a04c  _b_coeff_LPF_Iin          
 1     0000a058  _b_coeff_NF_Vdc           
 1     0000e218  _buffers_HRADC            
-0     0013adaa  _c_int00                  
-0     0013ac95  _cos                      
+0     0013ae08  _c_int00                  
+0     0013acf3  _cos                      
 1     0000a03a  _counterErrorSendCommand  
 1     0000a0a6  _dummy_data               
 1     0000a002  _ePWM                     
-0     0013af30  _epilog_c28x_1            
-0     0013af34  _epilog_c28x_2            
+0     0013af8e  _epilog_c28x_1            
+0     0013af92  _epilog_c28x_2            
 1     0000a0a3  _errno                    
-0     0013aedc  _exit                     
-0     0013ac2d  _exp                      
+0     0013af3a  _exit                     
+0     0013ac8b  _exp                      
 1     0000a0a4  _i_rdata                  
 0     00008054  _isr_IPC_Channel_1        
 0     00008000  _isr_IPC_Channel_2        
-0     0013ae27  _ldexp                    
-0     0013abef  _local_D_INTCH1_ISR       
-0     0013abb1  _local_D_INTCH2_ISR       
-0     0013aea6  _main                     
-0     0013aa99  _main_FAP_ACDC            
-0     0013ae88  _memcpy                   
-0     0013aef3  _prolog_c28x_1            
-0     0013aef7  _prolog_c28x_2            
-0     0013aeff  _prolog_c28x_3            
+0     0013ae85  _ldexp                    
+0     0013ac4d  _local_D_INTCH1_ISR       
+0     0013ac0f  _local_D_INTCH2_ISR       
+0     0013af04  _main                     
+0     0013a9b4  _main_FAP_ACDC            
+0     0013aee6  _memcpy                   
+0     0013af51  _prolog_c28x_1            
+0     0013af55  _prolog_c28x_2            
+0     0013af5d  _prolog_c28x_3            
 0     0013a000  _rsvd_ISR                 
 1     00010000  _samplesBuffer            
-0     0013ad52  _sin                      
+0     0013adb0  _sin                      
 1     00012000  _wfmRef_Curve             
 1     0000a0ac  _wfmSyncFlag              
 abs   ffffffff  binit                     
 0     0013e100  cinit                     
 0     0013fff0  code_start                
-0     0013af45  etext                     
+0     0013afa3  etext                     
 abs   ffffffff  pinit                     
 
 
@@ -1029,35 +1031,35 @@ page  address   name
 0     00008000  _RamfuncsRunStart         
 0     00008000  _isr_IPC_Channel_2        
 0     00008054  _isr_IPC_Channel_1        
-0     00008186  _Update_ELP_SigGen        
-0     0000819a  _Run_ELP_SigGen_Triangle  
-0     000081a0  _Run_ELP_SigGen_Square    
-0     000081a6  _Disable_ELP_SigGen       
-0     000081a8  _Run_ELP_SigGen_Sine      
-0     000081fb  _Run_ELP_SigGen_FreqSweep 
-0     00008201  _Run_ELP_SigGen_DampedSine
-0     00008253  _Enable_ELP_SigGen        
-0     00008319  _SetupFlash               
-0     00008348  _InitFlash                
-0     00008374  _FlashLeavePump           
-0     0000837f  _FlashGainPump            
-0     000083fc  _SendIpcFlag              
-0     00008401  _ConfigPSOpMode           
-0     00008447  _DSP28x_usDelay           
-0     0000844b  _DCL_runDF13              
-0     0000844b  _RamfuncsRunEnd           
-0     00008499  _DCL_runDF13i             
-0     000084a6  _DCL_runDF13p             
-0     000084fa  _DCL_runDF23              
-0     00008546  _DCL_runDF23i             
-0     00008555  _DCL_runDF23p             
-0     00008597  _DCL_runDF22              
-0     000085d2  _DCL_runDF22i             
-0     000085e1  _DCL_runDF22p             
-0     00008610  _DCL_runPID               
-0     00008677  _DCL_runPI                
+0     000082ae  _Update_ELP_SigGen        
+0     000082c2  _Run_ELP_SigGen_Triangle  
+0     000082c8  _Run_ELP_SigGen_Square    
+0     000082ce  _Disable_ELP_SigGen       
+0     000082d0  _Run_ELP_SigGen_Sine      
+0     00008323  _Run_ELP_SigGen_FreqSweep 
+0     00008329  _Run_ELP_SigGen_DampedSine
+0     0000837b  _Enable_ELP_SigGen        
+0     00008389  _SetupFlash               
+0     000083b8  _InitFlash                
+0     000083e4  _FlashLeavePump           
+0     000083ef  _FlashGainPump            
+0     0000846c  _SendIpcFlag              
+0     00008471  _ConfigPSOpMode           
+0     000084b7  _DSP28x_usDelay           
+0     000084bb  _DCL_runDF13              
+0     000084bb  _RamfuncsRunEnd           
+0     00008509  _DCL_runDF13i             
+0     00008516  _DCL_runDF13p             
+0     0000856a  _DCL_runDF23              
+0     000085b6  _DCL_runDF23i             
+0     000085c5  _DCL_runDF23p             
+0     00008607  _DCL_runDF22              
+0     00008642  _DCL_runDF22i             
+0     00008651  _DCL_runDF22p             
+0     00008680  _DCL_runPID               
+0     000086e7  _DCL_runPI                
 0     00138000  _RamfuncsLoadStart        
-0     0013844b  _RamfuncsLoadEnd          
+0     001384bb  _RamfuncsLoadEnd          
 0     0013a000  .text                     
 0     0013a000  ___text__                 
 0     0013a000  _rsvd_ISR                 
@@ -1174,46 +1176,46 @@ page  address   name
 0     0013a8f0  _ECSLSecurityStatus       
 0     0013a8fc  _CsmUnlock                
 0     0013a91d  _CSMSecurityStatus        
-0     0013a929  _Reset_ELP_SigGen         
-0     0013a935  _Init_ELP_SigGen          
-0     0013aa99  _main_FAP_ACDC            
-0     0013aaa0  _InitIPC                  
-0     0013ab29  FS$$DIV                   
-0     0013abb1  _local_D_INTCH2_ISR       
-0     0013abef  _local_D_INTCH1_ISR       
-0     0013ac2d  _exp                      
-0     0013ac95  _cos                      
-0     0013acf6  _InitCpuTimers            
-0     0013ad31  _ConfigCpuTimer           
-0     0013ad52  _sin                      
-0     0013adaa  _c_int00                  
-0     0013adf0  _WriteBuffer              
-0     0013ae01  _SizeBuffer               
-0     0013ae06  _ResetBuffer              
-0     0013ae17  _InitBuffer               
-0     0013ae22  _IndexBuffer              
-0     0013ae27  _ldexp                    
-0     0013ae5b  _InitPieCtrl              
-0     0013ae7f  _EnableInterrupts         
-0     0013ae88  _memcpy                   
-0     0013aea6  _main                     
-0     0013aec1  __args_main               
-0     0013aeda  C$$EXIT                   
-0     0013aeda  _abort                    
-0     0013aedc  _exit                     
-0     0013aef3  _prolog_c28x_1            
-0     0013aef7  _prolog_c28x_2            
-0     0013aeff  _prolog_c28x_3            
-0     0013af0c  _Set_TimeSlicer           
-0     0013af16  _Reset_TimeSlicers        
-0     0013af1f  _InitPieVectTable         
-0     0013af30  _epilog_c28x_1            
-0     0013af34  _epilog_c28x_2            
-0     0013af3c  __register_unlock         
-0     0013af40  __register_lock           
-0     0013af44  __nop                     
-0     0013af45  ___etext__                
-0     0013af45  etext                     
+0     0013a9b4  _main_FAP_ACDC            
+0     0013aa19  _Reset_ELP_SigGen         
+0     0013aa25  _Init_ELP_SigGen          
+0     0013aafe  _InitIPC                  
+0     0013ab87  FS$$DIV                   
+0     0013ac0f  _local_D_INTCH2_ISR       
+0     0013ac4d  _local_D_INTCH1_ISR       
+0     0013ac8b  _exp                      
+0     0013acf3  _cos                      
+0     0013ad54  _InitCpuTimers            
+0     0013ad8f  _ConfigCpuTimer           
+0     0013adb0  _sin                      
+0     0013ae08  _c_int00                  
+0     0013ae4e  _WriteBuffer              
+0     0013ae5f  _SizeBuffer               
+0     0013ae64  _ResetBuffer              
+0     0013ae75  _InitBuffer               
+0     0013ae80  _IndexBuffer              
+0     0013ae85  _ldexp                    
+0     0013aeb9  _InitPieCtrl              
+0     0013aedd  _EnableInterrupts         
+0     0013aee6  _memcpy                   
+0     0013af04  _main                     
+0     0013af1f  __args_main               
+0     0013af38  C$$EXIT                   
+0     0013af38  _abort                    
+0     0013af3a  _exit                     
+0     0013af51  _prolog_c28x_1            
+0     0013af55  _prolog_c28x_2            
+0     0013af5d  _prolog_c28x_3            
+0     0013af6a  _Set_TimeSlicer           
+0     0013af74  _Reset_TimeSlicers        
+0     0013af7d  _InitPieVectTable         
+0     0013af8e  _epilog_c28x_1            
+0     0013af92  _epilog_c28x_2            
+0     0013af9a  __register_unlock         
+0     0013af9e  __register_lock           
+0     0013afa2  __nop                     
+0     0013afa3  ___etext__                
+0     0013afa3  etext                     
 0     0013e000  _PieVectTableInit         
 0     0013e100  ___cinit__                
 0     0013e100  cinit                     
@@ -1311,7 +1313,7 @@ page  address   name
 1     0000a0a8  _DMATransferSize          
 1     0000a0ac  _wfmSyncFlag              
 1     0000a0b0  _IPC_PS_funcs             
-1     0000a0b4  __unlock                  
+1     0000a0b8  __unlock                  
 1     0000c000  _DP_Framework_MtoC        
 1     0000d000  _DP_Framework             
 1     0000e000  _HRADCs_Info              
@@ -1329,8 +1331,8 @@ page  address   name
 1     0013fff4  _EcslPwl                  
 1     0013fff8  _CsmPwl                   
 abs   00000300  __STACK_SIZE              
-abs   0000044b  _RamfuncsLoadSize         
-abs   0000044b  _RamfuncsRunSize          
+abs   000004bb  _RamfuncsLoadSize         
+abs   000004bb  _RamfuncsRunSize          
 abs   ffffffff  ___binit__                
 abs   ffffffff  ___c_args__               
 abs   ffffffff  ___pinit__                
