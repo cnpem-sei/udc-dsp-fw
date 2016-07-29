@@ -13,8 +13,8 @@
  *		TODO:
  */
 
-//#include "Test_HRADC.h"
 #include "F28M36x_ELP_DRS.h"
+#include "Test_HRADC.h"
 
 #define BUFFER_SIZE 2048
 
@@ -25,8 +25,6 @@
 #pragma CODE_SECTION(isr_ePWM_CTR_ZERO, "ramfuncs");
 #pragma CODE_SECTION(isr_ePWM_CTR_ZERO_1st, "ramfuncs");
 #pragma CODE_SECTION(isr_DMA_CH2, "ramfuncs");
-#pragma CODE_SECTION(isr_SoftInterlock, "ramfuncs");
-#pragma CODE_SECTION(isr_HardInterlock, "ramfuncs");
 
 static interrupt void isr_ePWM_CTR_ZERO(void);
 static interrupt void isr_ePWM_CTR_ZERO_1st(void);
@@ -42,16 +40,13 @@ static void InitInterruptions(void);
 static void PS_turnOn(void);
 static void PS_turnOff(void);
 
-
-
 volatile Uint16 SamplingEnable;
 volatile Uint16 SendCommand;
 volatile Uint16 ID;
 volatile Uint16 enableHeater;
 volatile Uint16 enableRailsMonitor;
 
-static Uint32 valorCounter;
-
+volatile Uint32 valorCounter;
 volatile enum_AN_INPUT AnalogInput;
 
 volatile float HRADC0;
@@ -127,10 +122,10 @@ static void InitPeripheralsDrivers(void)
     HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
     HRADCs_Info.HRADC_boards[3] = &HRADC3_board;
 
-    Init_HRADC_Info2(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
-    Init_HRADC_Info2(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, &buffers_HRADC.buffer_1[0], TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
-    Init_HRADC_Info2(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, &buffers_HRADC.buffer_2[0], TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
-    Init_HRADC_Info2(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, &buffers_HRADC.buffer_3[0], TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
+    Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
+    Init_HRADC_Info(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, &buffers_HRADC.buffer_1[0], TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
+    Init_HRADC_Info(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, &buffers_HRADC.buffer_2[0], TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
+    Init_HRADC_Info(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, &buffers_HRADC.buffer_3[0], TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
 
     Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
     //Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
@@ -204,7 +199,7 @@ static void InitInterruptions(void)
 //*****************************************************************************
 // Esvazia buffer FIFO com valores amostrados e recebidos via SPI
 //*****************************************************************************
-__interrupt void isr_ePWM_CTR_ZERO(void)
+static interrupt void isr_ePWM_CTR_ZERO(void)
 {
 	static Uint16 i;
 	static float temp0, temp1, temp2, temp3;
@@ -272,7 +267,7 @@ __interrupt void isr_ePWM_CTR_ZERO(void)
 	PieCtrlRegs.PIEACK.all |= M_INT3;
 }
 
-static __interrupt void isr_ePWM_CTR_ZERO_1st(void)
+static interrupt void isr_ePWM_CTR_ZERO_1st(void)
 {
 	// Contador auxiliar
 	static Uint16 i;

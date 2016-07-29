@@ -42,6 +42,7 @@
 
 #define DECIMATION_FACTOR		4
 #define TRANSFER_BUFFER_SIZE	DECIMATION_FACTOR
+#define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
 
 #define TRANSDUCER_0_INPUT_RATED		110.0				// Divisor de Tensão + Isolador Verivolt IsoBlock V-4:
 #define TRANSDUCER_0_OUTPUT_RATED		10.0				//   In_rated 	= +/- 110 V

@@ -14,8 +14,8 @@
  *				- Get
  */
 
-//#include "FAC_DCDC_20kHz.h"
 #include "F28M36x_ELP_DRS.h"
+#include "FAC_DCDC_20kHz.h"
 
 /*
  * DP modules mnemonics
@@ -128,7 +128,7 @@ static void InitPeripheralsDrivers(void)
 	InitMcbspa20bit();
 
 	HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN);
+	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);

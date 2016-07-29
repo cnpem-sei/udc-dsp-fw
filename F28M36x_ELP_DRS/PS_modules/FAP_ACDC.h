@@ -31,13 +31,10 @@
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
+
 #define DECIMATION_FACTOR		5
 #define TRANSFER_BUFFER_SIZE	DECIMATION_FACTOR
-
-#define PWM_DAC_FREQ			(100.0*CONTROL_FREQ)
-#define PWM_DAC_MODULE			&EPwm4Regs
-
-#define	BUFFER_DECIMATION		1
+#define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
 
 #define TRANSDUCER_0_INPUT_RATED	250.0			// DCCT Holec Zero-Flux C.T. 300:
 #define TRANSDUCER_0_OUTPUT_RATED	10.0			//   In_rated 	= +/- 250 A
@@ -48,6 +45,11 @@
 #define HRADC_R_BURDEN				1.0				// Resistor Burden = 1 R
 #define HRADC_VIN_BI_P_GAIN			(20.0/262144.0)
 #define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))
+
+#define PWM_DAC_FREQ			(100.0*CONTROL_FREQ)
+#define PWM_DAC_MODULE			&EPwm4Regs
+
+#define	BUFFER_DECIMATION		1
 
 extern void main_FAP_ACDC(void);
 

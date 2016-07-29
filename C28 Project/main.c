@@ -16,6 +16,16 @@
 #include <string.h>
 #include "F28M36x_ELP_DRS.h"
 
+extern void main_FBP_100kHz(void);
+extern void main_FAC_ACDC_10kHz(void);
+extern void main_FAC_DCDC_20kHz(void);
+extern void main_FAC_Full_ACDC_10kHz(void);
+extern void main_FAC_Full_DCDC_20kHz(void);
+extern void main_FAP_ACDC(void);
+extern void main_FAP_DCDC_20kHz(void);
+extern void main_Test_HRPWM(void);
+extern void main_Test_HRADC(void);
+
 void main(void)
 {
 	// Initialize the Control System:
@@ -73,7 +83,7 @@ void main(void)
 
 			case FBP_Parallel_100kHz:
 			{
-				main_FBP_Parallel_100kHz();
+				//main_FBP_Parallel_100kHz();
 				break;
 			}
 

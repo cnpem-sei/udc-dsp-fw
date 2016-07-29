@@ -11,8 +11,8 @@
  *		TODO:
  */
 
-//#include "Test_HRPWM.h"
 #include "F28M36x_ELP_DRS.h"
+#include "Test_HRPWM.h"
 
 #define BUFFER_SIZE 2048
 

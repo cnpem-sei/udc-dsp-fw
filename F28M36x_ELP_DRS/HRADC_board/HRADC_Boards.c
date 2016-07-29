@@ -20,8 +20,7 @@
 //
 // 	Prototype statements for functions found within this file
 //
-void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain);
-void Init_HRADC_Info2(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden);
+void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden);
 void Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails);
 void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command);
 void Config_HRADC_SoC(float freq);
@@ -50,47 +49,13 @@ volatile HRADC_struct  HRADC3_board;
 
 volatile Uint32 counterErrorSendCommand;
 volatile float AverageFilter;
+
 /**********************************************************************************************/
 //
 //	Initialize information of selected HRADC board
 //
-void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain)
-{
-	hradcPtr->ID = ID;
-	hradcPtr->index_SamplesBuffer = 0;
-	hradcPtr->size_SamplesBuffer = buffer_size;
-	hradcPtr->SamplesBuffer = buffer;
 
-	hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
-	hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
-
-	hradcPtr->CalibrationInfo.gain_Vin_bipolar = 		transducer_gain * HRADC_VIN_BI_P_GAIN;
-	hradcPtr->CalibrationInfo.offset_Vin_bipolar = 		HRADC_BI_OFFSET;
-
-	hradcPtr->CalibrationInfo.gain_Vin_unipolar_p = 	0.0;
-	hradcPtr->CalibrationInfo.offset_Vin_unipolar_p =	0.0;
-
-	hradcPtr->CalibrationInfo.gain_Vin_unipolar_n =		0.0;
-	hradcPtr->CalibrationInfo.offset_Vin_unipolar_n =	0.0;
-
-	hradcPtr->CalibrationInfo.gain_Iin_bipolar = 		transducer_gain * HRADC_IIN_BI_P_GAIN;
-	hradcPtr->CalibrationInfo.offset_Iin_bipolar =		HRADC_BI_OFFSET;
-
-	hradcPtr->CalibrationInfo.gain_Iin_unipolar_p = 	0.0;
-	hradcPtr->CalibrationInfo.offset_Iin_unipolar_p =	0.0;
-
-	hradcPtr->CalibrationInfo.gain_Iin_unipolar_n = 	0.0;
-	hradcPtr->CalibrationInfo.offset_Iin_unipolar_n =	0.0;
-
-	while(hradcPtr->SamplesBuffer < &buffer[buffer_size])
-	{
-		*(hradcPtr->SamplesBuffer++) = 0.0;
-	}
-
-	hradcPtr->SamplesBuffer = buffer;
-}
-
-void Init_HRADC_Info2(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden)
+void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden)
 {
 	hradcPtr->ID = ID;
 	hradcPtr->index_SamplesBuffer = 0;

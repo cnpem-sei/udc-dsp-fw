@@ -2,7 +2,6 @@
 
 F28M36x_ELP_DRS/PS_modules/PS_modules.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/PS_modules.c
 F28M36x_ELP_DRS/PS_modules/PS_modules.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/PS_modules.h
-F28M36x_ELP_DRS/PS_modules/PS_modules.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAP_ACDC.h
 F28M36x_ELP_DRS/PS_modules/PS_modules.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.h
 F28M36x_ELP_DRS/PS_modules/PS_modules.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/include/math.h
 F28M36x_ELP_DRS/PS_modules/PS_modules.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/include/linkage.h
@@ -58,7 +57,6 @@ F28M36x_ELP_DRS/PS_modules/PS_modules.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/I
 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/PS_modules.c: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/PS_modules.h: 
-D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAP_ACDC.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.h: 
 C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/include/math.h: 
 C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/include/linkage.h: 

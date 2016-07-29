@@ -30,6 +30,7 @@
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
 #define DECIMATION_FACTOR		5
 #define TRANSFER_BUFFER_SIZE	DECIMATION_FACTOR
+#define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
 
 #define PWM_DAC_FREQ			(200.0*CONTROL_FREQ)
 #define PWM_DAC_MODULE			&EPwm4Regs
@@ -40,6 +41,7 @@
 #define TRANSDUCER_0_OUTPUT_RATED		0.05			//   In_rated 	= +/- 12.5 A
 #define TRANSDUCER_0_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
 #define TRANSDUCER_0_GAIN				-(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
+#define HRADC_0_R_BURDEN				20.0			// Resistor Burden = 20 R
 
 #define HRADC_R_BURDEN					20.0			// Resistor Burden = 1 R
 #define HRADC_VIN_BI_P_GAIN				(20.0/262144.0)

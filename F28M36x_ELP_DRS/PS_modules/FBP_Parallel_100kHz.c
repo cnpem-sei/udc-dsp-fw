@@ -12,8 +12,8 @@
  *		TODO:
  */
 
-//#include "FAC_Full_DCDC_20kHz.h"
 #include "F28M36x_ELP_DRS.h"
+#include "FBP_Parallel_100kHz.h"
 
 /*
  * DP modules mnemonics
@@ -51,17 +51,23 @@
 #pragma CODE_SECTION(isr_ePWM_CTR_ZERO_1st, "ramfuncs");
 #pragma CODE_SECTION(PS_turnOn, "ramfuncs");
 #pragma CODE_SECTION(PS_turnOff, "ramfuncs");
+#pragma CODE_SECTION(Set_SoftInterlock, "ramfuncs");
+#pragma CODE_SECTION(Set_HardInterlock, "ramfuncs");
+#pragma CODE_SECTION(isr_SoftInterlock, "ramfuncs");
 #pragma CODE_SECTION(isr_HardInterlock, "ramfuncs");
 
-static __interrupt void isr_ePWM_CTR_ZERO(void);
-static __interrupt void isr_ePWM_CTR_ZERO_1st(void);
+static interrupt void isr_ePWM_CTR_ZERO(void);
+static interrupt void isr_ePWM_CTR_ZERO_1st(void);
 
 void main_FBP_Parallel_100kHz(void);
 
 static void PS_turnOn(void);
 static void PS_turnOff(void);
 
-static void isr_HardInterlock(Uint32 itlk);
+static void Set_SoftInterlock(Uint32 itlk);
+static void Set_HardInterlock(Uint32 itlk);
+static interrupt void isr_SoftInterlock(void);
+static interrupt void isr_HardInterlock(void);
 
 static void InitPeripheralsDrivers(void);
 static void InitControllers(void);
@@ -112,7 +118,7 @@ static void InitPeripheralsDrivers(void)
 	InitMcbspa20bit();
 
 	HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN);
+	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
@@ -175,7 +181,7 @@ static void InitPeripheralsDrivers(void)
 static void InitControllers(void)
 {
 	/* Initialization of IPC module */
-	InitIPC(&PS_turnOn, &PS_turnOff);
+	InitIPC(&PS_turnOn, &PS_turnOff, &isr_SoftInterlock, &isr_HardInterlock);
 
 	/* Initiaization of DP Framework */
 	InitDP_Framework(&DP_Framework, &(IPC_CtoM_Msg.PSModule.IRef));
@@ -371,7 +377,7 @@ __interrupt void isr_ePWM_CTR_ZERO(void)
 	{
 		if(CHECK_INTERLOCK(LOAD_OVERCURRENT))
 		{
-			isr_HardInterlock(LOAD_OVERCURRENT);
+			Set_HardInterlock(LOAD_OVERCURRENT);
 		}
 	}
 
@@ -494,11 +500,40 @@ static __interrupt void isr_ePWM_CTR_ZERO_1st(void)
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
 
-static void isr_HardInterlock(Uint32 itlk)
+static void Set_SoftInterlock(Uint32 itlk)
+{
+	PS_turnOff();
+	IPC_CtoM_Msg.PSModule.SoftInterlocks |= itlk;
+	//SendIpcFlag(SOFT_INTERLOCK_CTOM);
+}
+
+static void Set_HardInterlock(Uint32 itlk)
 {
 	PS_turnOff();
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= itlk;
 	SendIpcFlag(HARD_INTERLOCK_CTOM);
+}
+
+static interrupt void isr_SoftInterlock(void)
+{
+	CtoMIpcRegs.MTOCIPCACK.all = SOFT_INTERLOCK_MTOC;
+
+	PS_turnOff();
+	IPC_CtoM_Msg.PSModule.SoftInterlocks |= EXTERNAL_INTERLOCK;
+	//SendIpcFlag(SOFT_INTERLOCK_CTOM);
+
+	PieCtrlRegs.PIEACK.all |= M_INT11;
+}
+
+static interrupt void isr_HardInterlock(void)
+{
+	CtoMIpcRegs.MTOCIPCACK.all = HARD_INTERLOCK_MTOC;
+
+	PS_turnOff();
+	IPC_CtoM_Msg.PSModule.HardInterlocks |= EXTERNAL_INTERLOCK;
+	//SendIpcFlag(HARD_INTERLOCK_CTOM);
+
+	PieCtrlRegs.PIEACK.all |= M_INT11;
 }
 
 static void PS_turnOn(void)

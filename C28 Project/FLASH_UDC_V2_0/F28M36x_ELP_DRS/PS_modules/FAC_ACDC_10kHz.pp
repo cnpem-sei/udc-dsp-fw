@@ -39,7 +39,6 @@ F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_commo
 F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_set_pinout.h
 F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_DefaultISR.h
 F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/PS_modules.h
-F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.h
 F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.h
 F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/HRADC_board/HRADC_boards.h
 F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/HRADC_board/DMA_SPI_Interface.h
@@ -54,6 +53,7 @@ F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: C:/ti/ccsv6/tools/compiler/ti-cgt
 F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/DP_framework/TimeSlicer/TimeSlicer.h
 F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/DP_framework/DP_framework.h
 F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/IPC_modules/IPC_modules.h
+F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj: D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.h
 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.c: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.h: 
@@ -94,7 +94,6 @@ D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_AnalogSysCtrl_defines.h:
 D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_set_pinout.h: 
 D:/ARQ/Projects/C28/F28M36x_common/include/F28M36x_DefaultISR.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/PS_modules.h: 
-D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/HRADC_board/HRADC_boards.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/HRADC_board/DMA_SPI_Interface.h: 
@@ -109,3 +108,4 @@ C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/include/math.h:
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/DP_framework/TimeSlicer/TimeSlicer.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/DP_framework/DP_framework.h: 
 D:/ARQ/Projects/C28/F28M36x_ELP_DRS/IPC_modules/IPC_modules.h: 
+D:/ARQ/Projects/C28/F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.h: 

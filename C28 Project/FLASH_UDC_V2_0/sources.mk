@@ -117,7 +117,6 @@ F28M36x_ELP_DRS/IPC_modules \
 F28M36x_ELP_DRS/HRADC_board \
 F28M36x_ELP_DRS \
 F28M36x_ELP_DRS/DP_framework/TimeSlicer \
-F28M36x_ELP_DRS/DP_framework/TI_DCL \
 F28M36x_ELP_DRS/DP_framework/SigGen \
 F28M36x_ELP_DRS/DP_framework/ELP_DCL \
 F28M36x_ELP_DRS/DP_framework \

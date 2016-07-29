@@ -18,8 +18,8 @@
  *		TODO:
  */
 
-//#include "FBP_100kHz.h"
 #include "F28M36x_ELP_DRS.h"
+#include "FBP_100kHz.h"
 
 /*
  * DP modules mnemonics
@@ -69,9 +69,13 @@ static interrupt void isr_SoftInterlock(void);
 static interrupt void isr_HardInterlock(void);
 
 static void InitPeripheralsDrivers(void);
+static void TerminatePeripheralsDrivers(void);
+
 static void InitControllers(void);
 static void ResetControllers(void);
+
 static void InitInterruptions(void);
+static void TerminateInterruptions(void);
 
 volatile static Uint32 valorCounter;
 
@@ -89,10 +93,18 @@ void main_FBP_100kHz(void)
 	start_DMA();
 	EnablePWM_TBCLK();
 
+	//while(IPC_MtoC_Msg.PSModule.Model == FBP_100kHz)
 	while(1)
 	{
 		TunningPWM_MEP_SFO();
 	}
+
+	DisablePWM_TBCLK();
+	stop_DMA();
+
+	TerminateInterruptions();
+	ResetControllers();
+	TerminatePeripheralsDrivers();
 }
 
 /*
@@ -117,7 +129,7 @@ static void InitPeripheralsDrivers(void)
     InitMcbspa20bit();
 
     HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
-    Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN);
+    Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
     Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
@@ -169,6 +181,11 @@ static void InitPeripheralsDrivers(void)
     InitCpuTimers();
 	ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
 	CpuTimer0Regs.TCR.bit.TIE = 0;
+}
+
+static void TerminatePeripheralsDrivers(void)
+{
+
 }
 
 static void InitControllers(void)
@@ -316,6 +333,26 @@ static void InitInterruptions(void)
 	ERTM;
 }
 
+static void TerminateInterruptions(void)
+{
+	/* Disable global interrupts (EINT) */
+	DINT;
+	DRTM;
+
+	/* Clear enables */
+	IER = 0;
+
+	PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  // ePWM1
+	PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  // ePWM2
+
+	DisablePWMInterrupt(PWM_Modules.PWM_Regs[0]);
+	DisablePWMInterrupt(PWM_Modules.PWM_Regs[1]);
+
+	/* Clear flags */
+	PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
+}
+
+
 //*****************************************************************************
 // Esvazia buffer FIFO com valores amostrados e recebidos via SPI
 //*****************************************************************************
@@ -332,7 +369,7 @@ __interrupt void isr_ePWM_CTR_ZERO(void)
 
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
 
-	for(i = 0; i < DMA_TRANSFER_SIZE; i++)
+	for(i = 0; i < DECIMATION_FACTOR; i++)
 	{
 		temp0 += (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer++);
 	}
@@ -488,6 +525,7 @@ static interrupt void isr_HardInterlock(void)
 
 	PieCtrlRegs.PIEACK.all |= M_INT11;
 }
+
 static void PS_turnOn(void)
 {
 	if(!IPC_CtoM_Msg.PSModule.HardInterlocks)

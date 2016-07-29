@@ -21,10 +21,9 @@
 #define HEATER_ENABLE 		1
 #define RAILS_DISABLE 		0
 #define RAILS_ENABLE 		1
-#define HRADC_FREQ_SAMP		(float) CONTROL_FREQ*DECIMATION_FACTOR
-#define HRADC_BUFFER_SIZE	DECIMATION_FACTOR
 
 #define HRADC_BI_OFFSET			131072.0
+#define HRADC_VIN_BI_P_GAIN		(20.0/262144.0)
 
 /**********************************************************************************************/
 //
@@ -133,8 +132,7 @@ extern volatile HRADC_struct  HRADC3_board;
 extern volatile Uint32 counterErrorSendCommand;
 extern volatile float AverageFilter;
 
-extern void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain);
-extern void Init_HRADC_Info2(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden);
+extern void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden);
 extern void Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails);
 
 extern void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command);

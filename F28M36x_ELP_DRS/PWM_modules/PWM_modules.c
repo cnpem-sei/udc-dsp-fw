@@ -442,6 +442,7 @@ void DisablePWMInterrupt(volatile struct EPWM_REGS *pwmPtr)
 {
 	EALLOW;
 	pwmPtr->ETSEL.bit.INTEN = 0;
+	pwmPtr->ETCLR.bit.INT = 1;
 	EDIS;
 }
 

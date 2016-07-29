@@ -14,7 +14,7 @@
  */
 
 #include "F28M36x_ELP_DRS.h"
-
+#include "FAP_ACDC.h"
 
 /*
  * Digital IO's defines
@@ -55,9 +55,13 @@ static interrupt void isr_SoftInterlock(void);
 static interrupt void isr_HardInterlock(void);
 
 static void InitPeripheralsDrivers(void);
+static void TerminatePeripheralsDrivers(void);
+
 static void InitControllers(void);
 static void ResetControllers(void);
+
 static void InitInterruptions(void);
+static void TerminateInterruptions(void);
 
 volatile static Uint32 valorCounter;
 static Uint16 pinStatus_ACContactor, pinStatus_BypassPrecharger1, pinStatus_BypassPrecharger2;
@@ -70,6 +74,7 @@ void main_FAP_ACDC(void)
 
 	InitInterruptions();
 
+	//while(IPC_MtoC_Msg.PSModule.Model == FAP_ACDC)
 	while(1)
 	{
 		if(IPC_CtoM_Msg.PSModule.OnOff)
@@ -113,6 +118,10 @@ void main_FAP_ACDC(void)
 			Set_HardInterlock(OVERVOLTAGE_V_OUT_MOD2);
 		}
 	}
+
+	TerminateInterruptions();
+	ResetControllers();
+	TerminatePeripheralsDrivers();
 }
 
 /*
@@ -126,6 +135,19 @@ void main_FAP_ACDC(void)
 
 static void InitPeripheralsDrivers(void)
 {
+	PWM_Modules.N_modules = 1;
+	PWM_Modules.PWM_Regs[0] = &EPwm1Regs;
+
+	DisablePWMOutputs();
+	DisablePWM_TBCLK();
+	InitPWM_MEP_SFO();
+
+	InitPWMModule(PWM_Modules.PWM_Regs[0], PWM_FREQ, 0, MasterPWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
+
+	InitPWMDAC(PWM_DAC_MODULE, PWM_DAC_FREQ);
+
+	InitEPwm1Gpio();
+
 	/* Initialization of GPIOs */
 
 	EALLOW;
@@ -159,6 +181,10 @@ static void InitPeripheralsDrivers(void)
 	CpuTimer0Regs.TCR.bit.TIE = 0;
 	CpuTimer1Regs.TCR.bit.TIE = 0;
 	CpuTimer2Regs.TCR.bit.TIE = 0;
+}
+
+static void TerminatePeripheralsDrivers(void)
+{
 }
 
 static void InitControllers(void)
@@ -200,6 +226,19 @@ static void InitInterruptions(void)
 	/* Enable global interrupts (EINT) */
 	EINT;
 	ERTM;
+}
+
+static void TerminateInterruptions(void)
+{
+	/* Disable global interrupts (EINT) */
+	DINT;
+	DRTM;
+
+	/* Clear enables */
+	IER = 0;
+
+	/* Clear flags */
+	PieCtrlRegs.PIEACK.all |= M_INT11 ;
 }
 
 static void Set_SoftInterlock(Uint32 itlk)

@@ -12,6 +12,8 @@
 #define TRANSFER_BUFFER_SIZE	DECIMATION_FACTOR
 #define	N_HRADC_BOARDS			1
 
+#define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
+
 #define TRANSDUCER_0_INPUT_RATED		12.5				//
 #define TRANSDUCER_0_OUTPUT_RATED		0.05				//   In_rated 	= +/- 10A V
 #define TRANSDUCER_0_OUTPUT_TYPE		Iin_bipolar			//   Out_rated 	= +/- 10 V
