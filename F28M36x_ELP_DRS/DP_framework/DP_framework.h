@@ -76,20 +76,35 @@ typedef volatile struct
 	DF23			TI_DF23[N_MAX_TI_DF23];
 } tDP_Library;
 
-
-/*
- * Time-Slice Manager module.
- *
- * Module responsible for managing the execution of task within
- * the framework ISR with different sample rates
- */
-
-/*typedef volatile struct
+typedef struct
 {
-	Uint16 Counters[N_MAX_TS_COUNTERS];
-	Uint16 FreqRatios[N_MAX_TS_COUNTERS];
-} tTimeSlicer;*/
+	float Iout1;
+	float Iout2;
+	float Vin;
+	float Vout;
+	Uint16 TempChv1;
+	Uint16 TempChv2;
+	Uint16 TempL1;
+	Uint16 TempL2;
+	Uint16 DvrVolt;
+	Uint16 DvrCurr;
+	Uint16 RH;
+	Uint16 ErrAl;
+} Q1Module_t;
 
+typedef struct
+{
+	float Iout;
+	float Vin;
+	float Vout;
+	Uint16 TempChv1;
+	Uint16 TempChv2;
+	Uint16 TempL1;
+	Uint16 TempL2;
+	Uint16 DvrVolt;
+	Uint16 DvrCurr;
+	Uint16 RH;
+} Q4Module_t;
 
 /*
  * DP Framework entity. This struct groups information regardind a
@@ -107,7 +122,6 @@ typedef volatile struct
 	float 			NetSignals[N_MAX_NET_SIGNALS];
 	float			DutySignals[2*N_MAX_PWM_MODULES];
 	tDP_Library		DPlibrary;
-	//tTimeSlicer		TSManager;
 } tDP_Framework;
 
 
