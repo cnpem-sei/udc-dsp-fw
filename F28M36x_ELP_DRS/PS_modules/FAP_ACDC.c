@@ -25,14 +25,14 @@
 #define TIMEOUT_uS_OUTPUT_CAP_CHARGE				10000000
 
 #define PIN_STATUS_ALL						GpioDataRegs.GPDDATA.all && 0xD0000000
-#define PIN_STATUS_AC_CONTACTOR 			GpioDataRegs.GPDDAT.bit.GPIO126
-#define PIN_STATUS_BYPASS_PRECHARGER_1 		GpioDataRegs.GPDDAT.bit.GPIO127
-#define PIN_STATUS_BYPASS_PRECHARGER_2		GpioDataRegs.GPDDAT.bit.GPIO124
+#define PIN_STATUS_AC_CONTACTOR 			GpioDataRegs.GPDDAT.bit.GPIO126					// GPDI1
+#define PIN_STATUS_BYPASS_PRECHARGER_1 		GpioDataRegs.GPDDAT.bit.GPIO127					// GPDI2
+#define PIN_STATUS_BYPASS_PRECHARGER_2		GpioDataRegs.GPDDAT.bit.GPIO124					// GPDI3
 
-#define PIN_OPEN_AC_CONTACTOR				GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
+#define PIN_OPEN_AC_CONTACTOR				GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;			// GPDO1
 #define PIN_CLOSE_AC_CONTACTOR				GpioDataRegs.GPCSET.bit.GPIO67 = 1;
 
-#define PIN_OPEN_PRECHARGERS_BYPASS_CONTACTOR		GpioDataRegs.GPCCLEAR.bit.GPIO65 = 1;
+#define PIN_OPEN_PRECHARGERS_BYPASS_CONTACTOR		GpioDataRegs.GPCCLEAR.bit.GPIO65 = 1;	// GPDO2
 #define PIN_CLOSE_PRECHARGERS_BYPASS_CONTACTOR		GpioDataRegs.GPCSET.bit.GPIO65 = 1;
 
 // Prototype statements for functions found within this file.
@@ -77,14 +77,15 @@ void main_FAP_ACDC(void)
 	//while(IPC_MtoC_Msg.PSModule.Model == FAP_ACDC)
 	while(1)
 	{
+		SET_DEBUG_GPIO1;
+		DINT;
+
+		pinStatus_ACContactor = PIN_STATUS_AC_CONTACTOR;
+		pinStatus_BypassPrecharger1 = PIN_STATUS_BYPASS_PRECHARGER_1;
+		pinStatus_BypassPrecharger2 = PIN_STATUS_BYPASS_PRECHARGER_2;
+
 		if(IPC_CtoM_Msg.PSModule.OnOff)
 		{
-			DINT;
-			pinStatus_ACContactor = PIN_STATUS_AC_CONTACTOR;
-			pinStatus_BypassPrecharger1 = PIN_STATUS_BYPASS_PRECHARGER_1;
-			pinStatus_BypassPrecharger2 = PIN_STATUS_BYPASS_PRECHARGER_2;
-			EINT;
-
 			if( CHECK_INTERLOCK(AC_FAULT) && !pinStatus_ACContactor )
 			{
 				Set_HardInterlock(AC_FAULT);
@@ -95,6 +96,8 @@ void main_FAP_ACDC(void)
 				Set_HardInterlock(PRECHARGERS_FAULT);
 			}
 		}
+
+		EINT;
 		/*else
 		{
 			if( CHECK_INTERLOCK(AC_FAULT) && PIN_STATUS_AC_CONTACTOR )
@@ -117,6 +120,7 @@ void main_FAP_ACDC(void)
 		{
 			Set_HardInterlock(OVERVOLTAGE_V_OUT_MOD2);
 		}
+		CLEAR_DEBUG_GPIO1;
 	}
 
 	TerminateInterruptions();
