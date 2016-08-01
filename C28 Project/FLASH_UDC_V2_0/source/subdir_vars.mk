@@ -4,24 +4,24 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 ASM_SRCS += \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_CodeStartBranch.asm \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_usDelay.asm 
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_CodeStartBranch.asm \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_usDelay.asm 
 
 C_SRCS += \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Adc.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Comp.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_CpuTimers.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_DMA.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_DefaultIsr.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_EPwm.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Gpio.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Mcbsp.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_PieCtrl.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_PieVect.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Sci.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Spi.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_SysCtrl.c \
-D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_TempSensorConv.c 
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Adc.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Comp.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_CpuTimers.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_DMA.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_DefaultIsr.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_EPwm.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Gpio.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Mcbsp.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_PieCtrl.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_PieVect.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Sci.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Spi.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_SysCtrl.c \
+C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_TempSensorConv.c 
 
 OBJS += \
 ./source/F28M36x_Adc.obj \
@@ -100,23 +100,23 @@ ASM_DEPS__QUOTED += \
 "source\F28M36x_usDelay.pp" 
 
 C_SRCS__QUOTED += \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Adc.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Comp.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_CpuTimers.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_DMA.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_DefaultIsr.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_EPwm.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Gpio.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Mcbsp.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_PieCtrl.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_PieVect.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Sci.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_Spi.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_SysCtrl.c" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_TempSensorConv.c" 
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Adc.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Comp.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_CpuTimers.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_DMA.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_DefaultIsr.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_EPwm.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Gpio.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Mcbsp.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_PieCtrl.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_PieVect.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Sci.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_Spi.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_SysCtrl.c" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_TempSensorConv.c" 
 
 ASM_SRCS__QUOTED += \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_CodeStartBranch.asm" \
-"D:/ARQ/Projects/C28/F28M36x_common/source/F28M36x_usDelay.asm" 
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_CodeStartBranch.asm" \
+"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/source/F28M36x_usDelay.asm" 
 
 

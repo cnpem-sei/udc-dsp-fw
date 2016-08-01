@@ -72,8 +72,8 @@ void main(void)
 
 	while(1)
 	{
-		//switch(IPC_MtoC_Msg.PSModule.Model)
-		switch(PS_MODEL)
+		switch(IPC_MtoC_Msg.PSModule.Model)
+		//switch(PS_MODEL)
 		{
 			case FBP_100kHz:
 			{
