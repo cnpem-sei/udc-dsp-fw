@@ -4,7 +4,10 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := C:/ti/ccsv6/tools/compiler/c2000_6.2.9
+CG_TOOL_ROOT := C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10
+
+GEN_OPTS__FLAG := 
+GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
 "./F28M36x_ELP_DRS/F28M36x_ELP_DRS.obj" \
@@ -46,11 +49,11 @@ ORDERED_OBJS += \
 "./F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.obj" \
 "./F28M36x_ELP_DRS/DP_framework/DP_framework.obj" \
 "../F28M36x_Headers_nonBIOS.cmd" \
-"C:/Users/ricieri.ohashi/git/C28/F28M36x_common/lib/SFO_TI_Build_V7_FPU.lib" \
-"C:/Users/ricieri.ohashi/git/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd" \
+"D:/ARQ/Projects/C28/F28M36x_common/lib/SFO_TI_Build_V7_FPU.lib" \
+"D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd" \
 $(GEN_CMDS__FLAG) \
 -l"libc.a" \
--l"C:/Users/ricieri.ohashi/git/C28/C28 Project/../FPUfastRTS/V100/lib/rts2800_fpu32_fast_supplement.lib" \
+-l"D:/ARQ/Projects/C28/C28 Project/../FPUfastRTS/V100/lib/rts2800_fpu32_fast_supplement.lib" \
 -l"rts2800_fpu32.lib" \
 
 -include ../makefile.init
@@ -196,13 +199,13 @@ all: C28_V2.0.out
 C28_V2.0.out: $(OBJS) $(CMD_SRCS) $(LIB_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: C2000 Linker'
-	"C:/ti/ccsv6/tools/compiler/c2000_6.2.9/bin/cl2000" -v28 -ml -mt --float_support=fpu32 --vcu_support=vcu0 -O2 --opt_for_speed=1 -g --diag_warning=225 --display_error_number --issue_remarks --diag_wrap=off -z -m"C28_V2.0.map" --stack_size=0x300 --warn_sections -i"C:/ti/ccsv6/tools/compiler/c2000_6.2.9/lib" -i"C:/ti/ccsv6/tools/compiler/c2000_6.2.9/include" --reread_libs --display_error_number --diag_wrap=off --xml_link_info="C28_V2.0_linkInfo.xml" --rom_model -o "C28_V2.0.out" $(ORDERED_OBJS)
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/bin/cl2000" -v28 -ml -mt --float_support=fpu32 --vcu_support=vcu0 -O2 --opt_for_speed=1 -g --diag_warning=225 --display_error_number --issue_remarks --diag_wrap=off -z -m"C28_V2.0.map" --stack_size=0x300 --warn_sections -i"C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/lib" -i"C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/include" --reread_libs --display_error_number --diag_wrap=off --xml_link_info="C28_V2.0_linkInfo.xml" --rom_model -o "C28_V2.0.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 C28_V2.0.hex: $(EXE_OUTPUTS)
 	@echo 'Invoking: C2000 Hex Utility'
-	"C:/ti/ccsv6/tools/compiler/c2000_6.2.9/bin/hex2000"  -o "C28_V2.0.hex" $(EXE_OUTPUTS__QUOTED)
+	"C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/bin/hex2000"  -o "C28_V2.0.hex" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $@'
 	@echo ' '
 

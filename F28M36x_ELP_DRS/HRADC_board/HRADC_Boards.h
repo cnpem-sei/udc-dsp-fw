@@ -22,9 +22,29 @@
 #define RAILS_DISABLE 		0
 #define RAILS_ENABLE 		1
 
-#define HRADC_BI_OFFSET			131072.0
+#define HRADC_BI_OFFSET		131072.0
+
+#define UFM_OPCODE_WREN			0x06
+#define UFM_OPCODE_WRDI			0x04
+#define UFM_OPCODE_RDSR			0x05
+#define UFM_OPCODE_WRSR			0x01
+#define UFM_OPCODE_READ			0x03
+#define UFM_OPCODE_WRITE		0x02
+#define UFM_OPCODE_SECTOR_ERASE	0x20
+#define UFM_OPCODE_UFM_ERASE	0x60
+
+#define HRADC_CONFIG			GpioDataRegs.GPESET.bit.GPIO131 = 1;
+#define HRADC_nCONFIG			GpioDataRegs.GPECLEAR.bit.GPIO131 = 1;
+
+#define HRADC_CS_SET(id) 		GpioDataRegs.GPESET.all = id;
+#define HRADC_CS_CLEAR			GpioDataRegs.GPECLEAR.all = 3;
 #define HRADC_VIN_BI_P_GAIN		(20.0/262144.0)
 
+#define HRADC_CS_RESET(id)		HRADC_CS_CLEAR; \
+								HRADC_CS_SET((~id) & 3); \
+								DELAY_US(1); \
+								HRADC_CS_CLEAR; \
+								HRADC_CS_SET(id);
 /**********************************************************************************************/
 //
 // 	Enumerate definition for configurable analog inputs
@@ -143,5 +163,11 @@ extern void	Init_HRADC_boards(void);
 
 extern void enable_HRADC_Sampling(volatile HRADCs_struct HRADCs_Info);
 extern void disable_HRADC_Sampling(volatile HRADCs_struct HRADCs_Info);
+
+extern void Config_HRADC_Sampling_OpMode(Uint16 ID);
+extern void Config_HRADC_UFM_OpMode(Uint16 ID);
+extern void Erase_HRADC_UFM(Uint16 ID);
+extern void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint16 *ufm_buffer);
+extern void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data);
 
 #endif

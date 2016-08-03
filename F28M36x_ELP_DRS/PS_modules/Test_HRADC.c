@@ -17,6 +17,7 @@
 #include "Test_HRADC.h"
 
 #define BUFFER_SIZE 2048
+#define UFM_BUFFER_SIZE 100
 
 /*
  * Prototype statements for functions found within this file.
@@ -45,6 +46,7 @@ volatile Uint16 SendCommand;
 volatile Uint16 ID;
 volatile Uint16 enableHeater;
 volatile Uint16 enableRailsMonitor;
+volatile Uint16 UFM_buffer[UFM_BUFFER_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 volatile Uint32 valorCounter;
 volatile enum_AN_INPUT AnalogInput;
@@ -67,6 +69,26 @@ void main_Test_HRADC(void)
 	InitPeripheralsDrivers();
 	InitControllers();
 	InitInterruptions();
+	
+	Config_HRADC_UFM_OpMode(ID);
+	Erase_HRADC_UFM(ID);
+	Write_HRADC_UFM(0, 0, 0xDCBA);
+	Write_HRADC_UFM(0, 1, 0xABCD);
+	Write_HRADC_UFM(0, 2, 0x1234);
+	Write_HRADC_UFM(0, 3, 0x5678);
+	Write_HRADC_UFM(0, 4, 0x8765);
+	Write_HRADC_UFM(0, 5, 0xCADE);
+	Write_HRADC_UFM(0, 6, 0xBABA);
+	Write_HRADC_UFM(0, 7, 0xFAFA);
+	Read_HRADC_UFM(0, 0, 16, UFM_buffer);
+
+	Config_HRADC_Sampling_OpMode(ID);
+
+	// Clear DMA events triggers flags
+	EALLOW;
+	DmaRegs.CH1.CONTROL.bit.PERINTCLR = 1;
+	DmaRegs.CH2.CONTROL.bit.PERINTCLR = 1;
+	EDIS;
 
 	while(1)
 	{

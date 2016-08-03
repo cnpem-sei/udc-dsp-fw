@@ -4,10 +4,10 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CMD_SRCS += \
-C:/Users/ricieri.ohashi/git/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd 
+D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd 
 
 C_SRCS += \
-C:/Users/ricieri.ohashi/git/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.c 
+D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.c 
 
 OBJS += \
 ./F28M36x_ELP_DRS/F28M36x_ELP_DRS.obj 
@@ -22,6 +22,6 @@ OBJS__QUOTED += \
 "F28M36x_ELP_DRS\F28M36x_ELP_DRS.obj" 
 
 C_SRCS__QUOTED += \
-"C:/Users/ricieri.ohashi/git/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.c" 
+"D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS.c" 
 
 

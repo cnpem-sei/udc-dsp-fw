@@ -4,7 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-C:/Users/ricieri.ohashi/git/C28/F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.c 
+D:/ARQ/Projects/C28/F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.c 
 
 OBJS += \
 ./F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.obj 
@@ -19,6 +19,6 @@ OBJS__QUOTED += \
 "F28M36x_ELP_DRS\DP_framework\ELP_DCL\ELP_DCL.obj" 
 
 C_SRCS__QUOTED += \
-"C:/Users/ricieri.ohashi/git/C28/F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.c" 
+"D:/ARQ/Projects/C28/F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.c" 
 
 

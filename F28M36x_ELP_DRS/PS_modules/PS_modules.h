@@ -29,7 +29,7 @@ typedef enum
 	TEST_HRADC
 } ePSModel;
 
-#define PS_MODEL	FAP_ACDC
+#define PS_MODEL	TEST_HRADC
 
 #include "F28M36x_ELP_DRS.h"
 
