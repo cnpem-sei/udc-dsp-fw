@@ -25,6 +25,7 @@ extern void main_FAP_ACDC(void);
 extern void main_FAP_DCDC_20kHz(void);
 extern void main_Test_HRPWM(void);
 extern void main_Test_HRADC(void);
+extern void main_Jiga_HRADC(void);
 
 void main(void)
 {
@@ -133,6 +134,11 @@ void main(void)
 			{
 				main_Test_HRADC();
 				break;
+			}
+
+			case JIGA_HRADC:
+			{
+				main_Jiga_HRADC();
 			}
 
 			default:

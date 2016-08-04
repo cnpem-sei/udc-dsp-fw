@@ -78,6 +78,7 @@ void main_FAP_ACDC(void)
 	while(1)
 	{
 		SET_DEBUG_GPIO1;
+
 		DINT;
 
 		pinStatus_ACContactor = PIN_STATUS_AC_CONTACTOR;
@@ -120,6 +121,7 @@ void main_FAP_ACDC(void)
 		{
 			Set_HardInterlock(OVERVOLTAGE_V_OUT_MOD2);
 		}
+
 		CLEAR_DEBUG_GPIO1;
 	}
 
@@ -195,6 +197,11 @@ static void InitControllers(void)
 {
 	/* Initialization of IPC module */
 	InitIPC(&PS_turnOn, &PS_turnOff, &isr_SoftInterlock, &isr_HardInterlock);
+
+	/* This variable is used to indicate the output capacitors are charged and
+	 * pre-charge resistors are bypassed (OpenLoop = 1)
+	 */
+	IPC_CtoM_Msg.PSModule.OpenLoop = CLOSED_LOOP;
 
 	/* Initiaization of DP Framework */
 	InitDP_Framework(&DP_Framework, &(IPC_CtoM_Msg.PSModule.IRef));
@@ -310,6 +317,8 @@ static void PS_turnOn(void)
 				}
 			}
 
+			IPC_CtoM_Msg.PSModule.OpenLoop = CLOSED_LOOP;
+
 			// Configure CPU Timer 1 for AC mains timeout monitor
 			ConfigCpuTimer(&CpuTimer1, C28_FREQ_MHZ, TIMEOUT_uS_AC_CONTACTOR);
 			CpuTimer1Regs.TCR.all = 0x8000;
@@ -392,6 +401,8 @@ static void PS_turnOn(void)
 				}
 			}
 
+			IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
+
 			StopCpuTimer1();
 			CpuTimer1Regs.TCR.all = 0x8000;
 		}
@@ -443,6 +454,7 @@ static void PS_turnOff(void)
 		}
 	}
 
+	IPC_CtoM_Msg.PSModule.OpenLoop = CLOSED_LOOP;
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 	ResetControllers();
 }
