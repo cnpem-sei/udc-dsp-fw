@@ -168,6 +168,7 @@ typedef volatile struct
 	Uint16 		OnOff;
 	ePSOpMode	OpMode;
 	Uint16 		OpenLoop;
+	Uint16		LocalRemote;
 	Uint32		SoftInterlocks;
 	Uint32		HardInterlocks;
 	Uint16		BufferOnOff;
