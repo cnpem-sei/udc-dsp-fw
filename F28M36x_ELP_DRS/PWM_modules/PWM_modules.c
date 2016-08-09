@@ -421,6 +421,7 @@ void DisablePWM_TBCLK(void)
 	for(i = 0; i < PWM_Modules.N_modules; i++)
 	{
 		PWM_Modules.PWM_Regs[i]->TBCTR = PWM_Modules.PWM_Regs[i]->TBPHS.half.TBPHS;
+		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
 }
 

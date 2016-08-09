@@ -51,3 +51,25 @@ Uint16 WriteBuffer(tBuffer *ptrBuff, float data)
 		}
 	}
 }
+
+Uint16 Test_SamplesLimit(tBuffer *ptrBuff, float value, float tol)
+{
+	float samp;
+
+	ptrBuff->PtrBufferK = ptrBuff->PtrBufferStart + 2;
+
+	while(ptrBuff->PtrBufferK <= ptrBuff->PtrBufferEnd)
+	{
+		samp = *(ptrBuff->PtrBufferK++);
+
+		if( (samp < value - tol) || (samp > value + tol) )
+		{
+			ptrBuff->PtrBufferK = ptrBuff->PtrBufferStart;
+			return 1;
+		}
+
+	}
+
+	ptrBuff->PtrBufferK = ptrBuff->PtrBufferStart;
+	return 0;
+}

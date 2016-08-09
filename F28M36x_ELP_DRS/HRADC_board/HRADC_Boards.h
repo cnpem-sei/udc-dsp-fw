@@ -159,15 +159,16 @@ extern void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command);
 extern Uint16 CheckStatus_HRADC(volatile HRADC_struct *hradcPtr);
 
 extern void Config_HRADC_SoC(float freq);
-extern void	Init_HRADC_boards(void);
-
-extern void enable_HRADC_Sampling(volatile HRADCs_struct HRADCs_Info);
-extern void disable_HRADC_Sampling(volatile HRADCs_struct HRADCs_Info);
+extern void Enable_HRADC_Sampling(void);
+extern void Disable_HRADC_Sampling(void);
 
 extern void Config_HRADC_Sampling_OpMode(Uint16 ID);
 extern void Config_HRADC_UFM_OpMode(Uint16 ID);
 extern void Erase_HRADC_UFM(Uint16 ID);
 extern void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint16 *ufm_buffer);
 extern void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data);
+
+extern void Start_HRADC_Sampling(void);
+extern void Stop_HRADC_Sampling(void);
 
 #endif

@@ -14,10 +14,15 @@
  */
 
 #include "F28M36x_ELP_DRS.h"
-#include "Test_HRADC.h"
+#include "Jiga_HRADC.h"
 
-#define BUFFER_SIZE 2048
-#define UFM_BUFFER_SIZE 100
+#define	N_MAX_SAMPLING_TESTS			6
+#define UFM_BUFFER_SIZE 				100
+
+#define TIMEOUT_uS_HRADC_CONFIG 		10000
+
+#define HRADC_CONFIG_FAULT		0x00000001
+#define OUT_OF_RANGE_FAULT		0x00000002
 
 /*
  * Prototype statements for functions found within this file.
@@ -25,62 +30,95 @@
 
 #pragma CODE_SECTION(isr_ePWM_CTR_ZERO, "ramfuncs");
 #pragma CODE_SECTION(isr_ePWM_CTR_ZERO_1st, "ramfuncs");
-#pragma CODE_SECTION(isr_DMA_CH2, "ramfuncs");
 
 static interrupt void isr_ePWM_CTR_ZERO(void);
 static interrupt void isr_ePWM_CTR_ZERO_1st(void);
-static interrupt void isr_DMA_CH2(void);
-static interrupt void isr_SoftInterlock(void);
-static interrupt void isr_HardInterlock(void);
 
 void main_Test_HRADC(void);
 
 static void InitPeripheralsDrivers(void);
+
 static void InitControllers(void);
+
 static void InitInterruptions(void);
+
 static void PS_turnOn(void);
 static void PS_turnOff(void);
 
-static Uint16 UFM_buffer[UFM_BUFFER_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static void Set_SoftInterlock(Uint32 itlk);
+static void Set_HardInterlock(Uint32 itlk);
+static interrupt void isr_SoftInterlock(void);
+static interrupt void isr_HardInterlock(void);
 
+Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails);
+
+static enum_AN_INPUT *ptr_CurrentAnalogInput;
+static enum_AN_INPUT TestAnalogInputs[N_MAX_SAMPLING_TESTS] = { Iin_bipolar, Vin_bipolar, GND, Vref_bipolar_p, Vref_bipolar_n, Temp };
+
+static Uint16 SamplingStatus;
+
+static Uint16 UFM_buffer[UFM_BUFFER_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static Uint32 valorCounter;
 
-static float HRADC0;
-static float HRADC1;
-static float HRADC2;
-static float HRADC3;
+static float HRADC_Sample, *ptr_CurrentValue, *ptr_CurrentTolerance;
+static float TestValues[N_MAX_SAMPLING_TESTS] = {0.0, 0.0, 0.0, 5.0, -5.0, -0.30};
+static float TestTolerances[N_MAX_SAMPLING_TESTS] = {0.005, 0.005, 0.005, 0.005, 0.005, 0.1};
+
 
 void main_Jiga_HRADC(void)
 {
-	Uint16 ID = 0;
+	Uint16 i;
 
 	InitPeripheralsDrivers();
 	InitControllers();
 	InitInterruptions();
-	
-	Config_HRADC_UFM_OpMode(ID);
-	Erase_HRADC_UFM(ID);
-	Write_HRADC_UFM(0, 0, 0xDCBA);
-	Write_HRADC_UFM(0, 1, 0xABCD);
-	Write_HRADC_UFM(0, 2, 0x1234);
-	Write_HRADC_UFM(0, 3, 0x5678);
-	Write_HRADC_UFM(0, 4, 0x8765);
-	Write_HRADC_UFM(0, 5, 0xCADE);
-	Write_HRADC_UFM(0, 6, 0xBABA);
-	Write_HRADC_UFM(0, 7, 0xFAFA);
-	Read_HRADC_UFM(0, 0, 16, UFM_buffer);
-
-	Config_HRADC_Sampling_OpMode(ID);
-
-	// Clear DMA events triggers flags
-	EALLOW;
-	DmaRegs.CH1.CONTROL.bit.PERINTCLR = 1;
-	DmaRegs.CH2.CONTROL.bit.PERINTCLR = 1;
-	EDIS;
 
 	while(1)
 	{
+		if(IPC_CtoM_Msg.PSModule.OnOff)
+		{
+			HRADC_Sample = 0.0;
+			ptr_CurrentValue = TestValues;
+			ptr_CurrentTolerance = TestTolerances;
+			ptr_CurrentAnalogInput = TestAnalogInputs;
+			IPC_CtoM_Msg.PSModule.IRef = 0.0;
+			IPC_CtoM_Msg.PSModule.OpenLoop = 1;
 
+			for(i = 0; i < N_MAX_SAMPLING_TESTS; i++)
+			{
+				IPC_CtoM_Msg.PSModule.IRef++;
+
+				if(Try_Config_HRADC_board(HRADCs_Info.HRADC_boards[0], *ptr_CurrentAnalogInput, HEATER_DISABLE, RAILS_DISABLE))
+				{
+					Set_HardInterlock(HRADC_CONFIG_FAULT);
+					break;
+				}
+
+				Enable_HRADC_Sampling();
+
+				// Waits samplesBuffer is full, then proceed
+				while(HRADCs_Info.enable_Sampling){}
+
+				if(Test_SamplesLimit(&IPC_CtoM_Msg.SamplesBuffer, *ptr_CurrentValue, *ptr_CurrentTolerance))
+				{
+					Set_HardInterlock(OUT_OF_RANGE_FAULT);
+					break;
+				}
+
+				ptr_CurrentAnalogInput++;
+				ptr_CurrentValue++;
+				ptr_CurrentTolerance++;
+
+				DELAY_US(1000000);
+			}
+
+			if(CHECK_INTERLOCKS)
+			{
+				IPC_CtoM_Msg.PSModule.OpenLoop = 0;
+			}
+
+			IPC_CtoM_Msg.PSModule.OnOff = 0;
+		}
 	}
 
 }
@@ -107,25 +145,13 @@ static void InitPeripheralsDrivers(void)
     InitMcbspa20bit();
 
     HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
-    HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
-    HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
-    HRADCs_Info.HRADC_boards[3] = &HRADC3_board;
 
-    Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, &buffers_HRADC.buffer_0[0], TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
-    Init_HRADC_Info(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, &buffers_HRADC.buffer_1[0], TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
-    Init_HRADC_Info(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, &buffers_HRADC.buffer_2[0], TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
-    Init_HRADC_Info(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, &buffers_HRADC.buffer_3[0], TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
-
-    Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-    //Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-    /*Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-    Config_HRADC_board(HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);*/
-
-    AverageFilter = 1.0/((float) DECIMATION_FACTOR);
-
+    Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
     Config_HRADC_SoC(HRADC_FREQ_SAMP);
 
-	stop_DMA();
+    //Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+
+    stop_DMA();
 
     /* Initialization of PWM modules */
 
@@ -155,10 +181,10 @@ static void InitPeripheralsDrivers(void)
 	EDIS;
 
 	/* Initialization of timers */
-
-    InitCpuTimers();
-	ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
+	InitCpuTimers();
 	CpuTimer0Regs.TCR.bit.TIE = 0;
+	CpuTimer1Regs.TCR.bit.TIE = 0;
+	CpuTimer2Regs.TCR.bit.TIE = 0;
 }
 
 static void InitControllers(void)
@@ -188,72 +214,34 @@ static void InitInterruptions(void)
 //*****************************************************************************
 // Esvazia buffer FIFO com valores amostrados e recebidos via SPI
 //*****************************************************************************
-static interrupt void isr_ePWM_CTR_ZERO(void)
+interrupt void isr_ePWM_CTR_ZERO(void)
 {
-	static Uint16 i;
-	static float temp0, temp1, temp2, temp3;
+	Uint16 i;
 
-	StartCpuTimer0();
 	SET_DEBUG_GPIO1;
 
-	temp0 = 0.0;
-	temp1 = 0.0;
-	temp2 = 0.0;
-	temp3 = 0.0;
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
 
-	for(i = 0; i < DECIMATION_FACTOR; i++)
+	HRADC_Sample = (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer);
+	HRADC_Sample -= *(HRADCs_Info.HRADC_boards[0]->offset);
+	HRADC_Sample *= *(HRADCs_Info.HRADC_boards[0]->gain);
+
+	DP_Framework.NetSignals[1] = HRADC_Sample;
+
+	if(WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, HRADC_Sample))
 	{
-		temp0 += (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer++);
-		temp1 += (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer++);
-		temp2 += (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer++);
-		temp3 += (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer++);
+		Disable_HRADC_Sampling();
+		PWM_Modules.PWM_Regs[0]->ETCLR.bit.INT = 1;
+		PieCtrlRegs.PIEIFR3.all = 0x0000;
 	}
-
-	temp0 *= AverageFilter;
-	temp1 *= AverageFilter;
-	temp2 *= AverageFilter;
-	temp3 *= AverageFilter;
-
-	HRADCs_Info.HRADC_boards[0]->SamplesBuffer = buffers_HRADC.buffer_0;
-	HRADCs_Info.HRADC_boards[1]->SamplesBuffer = buffers_HRADC.buffer_1;
-	HRADCs_Info.HRADC_boards[2]->SamplesBuffer = buffers_HRADC.buffer_2;
-	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;
-
-	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
-	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
-
-	temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
-	temp1 *= *(HRADCs_Info.HRADC_boards[1]->gain);
-
-	temp2 -= *(HRADCs_Info.HRADC_boards[2]->offset);
-	temp2 *= *(HRADCs_Info.HRADC_boards[2]->gain);
-
-	temp3 -= *(HRADCs_Info.HRADC_boards[3]->offset);
-	temp3 *= *(HRADCs_Info.HRADC_boards[3]->gain);
-
-	HRADC0 = temp0;
-	HRADC1 = temp1;
-	HRADC2 = temp2;
-	HRADC3 = temp3;
-
-	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, HRADC0);
-	/*WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, HRADC1);
-	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, HRADC2);
-	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, HRADC3);*/
-
 
 	for(i = 0; i < PWM_Modules.N_modules; i++)
 	{
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
 
-	StopCpuTimer0();
-	valorCounter = ReadCpuTimer0Counter();
-	ReloadCpuTimer0();
-
-	CLEAR_DEBUG_GPIO1;
-
 	PieCtrlRegs.PIEACK.all |= M_INT3;
+	CLEAR_DEBUG_GPIO1;
 }
 
 static interrupt void isr_ePWM_CTR_ZERO_1st(void)
@@ -280,14 +268,17 @@ static interrupt void isr_ePWM_CTR_ZERO_1st(void)
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
 
-static __interrupt void isr_DMA_CH2(void)
+static void Set_SoftInterlock(Uint32 itlk)
 {
-	SET_DEBUG_GPIO1;
-	EALLOW;
-	DmaRegs.CH3.CONTROL.bit.RUN = 1;
-	EDIS;
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP7;
-    CLEAR_DEBUG_GPIO1;
+	IPC_CtoM_Msg.PSModule.SoftInterlocks |= itlk;
+	//SendIpcFlag(SOFT_INTERLOCK_CTOM);
+}
+
+static void Set_HardInterlock(Uint32 itlk)
+{
+	IPC_CtoM_Msg.PSModule.OpenLoop = 1;
+	IPC_CtoM_Msg.PSModule.HardInterlocks |= itlk;
+	SendIpcFlag(HARD_INTERLOCK_CTOM);
 }
 
 static interrupt void isr_SoftInterlock(void)
@@ -300,8 +291,97 @@ static interrupt void isr_HardInterlock(void)
 
 static void PS_turnOn(void)
 {
+	IPC_CtoM_Msg.PSModule.OnOff = 1;
 }
 
 static void PS_turnOff(void)
 {
+	IPC_CtoM_Msg.PSModule.OnOff = 0;
+}
+
+Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails)
+{
+	Uint16 command;
+
+	switch(AnalogInput)
+	{
+		case Vin_bipolar:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
+			break;
+		}
+		case Vin_unipolar_p:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_p;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_p;
+			break;
+		}
+		case Vin_unipolar_n:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_n;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_n;
+			break;
+		}
+		case Iin_bipolar:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_bipolar;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_bipolar;
+			break;
+		}
+		case Iin_unipolar_p:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_p;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_p;
+			break;
+		}
+		case Iin_unipolar_n:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_n;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_n;
+			break;
+		}
+		default:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
+			break;
+		}
+	}
+
+	// Store new configuration parameters
+	hradcPtr->AnalogInput = AnalogInput;
+	hradcPtr->enable_Heater = enHeater;
+	hradcPtr->enable_RailsMonitor = enRails;
+
+	// Create command according to the HRADC Command Protocol (HCP)
+	command = ((enRails << 8) | (enHeater << 7) | (AnalogInput << 3)) & 0x01F8;
+
+	// Configure CPU Timer 1 for HRADC configuration timeout monitor
+	ConfigCpuTimer(&CpuTimer1, C28_FREQ_MHZ, TIMEOUT_uS_HRADC_CONFIG);
+	CpuTimer1Regs.TCR.all = 0x8000;
+
+	// Try to configure HRADC board
+	SendCommand_HRADC(hradcPtr, command);
+
+	// Start timeout monitor
+	StartCpuTimer1();
+
+	// Check HRADC configuration
+	while(CheckStatus_HRADC(hradcPtr))
+	{
+		// If timeout, stops test
+		if(CpuTimer1Regs.TCR.bit.TIF)
+		{
+			StopCpuTimer1();
+			CpuTimer1Regs.TCR.all = 0x8000;
+			return 1;
+		}
+		else
+		{
+			SendCommand_HRADC(hradcPtr, command);
+		}
+	}
+
+	return 0;
 }

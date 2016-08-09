@@ -22,12 +22,13 @@
 //
 void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden);
 void Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails);
+
 void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command);
-void Config_HRADC_SoC(float freq);
-void Init_HRADCs_Info(void);
-void enable_HRADC_Sampling(volatile HRADCs_struct HRADCs_Info);
-void disable_HRADC_Sampling(volatile HRADCs_struct HRADCs_Info);
 Uint16 CheckStatus_HRADC(volatile HRADC_struct *hradcPtr);
+
+void Config_HRADC_SoC(float freq);
+void Enable_HRADC_Sampling(void);
+void Disable_HRADC_Sampling(void);
 
 void Config_HRADC_Sampling_OpMode(Uint16 ID);
 void Config_HRADC_UFM_OpMode(Uint16 ID);
@@ -267,6 +268,23 @@ void Config_HRADC_SoC(float freq)
 	EPwm10Regs.TZSEL.bit.OSHT1 = 0;
     EPwm10Regs.TZCLR.bit.OST = 1;
 	EDIS;
+}
+
+void Enable_HRADC_Sampling(void)
+{
+	HRADCs_Info.enable_Sampling = 1;
+	start_DMA();
+	EnablePWMOutputs();
+	EnablePWM_TBCLK();
+}
+
+void Disable_HRADC_Sampling(void)
+{
+	DisablePWMOutputs();
+	DisablePWM_TBCLK();
+	DELAY_US(2);
+	stop_DMA();
+	HRADCs_Info.enable_Sampling = 0;
 }
 
 void Config_HRADC_Sampling_OpMode(Uint16 ID)
