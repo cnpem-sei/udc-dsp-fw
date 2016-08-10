@@ -61,7 +61,7 @@ static Uint16 UFM_buffer[UFM_BUFFER_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static Uint32 valorCounter;
 
 static float HRADC_Sample, *ptr_CurrentValue, *ptr_CurrentTolerance;
-static float TestValues[N_MAX_SAMPLING_TESTS] = {0.0, 0.0, 0.0, 5.0, -5.0, -0.30};
+static float TestValues[N_MAX_SAMPLING_TESTS] = {0.0, 0.0, 0.0, 5.0, -5.0, -0.35};
 static float TestTolerances[N_MAX_SAMPLING_TESTS] = {0.005, 0.005, 0.005, 0.005, 0.005, 0.1};
 
 

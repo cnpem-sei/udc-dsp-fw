@@ -36,8 +36,16 @@
 #define KI2							0.0		// Ishare Ki coeff
 
 /*
+ * Timeouts
+ */
+
+#define TIMEOUT_uS_DCLINK_CONTACTOR		2000000
+
+/*
  * Digital IO's defines
  */
+
+#define PIN_STATUS_DCLINK_CONTACTOR		DP_Framework_MtoC.NetSignals[17]
 
 #define PIN_OPEN_DCLINK_CONTACTOR		GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
 #define PIN_CLOSE_DCLINK_CONTACTOR		GpioDataRegs.GPCSET.bit.GPIO67 = 1;
@@ -165,10 +173,10 @@ static void InitPeripheralsDrivers(void)
 	EDIS;
 
 	/* Initialization of timers */
-
 	InitCpuTimers();
-	ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
 	CpuTimer0Regs.TCR.bit.TIE = 0;
+	CpuTimer1Regs.TCR.bit.TIE = 0;
+	CpuTimer2Regs.TCR.bit.TIE = 0;
 }
 
 static void InitControllers(void)
@@ -531,10 +539,30 @@ static void PS_turnOn(void)
 		//ResetControllers();
 
 		IPC_CtoM_Msg.PSModule.IRef = 0.0;
-		IPC_CtoM_Msg.PSModule.OpenLoop = 1;
+		IPC_CtoM_Msg.PSModule.OpenLoop = CLOSED_LOOP;
 		IPC_CtoM_Msg.PSModule.OnOff = 1;
 
+		// Configure CPU Timer 1 for DC link contactor timeout monitor
+		ConfigCpuTimer(&CpuTimer1, C28_FREQ_MHZ, TIMEOUT_uS_DCLINK_CONTACTOR);
+		CpuTimer1Regs.TCR.all = 0x8000;
+
 		PIN_CLOSE_DCLINK_CONTACTOR;
+
+		// Start timeout monitor
+		StartCpuTimer1();
+
+		// Check DClink contactor status
+		while(!PIN_STATUS_DCLINK_CONTACTOR)
+		{
+			// If timeout, set interlock
+			if(CpuTimer1Regs.TCR.bit.TIF)
+			{
+				Set_HardInterlock(DCDC_FAULT);
+				StopCpuTimer1();
+				CpuTimer1Regs.TCR.all = 0x8000;
+				return;
+			}
+		}
 
 		EnablePWMOutputs();
 	}
@@ -544,10 +572,31 @@ static void PS_turnOff(void)
 {
 	DisablePWMOutputs();
 
+	// Configure CPU Timer 1 for DC link contactor timeout monitor
+	ConfigCpuTimer(&CpuTimer1, C28_FREQ_MHZ, TIMEOUT_uS_DCLINK_CONTACTOR);
+	CpuTimer1Regs.TCR.all = 0x8000;
+
 	PIN_OPEN_DCLINK_CONTACTOR;
 
+	// Start timeout monitor
+	StartCpuTimer1();
+
+	// Check DClink contactor status
+	while(PIN_STATUS_DCLINK_CONTACTOR)
+	{
+		// If timeout, set interlock
+		if(CpuTimer1Regs.TCR.bit.TIF)
+		{
+			IPC_CtoM_Msg.PSModule.HardInterlocks |= DCDC_FAULT;
+			SendIpcFlag(HARD_INTERLOCK_CTOM);
+			StopCpuTimer1();
+			CpuTimer1Regs.TCR.all = 0x8000;
+			break;
+		}
+	}
+
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
-	IPC_CtoM_Msg.PSModule.OpenLoop = 1;
+	IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
 
 	ResetControllers();
 }

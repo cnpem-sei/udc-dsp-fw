@@ -17,12 +17,16 @@
 #include "FAP_ACDC.h"
 
 /*
- * Digital IO's defines
+ * Timeouts
  */
 
 #define TIMEOUT_uS_AC_CONTACTOR						10000
 #define TIMEOUT_uS_PRECHARGERS_BYPASS_CONTACTORS	10000
 #define TIMEOUT_uS_OUTPUT_CAP_CHARGE				10000000
+
+/*
+ * Digital IO's defines
+ */
 
 #define PIN_STATUS_ALL						GpioDataRegs.GPDDATA.all && 0xD0000000
 #define PIN_STATUS_AC_CONTACTOR 			GpioDataRegs.GPDDAT.bit.GPIO126					// GPDI1
