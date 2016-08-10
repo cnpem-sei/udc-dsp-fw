@@ -67,7 +67,7 @@ typedef volatile struct
 
 #include "PS_modules.h"
 
-#include "HRADC_boards.h"
+#include "HRADC_Boards.h"
 #include "DMA_SPI_Interface.h"
 #include "McBSP_SPI_Interface.h"
 
