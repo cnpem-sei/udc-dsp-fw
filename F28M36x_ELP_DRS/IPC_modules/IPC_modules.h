@@ -90,6 +90,9 @@ typedef enum {NO_ERROR_MTOC,
 			  IPC_LOW_PRIORITY_MSG_FULL,
 			  ERROR8} eMTOCerror;
 
+typedef enum {OneShot,
+			  SampleBySample} eSyncMode;
+
 typedef volatile struct
 {							 // Bits	Description
 	Uint16 bit0 : 1;         // 0
@@ -190,9 +193,10 @@ typedef volatile struct
 
 typedef volatile struct
 {
-	tBuffer	BufferInfo;
-	float	Gain;
-	float	Offset;
+	tBuffer		BufferInfo;
+	float		Gain;
+	float		Offset;
+	eSyncMode	SyncMode;
 } tWfmRef;
 
 typedef volatile struct

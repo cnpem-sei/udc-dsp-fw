@@ -30,10 +30,6 @@
 #define SRLIM_SIGGEN_AMP	 		&DP_Framework.DPlibrary.ELP_SRLim[1]
 #define SRLIM_SIGGEN_OFFSET 		&DP_Framework.DPlibrary.ELP_SRLim[2]
 
-#define PWM_MAX_SHARE_DUTY			0.01
-
-#define KP2							0.0		// Ishare Kp coeff
-#define KI2							0.0		// Ishare Ki coeff
 
 /*
  * Timeouts
@@ -79,6 +75,7 @@ static void InitControllers(void);
 static void ResetControllers(void);
 static void InitInterruptions(void);
 
+static Uint16 pinStatus_DCLink_Contactor;
 volatile static Uint32 valorCounter;
 
 void main_FAP_DCDC_20kHz(void)
@@ -96,6 +93,28 @@ void main_FAP_DCDC_20kHz(void)
 
 	while(1)
 	{
+		DINT;
+
+		pinStatus_DCLink_Contactor = PIN_STATUS_DCLINK_CONTACTOR;
+
+		if(IPC_CtoM_Msg.PSModule.OnOff)
+		{
+			/*if( CHECK_INTERLOCK(ACDC_FAULT) && !pinStatus_DCLink_Contactor )
+			{
+				Set_HardInterlock(ACDC_FAULT);
+			}*/
+
+			if(CHECK_INTERLOCK(ACDC_FAULT))
+			{
+				if(!pinStatus_DCLink_Contactor || DP_Framework_MtoC.NetSignals[5] < MIN_DCLINK)
+				{
+					Set_HardInterlock(ACDC_FAULT);
+				}
+			}
+		}
+
+		EINT;
+
 		TunningPWM_MEP_SFO();
 	}
 
@@ -455,6 +474,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	RUN_TIMESLICE(1); /************************************************************/
 
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);
+		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp0);
 
 	END_TIMESLICE(1); /************************************************************/
 
@@ -538,10 +558,6 @@ static void PS_turnOn(void)
 	{
 		//ResetControllers();
 
-		IPC_CtoM_Msg.PSModule.IRef = 0.0;
-		IPC_CtoM_Msg.PSModule.OpenLoop = CLOSED_LOOP;
-		IPC_CtoM_Msg.PSModule.OnOff = 1;
-
 		// Configure CPU Timer 1 for DC link contactor timeout monitor
 		ConfigCpuTimer(&CpuTimer1, C28_FREQ_MHZ, TIMEOUT_uS_DCLINK_CONTACTOR);
 		CpuTimer1Regs.TCR.all = 0x8000;
@@ -557,12 +573,18 @@ static void PS_turnOn(void)
 			// If timeout, set interlock
 			if(CpuTimer1Regs.TCR.bit.TIF)
 			{
-				Set_HardInterlock(DCDC_FAULT);
+				Set_HardInterlock(ACDC_FAULT);
 				StopCpuTimer1();
 				CpuTimer1Regs.TCR.all = 0x8000;
 				return;
 			}
 		}
+
+		DELAY_US(20000);
+
+		IPC_CtoM_Msg.PSModule.IRef = 0.0;
+		IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
+		IPC_CtoM_Msg.PSModule.OnOff = 1;
 
 		EnablePWMOutputs();
 	}
@@ -587,7 +609,7 @@ static void PS_turnOff(void)
 		// If timeout, set interlock
 		if(CpuTimer1Regs.TCR.bit.TIF)
 		{
-			IPC_CtoM_Msg.PSModule.HardInterlocks |= DCDC_FAULT;
+			IPC_CtoM_Msg.PSModule.HardInterlocks |= ACDC_FAULT;
 			SendIpcFlag(HARD_INTERLOCK_CTOM);
 			StopCpuTimer1();
 			CpuTimer1Regs.TCR.all = 0x8000;

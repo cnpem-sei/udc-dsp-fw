@@ -5,26 +5,32 @@
  * Especificações da fonte
  */
 
-#define FONTE_MODO		OnePS4Q				// Topologia da fonte a ser controlada
+#define FONTE_MODO		OnePS1Q				// Topologia da fonte a ser controlada
 #define	n_PS			1
 
 #define PWM_FREQ	   			20000.0		// Frequencia do sinal PWM gerado [Hz]
 #define PWM_DEAD_TIME			0.0			// Dead-time dos sinais PWM [ns]
 #define PWM_MAX_DUTY    		0.9         // Maximo ciclo de trabalho para o PWM (em p.u.)
 #define PWM_MIN_DUTY    		0.0			// Minimo ciclo de trabalho para o PWM (em p.u.)
-#define PWM_MAX_DUTY_OL			0.6			// Maximo ciclo de trabalho para o PWM em malha aberta (em p.u.)
+#define PWM_MAX_DUTY_OL			0.4			// Maximo ciclo de trabalho para o PWM em malha aberta (em p.u.)
 #define PWM_MIN_DUTY_OL			0.0			// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
 
 #define MAX_REF					200.0		// Valor máximo da referência de corrente na carga [A]
-#define MIN_REF					0.0		// Valor mínimo da referência de corrente na carga [A]
+#define MIN_REF					0.0			// Valor mínimo da referência de corrente na carga [A]
 #define MAX_LOAD				210.0		// Limite de corrente na carga para interlock [A]
+#define MIN_DCLINK				85.0		// Valor mínimo de tensão no DC-Link para interlock [V]
 
-#define MAX_REF_SLEWRATE		50.0		// Slew-rate máximo [A/s]
-#define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate máximo do offset do gerador senoidal [A/s]
-#define MAX_SR_SIGGEN_AMP		50.0		// Slew-rate máximo da amplitude do gerador senoidal [A/s]
+#define MAX_REF_SLEWRATE		20.0		// Slew-rate máximo [A/s]
+#define MAX_SR_SIGGEN_OFFSET	20.0		// Slew-rate máximo do offset do gerador senoidal [A/s]
+#define MAX_SR_SIGGEN_AMP		20.0		// Slew-rate máximo da amplitude do gerador senoidal [A/s]
+
+#define PWM_MAX_SHARE_DUTY		0.1
 
 #define KP						1.0
 #define KI						0.0
+
+#define KP2						0.0
+#define KI2						0.0
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)

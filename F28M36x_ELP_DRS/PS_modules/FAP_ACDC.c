@@ -20,8 +20,8 @@
  * Timeouts
  */
 
-#define TIMEOUT_uS_AC_CONTACTOR						10000
-#define TIMEOUT_uS_PRECHARGERS_BYPASS_CONTACTORS	10000
+#define TIMEOUT_uS_AC_CONTACTOR						50000
+#define TIMEOUT_uS_PRECHARGERS_BYPASS_CONTACTORS	50000
 #define TIMEOUT_uS_OUTPUT_CAP_CHARGE				10000000
 
 /*
@@ -348,6 +348,8 @@ static void PS_turnOn(void)
 
 			IPC_CtoM_Msg.PSModule.OnOff = 1;
 
+			DELAY_US(20000);
+
 			// Configure and start CPU Timer 1 for output capacitors charge timeout monitor
 			ConfigCpuTimer(&CpuTimer1, C28_FREQ_MHZ, TIMEOUT_uS_OUTPUT_CAP_CHARGE);
 			CpuTimer1Regs.TCR.all = 0x8000;
@@ -409,6 +411,8 @@ static void PS_turnOn(void)
 
 			StopCpuTimer1();
 			CpuTimer1Regs.TCR.all = 0x8000;
+
+			DELAY_US(20000);
 		}
 	}
 }

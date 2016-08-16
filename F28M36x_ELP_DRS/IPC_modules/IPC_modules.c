@@ -64,9 +64,10 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 
 	InitBuffer(&IPC_CtoM_Msg.SamplesBuffer, samplesBuffer, SIZE_SAMPLES_BUFFER);
 	InitBuffer(&IPC_CtoM_Msg.WfmRef.BufferInfo, wfmRef_Curve.WfmRef_Block.A, SIZE_WFMREF_BLOCK);
+	IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
+
 	IPC_CtoM_Msg.WfmRef.Gain = 1.0;
 	IPC_CtoM_Msg.WfmRef.Offset = 0.0;
-	IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
 
 	//InitBuffer(&IPC_CtoM_Msg.WfmRef.BufferInfo);
 	//InitBuffer(&IPC_CtoM_Msg.SamplesBuffer);
