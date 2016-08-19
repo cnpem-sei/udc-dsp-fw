@@ -26,11 +26,11 @@
 
 #define PWM_MAX_SHARE_DUTY		0.1
 
-#define KP						1.0
-#define KI						0.0
+#define KP						0.2262
+#define KI						1.5708
 
-#define KP2						0.0
-#define KI2						0.0
+#define KP2						0.00000314
+#define KI2						0.000314
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)

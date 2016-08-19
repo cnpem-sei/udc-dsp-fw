@@ -25,7 +25,7 @@
 #define ISHARE_ERROR_CALCULATOR		&DP_Framework.DPlibrary.ELP_Error[1]
 #define	PI_DAWU_CONTROLLER_ILOAD	&DP_Framework.DPlibrary.ELP_PI_dawu[0]
 #define	PI_DAWU_CONTROLLER_ISHARE	&DP_Framework.DPlibrary.ELP_PI_dawu[1]
-#define ISHARE_DECIMATION			1
+#define ISHARE_DECIMATION			4000
 
 #define SRLIM_SIGGEN_AMP	 		&DP_Framework.DPlibrary.ELP_SRLim[1]
 #define SRLIM_SIGGEN_OFFSET 		&DP_Framework.DPlibrary.ELP_SRLim[2]
@@ -35,7 +35,7 @@
  * Timeouts
  */
 
-#define TIMEOUT_uS_DCLINK_CONTACTOR		2000000
+#define TIMEOUT_uS_DCLINK_CONTACTOR		3000000
 
 /*
  * Digital IO's defines
@@ -580,7 +580,7 @@ static void PS_turnOn(void)
 			}
 		}
 
-		DELAY_US(20000);
+		DELAY_US(50000);
 
 		IPC_CtoM_Msg.PSModule.IRef = 0.0;
 		IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
