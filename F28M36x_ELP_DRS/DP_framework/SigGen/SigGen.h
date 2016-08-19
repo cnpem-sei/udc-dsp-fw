@@ -17,7 +17,7 @@
 #ifndef SIGGEN_H
 #define SIGGEN_H
 
-typedef enum {Sine, Square, Triangle, FreqSweep, DampedSine} eSigGenType;
+typedef enum {Sine, Square, Triangle, FreqSweep, DampedSine, Trapezoidal} eSigGenType;
 
 #include <math.h>
 #include "DSP28x_Project.h"
@@ -56,5 +56,6 @@ extern void Run_ELP_SigGen_Square(tELP_SigGen *ptr_sg);
 extern void Run_ELP_SigGen_Triangle(tELP_SigGen *ptr_sg);
 extern void Run_ELP_SigGen_FreqSweep(tELP_SigGen *ptr_sg);
 extern void Run_ELP_SigGen_DampedSine(tELP_SigGen *ptr_sg);
+extern void Run_ELP_SigGen_Trapezoidal(tELP_SigGen *ptr_sg);
 
 #endif

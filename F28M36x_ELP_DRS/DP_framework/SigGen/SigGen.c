@@ -20,8 +20,9 @@
  */
 
 #include "SigGen.h"
+
 #define _USE_MATH_DEFINES
-#define	PI		3.141592653589793
+#define	PI	3.141592653589793
 
 #pragma CODE_SECTION(Enable_ELP_SigGen, "ramfuncs");
 #pragma CODE_SECTION(Disable_ELP_SigGen, "ramfuncs");
@@ -107,6 +108,10 @@ Uint16 Init_ELP_SigGen(tELP_SigGen *ptr_sg, eSigGenType sigType, float phase_sta
 				ptr_sg->Aux = -(1.0/(*ptr_aux)) / freqSample;
 				ptr_sg->Run_ELP_SigGen = Run_ELP_SigGen_DampedSine;
 				break;
+
+			case Trapezoidal:
+				ptr_sg->Run_ELP_SigGen = Run_ELP_SigGen_Trapezoidal;
+				break;
 		}
 
 		EINT;
@@ -160,12 +165,12 @@ void Run_ELP_SigGen_Sine(tELP_SigGen *ptr_sg)
 		else if(ptr_sg->n >= ptr_sg->FreqSample)
 		{
 			/*
-			 *  Comparação é feita com fs, para que n seja incrementado até completar 1 segundo.
-			 *  Isso foi feito, pois ao comparar n com n_samp, distorcemos o sinal gerado, já que
-			 *  n_samp pode ser float, e n não.
+			 *  Comparaï¿½ï¿½o ï¿½ feita com fs, para que n seja incrementado atï¿½ completar 1 segundo.
+			 *  Isso foi feito, pois ao comparar n com n_samp, distorcemos o sinal gerado, jï¿½ que
+			 *  n_samp pode ser float, e n nï¿½o.
 			 *
-			 *  Assim que o período se completa e os parâmetros do gerador são atualizados, de
-			 *  forma a garantir uma transição suave entre a senóide gerada anteriormente e a nova
+			 *  Assim que o perï¿½odo se completa e os parï¿½metros do gerador sï¿½o atualizados, de
+			 *  forma a garantir uma transiï¿½ï¿½o suave entre a senï¿½ide gerada anteriormente e a nova
 			 */
 			Update_ELP_SigGen(ptr_sg);
 			ptr_sg->n = 0.0;
@@ -202,6 +207,31 @@ void Run_ELP_SigGen_DampedSine(tELP_SigGen *ptr_sg)
 		{
 			Disable_ELP_SigGen(ptr_sg);
 		}
+	}
+}
+
+void Run_ELP_SigGen_Trapezoidal(tELP_SigGen *ptr_sg)
+{
+	if(ptr_sg->Enable)
+	{
+		if(ptr_sg->n < ptr_sg->PhaseStart)
+		{
+			*(ptr_sg->out) = ptr_sg->n * ptr_sg->w + (*ptr_sg->ptr_Offset);
+		}
+		else if(ptr_sg->n < ptr_sg->PhaseEnd)
+		{
+			*(ptr_sg->out) = (*ptr_sg->ptr_Amp) + (*ptr_sg->ptr_Offset);
+		}
+		else if(ptr_sg->n < ptr_sg->nSamples)
+		{
+			*(ptr_sg->out) = ptr_sg->Aux * (ptr_sg->n - ptr_sg->PhaseEnd) + (*ptr_sg->ptr_Amp) + (*ptr_sg->ptr_Offset);
+		}
+		else
+		{
+			Disable_ELP_SigGen(ptr_sg);
+		}
+
+		ptr_sg->n++;
 	}
 }
 
