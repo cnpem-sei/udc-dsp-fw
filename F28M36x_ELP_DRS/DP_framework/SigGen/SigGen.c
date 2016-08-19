@@ -48,6 +48,7 @@ void Run_ELP_SigGen_Square(tELP_SigGen *ptr_sg);
 void Run_ELP_SigGen_Triangle(tELP_SigGen *ptr_sg);
 void Run_ELP_SigGen_FreqSweep(tELP_SigGen *ptr_sg);
 void Run_ELP_SigGen_DampedSine(tELP_SigGen *ptr_sg);
+void Run_ELP_SigGen_Trapezoidal(tELP_SigGen *ptr_sg);
 
 tELP_SigGen SignalGenerator;
 
