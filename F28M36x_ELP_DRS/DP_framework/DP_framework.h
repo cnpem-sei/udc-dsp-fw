@@ -53,6 +53,7 @@ typedef enum
 #define	N_MAX_ELP_IIR_2P2Z	6
 #define N_MAX_ELP_IIR_3P3Z  3
 #define N_MAX_ELP_LPF		4
+#define	N_MAX_ELP_DCLink_FF 2
 #define N_MAX_TI_PID		3
 #define N_MAX_TI_PI			3
 #define N_MAX_TI_DF13		3
@@ -69,6 +70,7 @@ typedef volatile struct
 	tELP_PI_dawu 	ELP_PI_dawu[N_MAX_ELP_PI_DAWU];
 	tELP_IIR_2P2Z	ELP_IIR_2P2Z[N_MAX_ELP_IIR_2P2Z];
 	tELP_IIR_3P3Z	ELP_IIR_3P3Z[N_MAX_ELP_IIR_3P3Z];
+	tELP_DCLink_FF	ELP_DCLink_FF[N_MAX_ELP_DCLink_FF];
 	PID				TI_PID[N_MAX_TI_PID];
 	PI				TI_PI[N_MAX_TI_PI];
 	DF13			TI_DF13[N_MAX_TI_DF13];

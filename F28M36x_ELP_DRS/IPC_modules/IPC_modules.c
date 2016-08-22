@@ -299,7 +299,6 @@ interrupt void isr_IPC_Channel_2(void)
 	 * 			  ACK dos grupos INT1 (XINT2) e INT11 (MTOCIPCINT2).
 	 */
 
-	//checkar o modo de operação (se é WfmRef)
 	//checkar a flag do IPC para fazer condicional
 
 	SET_DEBUG_GPIO1;
@@ -311,9 +310,24 @@ interrupt void isr_IPC_Channel_2(void)
 			EPwm1Regs.TBCTL.bit.SWFSYNC = 1;
 		}*/
 
-		IPC_CtoM_Msg.WfmRef = IPC_MtoC_Msg.WfmRef;
-		TimeSlicer.Counter[0] = TimeSlicer.FreqRatio[0];
-		wfmSyncFlag = 1;
+		if(IPC_CtoM_Msg.WfmRef.SyncMode == OneShot)
+		{
+			IPC_CtoM_Msg.WfmRef = IPC_MtoC_Msg.WfmRef;
+			TimeSlicer.Counter[0] = TimeSlicer.FreqRatio[0];
+			wfmSyncFlag = 1;
+		}
+
+		else if(IPC_CtoM_Msg.WfmRef.SyncMode == SampleBySample)
+		{
+			if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++ >= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+			{
+				IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart;
+				IPC_CtoM_Msg.WfmRef.Gain = IPC_MtoC_Msg.WfmRef.Gain;
+				IPC_CtoM_Msg.WfmRef.Offset = IPC_MtoC_Msg.WfmRef.Offset;
+			}
+
+
+		}
 	}
 	else
 	{

@@ -101,6 +101,15 @@ typedef volatile struct
 	volatile float *out;
 } tELP_IIR_3P3Z;
 
+typedef volatile struct
+{
+	float vdc_nom;
+	float vdc_min;
+	volatile float *vdc_meas;
+	volatile float *in;
+	volatile float *out;
+} tELP_DCLink_FF;
+
 extern float b_coeff_NF_Vdc[3];
 extern float a_coeff_NF_Vdc[2];
 extern float b_coeff_LPF_Iin[3];
@@ -133,6 +142,10 @@ extern void Run_ELP_IIR_2P2Z(tELP_IIR_2P2Z *ptr_iir);
 extern void Init_ELP_IIR_3P3Z(tELP_IIR_3P3Z *ptr_iir, float b0, float b1, float b2, float b3, float a1, float a2, float a3, float uMax, float uMin, volatile float *in, volatile float *out);
 extern void Reset_ELP_IIR_3P3Z(tELP_IIR_3P3Z *ptr_iir);
 extern void Run_ELP_IIR_3P3Z(tELP_IIR_3P3Z *ptr_iir);
+
+extern void Init_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff, float vdc_nom, float vdc_min, volatile float *vdc_meas, volatile float *in, volatile float *out);
+extern void Reset_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff);
+extern void Run_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff);
 
 #endif	/* ELP_DCL_H */
 

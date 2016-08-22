@@ -111,6 +111,11 @@ Uint16 Init_ELP_SigGen(tELP_SigGen *ptr_sg, eSigGenType sigType, float phase_sta
 				break;
 
 			case Trapezoidal:
+				ptr_sg->PhaseStart = phase_start * freqSample;
+				ptr_sg->PhaseEnd = (phase_start + (*ptr_aux)) * freqSample;
+				ptr_sg->nSamples = (phase_start + (*ptr_aux) + phase_end) * freqSample;
+				ptr_sg->w = (*ptr_amp) / ptr_sg->PhaseStart;
+				ptr_sg->Aux = (*ptr_amp) / (phase_end * freqSample);
 				ptr_sg->Run_ELP_SigGen = Run_ELP_SigGen_Trapezoidal;
 				break;
 		}
@@ -123,10 +128,18 @@ Uint16 Init_ELP_SigGen(tELP_SigGen *ptr_sg, eSigGenType sigType, float phase_sta
 void Enable_ELP_SigGen(tELP_SigGen *ptr_sg)
 {
 	Reset_ELP_SigGen(ptr_sg);
-	if(ptr_sg->Type != DampedSine)
+	switch(ptr_sg->Type)
 	{
-		Update_ELP_SigGen(ptr_sg);
+		case Sine:
+		case Square:
+		case Triangle:
+			Update_ELP_SigGen(ptr_sg);
+			break;
+
+		default:
+			break;
 	}
+
 	ptr_sg->Enable = 1;
 }
 
@@ -166,12 +179,12 @@ void Run_ELP_SigGen_Sine(tELP_SigGen *ptr_sg)
 		else if(ptr_sg->n >= ptr_sg->FreqSample)
 		{
 			/*
-			 *  Comparaï¿½ï¿½o ï¿½ feita com fs, para que n seja incrementado atï¿½ completar 1 segundo.
-			 *  Isso foi feito, pois ao comparar n com n_samp, distorcemos o sinal gerado, jï¿½ que
-			 *  n_samp pode ser float, e n nï¿½o.
+			 *  Comparação é feita com fs, para que n seja incrementado até completar 1 segundo.
+			 *  Isso foi feito, pois ao comparar n com n_samp, distorcemos o sinal gerado, já que
+			 *  n_samp pode ser float, e n não.
 			 *
-			 *  Assim que o perï¿½odo se completa e os parï¿½metros do gerador sï¿½o atualizados, de
-			 *  forma a garantir uma transiï¿½ï¿½o suave entre a senï¿½ide gerada anteriormente e a nova
+			 *  Assim que o período se completa e os parâmetros do gerador são atualizados, de
+			 *  forma a garantir uma transição suave entre a senóide gerada anteriormente e a nova
 			 */
 			Update_ELP_SigGen(ptr_sg);
 			ptr_sg->n = 0.0;
@@ -225,7 +238,7 @@ void Run_ELP_SigGen_Trapezoidal(tELP_SigGen *ptr_sg)
 		}
 		else if(ptr_sg->n < ptr_sg->nSamples)
 		{
-			*(ptr_sg->out) = ptr_sg->Aux * (ptr_sg->n - ptr_sg->PhaseEnd) + (*ptr_sg->ptr_Amp) + (*ptr_sg->ptr_Offset);
+			*(ptr_sg->out) = ptr_sg->Aux * (ptr_sg->PhaseEnd - ptr_sg->n) + (*ptr_sg->ptr_Amp) + (*ptr_sg->ptr_Offset);
 		}
 		else
 		{

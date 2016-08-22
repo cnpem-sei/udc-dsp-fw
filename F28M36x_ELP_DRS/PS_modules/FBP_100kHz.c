@@ -99,12 +99,6 @@ void main_FBP_100kHz(void)
 		TunningPWM_MEP_SFO();
 	}
 
-	DisablePWM_TBCLK();
-	stop_DMA();
-
-	TerminateInterruptions();
-	ResetControllers();
-	TerminatePeripheralsDrivers();
 }
 
 /*

@@ -18,19 +18,22 @@
 #define MAX_REF					200.0		// Valor máximo da referência de corrente na carga [A]
 #define MIN_REF					0.0			// Valor mínimo da referência de corrente na carga [A]
 #define MAX_LOAD				210.0		// Limite de corrente na carga para interlock [A]
-#define MIN_DCLINK				85.0		// Valor mínimo de tensão no DC-Link para interlock [V]
+
+#define MAX_DCLINK				110.0		// Valor máximo de tensão no DC-Link para interlock [V]
+#define MIN_DCLINK				85.0		// Valor mínimo de tensão no DC-Link para interlock e para feed-forward operar [V]
+#define NOM_VDCLINK				100.0		// Valor nominal da tensão de DC-Link [V]
 
 #define MAX_REF_SLEWRATE		20.0		// Slew-rate máximo [A/s]
 #define MAX_SR_SIGGEN_OFFSET	20.0		// Slew-rate máximo do offset do gerador senoidal [A/s]
 #define MAX_SR_SIGGEN_AMP		20.0		// Slew-rate máximo da amplitude do gerador senoidal [A/s]
 
-#define PWM_MAX_SHARE_DUTY		0.1
+#define PWM_MAX_SHARE_DUTY		0.01
 
 #define KP						0.2262
 #define KI						1.5708
 
-#define KP2						0.00000314
-#define KI2						0.000314
+#define KP2						0.0000314
+#define KI2						0.00314
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
@@ -49,9 +52,15 @@
 #define TRANSDUCER_0_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
 #define HRADC_0_R_BURDEN			1.0				// Resistor Burden = 1 R
 
-#define HRADC_R_BURDEN				1.0				// Resistor Burden = 1 R
+#define TRANSDUCER_1_INPUT_RATED	111.8			// Divisor de Tensão + Isolador Verivolt IsoBlock V-4:
+#define TRANSDUCER_1_OUTPUT_RATED	10.0			//   In_rated 	= +/- 111.8 V
+#define TRANSDUCER_1_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
+#define TRANSDUCER_1_GAIN			TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED
+#define HRADC_1_R_BURDEN			1.0				// Resistor Burden = 1 R
+
+/*#define HRADC_R_BURDEN				1.0				// Resistor Burden = 1 R
 #define HRADC_VIN_BI_P_GAIN			(20.0/262144.0)
-#define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))
+#define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))*/
 
 extern void main_FAP_DCDC_20kHz(void);
 

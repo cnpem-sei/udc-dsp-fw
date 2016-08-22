@@ -55,8 +55,6 @@ Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT Ana
 static enum_AN_INPUT *ptr_CurrentAnalogInput;
 static enum_AN_INPUT TestAnalogInputs[N_MAX_SAMPLING_TESTS] = { Iin_bipolar, Vin_bipolar, GND, Vref_bipolar_p, Vref_bipolar_n, Temp };
 
-static Uint16 SamplingStatus;
-
 static Uint16 UFM_buffer[UFM_BUFFER_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static Uint32 valorCounter;
 

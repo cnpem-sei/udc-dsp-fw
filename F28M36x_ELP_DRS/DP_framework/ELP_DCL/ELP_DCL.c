@@ -64,6 +64,10 @@ void Init_ELP_IIR_3P3Z(tELP_IIR_3P3Z *ptr_iir, float b0, float b1, float b2, flo
 void Reset_ELP_IIR_3P3Z(tELP_IIR_3P3Z *ptr_iir);
 void Run_ELP_IIR_3P3Z(tELP_IIR_3P3Z *ptr_iir);
 
+void Init_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff, float vdc_nom, float vdc_min, volatile float *vdc_meas, volatile float *in, volatile float *out);
+void Reset_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff);
+void Run_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff);
+
 /****************/
 
 /*
@@ -417,4 +421,39 @@ void Run_ELP_IIR_3P3Z(tELP_IIR_3P3Z *ptr_iir)
 	ptr_iir->w3 = w0;
 
 	*(ptr_iir->out) = yacc;
+}
+
+/*
+ *
+ */
+void Init_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff, float vdc_nom, float vdc_min, volatile float *vdc_meas, volatile float *in, volatile float *out)
+{
+	ptr_ff->vdc_nom = vdc_nom;
+	ptr_ff->vdc_min = vdc_min;
+	ptr_ff->vdc_meas = vdc_meas;
+	ptr_ff->in = in;
+	ptr_ff->out = out;
+}
+
+/*
+ *
+ */
+void Reset_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff)
+{
+	*(ptr_ff->out) = *(ptr_ff->in);
+}
+
+/*
+ *
+ */
+void Run_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff)
+{
+	if( *(ptr_ff->vdc_meas) < ptr_ff->vdc_min )
+	{
+		*(ptr_ff->out) = *(ptr_ff->in);
+	}
+	else
+	{
+		*(ptr_ff->out) = *(ptr_ff->in) * ptr_ff->vdc_nom / *(ptr_ff->vdc_meas);
+	}
 }

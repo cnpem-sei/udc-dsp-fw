@@ -116,22 +116,19 @@ void main_FAP_ACDC(void)
 			}
 		}*/
 
-		if( CHECK_INTERLOCK(OVERVOLTAGE_V_OUT_MOD1) && (DP_Framework_MtoC.NetSignals[9] > MAX_V_OUT) )
+		if( CHECK_INTERLOCK(OUT1_OVERVOLTAGE) && (DP_Framework_MtoC.NetSignals[9] > MAX_V_OUT) )
 		{
-			Set_HardInterlock(OVERVOLTAGE_V_OUT_MOD1);
+			Set_HardInterlock(OUT1_OVERVOLTAGE);
 		}
 
-		if( CHECK_INTERLOCK(OVERVOLTAGE_V_OUT_MOD2) && (DP_Framework_MtoC.NetSignals[10] > MAX_V_OUT) )
+		if( CHECK_INTERLOCK(OUT2_OVERVOLTAGE) && (DP_Framework_MtoC.NetSignals[10] > MAX_V_OUT) )
 		{
-			Set_HardInterlock(OVERVOLTAGE_V_OUT_MOD2);
+			Set_HardInterlock(OUT2_OVERVOLTAGE);
 		}
 
 		CLEAR_DEBUG_GPIO1;
 	}
 
-	TerminateInterruptions();
-	ResetControllers();
-	TerminatePeripheralsDrivers();
 }
 
 /*
