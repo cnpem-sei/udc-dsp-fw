@@ -1,4 +1,3 @@
-
 /*
  * 		FILE: 		FAP_DCDC_20kHz.c
  * 		PROJECT: 	DRS v2.0
@@ -102,7 +101,7 @@ void main_FAP_DCDC_20kHz(void)
 	start_DMA();
 	EnablePWM_TBCLK();
 
-	//StartCpuTimer0();
+	StartCpuTimer0();
 
 	while(1)
 	{
@@ -125,16 +124,17 @@ void main_FAP_DCDC_20kHz(void)
 
 		EINT;
 
-		/*if( DP_Framework_MtoC.NetSignals[2] != oldValue )
+		if( DP_Framework_MtoC.NetSignals[2] != oldValue )
 		{
 			StopCpuTimer0();
 			oldValue = DP_Framework_MtoC.NetSignals[2];
 			valorCounter2 = (CpuTimer0Regs.PRD.all - ReadCpuTimer0Counter()) * 6.666666e-9;
 			ReloadCpuTimer0();
 			StartCpuTimer0();
-		}*/
+			WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, valorCounter2);
+		}
 
-		TunningPWM_MEP_SFO();
+		//TunningPWM_MEP_SFO();
 	}
 
 }
@@ -270,11 +270,12 @@ static void InitControllers(void)
 	 * description: 	Current share error
 	 *    DP class:     ELP_Error
 	 *     	    +:		MtoC.NetSignals[2]
-	 *     	    -:		MtoC.NetSignals[3]
+	 *     	    -:		NetSignals[16] // MtoC.NetSignals[3]
 	 * 		   out:		NetSignals[10]
 	 */
 
-	Init_ELP_Error(ISHARE_ERROR_CALCULATOR, &DP_Framework_MtoC.NetSignals[2], &DP_Framework_MtoC.NetSignals[3], &DP_Framework.NetSignals[10]);
+	//Init_ELP_Error(ISHARE_ERROR_CALCULATOR, &DP_Framework_MtoC.NetSignals[2], &DP_Framework_MtoC.NetSignals[3], &DP_Framework.NetSignals[10]);
+	Init_ELP_Error(ISHARE_ERROR_CALCULATOR, &DP_Framework_MtoC.NetSignals[2], &DP_Framework.NetSignals[16], &DP_Framework.NetSignals[10]);
 
 	/*
 	 * 	      name: 	PI_DAWU_CONTROLLER_ISHARE
@@ -525,6 +526,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 			RUN_TIMESLICE(2); /************************************************************/
 
+				DP_Framework.NetSignals[16] = DP_Framework.NetSignals[1] * 0.5;
 				Run_ELP_Error(ISHARE_ERROR_CALCULATOR);
 				Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_ISHARE);
 
@@ -546,7 +548,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);
+//		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);
 
 	END_TIMESLICE(1); /************************************************************/
 
@@ -554,8 +556,6 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	{
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
-
-	CLEAR_DEBUG_GPIO1;
 
 	//StopCpuTimer0();
 	//valorCounter = ReadCpuTimer0Counter();
@@ -672,6 +672,7 @@ static void PS_turnOff(void)
 
 	PIN_OPEN_DCLINK_CONTACTOR;
 
+
 	// Start timeout monitor
 	StartCpuTimer1();
 
@@ -689,9 +690,16 @@ static void PS_turnOff(void)
 		}
 	}
 
+	SET_DEBUG_GPIO1;
+
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 	IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
 
+	DELAY_US(2);
+
 	ResetControllers();
+
+	CLEAR_DEBUG_GPIO1;
+
 }
 
