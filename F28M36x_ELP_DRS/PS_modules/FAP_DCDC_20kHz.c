@@ -433,6 +433,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	static float temp0, temp1;
 
 	//StartCpuTimer0();
+	SET_DEBUG_GPIO1;
 
 	temp0 = 0.0;
 	temp1 = 0.0;
@@ -579,6 +580,8 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	{
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
+
+	CLEAR_DEBUG_GPIO1;
 
 	//StopCpuTimer0();
 	//valorCounter = ReadCpuTimer0Counter();
