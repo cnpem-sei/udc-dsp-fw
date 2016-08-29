@@ -47,6 +47,7 @@
  */
 
 #define PIN_STATUS_DCLINK_CONTACTOR		DP_Framework_MtoC.NetSignals[17]
+#define MAX_ILOAD_MEASURED				DP_Framework.NetSignals[18]
 
 #define PIN_OPEN_DCLINK_CONTACTOR		GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
 #define PIN_CLOSE_DCLINK_CONTACTOR		GpioDataRegs.GPCSET.bit.GPIO67 = 1;
@@ -76,8 +77,11 @@ static interrupt void isr_SoftInterlock(void);
 static interrupt void isr_HardInterlock(void);
 
 static void InitPeripheralsDrivers(void);
+static void ResetPeripheralsDrivers(void);
+
 static void InitControllers(void);
 static void ResetControllers(void);
+
 static void InitInterruptions(void);
 
 static Uint16 pinStatus_DCLink_Contactor;
@@ -101,8 +105,6 @@ void main_FAP_DCDC_20kHz(void)
 	start_DMA();
 	EnablePWM_TBCLK();
 
-	StartCpuTimer0();
-
 	while(1)
 	{
 		DINT;
@@ -124,17 +126,7 @@ void main_FAP_DCDC_20kHz(void)
 
 		EINT;
 
-		if( DP_Framework_MtoC.NetSignals[2] != oldValue )
-		{
-			StopCpuTimer0();
-			oldValue = DP_Framework_MtoC.NetSignals[2];
-			valorCounter2 = (CpuTimer0Regs.PRD.all - ReadCpuTimer0Counter()) * 6.666666e-9;
-			ReloadCpuTimer0();
-			StartCpuTimer0();
-			WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, valorCounter2);
-		}
-
-		//TunningPWM_MEP_SFO();
+		TunningPWM_MEP_SFO();
 	}
 
 }
@@ -222,6 +214,29 @@ static void InitPeripheralsDrivers(void)
 	CpuTimer2Regs.TCR.bit.TIE = 0;
 }
 
+static void ResetPeripheralsDrivers(void)
+{
+	DisablePWM_TBCLK();
+	stop_DMA();
+
+	Init_DMA_McBSP_nBuffers(2, DECIMATION_FACTOR);
+
+	Init_SPIMaster_McBSP();
+	Init_SPIMaster_Gpio();
+	InitMcbspa20bit();
+
+	HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
+	HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
+
+	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+	Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+
+	stop_DMA();
+	DELAY_US(5);
+	start_DMA();
+	EnablePWM_TBCLK();
+}
+
 static void InitControllers(void)
 {
 	/* Initialization of IPC module */
@@ -270,7 +285,7 @@ static void InitControllers(void)
 	 * description: 	Current share error
 	 *    DP class:     ELP_Error
 	 *     	    +:		MtoC.NetSignals[2]
-	 *     	    -:		NetSignals[16] // MtoC.NetSignals[3]
+	 *     	    -:		NetSignals[16]
 	 * 		   out:		NetSignals[10]
 	 */
 
@@ -356,6 +371,8 @@ static void InitControllers(void)
 
 static void ResetControllers(void)
 {
+	IPC_CtoM_Msg.PSModule.IRef = 0.0;
+
 	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[0], 0.0);
 	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[1], 0.0);
 
@@ -372,8 +389,6 @@ static void ResetControllers(void)
 
 	Reset_ELP_SRLim(SRLIM_SIGGEN_AMP);
 	Reset_ELP_SRLim(SRLIM_SIGGEN_OFFSET);
-
-	IPC_CtoM_Msg.PSModule.IRef = 0.0;
 
 	Reset_TimeSlicers();
 }
@@ -444,6 +459,11 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	DP_Framework.NetSignals[1] = temp0;
 	DP_Framework.NetSignals[12] = temp1;
+
+	if(temp0 > MAX_ILOAD_MEASURED)
+	{
+		MAX_ILOAD_MEASURED = temp0;
+	}
 
 	if(fabs(temp0) > MAX_LOAD)
 	{
@@ -548,7 +568,10 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-//		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework_MtoC.NetSignals[2]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[0]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[1]);
 
 	END_TIMESLICE(1); /************************************************************/
 
@@ -690,16 +713,12 @@ static void PS_turnOff(void)
 		}
 	}
 
-	SET_DEBUG_GPIO1;
-
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 	IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
 
-	DELAY_US(2);
+	DELAY_US(20000);
 
+	ResetPeripheralsDrivers();
 	ResetControllers();
-
-	CLEAR_DEBUG_GPIO1;
-
 }
 
