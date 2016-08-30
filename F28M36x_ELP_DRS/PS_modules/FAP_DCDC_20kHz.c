@@ -476,9 +476,9 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	if(fabs(temp1) > MAX_DCLINK)
 	{
-		if(CHECK_INTERLOCK(OUT1_OVERVOLTAGE))
+		if(CHECK_INTERLOCK(IN_OVERVOLTAGE))
 		{
-			Set_HardInterlock(OUT1_OVERVOLTAGE);
+			Set_HardInterlock(IN_OVERVOLTAGE);
 		}
 	}
 

@@ -56,8 +56,8 @@
 #define TRANSDUCER_0_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
 #define HRADC_0_R_BURDEN			1.0				// Resistor Burden = 1 R
 
-#define TRANSDUCER_1_INPUT_RATED	111.8			// Divisor de Tensão + Isolador Verivolt IsoBlock V-4:
-#define TRANSDUCER_1_OUTPUT_RATED	10.0			//   In_rated 	= +/- 111.8 V
+#define TRANSDUCER_1_INPUT_RATED	110.0			// Divisor de Tensão + Isolador Verivolt IsoBlock V-4:
+#define TRANSDUCER_1_OUTPUT_RATED	10.0			//   In_rated 	= +/- 110.0 V
 #define TRANSDUCER_1_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_1_GAIN			TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED
 #define HRADC_1_R_BURDEN			1.0				// Resistor Burden = 1 R
