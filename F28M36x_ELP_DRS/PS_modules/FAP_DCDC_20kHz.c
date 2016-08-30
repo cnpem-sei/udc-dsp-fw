@@ -47,6 +47,7 @@
  */
 
 #define PIN_STATUS_DCLINK_CONTACTOR		DP_Framework_MtoC.NetSignals[17]
+#define MAX_ILOAD_MEASURED				DP_Framework.NetSignals[18]
 
 #define PIN_OPEN_DCLINK_CONTACTOR		GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
 #define PIN_CLOSE_DCLINK_CONTACTOR		GpioDataRegs.GPCSET.bit.GPIO67 = 1;
@@ -61,6 +62,7 @@
 #pragma CODE_SECTION(Set_HardInterlock, "ramfuncs");
 #pragma CODE_SECTION(isr_SoftInterlock, "ramfuncs");
 #pragma CODE_SECTION(isr_HardInterlock, "ramfuncs");
+#pragma CODE_SECTION(ResetControllers, "ramfuncs");
 
 static interrupt void isr_ePWM_CTR_ZERO(void);
 static interrupt void isr_ePWM_CTR_ZERO_1st(void);
@@ -460,6 +462,11 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	DP_Framework.NetSignals[1] = temp0;
 	DP_Framework.NetSignals[12] = temp1;
 
+	if(temp0 > MAX_ILOAD_MEASURED)
+	{
+		MAX_ILOAD_MEASURED = temp0;
+	}
+
 	if(fabs(temp0) > MAX_LOAD)
 	{
 		if(CHECK_INTERLOCK(LOAD_OVERCURRENT))
@@ -470,9 +477,9 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	if(fabs(temp1) > MAX_DCLINK)
 	{
-		if(CHECK_INTERLOCK(OUT1_OVERVOLTAGE))
+		if(CHECK_INTERLOCK(IN_OVERVOLTAGE))
 		{
-			Set_HardInterlock(OUT1_OVERVOLTAGE);
+			Set_HardInterlock(IN_OVERVOLTAGE);
 		}
 	}
 
@@ -536,8 +543,6 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 			SATURATE(DP_Framework.NetSignals[0], MAX_REF, MIN_REF);
 			Run_ELP_Error(ERROR_CALCULATOR);
 			Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD);
-			Run_ELP_DCLink_FF(FF_DCLINK_ILOAD);
-			Run_ELP_DCLink_FF(FF_DCLINK_ISHARE);
 
 			RUN_TIMESLICE(2); /************************************************************/
 
@@ -546,6 +551,9 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 				Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_ISHARE);
 
 			END_TIMESLICE(2); /************************************************************/
+
+			Run_ELP_DCLink_FF(FF_DCLINK_ILOAD);
+			Run_ELP_DCLink_FF(FF_DCLINK_ISHARE);
 
 			DP_Framework.DutySignals[0] = DP_Framework.NetSignals[14] - DP_Framework.NetSignals[15];
 			DP_Framework.DutySignals[1] = DP_Framework.NetSignals[14] + DP_Framework.NetSignals[15];
