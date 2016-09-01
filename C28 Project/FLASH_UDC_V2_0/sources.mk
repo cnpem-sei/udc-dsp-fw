@@ -29,6 +29,7 @@ OBJ_SRCS :=
 S62_SRCS := 
 LIB_SRCS := 
 PDE_SRCS := 
+SV7A_SRCS := 
 ASM_SRCS := 
 ASM_UPPER_SRCS := 
 C++_SRCS := 
@@ -51,6 +52,7 @@ S62_DEPS :=
 C64_DEPS := 
 ASM_DEPS := 
 CC_DEPS := 
+SV7A_DEPS := 
 S55_DEPS := 
 C67_DEPS := 
 CLA_DEPS := 
@@ -104,20 +106,21 @@ PDE_DEPS__QUOTED :=
 C43_DEPS__QUOTED := 
 S62_DEPS__QUOTED := 
 ASM_DEPS__QUOTED := 
+SV7A_DEPS__QUOTED := 
 S64_DEPS__QUOTED := 
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
 . \
-source2 \
-source \
-F28M36x_ELP_DRS/PWM_modules \
-F28M36x_ELP_DRS/PS_modules \
-F28M36x_ELP_DRS/IPC_modules \
-F28M36x_ELP_DRS/HRADC_board \
-F28M36x_ELP_DRS \
-F28M36x_ELP_DRS/DP_framework/TimeSlicer \
-F28M36x_ELP_DRS/DP_framework/SigGen \
-F28M36x_ELP_DRS/DP_framework/ELP_DCL \
 F28M36x_ELP_DRS/DP_framework \
+F28M36x_ELP_DRS/DP_framework/ELP_DCL \
+F28M36x_ELP_DRS/DP_framework/SigGen \
+F28M36x_ELP_DRS/DP_framework/TimeSlicer \
+F28M36x_ELP_DRS \
+F28M36x_ELP_DRS/HRADC_board \
+F28M36x_ELP_DRS/IPC_modules \
+F28M36x_ELP_DRS/PS_modules \
+F28M36x_ELP_DRS/PWM_modules \
+source \
+source2 \
 

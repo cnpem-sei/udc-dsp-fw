@@ -20,7 +20,7 @@
 #define MAX_LOAD				210.0		// Limite de corrente na carga para interlock [A]
 
 #define MAX_DCLINK				110.0		// Valor m�ximo de tens�o no DC-Link para interlock [V]
-#define MIN_DCLINK				85.0		// Valor m�nimo de tens�o no DC-Link para interlock e para feed-forward operar [V]
+#define MIN_DCLINK				50.0		// Valor m�nimo de tens�o no DC-Link para interlock e para feed-forward operar [V]
 #define NOM_VDCLINK				100.0		// Valor nominal da tens�o de DC-Link [V]
 
 #define MAX_REF_SLEWRATE		20.0		// Slew-rate m�ximo [A/s]
@@ -29,15 +29,11 @@
 
 #define PWM_MAX_SHARE_DUTY		0.01
 
-/*#define KP						0.2262
-#define KI						1.5708
-#define KP2						0.000314
-#define KI2						0.00314*/
-
 #define KP						0.4524
 #define KI						3.1416
-#define KP2						0.0000314
-#define KI2						0.000314
+
+#define KP2						0.00001
+#define KI2						0.002.7
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)

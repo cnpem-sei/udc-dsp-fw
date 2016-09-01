@@ -2,9 +2,7 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
-SHELL = cmd.exe
-
-CG_TOOL_ROOT := C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10
+CG_TOOL_ROOT := /home/gabriel/ti/ccsv6/tools/compiler/ti-cgt-c2000_15.12.1.LTS
 
 GEN_OPTS__FLAG := 
 GEN_CMDS__FLAG := 
@@ -13,7 +11,25 @@ ORDERED_OBJS += \
 "./F28M36x_ELP_DRS/F28M36x_ELP_DRS.obj" \
 "./F28M36x_ELP_DRS/PS_modules/PS_modules.obj" \
 "./main.obj" \
-"./source2/F28M36x_GlobalVariableDefs.obj" \
+"./F28M36x_ELP_DRS/DP_framework/DP_framework.obj" \
+"./F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.obj" \
+"./F28M36x_ELP_DRS/DP_framework/SigGen/SigGen.obj" \
+"./F28M36x_ELP_DRS/DP_framework/TimeSlicer/TimeSlicer.obj" \
+"./F28M36x_ELP_DRS/HRADC_board/DMA_SPI_Interface.obj" \
+"./F28M36x_ELP_DRS/HRADC_board/HRADC_Boards.obj" \
+"./F28M36x_ELP_DRS/HRADC_board/McBSP_SPI_Interface.obj" \
+"./F28M36x_ELP_DRS/IPC_modules/IPC_modules.obj" \
+"./F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj" \
+"./F28M36x_ELP_DRS/PS_modules/FAC_DCDC_20kHz.obj" \
+"./F28M36x_ELP_DRS/PS_modules/FAC_Full_ACDC_10kHz.obj" \
+"./F28M36x_ELP_DRS/PS_modules/FAC_Full_DCDC_20kHz.obj" \
+"./F28M36x_ELP_DRS/PS_modules/FAP_ACDC.obj" \
+"./F28M36x_ELP_DRS/PS_modules/FAP_DCDC_20kHz.obj" \
+"./F28M36x_ELP_DRS/PS_modules/FBP_100kHz.obj" \
+"./F28M36x_ELP_DRS/PS_modules/Jiga_HRADC.obj" \
+"./F28M36x_ELP_DRS/PS_modules/Test_HRADC.obj" \
+"./F28M36x_ELP_DRS/PS_modules/Test_HRPWM.obj" \
+"./F28M36x_ELP_DRS/PWM_modules/PWM_modules.obj" \
 "./source/F28M36x_Adc.obj" \
 "./source/F28M36x_CodeStartBranch.obj" \
 "./source/F28M36x_Comp.obj" \
@@ -30,64 +46,46 @@ ORDERED_OBJS += \
 "./source/F28M36x_SysCtrl.obj" \
 "./source/F28M36x_TempSensorConv.obj" \
 "./source/F28M36x_usDelay.obj" \
-"./F28M36x_ELP_DRS/PWM_modules/PWM_modules.obj" \
-"./F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj" \
-"./F28M36x_ELP_DRS/PS_modules/FAC_DCDC_20kHz.obj" \
-"./F28M36x_ELP_DRS/PS_modules/FAC_Full_ACDC_10kHz.obj" \
-"./F28M36x_ELP_DRS/PS_modules/FAC_Full_DCDC_20kHz.obj" \
-"./F28M36x_ELP_DRS/PS_modules/FAP_ACDC.obj" \
-"./F28M36x_ELP_DRS/PS_modules/FAP_DCDC_20kHz.obj" \
-"./F28M36x_ELP_DRS/PS_modules/FBP_100kHz.obj" \
-"./F28M36x_ELP_DRS/PS_modules/Jiga_HRADC.obj" \
-"./F28M36x_ELP_DRS/PS_modules/Test_HRADC.obj" \
-"./F28M36x_ELP_DRS/PS_modules/Test_HRPWM.obj" \
-"./F28M36x_ELP_DRS/IPC_modules/IPC_modules.obj" \
-"./F28M36x_ELP_DRS/HRADC_board/DMA_SPI_Interface.obj" \
-"./F28M36x_ELP_DRS/HRADC_board/HRADC_Boards.obj" \
-"./F28M36x_ELP_DRS/HRADC_board/McBSP_SPI_Interface.obj" \
-"./F28M36x_ELP_DRS/DP_framework/TimeSlicer/TimeSlicer.obj" \
-"./F28M36x_ELP_DRS/DP_framework/SigGen/SigGen.obj" \
-"./F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.obj" \
-"./F28M36x_ELP_DRS/DP_framework/DP_framework.obj" \
+"./source2/F28M36x_GlobalVariableDefs.obj" \
 "../F28M36x_Headers_nonBIOS.cmd" \
-"D:/ARQ/Projects/C28/F28M36x_common/lib/SFO_TI_Build_V7_FPU.lib" \
-"D:/ARQ/Projects/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd" \
+"/home/gabriel/LNLS/DRS/Firmware/C28/F28M36x_common/lib/SFO_TI_Build_V7_FPU.lib" \
+"/home/gabriel/LNLS/DRS/Firmware/C28/F28M36x_ELP_DRS/F28M36x_ELP_DRS_v2_0_C28_FLASH.cmd" \
 $(GEN_CMDS__FLAG) \
--l"libc.a" \
--l"D:/ARQ/Projects/C28/C28 Project/../FPUfastRTS/V100/lib/rts2800_fpu32_fast_supplement.lib" \
--l"rts2800_fpu32.lib" \
+-llibc.a \
+-l"/home/gabriel/LNLS/DRS/Firmware/C28/FPUfastRTS/V100/lib/rts2800_fpu32_fast_supplement.lib" \
+-lrts2800_fpu32.lib \
 
 -include ../makefile.init
 
-RM := DEL /F
-RMDIR := RMDIR /S/Q
+RM := rm -rf
+RMDIR := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir_vars.mk
--include source2/subdir_vars.mk
--include source/subdir_vars.mk
--include F28M36x_ELP_DRS/PWM_modules/subdir_vars.mk
--include F28M36x_ELP_DRS/PS_modules/subdir_vars.mk
--include F28M36x_ELP_DRS/IPC_modules/subdir_vars.mk
--include F28M36x_ELP_DRS/HRADC_board/subdir_vars.mk
--include F28M36x_ELP_DRS/subdir_vars.mk
--include F28M36x_ELP_DRS/DP_framework/TimeSlicer/subdir_vars.mk
--include F28M36x_ELP_DRS/DP_framework/SigGen/subdir_vars.mk
--include F28M36x_ELP_DRS/DP_framework/ELP_DCL/subdir_vars.mk
 -include F28M36x_ELP_DRS/DP_framework/subdir_vars.mk
+-include F28M36x_ELP_DRS/DP_framework/ELP_DCL/subdir_vars.mk
+-include F28M36x_ELP_DRS/DP_framework/SigGen/subdir_vars.mk
+-include F28M36x_ELP_DRS/DP_framework/TimeSlicer/subdir_vars.mk
+-include F28M36x_ELP_DRS/subdir_vars.mk
+-include F28M36x_ELP_DRS/HRADC_board/subdir_vars.mk
+-include F28M36x_ELP_DRS/IPC_modules/subdir_vars.mk
+-include F28M36x_ELP_DRS/PS_modules/subdir_vars.mk
+-include F28M36x_ELP_DRS/PWM_modules/subdir_vars.mk
+-include source/subdir_vars.mk
+-include source2/subdir_vars.mk
 -include subdir_rules.mk
--include source2/subdir_rules.mk
--include source/subdir_rules.mk
--include F28M36x_ELP_DRS/PWM_modules/subdir_rules.mk
--include F28M36x_ELP_DRS/PS_modules/subdir_rules.mk
--include F28M36x_ELP_DRS/IPC_modules/subdir_rules.mk
--include F28M36x_ELP_DRS/HRADC_board/subdir_rules.mk
--include F28M36x_ELP_DRS/subdir_rules.mk
--include F28M36x_ELP_DRS/DP_framework/TimeSlicer/subdir_rules.mk
--include F28M36x_ELP_DRS/DP_framework/SigGen/subdir_rules.mk
--include F28M36x_ELP_DRS/DP_framework/ELP_DCL/subdir_rules.mk
 -include F28M36x_ELP_DRS/DP_framework/subdir_rules.mk
+-include F28M36x_ELP_DRS/DP_framework/ELP_DCL/subdir_rules.mk
+-include F28M36x_ELP_DRS/DP_framework/SigGen/subdir_rules.mk
+-include F28M36x_ELP_DRS/DP_framework/TimeSlicer/subdir_rules.mk
+-include F28M36x_ELP_DRS/subdir_rules.mk
+-include F28M36x_ELP_DRS/HRADC_board/subdir_rules.mk
+-include F28M36x_ELP_DRS/IPC_modules/subdir_rules.mk
+-include F28M36x_ELP_DRS/PS_modules/subdir_rules.mk
+-include F28M36x_ELP_DRS/PWM_modules/subdir_rules.mk
+-include source/subdir_rules.mk
+-include source2/subdir_rules.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -108,6 +106,9 @@ ifneq ($(strip $(ASM_DEPS)),)
 endif
 ifneq ($(strip $(CC_DEPS)),)
 -include $(CC_DEPS)
+endif
+ifneq ($(strip $(SV7A_DEPS)),)
+-include $(SV7A_DEPS)
 endif
 ifneq ($(strip $(S55_DEPS)),)
 -include $(S55_DEPS)
@@ -200,24 +201,24 @@ all: C28_V2.0.out
 C28_V2.0.out: $(OBJS) $(CMD_SRCS) $(LIB_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: C2000 Linker'
-	"C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/bin/cl2000" -v28 -ml -mt --float_support=fpu32 --vcu_support=vcu0 -O2 --opt_for_speed=1 -g --diag_warning=225 --display_error_number --issue_remarks --diag_wrap=off -z -m"C28_V2.0.map" --stack_size=0x300 --warn_sections -i"C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/lib" -i"C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/include" --reread_libs --display_error_number --diag_wrap=off --xml_link_info="C28_V2.0_linkInfo.xml" --rom_model -o "C28_V2.0.out" $(ORDERED_OBJS)
+	"/home/gabriel/ti/ccsv6/tools/compiler/ti-cgt-c2000_15.12.1.LTS/bin/cl2000" -v28 -ml -mt --float_support=fpu32 --vcu_support=vcu0 -O2 --opt_for_speed=1 -g --diag_warning=225 --display_error_number --issue_remarks --diag_wrap=off -z -m"C28_V2.0.map" --stack_size=0x300 --warn_sections -i"/home/gabriel/ti/ccsv6/tools/compiler/ti-cgt-c2000_15.12.1.LTS/lib" -i"/home/gabriel/ti/ccsv6/tools/compiler/ti-cgt-c2000_15.12.1.LTS/include" --reread_libs --display_error_number --diag_wrap=off --xml_link_info="C28_V2.0_linkInfo.xml" --rom_model -o "C28_V2.0.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 C28_V2.0.hex: $(EXE_OUTPUTS)
 	@echo 'Invoking: C2000 Hex Utility'
-	"C:/ti/ccsv6/tools/compiler/ti-cgt-c2000_6.4.10/bin/hex2000"  -o "C28_V2.0.hex" $(EXE_OUTPUTS__QUOTED)
+	"/home/gabriel/ti/ccsv6/tools/compiler/ti-cgt-c2000_15.12.1.LTS/bin/hex2000"  -o "C28_V2.0.hex" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)$(BIN_OUTPUTS__QUOTED)
-	-$(RM) "main.pp" "source2\F28M36x_GlobalVariableDefs.pp" "source\F28M36x_Adc.pp" "source\F28M36x_Comp.pp" "source\F28M36x_CpuTimers.pp" "source\F28M36x_DMA.pp" "source\F28M36x_DefaultIsr.pp" "source\F28M36x_EPwm.pp" "source\F28M36x_Gpio.pp" "source\F28M36x_Mcbsp.pp" "source\F28M36x_PieCtrl.pp" "source\F28M36x_PieVect.pp" "source\F28M36x_Sci.pp" "source\F28M36x_Spi.pp" "source\F28M36x_SysCtrl.pp" "source\F28M36x_TempSensorConv.pp" "F28M36x_ELP_DRS\PWM_modules\PWM_modules.pp" "F28M36x_ELP_DRS\PS_modules\FAC_ACDC_10kHz.pp" "F28M36x_ELP_DRS\PS_modules\FAC_DCDC_20kHz.pp" "F28M36x_ELP_DRS\PS_modules\FAC_Full_ACDC_10kHz.pp" "F28M36x_ELP_DRS\PS_modules\FAC_Full_DCDC_20kHz.pp" "F28M36x_ELP_DRS\PS_modules\FAP_ACDC.pp" "F28M36x_ELP_DRS\PS_modules\FAP_DCDC_20kHz.pp" "F28M36x_ELP_DRS\PS_modules\FBP_100kHz.pp" "F28M36x_ELP_DRS\PS_modules\Jiga_HRADC.pp" "F28M36x_ELP_DRS\PS_modules\PS_modules.pp" "F28M36x_ELP_DRS\PS_modules\Test_HRADC.pp" "F28M36x_ELP_DRS\PS_modules\Test_HRPWM.pp" "F28M36x_ELP_DRS\IPC_modules\IPC_modules.pp" 
-	-$(RM) "F28M36x_ELP_DRS\HRADC_board\DMA_SPI_Interface.pp" "F28M36x_ELP_DRS\HRADC_board\HRADC_Boards.pp" "F28M36x_ELP_DRS\HRADC_board\McBSP_SPI_Interface.pp" "F28M36x_ELP_DRS\F28M36x_ELP_DRS.pp" "F28M36x_ELP_DRS\DP_framework\TimeSlicer\TimeSlicer.pp" "F28M36x_ELP_DRS\DP_framework\SigGen\SigGen.pp" "F28M36x_ELP_DRS\DP_framework\ELP_DCL\ELP_DCL.pp" "F28M36x_ELP_DRS\DP_framework\DP_framework.pp" 
-	-$(RM) "main.obj" "source2\F28M36x_GlobalVariableDefs.obj" "source\F28M36x_Adc.obj" "source\F28M36x_CodeStartBranch.obj" "source\F28M36x_Comp.obj" "source\F28M36x_CpuTimers.obj" "source\F28M36x_DMA.obj" "source\F28M36x_DefaultIsr.obj" "source\F28M36x_EPwm.obj" "source\F28M36x_Gpio.obj" "source\F28M36x_Mcbsp.obj" "source\F28M36x_PieCtrl.obj" "source\F28M36x_PieVect.obj" "source\F28M36x_Sci.obj" "source\F28M36x_Spi.obj" "source\F28M36x_SysCtrl.obj" "source\F28M36x_TempSensorConv.obj" "source\F28M36x_usDelay.obj" "F28M36x_ELP_DRS\PWM_modules\PWM_modules.obj" "F28M36x_ELP_DRS\PS_modules\FAC_ACDC_10kHz.obj" "F28M36x_ELP_DRS\PS_modules\FAC_DCDC_20kHz.obj" "F28M36x_ELP_DRS\PS_modules\FAC_Full_ACDC_10kHz.obj" "F28M36x_ELP_DRS\PS_modules\FAC_Full_DCDC_20kHz.obj" "F28M36x_ELP_DRS\PS_modules\FAP_ACDC.obj" "F28M36x_ELP_DRS\PS_modules\FAP_DCDC_20kHz.obj" "F28M36x_ELP_DRS\PS_modules\FBP_100kHz.obj" "F28M36x_ELP_DRS\PS_modules\Jiga_HRADC.obj" "F28M36x_ELP_DRS\PS_modules\PS_modules.obj" "F28M36x_ELP_DRS\PS_modules\Test_HRADC.obj" 
-	-$(RM) "F28M36x_ELP_DRS\PS_modules\Test_HRPWM.obj" "F28M36x_ELP_DRS\IPC_modules\IPC_modules.obj" "F28M36x_ELP_DRS\HRADC_board\DMA_SPI_Interface.obj" "F28M36x_ELP_DRS\HRADC_board\HRADC_Boards.obj" "F28M36x_ELP_DRS\HRADC_board\McBSP_SPI_Interface.obj" "F28M36x_ELP_DRS\F28M36x_ELP_DRS.obj" "F28M36x_ELP_DRS\DP_framework\TimeSlicer\TimeSlicer.obj" "F28M36x_ELP_DRS\DP_framework\SigGen\SigGen.obj" "F28M36x_ELP_DRS\DP_framework\ELP_DCL\ELP_DCL.obj" "F28M36x_ELP_DRS\DP_framework\DP_framework.obj" 
-	-$(RM) "source\F28M36x_CodeStartBranch.pp" "source\F28M36x_usDelay.pp" 
+	-$(RM) "main.d" "F28M36x_ELP_DRS/DP_framework/DP_framework.d" "F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.d" "F28M36x_ELP_DRS/DP_framework/SigGen/SigGen.d" "F28M36x_ELP_DRS/DP_framework/TimeSlicer/TimeSlicer.d" "F28M36x_ELP_DRS/F28M36x_ELP_DRS.d" "F28M36x_ELP_DRS/HRADC_board/DMA_SPI_Interface.d" "F28M36x_ELP_DRS/HRADC_board/HRADC_Boards.d" "F28M36x_ELP_DRS/HRADC_board/McBSP_SPI_Interface.d" "F28M36x_ELP_DRS/IPC_modules/IPC_modules.d" "F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.d" "F28M36x_ELP_DRS/PS_modules/FAC_DCDC_20kHz.d" "F28M36x_ELP_DRS/PS_modules/FAC_Full_ACDC_10kHz.d" "F28M36x_ELP_DRS/PS_modules/FAC_Full_DCDC_20kHz.d" "F28M36x_ELP_DRS/PS_modules/FAP_ACDC.d" "F28M36x_ELP_DRS/PS_modules/FAP_DCDC_20kHz.d" "F28M36x_ELP_DRS/PS_modules/FBP_100kHz.d" "F28M36x_ELP_DRS/PS_modules/Jiga_HRADC.d" "F28M36x_ELP_DRS/PS_modules/PS_modules.d" "F28M36x_ELP_DRS/PS_modules/Test_HRADC.d" "F28M36x_ELP_DRS/PS_modules/Test_HRPWM.d" "F28M36x_ELP_DRS/PWM_modules/PWM_modules.d" "source/F28M36x_Adc.d" "source/F28M36x_Comp.d" 
+	-$(RM) "source/F28M36x_CpuTimers.d" "source/F28M36x_DMA.d" "source/F28M36x_DefaultIsr.d" "source/F28M36x_EPwm.d" "source/F28M36x_Gpio.d" "source/F28M36x_Mcbsp.d" "source/F28M36x_PieCtrl.d" "source/F28M36x_PieVect.d" "source/F28M36x_Sci.d" "source/F28M36x_Spi.d" "source/F28M36x_SysCtrl.d" "source/F28M36x_TempSensorConv.d" "source2/F28M36x_GlobalVariableDefs.d" 
+	-$(RM) "main.obj" "F28M36x_ELP_DRS/DP_framework/DP_framework.obj" "F28M36x_ELP_DRS/DP_framework/ELP_DCL/ELP_DCL.obj" "F28M36x_ELP_DRS/DP_framework/SigGen/SigGen.obj" "F28M36x_ELP_DRS/DP_framework/TimeSlicer/TimeSlicer.obj" "F28M36x_ELP_DRS/F28M36x_ELP_DRS.obj" "F28M36x_ELP_DRS/HRADC_board/DMA_SPI_Interface.obj" "F28M36x_ELP_DRS/HRADC_board/HRADC_Boards.obj" "F28M36x_ELP_DRS/HRADC_board/McBSP_SPI_Interface.obj" "F28M36x_ELP_DRS/IPC_modules/IPC_modules.obj" "F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.obj" "F28M36x_ELP_DRS/PS_modules/FAC_DCDC_20kHz.obj" "F28M36x_ELP_DRS/PS_modules/FAC_Full_ACDC_10kHz.obj" "F28M36x_ELP_DRS/PS_modules/FAC_Full_DCDC_20kHz.obj" "F28M36x_ELP_DRS/PS_modules/FAP_ACDC.obj" "F28M36x_ELP_DRS/PS_modules/FAP_DCDC_20kHz.obj" "F28M36x_ELP_DRS/PS_modules/FBP_100kHz.obj" "F28M36x_ELP_DRS/PS_modules/Jiga_HRADC.obj" "F28M36x_ELP_DRS/PS_modules/PS_modules.obj" "F28M36x_ELP_DRS/PS_modules/Test_HRADC.obj" "F28M36x_ELP_DRS/PS_modules/Test_HRPWM.obj" "F28M36x_ELP_DRS/PWM_modules/PWM_modules.obj" 
+	-$(RM) "source/F28M36x_Adc.obj" "source/F28M36x_CodeStartBranch.obj" "source/F28M36x_Comp.obj" "source/F28M36x_CpuTimers.obj" "source/F28M36x_DMA.obj" "source/F28M36x_DefaultIsr.obj" "source/F28M36x_EPwm.obj" "source/F28M36x_Gpio.obj" "source/F28M36x_Mcbsp.obj" "source/F28M36x_PieCtrl.obj" "source/F28M36x_PieVect.obj" "source/F28M36x_Sci.obj" "source/F28M36x_Spi.obj" "source/F28M36x_SysCtrl.obj" "source/F28M36x_TempSensorConv.obj" "source/F28M36x_usDelay.obj" "source2/F28M36x_GlobalVariableDefs.obj" 
+	-$(RM) "source/F28M36x_CodeStartBranch.d" "source/F28M36x_usDelay.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 
