@@ -33,7 +33,7 @@
 #define KI						3.1416
 
 #define KP2						0.00001
-#define KI2						0.002.7
+#define KI2						0.0027
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
