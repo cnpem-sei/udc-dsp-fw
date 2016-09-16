@@ -226,26 +226,40 @@ void Run_ELP_SigGen_DampedSine(tELP_SigGen *ptr_sg)
 
 void Run_ELP_SigGen_Trapezoidal(tELP_SigGen *ptr_sg)
 {
+	static Uint16 nCycle = 0;
+
 	if(ptr_sg->Enable)
 	{
-		if(ptr_sg->n < ptr_sg->PhaseStart)
+		if(nCycle < ptr_sg->nCycles)
 		{
-			*(ptr_sg->out) = ptr_sg->n * ptr_sg->w + (*ptr_sg->ptr_Offset);
-		}
-		else if(ptr_sg->n < ptr_sg->PhaseEnd)
-		{
-			*(ptr_sg->out) = (*ptr_sg->ptr_Amp) + (*ptr_sg->ptr_Offset);
-		}
-		else if(ptr_sg->n < ptr_sg->nSamples)
-		{
-			*(ptr_sg->out) = ptr_sg->Aux * (ptr_sg->PhaseEnd - ptr_sg->n) + (*ptr_sg->ptr_Amp) + (*ptr_sg->ptr_Offset);
+			if(ptr_sg->n < ptr_sg->PhaseStart)
+			{
+				*(ptr_sg->out) = ptr_sg->n * ptr_sg->w + (*ptr_sg->ptr_Offset);
+			}
+			else if(ptr_sg->n < ptr_sg->PhaseEnd)
+			{
+				*(ptr_sg->out) = (*ptr_sg->ptr_Amp) + (*ptr_sg->ptr_Offset);
+			}
+			else if(ptr_sg->n < ptr_sg->nSamples)
+			{
+				*(ptr_sg->out) = ptr_sg->Aux * (ptr_sg->PhaseEnd - ptr_sg->n) + (*ptr_sg->ptr_Amp) + (*ptr_sg->ptr_Offset);
+			}
+			else
+			{
+				*(ptr_sg->out) = (*ptr_sg->ptr_Offset);
+				nCycle++;
+				ptr_sg->n = 0.0;
+			}
+			ptr_sg->n++;
 		}
 		else
 		{
 			Disable_ELP_SigGen(ptr_sg);
+			nCycle = 0;
+
 		}
 
-		ptr_sg->n++;
+
 	}
 }
 

@@ -50,10 +50,39 @@
 #define TRANSDUCER_0_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_0_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
 #define HRADC_0_R_BURDEN			1.0				// Resistor Burden = 1 R
+#define HRADC_0_GAIN_ERROR			1.00033
+#define HRADC_0_OFFSET_ERROR		0.0034058
 
 #define HRADC_R_BURDEN				1.0				// Resistor Burden = 1 R
 #define HRADC_VIN_BI_P_GAIN			(20.0/262144.0)
 #define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))
+
+/*
+ * DP modules mnemonics
+ */
+
+#define SRLIM_ILOAD_REFERENCE 		&DP_Framework.DPlibrary.ELP_SRLim[0]
+#define ERROR_CALCULATOR			&DP_Framework.DPlibrary.ELP_Error[0]
+#define	PI_DAWU_CONTROLLER_ILOAD	&DP_Framework.DPlibrary.ELP_PI_dawu[0]
+#define RESSONANT_CONTROLLER_ILOAD	&DP_Framework.DPlibrary.ELP_IIR_2P2Z[0]
+
+#define RESSONANT_DECIMATION		5
+
+#define SRLIM_SIGGEN_AMP	 		&DP_Framework.DPlibrary.ELP_SRLim[1]
+#define SRLIM_SIGGEN_OFFSET 		&DP_Framework.DPlibrary.ELP_SRLim[2]
+
+/*
+ * Digital IO's defines
+ */
+
+#define PIN_STATUS_ACDC_INTERLOCK	!(GpioDataRegs.GPDDAT.bit.GPIO126)
+
+#define PIN_SET_DCDC_INTERLOCK		GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
+#define PIN_CLEAR_DCDC_INTERLOCK	GpioDataRegs.GPCSET.bit.GPIO67 = 1;
+
+/*
+ * Functions prototypes
+ */
 
 extern void main_FAC_DCDC_20kHz(void);
 

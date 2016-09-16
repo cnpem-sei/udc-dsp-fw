@@ -27,6 +27,7 @@
 #define	PI_DAWU_CONTROLLER_ISHARE	&DP_Framework.DPlibrary.ELP_PI_dawu[1]
 
 #define ISHARE_DECIMATION			400
+#define ISHARE_CONTROL_FREQ			1000.0
 
 #define IIR_2P2Z_LPF_VDCLINK		&DP_Framework.DPlibrary.ELP_IIR_2P2Z[0]
 #define FF_DCLINK_ILOAD				&DP_Framework.DPlibrary.ELP_DCLink_FF[0]
@@ -86,8 +87,6 @@ static void ResetControllers(void);
 static void InitInterruptions(void);
 
 static Uint16 pinStatus_DCLink_Contactor;
-volatile float valorCounter2;
-volatile float oldValue;
 
 void main_FAP_DCDC_20kHz(void)
 {
@@ -301,7 +300,7 @@ static void InitControllers(void)
 	 * 		   out:		NetSignals[11]
 	 */
 
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ISHARE, KP2, KI2, (CONTROL_FREQ/ISHARE_DECIMATION), PWM_MAX_SHARE_DUTY, -PWM_MAX_SHARE_DUTY, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ISHARE, KP2, KI2, ISHARE_CONTROL_FREQ, PWM_MAX_SHARE_DUTY, -PWM_MAX_SHARE_DUTY, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
 
 	/*****************************************/
 	/* INITIALIZATION OF DC LINK FEEDFORWARD */
@@ -351,8 +350,28 @@ static void InitControllers(void)
 	 */
 
 	Disable_ELP_SigGen(&SignalGenerator);
-	Init_ELP_SigGen(&SignalGenerator, Sine, 0.0, 0.0, 0.0, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Freq, IPC_MtoC_Msg.SigGen.Amplitude,
-			 	    &IPC_MtoC_Msg.SigGen.Offset, &IPC_MtoC_Msg.SigGen.Aux, DP_Framework.Ref);
+	Init_ELP_SigGen(&SignalGenerator, Sine, 0.0, 0.0, 0.0, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Freq, &DP_Framework.NetSignals[N_MAX_NET_SIGNALS-2],
+					&DP_Framework.NetSignals[N_MAX_NET_SIGNALS-1], &IPC_MtoC_Msg.SigGen.Aux, DP_Framework.Ref);
+
+	/*
+	 * 	      name: 	SRLIM_SIGGEN_AMP
+	 * description: 	Signal generator amplitude slew-rate limiter
+	 *    DP class:     ELP_SRLim
+	 *     	    in:		IPC_MtoC_Msg.SigGen.Amplitude
+	 * 		   out:		NetSignals[N_MAX_NET_SIGNALS-2]
+	 */
+
+	Init_ELP_SRLim(SRLIM_SIGGEN_AMP, MAX_SR_SIGGEN_AMP, CONTROL_FREQ, IPC_MtoC_Msg.SigGen.Amplitude, &DP_Framework.NetSignals[N_MAX_NET_SIGNALS-2]);
+
+	/*
+	 * 	      name: 	SRLIM_SIGGEN_OFFSET
+	 * description: 	Signal generator offset slew-rate limiter
+	 *    DP class:     ELP_SRLim
+	 *     	    in:		IPC_MtoC_Msg.SigGen.Amplitude
+	 * 		   out:		NetSignals[N_MAX_NET_SIGNALS-1]
+	 */
+
+	Init_ELP_SRLim(SRLIM_SIGGEN_OFFSET, MAX_SR_SIGGEN_OFFSET, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Offset, &DP_Framework.NetSignals[N_MAX_NET_SIGNALS-1]);
 
 	/**********************************/
 	/* INITIALIZATION OF TIME SLICERS */
@@ -365,7 +384,7 @@ static void InitControllers(void)
 	Set_TimeSlicer(1, BUFFER_DECIMATION);
 
 	// 2: Time-slicer for current share controller
-	Set_TimeSlicer(2, ISHARE_DECIMATION);
+	Set_TimeSlicer(2, CONTROL_FREQ/ISHARE_CONTROL_FREQ);
 
 	ResetControllers();
 }
@@ -441,6 +460,8 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	bypass_SRLim = USE_MODULE;
 
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+
 	for(i = 0; i < DECIMATION_FACTOR; i++)
 	{
 		temp0 += (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer++);
@@ -455,6 +476,9 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
+
+	temp0 *= HRADC_0_GAIN_ERROR;
+	temp0 += HRADC_0_OFFSET_ERROR;
 
 	temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
 	temp1 *= *(HRADCs_Info.HRADC_boards[1]->gain);

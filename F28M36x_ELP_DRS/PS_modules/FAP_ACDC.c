@@ -20,7 +20,7 @@
  * Timeouts
  */
 
-#define TIMEOUT_uS_AC_CONTACTOR						50000
+#define TIMEOUT_uS_AC_CONTACTOR						100000
 #define TIMEOUT_uS_PRECHARGERS_BYPASS_CONTACTORS	100000
 #define TIMEOUT_uS_OUTPUT_CAP_CHARGE				10000000
 
@@ -257,7 +257,7 @@ static void Set_SoftInterlock(Uint32 itlk)
 {
 	PS_turnOff();
 	IPC_CtoM_Msg.PSModule.SoftInterlocks |= itlk;
-	//SendIpcFlag(SOFT_INTERLOCK_CTOM);
+	SendIpcFlag(SOFT_INTERLOCK_CTOM);
 }
 
 static void Set_HardInterlock(Uint32 itlk)
@@ -272,7 +272,7 @@ static interrupt void isr_SoftInterlock(void)
 	CtoMIpcRegs.MTOCIPCACK.all = SOFT_INTERLOCK_MTOC;
 
 	PS_turnOff();
-	IPC_CtoM_Msg.PSModule.SoftInterlocks |= EXTERNAL_INTERLOCK;
+	IPC_CtoM_Msg.PSModule.SoftInterlocks |= IPC_MtoC_Msg.PSModule.SoftInterlocks;
 	//SendIpcFlag(SOFT_INTERLOCK_CTOM);
 
 	PieCtrlRegs.PIEACK.all |= M_INT11;
@@ -283,7 +283,7 @@ static interrupt void isr_HardInterlock(void)
 	CtoMIpcRegs.MTOCIPCACK.all = HARD_INTERLOCK_MTOC;
 
 	PS_turnOff();
-	IPC_CtoM_Msg.PSModule.HardInterlocks |= EXTERNAL_INTERLOCK;
+	IPC_CtoM_Msg.PSModule.HardInterlocks |= IPC_MtoC_Msg.PSModule.HardInterlocks;
 	//SendIpcFlag(HARD_INTERLOCK_CTOM);
 
 	PieCtrlRegs.PIEACK.all |= M_INT11;
