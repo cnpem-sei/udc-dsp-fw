@@ -16,6 +16,10 @@
 #include <string.h>
 #include "F28M36x_ELP_DRS.h"
 
+/*extern Uint16 RamfuncsLoadStart_RAML3;
+extern Uint16 RamfuncsLoadSize_RAML3;
+extern Uint16 RamfuncsRunStart_RAML3;*/
+
 extern void main_FBP_100kHz(void);
 extern void main_FAC_ACDC_10kHz(void);
 extern void main_FAC_DCDC_20kHz(void);
@@ -39,6 +43,7 @@ void main(void)
 	// The  RamfuncsLoadStart, RamfuncsLoadSize, and RamfuncsRunStart
 	// symbols are created by the linker. Refer to the device .cmd file.
     memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
+    //memcpy(&RamfuncsRunStart_RAML3, &RamfuncsLoadStart_RAML3, (size_t)&RamfuncsLoadSize_RAML3);
 
 	// Call Flash Initialization to setup flash waitstates
 	// This function must reside in RAM
@@ -102,13 +107,13 @@ void main(void)
 
 			case FAC_Full_ACDC_10kHz:
 			{
-				main_FAC_Full_ACDC_10kHz();
+				//main_FAC_Full_ACDC_10kHz();
 				break;
 			}
 
 			case FAC_Full_DCDC_20kHz:
 			{
-				main_FAC_Full_DCDC_20kHz();
+				//main_FAC_Full_DCDC_20kHz();
 				break;
 			}
 
@@ -126,19 +131,24 @@ void main(void)
 
 			case TEST_HRPWM:
 			{
-				main_Test_HRPWM();
+				//main_Test_HRPWM();
 				break;
 			}
 
 			case TEST_HRADC:
 			{
-				main_Test_HRADC();
+				//main_Test_HRADC();
 				break;
 			}
 
 			case JIGA_HRADC:
 			{
-				main_Jiga_HRADC();
+				//main_Jiga_HRADC();
+			}
+
+			case FAP_DCDC_15kHz_225A:
+			{
+				main_FAP_DCDC_15kHz_225A();
 			}
 
 			default:
