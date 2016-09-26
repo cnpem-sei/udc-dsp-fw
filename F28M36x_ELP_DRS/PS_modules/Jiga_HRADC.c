@@ -19,8 +19,6 @@
 #define	N_MAX_SAMPLING_TESTS			6
 #define UFM_BUFFER_SIZE 				100
 
-#define TIMEOUT_uS_HRADC_CONFIG 		10000
-
 #define HRADC_CONFIG_FAULT		0x00000001
 #define OUT_OF_RANGE_FAULT		0x00000002
 
@@ -50,10 +48,8 @@ static void Set_HardInterlock(Uint32 itlk);
 static interrupt void isr_SoftInterlock(void);
 static interrupt void isr_HardInterlock(void);
 
-Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails);
-
-static enum_AN_INPUT *ptr_CurrentAnalogInput;
-static enum_AN_INPUT TestAnalogInputs[N_MAX_SAMPLING_TESTS] = { Iin_bipolar, Vin_bipolar, GND, Vref_bipolar_p, Vref_bipolar_n, Temp };
+static eInputType *ptr_CurrentAnalogInput;
+static eInputType TestAnalogInputs[N_MAX_SAMPLING_TESTS] = { Iin_bipolar, Vin_bipolar, GND, Vref_bipolar_p, Vref_bipolar_n, Temp };
 
 static Uint16 UFM_buffer[UFM_BUFFER_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static Uint32 valorCounter;
@@ -138,7 +134,7 @@ static void InitPeripheralsDrivers(void)
 
     Init_DMA_McBSP_nBuffers(N_HRADC_BOARDS, DECIMATION_FACTOR);
 
-	Init_SPIMaster_McBSP();
+    Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
     InitMcbspa20bit();
 
@@ -297,89 +293,4 @@ static void PS_turnOff(void)
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 }
 
-Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails)
-{
-	Uint16 command;
 
-	switch(AnalogInput)
-	{
-		case Vin_bipolar:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
-			break;
-		}
-		case Vin_unipolar_p:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_p;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_p;
-			break;
-		}
-		case Vin_unipolar_n:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_n;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_n;
-			break;
-		}
-		case Iin_bipolar:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_bipolar;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_bipolar;
-			break;
-		}
-		case Iin_unipolar_p:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_p;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_p;
-			break;
-		}
-		case Iin_unipolar_n:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_n;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_n;
-			break;
-		}
-		default:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
-			break;
-		}
-	}
-
-	// Store new configuration parameters
-	hradcPtr->AnalogInput = AnalogInput;
-	hradcPtr->enable_Heater = enHeater;
-	hradcPtr->enable_RailsMonitor = enRails;
-
-	// Create command according to the HRADC Command Protocol (HCP)
-	command = ((enRails << 8) | (enHeater << 7) | (AnalogInput << 3)) & 0x01F8;
-
-	// Configure CPU Timer 1 for HRADC configuration timeout monitor
-	ConfigCpuTimer(&CpuTimer1, C28_FREQ_MHZ, TIMEOUT_uS_HRADC_CONFIG);
-	CpuTimer1Regs.TCR.all = 0x8000;
-
-	// Try to configure HRADC board
-	SendCommand_HRADC(hradcPtr, command);
-
-	// Start timeout monitor
-	StartCpuTimer1();
-
-	// Check HRADC configuration
-	while(CheckStatus_HRADC(hradcPtr))
-	{
-		// If timeout, stops test
-		if(CpuTimer1Regs.TCR.bit.TIF)
-		{
-			StopCpuTimer1();
-			CpuTimer1Regs.TCR.all = 0x8000;
-			return 1;
-		}
-		else
-		{
-			SendCommand_HRADC(hradcPtr, command);
-		}
-	}
-
-	return 0;
-}

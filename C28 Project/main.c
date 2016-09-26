@@ -137,13 +137,13 @@ void main(void)
 
 			case TEST_HRADC:
 			{
-				//main_Test_HRADC();
+				main_Test_HRADC();
 				break;
 			}
 
 			case JIGA_HRADC:
 			{
-				//main_Jiga_HRADC();
+				main_Jiga_HRADC();
 			}
 
 			case FAP_DCDC_15kHz_225A:

@@ -22,6 +22,8 @@
 #define RAILS_DISABLE 		0
 #define RAILS_ENABLE 		1
 
+#define TIMEOUT_uS_HRADC_CONFIG 		10000
+
 #define HRADC_BI_OFFSET		131072.0
 
 #define UFM_OPCODE_WREN			0x06
@@ -33,8 +35,8 @@
 #define UFM_OPCODE_SECTOR_ERASE	0x20
 #define UFM_OPCODE_UFM_ERASE	0x60
 
-#define HRADC_CONFIG			GpioDataRegs.GPESET.bit.GPIO131 = 1;
-#define HRADC_nCONFIG			GpioDataRegs.GPECLEAR.bit.GPIO131 = 1;
+#define HRADC_CONFIG_SET		GpioDataRegs.GPESET.bit.GPIO131 = 1;
+#define HRADC_CONFIG_CLEAR			GpioDataRegs.GPECLEAR.bit.GPIO131 = 1;
 
 #define HRADC_CS_SET(id) 		GpioDataRegs.GPESET.all = id;
 #define HRADC_CS_CLEAR			GpioDataRegs.GPECLEAR.all = 3;
@@ -66,7 +68,12 @@ typedef enum {
 		Reserved0,
 		Reserved1,
 		Reserved2
-} enum_AN_INPUT;
+} eInputType;
+
+typedef enum {
+		HRADC_Sampling,
+		HRADC_UFM
+} eHRADCOpMode;
 
 //#include "DSP28x_Project.h"
 //#include "../C28 Project/config.h"
@@ -117,7 +124,7 @@ typedef volatile struct
 	Uint16 				ID;						// Backplane position
 	Uint16 				SerialNumber;			// Unique identification
 	Uint32				HW_version;				// Hardware information: Rburden / Fcut / Filter order / Heater_TempRef
-	enum_AN_INPUT		AnalogInput;			// Analog input
+	eInputType		AnalogInput;			// Analog input
 	Uint16 				enable_Heater;			// Enable temperature controller
 	Uint16 				enable_RailsMonitor;	// Enable rails monitor
 	Uint32				Status;					// Configuration/Status Register
@@ -153,7 +160,8 @@ extern volatile Uint32 counterErrorSendCommand;
 extern volatile float AverageFilter;
 
 extern void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden);
-extern void Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails);
+extern void Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType AnalogInput, Uint16 enHeater, Uint16 enRails);
+extern Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType AnalogInput, Uint16 enHeater, Uint16 enRails);
 
 extern void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command);
 extern Uint16 CheckStatus_HRADC(volatile HRADC_struct *hradcPtr);

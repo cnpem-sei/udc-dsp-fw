@@ -15,7 +15,7 @@
  * 							- Feedback filtered with oversampled moving
  * 							  average filter
  *
- *		TODO:
+ *		TODO: Não executar PS_TurnOn e PS_TurnOff se fonte já estiver ligada/desligada
  */
 
 #include "F28M36x_ELP_DRS.h"
@@ -118,7 +118,7 @@ static void InitPeripheralsDrivers(void)
 
     Init_DMA_McBSP_nBuffers(1, DECIMATION_FACTOR);
 
-	Init_SPIMaster_McBSP();
+    Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
     InitMcbspa20bit();
 

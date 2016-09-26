@@ -6,7 +6,7 @@ void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers);
 void start_DMA(void);
 void stop_DMA(void);
 
-#pragma DATA_SECTION(buffers_HRADC, "SHARERAMS2")
+#pragma DATA_SECTION(buffers_HRADC, "SHARERAMS1_1")
 
 volatile Uint16 DMATransferSize[4] = {1, 15, 45, 60};
 volatile Uint32 i_rdata;

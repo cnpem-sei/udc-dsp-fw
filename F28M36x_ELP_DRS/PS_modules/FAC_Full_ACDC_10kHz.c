@@ -151,7 +151,7 @@ static void InitPeripheralsDrivers(void)
 
 	Init_DMA_McBSP_nBuffers(4, DECIMATION_FACTOR);
 
-	Init_SPIMaster_McBSP();
+	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
 	Init_SPIMaster_Gpio();
 	InitMcbspa20bit();
 

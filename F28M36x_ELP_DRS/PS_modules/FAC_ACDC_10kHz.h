@@ -56,9 +56,10 @@
  * HRADC boards specs
  */
 
-#define DECIMATION_FACTOR		6
-#define TRANSFER_BUFFER_SIZE	DECIMATION_FACTOR
-#define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
+#define DECIMATION_FACTOR				6
+#define TRANSFER_BUFFER_SIZE			DECIMATION_FACTOR
+#define HRADC_FREQ_SAMP					(float) CONTROL_FREQ*DECIMATION_FACTOR
+#define HRADC_SPI_CLK					SPI_15MHz
 
 #define TRANSDUCER_0_INPUT_RATED		110.0				// Divisor de Tensão + Isolador Verivolt IsoBlock V-4:
 #define TRANSDUCER_0_OUTPUT_RATED		10.0				//   In_rated 	= +/- 110 V

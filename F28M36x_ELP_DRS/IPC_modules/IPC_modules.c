@@ -69,17 +69,6 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 	IPC_CtoM_Msg.WfmRef.Gain = 1.0;
 	IPC_CtoM_Msg.WfmRef.Offset = 0.0;
 
-	//InitBuffer(&IPC_CtoM_Msg.WfmRef.BufferInfo);
-	//InitBuffer(&IPC_CtoM_Msg.SamplesBuffer);
-	//IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart = &(wfmRef_Curve.WfmRef_Block.A[0]);
-	//IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd = &(wfmRef_Curve.WfmRef_Block.A[SIZE_WFMREF_BLOCK-1]);
-	//IPC_CtoM_Msg.SamplesBuffer.PtrBufferStart = &samplesBuffer[0];
-	//IPC_CtoM_Msg.SamplesBuffer.PtrBufferEnd = &samplesBuffer[SIZE_SAMPLES_BUFFER-1];
-
-	//Disable_ELP_SigGen(&SignalGenerator);
-	//Init_ELP_SigGen(&SignalGenerator, Sine, 0.0, 0.0, 0, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Freq, IPC_MtoC_Msg.SigGen.Amplitude,
-	//					&IPC_MtoC_Msg.SigGen.Offset, &IPC_MtoC_Msg.SigGen.Aux, DP_Framework.Ref);
-
 	IPC_PS_funcs.PS_turnOn = ps_turnOn;
 	IPC_PS_funcs.PS_turnOff = ps_turnOff;
 
@@ -259,6 +248,68 @@ interrupt void isr_IPC_Channel_1(void)
 			CtoMIpcRegs.MTOCIPCACK.all = RESET_INTERLOCKS;
 			IPC_CtoM_Msg.PSModule.SoftInterlocks = 0;
 			IPC_CtoM_Msg.PSModule.HardInterlocks = 0;
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
+		case HRADC_SAMPLING_DISABLE:
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = HRADC_SAMPLING_DISABLE;
+			Disable_HRADC_Sampling();
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
+		case HRADC_SAMPLING_ENABLE:
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = HRADC_SAMPLING_ENABLE;
+			Enable_HRADC_Sampling();
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
+		case HRADC_OPMODE:
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = HRADC_OPMODE;
+			switch(IPC_MtoC_Msg.HRADCConfig.OpMode)
+			{
+				case HRADC_Sampling:
+				{
+					Config_HRADC_Sampling_OpMode(IPC_MtoC_Msg.HRADCConfig.ID);
+					break;
+				}
+				case HRADC_UFM:
+				{
+					Config_HRADC_UFM_OpMode(IPC_MtoC_Msg.HRADCConfig.ID);
+					break;
+				}
+
+				default:
+				{
+					IPC_CtoM_Msg.PSModule.ErrorMtoC = INVALID_OPMODE;
+					SendIpcFlag(MTOC_MESSAGE_ERROR);
+					break;
+				}
+			}
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
+		case HRADC_CONFIG:
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = HRADC_CONFIG;
+
+			Config_HRADC_SoC(IPC_MtoC_Msg.HRADCConfig.FreqSampling);
+
+			if(Try_Config_HRADC_board(HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID],
+			   IPC_MtoC_Msg.HRADCConfig.InputType,
+			   IPC_MtoC_Msg.HRADCConfig.EnableHeater,
+			   IPC_MtoC_Msg.HRADCConfig.EnableMonitor))
+			{
+				IPC_CtoM_Msg.PSModule.ErrorMtoC = HRADC_CONFIG_ERROR;
+				SendIpcFlag(MTOC_MESSAGE_ERROR);
+			}
+
 			PieCtrlRegs.PIEACK.all |= M_INT11;
 			break;
 		}

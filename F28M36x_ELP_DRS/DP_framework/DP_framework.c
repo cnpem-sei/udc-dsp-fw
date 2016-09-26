@@ -36,7 +36,7 @@
 
 #include "DP_framework.h"
 
-#pragma DATA_SECTION(DP_Framework,"SHARERAMS1");
+#pragma DATA_SECTION(DP_Framework,"SHARERAMS1_0");
 volatile tDP_Framework DP_Framework;
 
 #pragma DATA_SECTION(DP_Framework_MtoC,"SHARERAMS0");

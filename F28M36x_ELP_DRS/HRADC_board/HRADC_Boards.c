@@ -21,7 +21,8 @@
 // 	Prototype statements for functions found within this file
 //
 void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden);
-void Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails);
+void Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType AnalogInput, Uint16 enHeater, Uint16 enRails);
+Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType AnalogInput, Uint16 enHeater, Uint16 enRails);
 
 void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command);
 Uint16 CheckStatus_HRADC(volatile HRADC_struct *hradcPtr);
@@ -42,11 +43,11 @@ void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data);
 // 	Structs gather all information regarding used HRADC boards
 //	Place them in shared memory RAMS1
 //
-#pragma DATA_SECTION(HRADCs_Info, "SHARERAMS2")
-#pragma DATA_SECTION(HRADC0_board, "SHARERAMS2")
-#pragma DATA_SECTION(HRADC1_board, "SHARERAMS2")
-#pragma DATA_SECTION(HRADC2_board, "SHARERAMS2")
-#pragma DATA_SECTION(HRADC3_board, "SHARERAMS2")
+#pragma DATA_SECTION(HRADCs_Info, "SHARERAMS1_1")
+#pragma DATA_SECTION(HRADC0_board, "SHARERAMS1_1")
+#pragma DATA_SECTION(HRADC1_board, "SHARERAMS1_1")
+#pragma DATA_SECTION(HRADC2_board, "SHARERAMS1_1")
+#pragma DATA_SECTION(HRADC3_board, "SHARERAMS1_1")
 
 volatile HRADCs_struct HRADCs_Info;
 volatile HRADC_struct  HRADC0_board;
@@ -102,9 +103,14 @@ void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_s
 //
 //	Configure HRADC board with selected parameters and check status
 //
-void Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInput, Uint16 enHeater, Uint16 enRails)
+void Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType AnalogInput, Uint16 enHeater, Uint16 enRails)
 {
 	Uint16 command;
+
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return;
+	}
 
 	switch(AnalogInput)
 	{
@@ -169,6 +175,97 @@ void Config_HRADC_board(volatile HRADC_struct *hradcPtr, enum_AN_INPUT AnalogInp
 	}
 }
 
+Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType AnalogInput, Uint16 enHeater, Uint16 enRails)
+{
+	Uint16 command;
+
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return 1;
+	}
+
+	switch(AnalogInput)
+	{
+		case Vin_bipolar:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
+			break;
+		}
+		case Vin_unipolar_p:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_p;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_p;
+			break;
+		}
+		case Vin_unipolar_n:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_n;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_n;
+			break;
+		}
+		case Iin_bipolar:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_bipolar;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_bipolar;
+			break;
+		}
+		case Iin_unipolar_p:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_p;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_p;
+			break;
+		}
+		case Iin_unipolar_n:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_n;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_n;
+			break;
+		}
+		default:
+		{
+			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
+			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
+			break;
+		}
+	}
+
+	// Store new configuration parameters
+	hradcPtr->AnalogInput = AnalogInput;
+	hradcPtr->enable_Heater = enHeater;
+	hradcPtr->enable_RailsMonitor = enRails;
+
+	// Create command according to the HRADC Command Protocol (HCP)
+	command = ((enRails << 8) | (enHeater << 7) | (AnalogInput << 3)) & 0x01F8;
+
+	// Configure CPU Timer 1 for HRADC configuration timeout monitor
+	ConfigCpuTimer(&CpuTimer1, C28_FREQ_MHZ, TIMEOUT_uS_HRADC_CONFIG);
+	CpuTimer1Regs.TCR.all = 0x8000;
+
+	// Try to configure HRADC board
+	SendCommand_HRADC(hradcPtr, command);
+
+	// Start timeout monitor
+	StartCpuTimer1();
+
+	// Check HRADC configuration
+	while(CheckStatus_HRADC(hradcPtr))
+	{
+		// If timeout, stops test
+		if(CpuTimer1Regs.TCR.bit.TIF)
+		{
+			StopCpuTimer1();
+			CpuTimer1Regs.TCR.all = 0x8000;
+			return 1;
+		}
+		else
+		{
+			SendCommand_HRADC(hradcPtr, command);
+		}
+	}
+
+	return 0;
+}
 
 /**********************************************************************************************/
 //
@@ -178,6 +275,11 @@ void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command)
 {
 	Uint32 auxH;
 	Uint32 auxL;
+
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return;
+	}
 
 	// Stop DMA controller to prevent DMA access to McBSP
 	// during configuration
@@ -219,6 +321,11 @@ Uint16 CheckStatus_HRADC(volatile HRADC_struct *hradcPtr)
 {
 	Uint16 statusAux;
 
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return 1;
+	}
+
 	SendCommand_HRADC(hradcPtr,CHECK_STATUS);
 	statusAux = (hradcPtr->Status & 0x00000078) >> 3;
 
@@ -239,7 +346,10 @@ Uint16 CheckStatus_HRADC(volatile HRADC_struct *hradcPtr)
 //
 void Config_HRADC_SoC(float freq)
 {
-	HRADCs_Info.freq_Sampling = freq;
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return;
+	}
 
 	/*
 	 * Configure ePWM10 module as Start-of-Conversion generator
@@ -248,6 +358,8 @@ void Config_HRADC_SoC(float freq)
 	 */
 
 	InitPWMModule(&EPwm10Regs, freq, 0, SlavePWM, 0, NO_COMPLEMENTARY, 0);
+	HRADCs_Info.freq_Sampling = freq;
+
 	//
 	// Modify standard initialization:
 	//	1. Disable One-Shot Trip
@@ -272,36 +384,49 @@ void Config_HRADC_SoC(float freq)
 
 void Enable_HRADC_Sampling(void)
 {
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return;
+	}
+
 	HRADCs_Info.enable_Sampling = 1;
 	start_DMA();
-	EnablePWMOutputs();
+	//EnablePWMOutputs();
 	EnablePWM_TBCLK();
 }
 
 void Disable_HRADC_Sampling(void)
 {
-	DisablePWMOutputs();
-	DisablePWM_TBCLK();
-	DELAY_US(2);
-	stop_DMA();
-	HRADCs_Info.enable_Sampling = 0;
+	if(HRADCs_Info.enable_Sampling)
+	{
+		//DisablePWMOutputs();
+		DisablePWM_TBCLK();
+		DELAY_US(2);
+		stop_DMA();
+		HRADCs_Info.enable_Sampling = 0;
+	}
 }
 
 void Config_HRADC_Sampling_OpMode(Uint16 ID)
 {
 	static Uint32 auxH, auxL;
 
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return;
+	}
+
 	// Stop DMA controller to prevent DMA access to McBSP
 	// during configuration
 	stop_DMA();
 
-	Init_SPIMaster_McBSP();
+	Init_SPIMaster_McBSP(SPI_15MHz);
     InitMcbspa20bit();
 
 	// Set appropriate Chip-Select and CONFIG signals
 	HRADC_CS_CLEAR;
 	HRADC_CS_SET(ID);
-	HRADC_CONFIG;
+	HRADC_CONFIG_SET;
 
 	// Transmit command via SPI (UFM mode)
 	McbspaRegs.DXR2.all = 0x0000;
@@ -316,25 +441,30 @@ void Config_HRADC_Sampling_OpMode(Uint16 ID)
 	HRADCs_Info.HRADC_boards[ID]->Status = auxH + auxL;
 
 	// Clear Chip-Select and CONFIG signals
-	HRADC_nCONFIG;
+	HRADC_CONFIG_CLEAR;
 	HRADC_CS_CLEAR;
 }
 
 void Config_HRADC_UFM_OpMode(Uint16 ID)
 {
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return;
+	}
+
 	static Uint32 auxH, auxL;
 
 	// Stop DMA controller to prevent DMA access to McBSP
 	// during configuration
 	stop_DMA();
 
-	Init_SPIMaster_McBSP();
+	Init_SPIMaster_McBSP(SPI_15MHz);
     InitMcbspa20bit();
 
 	// Set appropriate Chip-Select and CONFIG signals
 	HRADC_CS_CLEAR;
 	HRADC_CS_SET(ID);
-	HRADC_CONFIG;
+	HRADC_CONFIG_SET;
 
 	// Transmit command via SPI (UFM mode)
 	McbspaRegs.DXR2.all = 0x0000;
@@ -349,7 +479,7 @@ void Config_HRADC_UFM_OpMode(Uint16 ID)
 	HRADCs_Info.HRADC_boards[ID]->Status = auxH + auxL;
 
 	// Clear Chip-Select and CONFIG signals
-	HRADC_nCONFIG;
+	HRADC_CONFIG_CLEAR;
 	HRADC_CS_CLEAR;
 
 	// Configure SPI to UFM access settings
@@ -359,6 +489,11 @@ void Config_HRADC_UFM_OpMode(Uint16 ID)
 
 void Erase_HRADC_UFM(Uint16 ID)
 {
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return;
+	}
+
 	static Uint16 aux, aux2;
 
 	// Set appropriate Chip-Select signals
@@ -399,6 +534,11 @@ void Erase_HRADC_UFM(Uint16 ID)
 
 void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint16 *ufm_buffer)
 {
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return;
+	}
+
 	static Uint16 auxH, auxL, n;
 
 	auxH = 0;
@@ -442,6 +582,11 @@ void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint
 
 void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data)
 {
+	if(HRADCs_Info.enable_Sampling)
+	{
+		return;
+	}
+
 	static Uint16 auxH, auxL, n;
 
 	auxH = 0;

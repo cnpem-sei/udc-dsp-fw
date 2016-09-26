@@ -1,6 +1,6 @@
 #include "McBSP_SPI_Interface.h"
 
-void Init_SPIMaster_McBSP(void);
+void Init_SPIMaster_McBSP(Uint16 spiClk);
 void Init_SPIMaster_McBSP_HRADC_UFM(void);
 void Init_SPIMaster_Gpio(void);
 
@@ -8,7 +8,7 @@ void Init_SPIMaster_Gpio(void);
 // Configure McBSP-A as SPI Master
 //===========================================================================
 
-void Init_SPIMaster_McBSP(void)
+void Init_SPIMaster_McBSP(Uint16 spiClk)
 {
     // Reset the McBSP
     // Disable all interrupts
@@ -38,7 +38,7 @@ void Init_SPIMaster_McBSP(void)
     McbspaRegs.PCR.bit.SCLKME = 0;
 
     //CLKGDV divider for the generated clock (CLKG)
-    McbspaRegs.SRGR1.bit.CLKGDV = McBSP_CLKGDV;
+    McbspaRegs.SRGR1.bit.CLKGDV = spiClk;
 
     //Transmit frame synchronization driven according FSGM bit
     McbspaRegs.PCR.bit.FSXM = 1;

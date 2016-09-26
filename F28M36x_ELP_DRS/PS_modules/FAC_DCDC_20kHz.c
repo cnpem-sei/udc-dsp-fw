@@ -84,6 +84,8 @@ void main_FAC_DCDC_20kHz(void)
 			PIN_CLEAR_DCDC_INTERLOCK;
 		}
 
+		EINT;
+
 		TunningPWM_MEP_SFO();
 	}
 
@@ -106,7 +108,7 @@ static void InitPeripheralsDrivers(void)
 
 	Init_DMA_McBSP_nBuffers(1, DECIMATION_FACTOR);
 
-	Init_SPIMaster_McBSP();
+	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
 	Init_SPIMaster_Gpio();
 	InitMcbspa20bit();
 
@@ -173,7 +175,7 @@ static void ResetPeripheralsDrivers(void)
 
 	Init_DMA_McBSP_nBuffers(1, DECIMATION_FACTOR);
 
-	Init_SPIMaster_McBSP();
+	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
 	Init_SPIMaster_Gpio();
 	InitMcbspa20bit();
 
@@ -216,7 +218,7 @@ static void InitControllers(void)
 	 *    DP class:     ELP_Error
 	 *     	    +:		NetSignals[0]
 	 *     	    -:		NetSignals[1]
-	 * 		   out:		NetSignals[3]
+	 * 		   out:		NetSignals[8]
 	 */
 
 	Init_ELP_Error(ERROR_CALCULATOR, &DP_Framework.NetSignals[0], &DP_Framework.NetSignals[1], &DP_Framework.NetSignals[8]);
@@ -367,6 +369,9 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	temp0 *= AverageFilter;
 	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
+
+	temp0 *= HRADC_0_GAIN_ERROR;
+	temp0 += HRADC_0_OFFSET_ERROR;
 
 	DP_Framework.NetSignals[1] = temp0;
 
@@ -535,15 +540,16 @@ static interrupt void isr_HardInterlock(void)
 
 static void PS_turnOn(void)
 {
-	if(CHECK_INTERLOCKS)
+	if(!IPC_CtoM_Msg.PSModule.OnOff)
 	{
-		//ResetControllers();
+		if(CHECK_INTERLOCKS)
+		{
+			IPC_CtoM_Msg.PSModule.IRef = 0.0;
+			IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
+			IPC_CtoM_Msg.PSModule.OnOff = 1;
 
-		IPC_CtoM_Msg.PSModule.IRef = 0.0;
-		IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
-		IPC_CtoM_Msg.PSModule.OnOff = 1;
-
-		EnablePWMOutputs();
+			EnablePWMOutputs();
+		}
 	}
 }
 

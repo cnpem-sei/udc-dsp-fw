@@ -59,7 +59,6 @@ static interrupt void isr_SoftInterlock(void);
 static interrupt void isr_HardInterlock(void);
 
 static void InitPeripheralsDrivers(void);
-static void TerminatePeripheralsDrivers(void);
 
 static void InitControllers(void);
 static void ResetControllers(void);
@@ -188,10 +187,6 @@ static void InitPeripheralsDrivers(void)
 	CpuTimer0Regs.TCR.bit.TIE = 0;
 	CpuTimer1Regs.TCR.bit.TIE = 0;
 	CpuTimer2Regs.TCR.bit.TIE = 0;
-}
-
-static void TerminatePeripheralsDrivers(void)
-{
 }
 
 static void InitControllers(void)

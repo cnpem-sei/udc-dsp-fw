@@ -13,6 +13,7 @@
 #define	N_HRADC_BOARDS			1
 
 #define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
+#define HRADC_SPI_CLK			SPI_15MHz
 
 #define TRANSDUCER_0_INPUT_RATED		10.0				//
 #define TRANSDUCER_0_OUTPUT_RATED		10.0				//   In_rated 	= +/- 10 A

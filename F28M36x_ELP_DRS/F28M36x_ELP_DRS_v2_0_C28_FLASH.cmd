@@ -87,7 +87,8 @@ PAGE 1 :   /* Data Memory */
    RAML2       : origin = 0x00A000, length = 0x001000     /* on-chip RAM block L2 */
    RAML3       : origin = 0x00B000, length = 0x001000     /* on-chip RAM block L3 */
    RAMS0       : origin = 0x00C000, length = 0x001000     /* on-chip Shared RAM block S0 */
-   RAMS1       : origin = 0x00D000, length = 0x001000     /* on-chip Shared RAM block S1 */
+   RAMS1_0     : origin = 0x00D000, length = 0x000800     /* on-chip Shared RAM block S1 - bank 0 */
+   RAMS1_1     : origin = 0x00D800, length = 0x000800     /* on-chip Shared RAM block S1 - bank 1 */
    RAMS2       : origin = 0x00E000, length = 0x001000     /* on-chip Shared RAM block S2 */
    RAMS3       : origin = 0x00F000, length = 0x001000     /* on-chip Shared RAM block S3 */
    //RAMS4       : origin = 0x010000, length = 0x001000     /* on-chip Shared RAM block S4 */
@@ -150,7 +151,8 @@ SECTIONS
    }
 
    SHARERAMS0          : > RAMS0,        PAGE = 1
-   SHARERAMS1          : > RAMS1,        PAGE = 1
+   SHARERAMS1_0        : > RAMS1_0,        PAGE = 1
+   SHARERAMS1_1        : > RAMS1_1,        PAGE = 1
    SHARERAMS2          : > RAMS2,        PAGE = 1
    SHARERAMS3          : > RAMS3,        PAGE = 1
    //SHARERAMS4          : > RAMS4,        PAGE = 1

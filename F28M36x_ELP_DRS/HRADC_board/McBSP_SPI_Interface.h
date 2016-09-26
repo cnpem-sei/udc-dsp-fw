@@ -17,7 +17,7 @@
 #define McBSP_CLKGDV 		SPI_10_71MHz
 #define McBSP_WORD_SIZE    	20
 
-extern void Init_SPIMaster_McBSP(void);
+extern void Init_SPIMaster_McBSP(Uint16 spiClk);
 extern void Init_SPIMaster_McBSP_HRADC_UFM(void);
 extern void Init_SPIMaster_Gpio(void);
  
