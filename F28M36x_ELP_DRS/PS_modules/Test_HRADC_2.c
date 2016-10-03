@@ -45,11 +45,6 @@ void main_Test_HRADC(void)
 
 	InitInterruptions();
 
-	/*stop_DMA();
-	DELAY_US(5);
-	start_DMA();
-	EnablePWM_TBCLK();*/
-
 	while(1)
 	{
 
@@ -251,8 +246,10 @@ static interrupt void isr_HardInterlock(void)
 
 static void PS_turnOn(void)
 {
+	EnablePWMOutputs();
 }
 
 static void PS_turnOff(void)
 {
+	DisablePWMOutputs();
 }

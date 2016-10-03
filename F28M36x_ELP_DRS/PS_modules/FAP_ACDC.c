@@ -313,6 +313,7 @@ static void PS_turnOn(void)
 				}
 			}
 
+			// Indicates rectifier's output isn't ready to supply power
 			IPC_CtoM_Msg.PSModule.OpenLoop = CLOSED_LOOP;
 
 			// Configure CPU Timer 1 for AC mains timeout monitor
@@ -399,12 +400,13 @@ static void PS_turnOn(void)
 				}
 			}
 
+			// Indicates rectifier's output is now ready to supply power
 			IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
 
 			StopCpuTimer1();
 			CpuTimer1Regs.TCR.all = 0x8000;
 
-			DELAY_US(20000);
+			DELAY_US(TIMEOUT_uS_PRECHARGERS_BYPASS_CONTACTORS);
 		}
 	}
 }

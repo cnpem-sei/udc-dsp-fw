@@ -27,7 +27,7 @@
 #define MAX_SR_SIGGEN_OFFSET	20.0		// Slew-rate m�ximo do offset do gerador senoidal [A/s]
 #define MAX_SR_SIGGEN_AMP		20.0		// Slew-rate m�ximo da amplitude do gerador senoidal [A/s]
 
-#define PWM_MAX_SHARE_DUTY		0.01
+#define PWM_MAX_SHARE_DUTY		0.001
 
 #define KP						0.4524
 #define KI						3.1416

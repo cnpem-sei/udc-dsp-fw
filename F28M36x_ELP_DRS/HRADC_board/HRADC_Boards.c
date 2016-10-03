@@ -358,6 +358,7 @@ void Config_HRADC_SoC(float freq)
 	 */
 
 	InitPWMModule(&EPwm10Regs, freq, 0, SlavePWM, 0, NO_COMPLEMENTARY, 0);
+
 	HRADCs_Info.freq_Sampling = freq;
 
 	//
@@ -379,6 +380,14 @@ void Config_HRADC_SoC(float freq)
 	EPwm10Regs.ETSEL.bit.INTEN = 0;
 	EPwm10Regs.TZSEL.bit.OSHT1 = 0;
     EPwm10Regs.TZCLR.bit.OST = 1;
+
+    /*EPwm10Regs.ETSEL.bit.SOCAEN = 1;				// Habilita evento que dispara ADCSOC
+    EPwm10Regs.ETSEL.bit.SOCASEL = ET_CTR_ZERO;		// Dispara ADCSOC quando TBCTR = 0x00
+    EPwm10Regs.ETPS.bit.SOCAPRD = ET_1ST;			// Dispara ADCSOC a cada TBCTR = 0x00
+
+	GpioDataRegs.GPBSET.bit.GPIO32 	= 0x1;			// Seta GPIO32 para não disparar o ADC precocemente
+	GpioCtrlRegs.GPBDIR.bit.GPIO32 = 1;
+	GpioCtrlRegs.GPBMUX1.bit.GPIO32 = 0x3;			// Configura GPIO32 como ADCSOCA externo que dispara o AD7634*/
 	EDIS;
 }
 
