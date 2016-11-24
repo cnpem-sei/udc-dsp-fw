@@ -18,50 +18,6 @@
 #include "F28M36x_ELP_DRS.h"
 #include "FAC_Full_ACDC_10kHz.h"
 
-/*
- * DP modules defines
- */
-#define KP2								0.002
-#define KI2								1.5
-
-#define SRLIM_V_CAPBANK_REFERENCE 		&DP_Framework.DPlibrary.ELP_SRLim[0]
-
-#define V_CAPBANK1_ERROR_CALCULATOR		&DP_Framework.DPlibrary.ELP_Error[0]
-#define	PI_DAWU_CONTROLLER_VCAPBANK1	&DP_Framework.DPlibrary.ELP_PI_dawu[0]
-#define	NF_V_CAPBANK1_2HZ				&DP_Framework.DPlibrary.ELP_IIR_2P2Z[0]
-#define	NF_V_CAPBANK1_4HZ				&DP_Framework.DPlibrary.ELP_IIR_2P2Z[1]
-
-#define IIN1_ERROR_CALCULATOR			&DP_Framework.DPlibrary.ELP_Error[1]
-#define	PI_DAWU_CONTROLLER_IIN1			&DP_Framework.DPlibrary.ELP_PI_dawu[1]
-#define	IIR_3P3Z_CONTROLLER_IIN1		&DP_Framework.DPlibrary.ELP_IIR_3P3Z[0]
-
-#define V_CAPBANK2_ERROR_CALCULATOR		&DP_Framework.DPlibrary.ELP_Error[2]
-#define	PI_DAWU_CONTROLLER_VCAPBANK2	&DP_Framework.DPlibrary.ELP_PI_dawu[2]
-#define	NF_V_CAPBANK2_2HZ				&DP_Framework.DPlibrary.ELP_IIR_2P2Z[2]
-#define	NF_V_CAPBANK2_4HZ				&DP_Framework.DPlibrary.ELP_IIR_2P2Z[3]
-
-#define IIN2_ERROR_CALCULATOR			&DP_Framework.DPlibrary.ELP_Error[3]
-#define	PI_DAWU_CONTROLLER_IIN2			&DP_Framework.DPlibrary.ELP_PI_dawu[3]
-#define	IIR_3P3Z_CONTROLLER_IIN2		&DP_Framework.DPlibrary.ELP_IIR_3P3Z[1]
-
-#define SRLIM_SIGGEN_AMP	 			&DP_Framework.DPlibrary.ELP_SRLim[1]
-#define SRLIM_SIGGEN_OFFSET 			&DP_Framework.DPlibrary.ELP_SRLim[2]
-
-/*
- * Digital IO's defines
- */
-
-#define TIMEOUT_AC_CONTACTOR		1000000
-
-#define PIN_STATUS_AC_CONTACTOR 	GpioDataRegs.GPDDAT.bit.GPIO126
-#define PIN_STATUS_DCDC_INTERLOCK	!(GpioDataRegs.GPDDAT.bit.GPIO127)
-
-#define PIN_OPEN_AC_CONTACTOR		GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
-#define PIN_CLOSE_AC_CONTACTOR		GpioDataRegs.GPCSET.bit.GPIO67 = 1;
-
-#define PIN_SET_ACDC_INTERLOCK		GpioDataRegs.GPCCLEAR.bit.GPIO65 = 1;
-#define PIN_CLEAR_ACDC_INTERLOCK	GpioDataRegs.GPCSET.bit.GPIO65 = 1;
-
 // Prototype statements for functions found within this file.
 
 #pragma CODE_SECTION(isr_ePWM_CTR_ZERO, "ramfuncs");
@@ -102,6 +58,9 @@ void main_FAC_Full_ACDC_10kHz(void)
 
 	InitInterruptions();
 
+	ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 10000000);
+	CpuTimer1Regs.TCR.all = 0xC000;
+
 	stop_DMA();
 	DELAY_US(5);
 	start_DMA();
@@ -113,7 +72,7 @@ void main_FAC_Full_ACDC_10kHz(void)
 		{
 			if(CHECK_SOFTINTERLOCK(DCDC_FAULT))
 			{
-				Set_SoftInterlock(DCDC_FAULT);
+				Set_HardInterlock(DCDC_FAULT);
 			}
 		}
 
@@ -149,26 +108,25 @@ static void InitPeripheralsDrivers(void)
 
 	stop_DMA();
 
-	Init_DMA_McBSP_nBuffers(4, DECIMATION_FACTOR);
+	Init_DMA_McBSP_nBuffers(4, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
 	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
 	Init_SPIMaster_Gpio();
 	InitMcbspa20bit();
 
 	HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
-	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-
 	HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
-	Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-
 	HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
-	Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-
 	HRADCs_Info.HRADC_boards[3] = &HRADC3_board;
+
+	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
+	Init_HRADC_Info(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
+	Init_HRADC_Info(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
 	Init_HRADC_Info(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
+
+	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+	Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+	Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
@@ -225,10 +183,10 @@ static void InitPeripheralsDrivers(void)
 	EDIS;
 
 	/* Initialization of timers */
-
 	InitCpuTimers();
-	ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
 	CpuTimer0Regs.TCR.bit.TIE = 0;
+	CpuTimer1Regs.TCR.bit.TIE = 0;
+	CpuTimer2Regs.TCR.bit.TIE = 0;
 }
 
 static void InitControllers(void)
@@ -274,7 +232,7 @@ static void InitControllers(void)
 	 * 		   out:		NetSignals[11]
 	 */
 
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK1, KP, KI, (CONTROL_FREQ/V_CONTROL_DECIMATION), MAX_IIN_REF, -MAX_IIN_REF, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK1, KP_VCAPBANK, KI_VCAPBANK, (CONTROL_FREQ/V_CONTROL_DECIMATION), MAX_IIN_REF, -MAX_IIN_REF, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
 
 	/*
 	 * 	      name: 	NF_V_CAPBANK1_2HZ
@@ -321,7 +279,7 @@ static void InitControllers(void)
 	 * 		   out:		NetSignals[16]
 	 */
 
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK2, KP, KI, (CONTROL_FREQ/V_CONTROL_DECIMATION), MAX_IIN_REF, -MAX_IIN_REF, &DP_Framework.NetSignals[15], &DP_Framework.NetSignals[16]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK2, KP_VCAPBANK, KI_VCAPBANK, (CONTROL_FREQ/V_CONTROL_DECIMATION), MAX_IIN_REF, -MAX_IIN_REF, &DP_Framework.NetSignals[15], &DP_Framework.NetSignals[16]);
 
 	/*
 	 * 	      name: 	NF_V_CAPBANK2_2HZ
@@ -372,7 +330,7 @@ static void InitControllers(void)
 	 *     	    in:		NetSignals[12]
 	 * 		   out:		DutySignals[0]
 	 */
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN1, KP2, KI2, CONTROL_FREQ, PWM_MAX_DUTY, -PWM_MAX_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[0]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN1, KP_IIN, KI_IIN, CONTROL_FREQ, PWM_MAX_DUTY, -PWM_MAX_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[0]);
 
 	/*
 	 * 	      name: 	IIR_3P3Z_CONTROLLER_IIN1
@@ -405,7 +363,7 @@ static void InitControllers(void)
 	 *     	    in:		NetSignals[17]
 	 * 		   out:		DutySignals[1]
 	 */
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN2, KP2, KI2, CONTROL_FREQ, PWM_MAX_DUTY, -PWM_MAX_DUTY, &DP_Framework.NetSignals[17], &DP_Framework.DutySignals[1]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN2, KP_IIN, KI_IIN, CONTROL_FREQ, PWM_MAX_DUTY, -PWM_MAX_DUTY, &DP_Framework.NetSignals[17], &DP_Framework.DutySignals[1]);
 
 	/*
 	 * 	      name: 	IIR_3P3Z_CONTROLLER_IIN2
@@ -458,7 +416,7 @@ static void InitControllers(void)
 	/**********************************/
 
 	// 0: Time-slicer for WfmRef sweep decimation
-	Set_TimeSlicer(0, (CONTROL_FREQ/V_CONTROL_DECIMATION)/WFMREF_SAMPLING_FREQ);
+	Set_TimeSlicer(0, (CONTROL_FREQ/V_CONTROL_DECIMATION));
 
 	// 1: Time-slicer for SamplesBuffer
 	Set_TimeSlicer(1, BUFFER_DECIMATION);
@@ -686,16 +644,13 @@ __interrupt void isr_ePWM_CTR_ZERO(void)
 
 		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[0], DP_Framework.DutySignals[0]);
 		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[1], DP_Framework.DutySignals[1]);
-
-		SetPWMDutyCycle_ChA(PWM_DAC_MODULE, DP_Framework.NetSignals[10]*0.0045 + 0.5);
-		SetPWMDutyCycle_ChB(PWM_DAC_MODULE, DP_Framework.NetSignals[15]*0.0045 + 0.5);
 	}
 
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[0]);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[1]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[9]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[14]);
 
 	END_TIMESLICE(1); /************************************************************/
 
@@ -745,7 +700,11 @@ static void Set_HardInterlock(Uint32 itlk)
 	PS_turnOff();
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= itlk;
 	SendIpcFlag(HARD_INTERLOCK_CTOM);
-	PIN_SET_ACDC_INTERLOCK;
+
+	if(itlk != DCDC_FAULT)
+	{
+		PIN_SET_ACDC_INTERLOCK;
+	}
 }
 
 static interrupt void isr_SoftInterlock(void)
@@ -753,7 +712,7 @@ static interrupt void isr_SoftInterlock(void)
 	CtoMIpcRegs.MTOCIPCACK.all = SOFT_INTERLOCK_MTOC;
 
 	PS_turnOff();
-	IPC_CtoM_Msg.PSModule.SoftInterlocks |= EXTERNAL_INTERLOCK;
+	IPC_CtoM_Msg.PSModule.SoftInterlocks |= IPC_MtoC_Msg.PSModule.SoftInterlocks;
 	//SendIpcFlag(SOFT_INTERLOCK_CTOM);
 
 	PieCtrlRegs.PIEACK.all |= M_INT11;
@@ -764,9 +723,13 @@ static interrupt void isr_HardInterlock(void)
 	CtoMIpcRegs.MTOCIPCACK.all = HARD_INTERLOCK_MTOC;
 
 	PS_turnOff();
-	IPC_CtoM_Msg.PSModule.HardInterlocks |= EXTERNAL_INTERLOCK;
+	IPC_CtoM_Msg.PSModule.HardInterlocks |= IPC_MtoC_Msg.PSModule.HardInterlocks;
 	//SendIpcFlag(HARD_INTERLOCK_CTOM);
-	PIN_SET_ACDC_INTERLOCK;
+
+	if(IPC_MtoC_Msg.PSModule.HardInterlocks != DCDC_FAULT)
+	{
+		PIN_SET_ACDC_INTERLOCK;
+	}
 
 	PieCtrlRegs.PIEACK.all |= M_INT11;
 }

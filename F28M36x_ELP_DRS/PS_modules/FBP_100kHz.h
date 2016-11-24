@@ -31,7 +31,7 @@
 #define DECIMATION_FACTOR		3
 #define TRANSFER_BUFFER_SIZE	DECIMATION_FACTOR
 #define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
-#define HRADC_SPI_CLK			SPI_15MHz
+#define HRADC_SPI_CLK			SPI_10_71MHz
 
 #define PWM_DAC_FREQ			(200.0*CONTROL_FREQ)
 #define PWM_DAC_MODULE			&EPwm4Regs
@@ -43,15 +43,18 @@
 #define TRANSDUCER_0_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
 #define TRANSDUCER_0_GAIN				-(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
 #define HRADC_0_R_BURDEN				20.0			// Resistor Burden = 20 R
+#define HRADC_0_GAIN_ERROR				1.000429307
+#define HRADC_0_OFFSET_ERROR			0.000493067
 
-#define HRADC_R_BURDEN					20.0			// Resistor Burden = 1 R
+
+/*#define HRADC_R_BURDEN					20.0			// Resistor Burden = 1 R
 #define HRADC_VIN_BI_P_GAIN				(20.0/262144.0)
 #define HRADC_IIN_BI_P_GAIN				(1.0/(HRADC_R_BURDEN * 131072.0))
 
 #define TRANSDUCER_1_INPUT_RATED		200.0				// LEM LF 210-S
 #define TRANSDUCER_1_OUTPUT_RATED		-0.1				//   In_rated 	= +/- 200 A
 #define TRANSDUCER_1_OUTPUT_TYPE		Iin_bipolar			//   Out_rated 	= +/- 100 mA
-#define TRANSDUCER_1_GAIN				(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
+#define TRANSDUCER_1_GAIN				(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)*/
 
 extern void main_FBP_100kHz(void);
 

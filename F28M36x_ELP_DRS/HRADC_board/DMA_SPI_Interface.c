@@ -1,19 +1,26 @@
+/* TODO: Calibrate DMATransferSize for each SPI_CLK value */
+
 #include "DMA_SPI_Interface.h"
 
 __interrupt void local_D_INTCH1_ISR(void);
 __interrupt void local_D_INTCH2_ISR(void);
-void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers);
+void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers, Uint16 spiClk);
 void start_DMA(void);
 void stop_DMA(void);
 
 #pragma DATA_SECTION(buffers_HRADC, "SHARERAMS1_1")
 
-volatile Uint16 DMATransferSize[4] = {1, 15, 45, 60};
+volatile Uint16 DMATransferSize[5][4] = { {1, 15, 45, 60},
+										  {1, 15, 45, 60},
+										  {1, 15, 45, 60},
+										  {1, 15, 45, 60},
+										  {1, 25, 55, 90} };
+
 volatile Uint32 i_rdata;
 volatile Uint32 dummy_data = 0x00000000;
 volatile tbuffers_HRADC buffers_HRADC;
 
-void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers)
+void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers, Uint16 spiClk)
 {
 
 
@@ -45,7 +52,7 @@ void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers)
   //
   // Interrupt every frame ( (TRANSFER_BUFFER_SIZE-2)/2 bursts/transfer)
   //
-  DmaRegs.CH2.TRANSFER_SIZE = DMATransferSize[n_buffers-1];
+  DmaRegs.CH2.TRANSFER_SIZE = DMATransferSize[spiClk-2][n_buffers-1];
   DmaRegs.CH1.TRANSFER_SIZE = n_buffers * size_buffers - 1;
 
   //

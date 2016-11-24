@@ -39,6 +39,7 @@
 #define DPMODULES_CONFIG		0x00000401 //IPC1+IPC11
 #define SAMPLES_BUFFER_ON_OFF	0x00000801 //IPC1+IPC12
 #define RESET_INTERLOCKS		0x00001001 //IPC1+IPC13
+#define RESET_WFMREF			0x00002001 //IPC1+IPC14
 //...//
 #define HRADC_SAMPLING_DISABLE	0x08000001 //IPC1+IPC28
 #define HRADC_SAMPLING_ENABLE	0x10000001 //IPC1+IPC29
@@ -123,7 +124,8 @@ typedef enum {NO_ERROR_MTOC,
 			  HRADC_CONFIG_ERROR} eMTOCerror;
 
 typedef enum {OneShot,
-			  SampleBySample} eSyncMode;
+			  SampleBySample,
+			  SampleBySample_Continuous} eSyncMode;
 
 typedef volatile struct
 {							 // Bits	Description

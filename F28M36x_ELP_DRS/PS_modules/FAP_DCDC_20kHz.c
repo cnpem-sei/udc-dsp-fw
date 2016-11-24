@@ -99,7 +99,6 @@ void main_FAP_DCDC_20kHz(void)
 	ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 10000000);
 	CpuTimer1Regs.TCR.all = 0xC000;
 
-
 	stop_DMA();
 	DELAY_US(5);
 	start_DMA();
@@ -147,7 +146,7 @@ static void InitPeripheralsDrivers(void)
 
 	/* Initialization of HRADC boards */
 
-	Init_DMA_McBSP_nBuffers(2, DECIMATION_FACTOR);
+	Init_DMA_McBSP_nBuffers(2, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
 	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
 	Init_SPIMaster_Gpio();
@@ -219,7 +218,7 @@ static void ResetPeripheralsDrivers(void)
 	DisablePWM_TBCLK();
 	stop_DMA();
 
-	Init_DMA_McBSP_nBuffers(2, DECIMATION_FACTOR);
+	Init_DMA_McBSP_nBuffers(2, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
 	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
 	Init_SPIMaster_Gpio();
@@ -596,9 +595,9 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	RUN_TIMESLICE(1); /************************************************************/
 
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework_MtoC.NetSignals[2]);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[0]);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[1]);
+		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework_MtoC.NetSignals[2]);
+		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[0]);
+		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[1]);
 
 	END_TIMESLICE(1); /************************************************************/
 

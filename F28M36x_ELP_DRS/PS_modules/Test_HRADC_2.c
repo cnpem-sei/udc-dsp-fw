@@ -66,7 +66,7 @@ static void InitPeripheralsDrivers(void)
 
 	stop_DMA();
 
-    Init_DMA_McBSP_nBuffers(N_HRADC_BOARDS, DECIMATION_FACTOR);
+    Init_DMA_McBSP_nBuffers(N_HRADC_BOARDS, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
 	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
@@ -168,6 +168,8 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	temp1 = 0.0;
 	temp2 = 0.0;
 	temp3 = 0.0;
+
+	//while(!McbspaRegs.SPCR1.bit.RRDY){}
 
 	for(i = 0; i < DECIMATION_FACTOR; i++)
 	{

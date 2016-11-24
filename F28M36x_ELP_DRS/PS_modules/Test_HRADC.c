@@ -133,7 +133,7 @@ static void InitPeripheralsDrivers(void)
 
 	stop_DMA();
 
-    Init_DMA_McBSP_nBuffers(N_HRADC_BOARDS, DECIMATION_FACTOR);
+	Init_DMA_McBSP_nBuffers(N_HRADC_BOARDS, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
     Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();

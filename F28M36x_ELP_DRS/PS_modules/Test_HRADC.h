@@ -5,9 +5,9 @@
  * Test specifications
  */
 
-#define PWM_FREQ					60000				// PWM Master frequency [Hz]
-#define HRADC_FREQ_SAMP	   			600000				// Sampling frequency [Hz]
-#define DECIMATION_FACTOR			10
+#define PWM_FREQ					409600				// PWM Master frequency [Hz]
+#define HRADC_FREQ_SAMP	   			409600				// Sampling frequency [Hz]
+#define DECIMATION_FACTOR			1
 #define HRADC_SPI_CLK				SPI_25MHz
 #define TRANSFER_BUFFER_SIZE		DECIMATION_FACTOR
 #define	N_HRADC_BOARDS				1

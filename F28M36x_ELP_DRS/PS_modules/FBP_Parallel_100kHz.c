@@ -111,7 +111,7 @@ static void InitPeripheralsDrivers(void)
 
 	/* Initialization of HRADC boards */
 
-	Init_DMA_McBSP_nBuffers(1, DECIMATION_FACTOR);
+	Init_DMA_McBSP_nBuffers(1, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
 	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
 	Init_SPIMaster_Gpio();

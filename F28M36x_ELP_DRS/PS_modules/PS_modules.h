@@ -28,7 +28,8 @@ typedef enum
 	TEST_HRPWM,
 	TEST_HRADC,
 	JIGA_HRADC,
-	FAP_DCDC_15kHz_225A
+	FAP_DCDC_15kHz_225A,
+	FBPx4_100kHz
 } ePSModel;
 
 #define PS_MODEL	TEST_HRADC

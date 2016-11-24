@@ -116,7 +116,7 @@ static void InitPeripheralsDrivers(void)
 
 	stop_DMA();
 
-    Init_DMA_McBSP_nBuffers(1, DECIMATION_FACTOR);
+	Init_DMA_McBSP_nBuffers(1, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
     Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
@@ -374,6 +374,9 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
 
+	temp0 *= HRADC_0_GAIN_ERROR;
+	temp0 += HRADC_0_OFFSET_ERROR;
+
 	DP_Framework.NetSignals[1] = temp0;
 
 	if(fabs(temp0) > MAX_LOAD)
@@ -395,18 +398,31 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 			case WfmRef:
 
-				RUN_TIMESLICE(0); /************************************************************/
-
-					if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+				switch(IPC_CtoM_Msg.WfmRef.SyncMode)
+				{
+					case OneShot:
 					{
-						IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
-					}
-					else
-					{
-						CLEAR_DEBUG_GPIO1;
+						RUN_TIMESLICE(0); /************************************************************/
+
+							if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+							{
+								IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+							}
+
+						END_TIMESLICE(0); /************************************************************/
+						break;
 					}
 
-				END_TIMESLICE(0); /************************************************************/
+					case SampleBySample:
+					case SampleBySample_Continuous:
+					{
+						if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+						{
+							IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+						}
+						break;
+					}
+				}
 
 				bypass_SRLim = BYPASS_MODULE;
 				break;

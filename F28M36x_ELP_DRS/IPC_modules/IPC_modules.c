@@ -63,6 +63,7 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 	IPC_CtoM_Msg.PSModule.ErrorMtoC = NO_ERROR_MTOC;
 
 	InitBuffer(&IPC_CtoM_Msg.SamplesBuffer, samplesBuffer, SIZE_SAMPLES_BUFFER);
+	IPC_CtoM_Msg.SamplesBuffer.BufferBusy = Buffer_All;
 	InitBuffer(&IPC_CtoM_Msg.WfmRef.BufferInfo, wfmRef_Curve.WfmRef_Block.A, SIZE_WFMREF_BLOCK);
 	IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
 
@@ -252,7 +253,15 @@ interrupt void isr_IPC_Channel_1(void)
 			break;
 		}
 
-		case HRADC_SAMPLING_DISABLE:
+		case RESET_WFMREF: 	// IPC1 + IPC14
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = RESET_WFMREF;
+			IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
+		case HRADC_SAMPLING_DISABLE: //IPC1 +IPC28
 		{
 			CtoMIpcRegs.MTOCIPCACK.all = HRADC_SAMPLING_DISABLE;
 			Disable_HRADC_Sampling();
@@ -260,7 +269,7 @@ interrupt void isr_IPC_Channel_1(void)
 			break;
 		}
 
-		case HRADC_SAMPLING_ENABLE:
+		case HRADC_SAMPLING_ENABLE: //IPC1 +IPC29
 		{
 			CtoMIpcRegs.MTOCIPCACK.all = HRADC_SAMPLING_ENABLE;
 			Enable_HRADC_Sampling();
@@ -268,7 +277,7 @@ interrupt void isr_IPC_Channel_1(void)
 			break;
 		}
 
-		case HRADC_OPMODE:
+		case HRADC_OPMODE: //IPC1 +IPC30
 		{
 			CtoMIpcRegs.MTOCIPCACK.all = HRADC_OPMODE;
 			switch(IPC_MtoC_Msg.HRADCConfig.OpMode)
@@ -295,7 +304,7 @@ interrupt void isr_IPC_Channel_1(void)
 			break;
 		}
 
-		case HRADC_CONFIG:
+		case HRADC_CONFIG: //IPC1 +IPC31
 		{
 			CtoMIpcRegs.MTOCIPCACK.all = HRADC_CONFIG;
 
@@ -361,23 +370,42 @@ interrupt void isr_IPC_Channel_2(void)
 			EPwm1Regs.TBCTL.bit.SWFSYNC = 1;
 		}*/
 
-		if(IPC_CtoM_Msg.WfmRef.SyncMode == OneShot)
+		switch(IPC_CtoM_Msg.WfmRef.SyncMode)
 		{
-			IPC_CtoM_Msg.WfmRef = IPC_MtoC_Msg.WfmRef;
-			TimeSlicer.Counter[0] = TimeSlicer.FreqRatio[0];
-			wfmSyncFlag = 1;
-		}
-
-		else if(IPC_CtoM_Msg.WfmRef.SyncMode == SampleBySample)
-		{
-			if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++ >= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+			case OneShot:
 			{
-				IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart;
-				IPC_CtoM_Msg.WfmRef.Gain = IPC_MtoC_Msg.WfmRef.Gain;
-				IPC_CtoM_Msg.WfmRef.Offset = IPC_MtoC_Msg.WfmRef.Offset;
+				IPC_CtoM_Msg.WfmRef = IPC_MtoC_Msg.WfmRef;
+				TimeSlicer.Counter[0] = TimeSlicer.FreqRatio[0];
+				wfmSyncFlag = 1;
+				break;
 			}
 
+			case SampleBySample:
+			{
+				if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++ == IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+				{
+					IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd;
+				}
+				else if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK > IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+				{
+					IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart;
+					IPC_CtoM_Msg.WfmRef.Gain = IPC_MtoC_Msg.WfmRef.Gain;
+					IPC_CtoM_Msg.WfmRef.Offset = IPC_MtoC_Msg.WfmRef.Offset;
+				}
 
+				break;
+			}
+
+			case SampleBySample_Continuous:
+			{
+				if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++ >= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+				{
+					IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart;
+					IPC_CtoM_Msg.WfmRef.Gain = IPC_MtoC_Msg.WfmRef.Gain;
+					IPC_CtoM_Msg.WfmRef.Offset = IPC_MtoC_Msg.WfmRef.Offset;
+				}
+				break;
+			}
 		}
 	}
 	else
@@ -417,7 +445,7 @@ void ConfigPSOpMode(ePSOpMode opMode)
 //			PieCtrlRegs.PIEIER11.bit.INTx2 = 0;
 //			PieCtrlRegs.PIEIER1.bit.INTx5  = 0;
 
-			IPC_CtoM_Msg.PSModule.IRef = IPC_MtoC_Msg.PSModule.ISlowRef;
+//			IPC_CtoM_Msg.PSModule.IRef = IPC_MtoC_Msg.PSModule.ISlowRef;
 
 			break;
 

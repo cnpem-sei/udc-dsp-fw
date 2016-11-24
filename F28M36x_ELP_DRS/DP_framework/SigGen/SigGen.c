@@ -256,10 +256,7 @@ void Run_ELP_SigGen_Trapezoidal(tELP_SigGen *ptr_sg)
 		{
 			Disable_ELP_SigGen(ptr_sg);
 			nCycle = 0;
-
 		}
-
-
 	}
 }
 

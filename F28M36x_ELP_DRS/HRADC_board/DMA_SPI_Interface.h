@@ -17,7 +17,7 @@ typedef volatile struct
 
 extern __interrupt void local_D_INTCH1_ISR(void);
 extern __interrupt void local_D_INTCH2_ISR(void);
-extern void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers);
+extern void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers, Uint16 spiClk);
 extern void start_DMA(void);
 extern void stop_DMA(void);
 
