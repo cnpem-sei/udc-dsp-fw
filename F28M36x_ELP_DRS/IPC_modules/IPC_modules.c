@@ -90,7 +90,7 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 
     GpioTripRegs.GPTRIP5SEL.bit.GPTRIP5SEL = 32;
 	XIntruptRegs.XINT2CR.bit.ENABLE = 1;
-	XIntruptRegs.XINT2CR.bit.POLARITY = 1;
+	XIntruptRegs.XINT2CR.bit.POLARITY = 0;
 
 	/*GpioTripRegs.GPTRIP6SEL.bit.GPTRIP6SEL = 32;
     XIntruptRegs.XINT3CR.bit.ENABLE = 0;

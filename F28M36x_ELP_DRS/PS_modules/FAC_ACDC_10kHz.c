@@ -82,13 +82,13 @@ void main_FAC_ACDC_10kHz(void)
 			}
 		}
 
-		/*if(pintStatus_DCDC_Itlk)
+		if(pintStatus_DCDC_Itlk)
 		{
-			if(CHECK_SOFTINTERLOCK(DCDC_FAULT))
+			if(CHECK_INTERLOCK(DCDC_FAULT))
 			{
-				Set_SoftInterlock(DCDC_FAULT);
+				Set_HardInterlock(DCDC_FAULT);
 			}
-		}*/
+		}
 
 		if(IPC_CtoM_Msg.PSModule.OnOff && !pinStatus_AC_Contactor)
 		{
@@ -551,9 +551,6 @@ static __interrupt void isr_ePWM_CTR_ZERO(void)
 		}
 
 		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[0], DP_Framework.DutySignals[0]);
-
-		SetPWMDutyCycle_ChA(PWM_DAC_MODULE, DP_Framework.NetSignals[2]*0.0045 + 0.5);
-		SetPWMDutyCycle_ChB(PWM_DAC_MODULE, DP_Framework.NetSignals[8]*0.0045 + 0.5);
 	}
 
 	RUN_TIMESLICE(1); /************************************************************/
@@ -608,7 +605,11 @@ static void Set_HardInterlock(Uint32 itlk)
 	PS_turnOff();
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= itlk;
 	SendIpcFlag(HARD_INTERLOCK_CTOM);
-	PIN_SET_ACDC_INTERLOCK;
+
+	if(itlk != DCDC_FAULT)
+	{
+		PIN_SET_ACDC_INTERLOCK;
+	}
 }
 
 static interrupt void isr_SoftInterlock(void)
@@ -628,7 +629,11 @@ static interrupt void isr_HardInterlock(void)
 
 	PS_turnOff();
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= IPC_MtoC_Msg.PSModule.HardInterlocks;
-	PIN_SET_ACDC_INTERLOCK;
+
+	if(IPC_MtoC_Msg.PSModule.HardInterlocks != DCDC_FAULT)
+	{
+		PIN_SET_ACDC_INTERLOCK;
+	}
 
 	PieCtrlRegs.PIEACK.all |= M_INT11;
 }

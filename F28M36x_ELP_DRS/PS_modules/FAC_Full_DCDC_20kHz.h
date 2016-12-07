@@ -39,7 +39,7 @@
 #define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
 #define HRADC_SPI_CLK			SPI_15MHz
 
-#define	BUFFER_DECIMATION		1
+#define	BUFFER_DECIMATION		10
 
 #define PWM_DAC_FREQ			(100.0*CONTROL_FREQ)
 #define PWM_DAC_MODULE			&EPwm4Regs
@@ -72,9 +72,9 @@
  * Digital IO's defines
  */
 
-#define PIN_STATUS_ACDC_INTERLOCK	!(GpioDataRegs.GPDDAT.bit.GPIO126)
+#define PIN_STATUS_ACDC_INTERLOCK	!(GpioDataRegs.GPDDAT.bit.GPIO126) 		// GPDI1: AC/DC Interlock
 
-#define PIN_SET_DCDC_INTERLOCK		GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
+#define PIN_SET_DCDC_INTERLOCK		GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;	// GPDO1: DC/DC Interlock
 #define PIN_CLEAR_DCDC_INTERLOCK	GpioDataRegs.GPCSET.bit.GPIO67 = 1;
 
 /*

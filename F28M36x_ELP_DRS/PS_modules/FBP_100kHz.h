@@ -42,9 +42,9 @@
 #define TRANSDUCER_0_OUTPUT_RATED		0.05			//   In_rated 	= +/- 12.5 A
 #define TRANSDUCER_0_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
 #define TRANSDUCER_0_GAIN				-(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
-#define HRADC_0_R_BURDEN				20.0			// Resistor Burden = 20 R
-#define HRADC_0_GAIN_ERROR				1.000429307
-#define HRADC_0_OFFSET_ERROR			0.000493067
+#define HRADC_0_R_BURDEN				10.0			// Resistor Burden = 20 R
+#define HRADC_0_GAIN_ERROR				1.0
+#define HRADC_0_OFFSET_ERROR			0.0
 
 
 /*#define HRADC_R_BURDEN					20.0			// Resistor Burden = 1 R

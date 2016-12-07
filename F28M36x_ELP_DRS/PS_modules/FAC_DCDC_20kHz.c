@@ -71,13 +71,13 @@ void main_FAC_DCDC_20kHz(void)
 
 		pintStatus_ACDC_Itlk = PIN_STATUS_ACDC_INTERLOCK;
 
-		/*if(pintStatus_ACDC_Itlk)
+		if(pintStatus_ACDC_Itlk)
 		{
 			if(CHECK_INTERLOCK(ACDC_FAULT))
 			{
-				Set_SoftInterlock(ACDC_FAULT);
+				Set_HardInterlock(ACDC_FAULT);
 			}
-		}*/
+		}
 
 		if(CHECK_INTERLOCKS)
 		{
@@ -510,9 +510,11 @@ static void Set_HardInterlock(Uint32 itlk)
 	PS_turnOff();
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= itlk;
 	SendIpcFlag(HARD_INTERLOCK_CTOM);
-	PIN_SET_DCDC_INTERLOCK;
 
-	PieCtrlRegs.PIEACK.all |= M_INT11;
+	if(itlk != ACDC_FAULT)
+	{
+		PIN_SET_DCDC_INTERLOCK;
+	}
 }
 
 static interrupt void isr_SoftInterlock(void)
@@ -533,7 +535,11 @@ static interrupt void isr_HardInterlock(void)
 	PS_turnOff();
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= IPC_MtoC_Msg.PSModule.HardInterlocks;
 	//SendIpcFlag(HARD_INTERLOCK_CTOM);
-	PIN_SET_DCDC_INTERLOCK;
+
+	if(IPC_MtoC_Msg.PSModule.HardInterlocks != ACDC_FAULT)
+	{
+		PIN_SET_DCDC_INTERLOCK;
+	}
 
 	PieCtrlRegs.PIEACK.all |= M_INT11;
 }

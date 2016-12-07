@@ -29,8 +29,11 @@
 
 #define PWM_MAX_SHARE_DUTY		0.0015
 
-#define KP						0.4524
-#define KI						3.1416
+//#define KP						0.4524		// PI  para carga de teste (Lo = 36 mH/  Ro = 250 mR)
+//#define KI						3.1416		// fbw = 200 Hz / VDC-link = 100 V
+
+#define KP						0.2513		// PI  para carga UVX (Lo = 20 mH/  Ro = 250 mR)
+#define KI						3.1416		// fbw = 200 Hz / VDC-link = 100 V
 
 #define KP2						0.00001
 #define KI2						0.0027

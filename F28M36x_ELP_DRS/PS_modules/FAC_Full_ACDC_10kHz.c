@@ -70,7 +70,7 @@ void main_FAC_Full_ACDC_10kHz(void)
 	{
 		if(PIN_STATUS_DCDC_INTERLOCK)
 		{
-			if(CHECK_SOFTINTERLOCK(DCDC_FAULT))
+			if(CHECK_INTERLOCK(DCDC_FAULT))
 			{
 				Set_HardInterlock(DCDC_FAULT);
 			}
