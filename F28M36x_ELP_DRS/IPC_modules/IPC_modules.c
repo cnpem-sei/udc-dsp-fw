@@ -42,6 +42,7 @@ interrupt void isr_IPC_Channel_2(void);
 void ConfigPSOpMode(ePSOpMode opMode);
 
 volatile Uint16 		wfmSyncFlag;
+volatile Uint16 		sigGenSyncFlag = 1;
 volatile float 			samplesBuffer[SIZE_SAMPLES_BUFFER];
 volatile union uWfmRef	wfmRef_Curve;
 
@@ -408,6 +409,11 @@ interrupt void isr_IPC_Channel_2(void)
 			}
 		}
 	}
+	else if(IPC_CtoM_Msg.PSModule.OpMode == SigGen && IPC_MtoC_Msg.PSModule.Model == FAP_DCDC_20kHz && sigGenSyncFlag == 1)
+	{
+		Enable_ELP_SigGen(&SignalGenerator);
+		sigGenSyncFlag = 0;
+	}
 	else
 	{
 		IPC_CtoM_Msg.PSModule.ErrorMtoC = INVALID_OPMODE;
@@ -417,6 +423,8 @@ interrupt void isr_IPC_Channel_2(void)
 	CtoMIpcRegs.MTOCIPCACK.all = WFMREF_SYNC;
 	PieCtrlRegs.PIEACK.all |= M_INT1;
 	PieCtrlRegs.PIEACK.all |= M_INT11;
+
+	//CLEAR_DEBUG_GPIO1;
 }
 
 /*interrupt void isr_IPC_Channel_3(void)
@@ -471,6 +479,7 @@ void ConfigPSOpMode(ePSOpMode opMode)
 			break;
 
 		case SigGen:
+			sigGenSyncFlag = 1;
 			Disable_ELP_SigGen(&SignalGenerator);
 			Init_ELP_SigGen(&SignalGenerator, IPC_MtoC_Msg.SigGen.Type, IPC_MtoC_Msg.SigGen.PhaseStart, IPC_MtoC_Msg.SigGen.PhaseEnd, IPC_MtoC_Msg.SigGen.Ncycles,
 							SignalGenerator.FreqSample, SignalGenerator.ptr_FreqSignal, SignalGenerator.ptr_Amp, SignalGenerator.ptr_Offset, SignalGenerator.ptr_Aux, DP_Framework.Ref);

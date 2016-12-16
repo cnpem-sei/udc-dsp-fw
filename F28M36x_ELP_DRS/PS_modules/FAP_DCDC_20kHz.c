@@ -88,6 +88,13 @@ static void InitInterruptions(void);
 
 static Uint16 pinStatus_DCLink_Contactor;
 
+static float magnetCycling_Amplitude = 180.0;
+static float magnetCycling_TopTime = 2.0;
+static float magnetCycling_Freq = 0.0;
+
+//static tELP_SigGen MagnetCyclingGenerator;
+
+
 void main_FAP_DCDC_20kHz(void)
 {
 	InitPeripheralsDrivers();
@@ -238,6 +245,7 @@ static void ResetPeripheralsDrivers(void)
 
 static void InitControllers(void)
 {
+
 	/* Initialization of IPC module */
 	InitIPC(&PS_turnOn, &PS_turnOff, &isr_SoftInterlock, &isr_HardInterlock);
 
@@ -349,8 +357,7 @@ static void InitControllers(void)
 	 */
 
 	Disable_ELP_SigGen(&SignalGenerator);
-	Init_ELP_SigGen(&SignalGenerator, Sine, 0.0, 0.0, 0.0, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Freq, &DP_Framework.NetSignals[N_MAX_NET_SIGNALS-2],
-					&DP_Framework.NetSignals[N_MAX_NET_SIGNALS-1], &IPC_MtoC_Msg.SigGen.Aux, DP_Framework.Ref);
+	Init_ELP_SigGen(&SignalGenerator, Trapezoidal, 30.0, 30.0, 1.0, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Freq, &magnetCycling_Amplitude, &IPC_MtoC_Msg.SigGen.Offset, &magnetCycling_TopTime, DP_Framework.Ref);
 
 	/*
 	 * 	      name: 	SRLIM_SIGGEN_AMP
@@ -749,4 +756,3 @@ static void PS_turnOff(void)
 	ResetPeripheralsDrivers();
 	ResetControllers();
 }
-

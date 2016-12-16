@@ -336,12 +336,16 @@ static void InitInterruptions(void)
 //*****************************************************************************
 // Esvazia buffer FIFO com valores amostrados e recebidos via SPI
 //*****************************************************************************
-static interrupt void isr_ePWM_CTR_ZERO(void)
+interrupt void isr_ePWM_CTR_ZERO(void)
 {
 	static Uint16 i, bypass_SRLim;
 	static float temp0;
 
-	SET_DEBUG_GPIO1;
+	//SET_DEBUG_GPIO1;
+	if((IPC_CtoM_Msg.PSModule.OpMode == WfmRef) && (IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK == IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart))
+	{
+		CLEAR_DEBUG_GPIO1;
+	}
 
 	temp0 = 0.0;
 	bypass_SRLim = USE_MODULE;
@@ -455,7 +459,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
 
-	CLEAR_DEBUG_GPIO1;
+	//CLEAR_DEBUG_GPIO1;
 
 	PieCtrlRegs.PIEACK.all |= M_INT3;
 }

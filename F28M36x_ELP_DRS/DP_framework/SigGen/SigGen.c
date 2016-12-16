@@ -127,20 +127,22 @@ Uint16 Init_ELP_SigGen(tELP_SigGen *ptr_sg, eSigGenType sigType, float phase_sta
 
 void Enable_ELP_SigGen(tELP_SigGen *ptr_sg)
 {
-	Reset_ELP_SigGen(ptr_sg);
-	switch(ptr_sg->Type)
+	if(!ptr_sg->Enable)
 	{
-		case Sine:
-		case Square:
-		case Triangle:
-			Update_ELP_SigGen(ptr_sg);
-			break;
+		Reset_ELP_SigGen(ptr_sg);
+		switch(ptr_sg->Type)
+		{
+			case Sine:
+			case Square:
+			case Triangle:
+				Update_ELP_SigGen(ptr_sg);
+				break;
 
-		default:
-			break;
+			default:
+				break;
+		}
+		ptr_sg->Enable = 1;
 	}
-
-	ptr_sg->Enable = 1;
 }
 
 void Disable_ELP_SigGen(tELP_SigGen *ptr_sg)
