@@ -313,7 +313,7 @@ void InitPWMModule(volatile struct EPWM_REGS *pwmPtr, double freq, Uint16 primar
 
     /* Trip Zone - used to enable/disable PWM outputs via software */
     GpioG1TripRegs.GPTRIP1SEL.bit.GPTRIP1SEL = 29;		// GPIO29
-    pwmPtr->TZSEL.bit.OSHT1 = 1;                  		// One-shot trip
+    pwmPtr->TZSEL.bit.OSHT1 = 0;                  		// One-shot trip
     pwmPtr->TZCTL.bit.TZA = TZ_FORCE_LO;          		//
     pwmPtr->TZCTL.bit.TZB = TZ_FORCE_LO;          		// PWM outputs forced to low stateduring trip.
     pwmPtr->TZFRC.bit.OST = 1;
@@ -471,10 +471,10 @@ void InitPWM_MEP_SFO(void)
 
 void TunningPWM_MEP_SFO(void)
 {
-    SFO_status = SFO();
+    /*SFO_status = SFO();
     if (SFO_status == SFO_ERROR)
     {
         //error();
     }          
-    return;
+    return;*/
 }

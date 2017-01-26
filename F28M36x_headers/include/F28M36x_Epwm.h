@@ -975,6 +975,8 @@ extern volatile struct EPWM_REGS EPwm7Regs;
 extern volatile struct EPWM_REGS EPwm8Regs;
 extern volatile struct EPWM_REGS EPwm9Regs;
 extern volatile struct EPWM_REGS EPwm10Regs;
+extern volatile struct EPWM_REGS EPwm11Regs;
+extern volatile struct EPWM_REGS EPwm12Regs;
 
 #ifdef __cplusplus
 }

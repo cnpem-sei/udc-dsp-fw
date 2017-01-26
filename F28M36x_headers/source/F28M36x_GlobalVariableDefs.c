@@ -260,6 +260,22 @@ volatile struct EPWM_REGS EPwm10Regs;
 
 //----------------------------------------
 #ifdef __cplusplus
+#pragma DATA_SECTION("EPwm11RegsFile")
+#else
+#pragma DATA_SECTION(EPwm11Regs,"EPwm11RegsFile");
+#endif
+volatile struct EPWM_REGS EPwm11Regs;
+
+//----------------------------------------
+#ifdef __cplusplus
+#pragma DATA_SECTION("EPwm12RegsFile")
+#else
+#pragma DATA_SECTION(EPwm12Regs,"EPwm12RegsFile");
+#endif
+volatile struct EPWM_REGS EPwm12Regs;
+
+//----------------------------------------
+#ifdef __cplusplus
 #pragma DATA_SECTION("ECap1RegsFile")
 #else
 #pragma DATA_SECTION(ECap1Regs,"ECap1RegsFile");

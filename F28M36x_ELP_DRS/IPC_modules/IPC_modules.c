@@ -76,26 +76,45 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 
 	EALLOW;
 
-     /*
-     *  Set WfmRef synchronization via EPWMSYNCI pin (GPIO 32)
-     *
-     *  	Qualification is asynchronous
-     *  	Define GPIO32 as interrupt source XINT2
-     *  	Enable XINT2
-     *  	EPWMSYNCI negative-edge triggering
-     */
+	/*
+    *  Set WfmRef synchronization via EPWMSYNCI pin (defined by UDC version)
+    *
+    *  	Qualification is asynchronous
+    *  	Define GPIO32/38 as interrupt source XINT2
+    *  	Enable XINT2
+    *  	EPWMSYNCI negative-edge triggering
+    */
 
-    GpioCtrlRegs.GPBMUX1.bit.GPIO32 = 0;
-    GpioCtrlRegs.GPBDIR.bit.GPIO32 = 0;
-    GpioCtrlRegs.GPBQSEL1.bit.GPIO32 = 1;
+	if(UDC_V2_0)
+	{
+	    GpioCtrlRegs.GPBMUX1.bit.GPIO32 = 0;
+	    GpioCtrlRegs.GPBDIR.bit.GPIO32 = 0;
+	    GpioCtrlRegs.GPBQSEL1.bit.GPIO32 = 1;
 
-    GpioTripRegs.GPTRIP5SEL.bit.GPTRIP5SEL = 32;
-	XIntruptRegs.XINT2CR.bit.ENABLE = 1;
-	XIntruptRegs.XINT2CR.bit.POLARITY = 0;
+	    GpioTripRegs.GPTRIP5SEL.bit.GPTRIP5SEL = 32;
+		XIntruptRegs.XINT2CR.bit.ENABLE = 1;
+		XIntruptRegs.XINT2CR.bit.POLARITY = 0;
 
-	/*GpioTripRegs.GPTRIP6SEL.bit.GPTRIP6SEL = 32;
-    XIntruptRegs.XINT3CR.bit.ENABLE = 0;
-    XIntruptRegs.XINT3CR.bit.POLARITY = 0;*/
+		/*GpioTripRegs.GPTRIP6SEL.bit.GPTRIP6SEL = 32;
+	    XIntruptRegs.XINT3CR.bit.ENABLE = 0;
+	    XIntruptRegs.XINT3CR.bit.POLARITY = 0;*/
+	}
+
+	else if(UDC_V2_1)
+	{
+	    GpioCtrlRegs.GPBMUX1.bit.GPIO38 = 0;
+	    GpioCtrlRegs.GPBDIR.bit.GPIO38 = 0;
+	    GpioCtrlRegs.GPBQSEL1.bit.GPIO38 = 1;
+
+	    GpioTripRegs.GPTRIP5SEL.bit.GPTRIP5SEL = 38;
+		XIntruptRegs.XINT2CR.bit.ENABLE = 1;
+		XIntruptRegs.XINT2CR.bit.POLARITY = 0;
+
+		/*GpioTripRegs.GPTRIP6SEL.bit.GPTRIP6SEL = 38;
+	    XIntruptRegs.XINT3CR.bit.ENABLE = 0;
+	    XIntruptRegs.XINT3CR.bit.POLARITY = 0;*/
+	}
+
 
 
 	/* Map IPC_MtoC interrupts */

@@ -35,18 +35,8 @@
 #define UFM_OPCODE_SECTOR_ERASE	0x20
 #define UFM_OPCODE_UFM_ERASE	0x60
 
-#define HRADC_CONFIG_SET		GpioDataRegs.GPESET.bit.GPIO131 = 1;
-#define HRADC_CONFIG_CLEAR			GpioDataRegs.GPECLEAR.bit.GPIO131 = 1;
-
-#define HRADC_CS_SET(id) 		GpioDataRegs.GPESET.all = id;
-#define HRADC_CS_CLEAR			GpioDataRegs.GPECLEAR.all = 3;
 #define HRADC_VIN_BI_P_GAIN		(20.0/262144.0)
 
-#define HRADC_CS_RESET(id)		HRADC_CS_CLEAR; \
-								HRADC_CS_SET((~id) & 3); \
-								DELAY_US(1); \
-								HRADC_CS_CLEAR; \
-								HRADC_CS_SET(id);
 /**********************************************************************************************/
 //
 // 	Enumerate definition for configurable analog inputs
@@ -79,6 +69,34 @@ typedef enum {
 //#include "../C28 Project/config.h"
 //#include "../PWM_modules/PWM_modules.h"
 #include "F28M36x_ELP_DRS.h"
+
+/**********************************************************************************************/
+//
+// HRADC board selection macros
+//
+
+#if (UDC_V2_0)
+	#define GPE_PORT_BITS_HRADC_CS	{0x0, 0x1, 0x2, 0x3}
+	#define HRADC_CS_CLEAR			GpioDataRegs.GPECLEAR.all = 0x3;
+#endif
+
+#if (UDC_V2_1)
+	#define GPE_PORT_BITS_HRADC_CS	{0x0, 0x4, 0x2, 0x6}
+	#define HRADC_CS_CLEAR			GpioDataRegs.GPECLEAR.all = 0x6;
+#endif
+
+#define HRADC_CONFIG_SET		GpioDataRegs.GPESET.bit.GPIO131 = 1;
+#define HRADC_CONFIG_CLEAR		GpioDataRegs.GPECLEAR.bit.GPIO131 = 1;
+
+#define HRADC_CS_SET(id) 		GpioDataRegs.GPESET.all = HRADC_BoardSelector[id];
+//#define HRADC_CS_SET(id) 		GpioDataRegs.GPESET.all = id;
+
+#define HRADC_CS_RESET(id)		HRADC_CS_CLEAR; \
+								HRADC_CS_SET((~id) & 3); \
+								DELAY_US(1); \
+								HRADC_CS_CLEAR; \
+								HRADC_CS_SET(id);
+
 
 /**********************************************************************************************/
 //
@@ -155,6 +173,8 @@ extern volatile HRADC_struct  HRADC0_board;
 extern volatile HRADC_struct  HRADC1_board;
 extern volatile HRADC_struct  HRADC2_board;
 extern volatile HRADC_struct  HRADC3_board;
+
+extern volatile Uint32 HRADC_BoardSelector[4];
 
 extern volatile Uint32 counterErrorSendCommand;
 extern volatile float AverageFilter;

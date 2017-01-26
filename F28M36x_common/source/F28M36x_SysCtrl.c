@@ -267,6 +267,7 @@ void InitPeripheralClocks(void)
     SysCtrlRegs.PCLKCR1.bit.EPWM8ENCLK = 1; // ePWM8
     SysCtrlRegs.PCLKCR2.bit.EPWM9ENCLK = 1; // ePWM9
     SysCtrlRegs.PCLKCR2.bit.EPWM10ENCLK = 1; // ePWM10
+    SysCtrlRegs.PCLKCR2.bit.EPWM11ENCLK = 1; // ePWM11
 
     SysCtrlRegs.PCLKCR3.bit.DMAENCLK = 1;   // DMA
     SysCtrlRegs.PCLKCR3.bit.CPUTIMER0ENCLK = 1; // Timer 0

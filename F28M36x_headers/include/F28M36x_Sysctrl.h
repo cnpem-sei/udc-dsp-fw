@@ -78,7 +78,9 @@ union PCLKCR1_REG {
 struct PCLKCR2_BITS {                  // bits description
         Uint16 EPWM9ENCLK : 1;         // 0    EPWM9 Clock Enable
         Uint16 EPWM10ENCLK : 1;        // 1    EPWM10 Clock Enable
-        Uint16 rsvd1 : 6;              // 7:2  Reserved
+        Uint16 EPWM11ENCLK : 1;        // 2    EPWM11 Clock Enable
+        Uint16 EPWM12ENCLK : 1;        // 3    EPWM12 Clock Enable
+        Uint16 rsvd1 : 4;              // 7:4  Reserved
         Uint16 EQEP3ENCLK : 1;         // 8    EQEP3 Clock Enable
         Uint16 rsvd2 : 7;              // 15:9 Reserved
 };

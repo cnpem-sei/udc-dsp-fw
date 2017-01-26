@@ -78,6 +78,39 @@ void main(void)
 	 * 	TODO: Antes de realizar esta inicialização, garantir que ARM já fez a sua
 	 */
 
+	if(UDC_V2_1)
+	{
+		DisablePWMOutputs();
+		DisablePWM_TBCLK();
+
+		InitPWMModule(&EPwm9Regs, BUZZER_PITCH_FREQ, 0, MasterPWM, 0, NO_COMPLEMENTARY, 0);
+		InitPWMModule(&EPwm11Regs, 0.0, 0, MasterPWM, 0, NO_COMPLEMENTARY, 0);
+
+		EALLOW;
+
+		EPwm11Regs.TBPRD = BUZZER_MOD_PERIOD;					// Set frequency manually
+
+		EPwm11Regs.TBCTL.bit.CLKDIV = BUZZER_MOD_CLKDIV;		// Set clock pre-scaler, due to
+		EPwm11Regs.TBCTL.bit.HSPCLKDIV = BUZZER_MOD_HSPCLKDIV;	// very low frequency
+
+		GpioCtrlRegs.GPEMUX1.bit.GPIO128 = 1;   				// Configure GPIO128 as EPWM9A
+		GpioCtrlRegs.GPEMUX1.bit.GPIO132 = 1; 	  				// Configure GPIO132 as EPWM11A
+
+		// Disable trip
+		EPwm9Regs.TZSEL.bit.OSHT1 = 0;
+		EPwm11Regs.TZSEL.bit.OSHT1 = 0;
+
+		// Enable PWM outputs
+		EPwm9Regs.TZCLR.bit.OST = 1;
+		EPwm11Regs.TZCLR.bit.OST = 1;
+
+		// Set 50% duty cycle
+		SetPWMDutyCycle_ChA(&EPwm9Regs, 0.5);
+		SetPWMDutyCycle_ChA(&EPwm11Regs, 0.5);
+
+		EDIS;
+	}
+
 	while(1)
 	{
 		switch(IPC_MtoC_Msg.PSModule.Model)
@@ -139,7 +172,7 @@ void main(void)
 
 			case TEST_HRADC:
 			{
-				//main_Test_HRADC();
+				main_Test_HRADC();
 				break;
 			}
 

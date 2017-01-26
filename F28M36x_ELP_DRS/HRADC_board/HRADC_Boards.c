@@ -58,6 +58,8 @@ volatile HRADC_struct  HRADC3_board;
 volatile Uint32 counterErrorSendCommand;
 volatile float AverageFilter;
 
+volatile Uint32 HRADC_BoardSelector[4] = GPE_PORT_BITS_HRADC_CS;
+
 /**********************************************************************************************/
 //
 //	Initialize information of selected HRADC board
@@ -286,9 +288,13 @@ void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command)
 	stop_DMA();
 
 	// Set appropriate Chip-Select and CONFIG signals
-	GpioDataRegs.GPECLEAR.all = 3;
-	GpioDataRegs.GPESET.all = hradcPtr->ID;
-	GpioDataRegs.GPESET.bit.GPIO131 = 1; 	// Aciona CONFIG
+	//GpioDataRegs.GPECLEAR.all = 3;
+	//GpioDataRegs.GPESET.all = hradcPtr->ID;
+	//GpioDataRegs.GPESET.bit.GPIO131 = 1; 	// Aciona CONFIG
+
+	HRADC_CS_CLEAR;
+	HRADC_CS_SET(hradcPtr->ID);
+	HRADC_CONFIG_SET;
 
 	// Transmit command via SPI
 	McbspaRegs.DXR2.all = 0x0000;
@@ -309,8 +315,10 @@ void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command)
 	EDIS;
 
 	// Reset Chip-Select and CONFIG signals
-	GpioDataRegs.GPECLEAR.bit.GPIO131 = 1;
-	GpioDataRegs.GPECLEAR.all = 3;
+	//GpioDataRegs.GPECLEAR.bit.GPIO131 = 1;
+	//GpioDataRegs.GPECLEAR.all = 3;
+	HRADC_CONFIG_CLEAR;
+	HRADC_CS_CLEAR;
 }
 
 /**********************************************************************************************/
@@ -361,33 +369,37 @@ void Config_HRADC_SoC(float freq)
 
 	HRADCs_Info.freq_Sampling = freq;
 
-	//
-	// Modify standard initialization:
-	//	1. Disable One-Shot Trip
-	//  2. Configure as low-active signal
-	//  3. CMPA = 15 sysclk -> 100 ns CNVST pulse
-	//  4. Disable simultaneous writing to modulation registers
-	//  5. Disable interrupts
 	EALLOW;
-	GpioCtrlRegs.GPEMUX1.bit.GPIO130 = 1;
-	EPwm10Regs.AQCTLA.bit.CAU = AQ_SET;
-	EPwm10Regs.AQCTLA.bit.CAD = AQ_NO_ACTION;
-	EPwm10Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
-	EPwm10Regs.CMPA.half.CMPA = 15;
-	EPwm10Regs.EPWMXLINK.bit.TBPRDLINK = 0;
-	EPwm10Regs.EPWMXLINK.bit.CMPALINK = 0;
-	EPwm10Regs.EPWMXLINK.bit.CMPBLINK = 0;
-	EPwm10Regs.ETSEL.bit.INTEN = 0;
-	EPwm10Regs.TZSEL.bit.OSHT1 = 0;
-    EPwm10Regs.TZCLR.bit.OST = 1;
 
-    /*EPwm10Regs.ETSEL.bit.SOCAEN = 1;				// Habilita evento que dispara ADCSOC
-    EPwm10Regs.ETSEL.bit.SOCASEL = ET_CTR_ZERO;		// Dispara ADCSOC quando TBCTR = 0x00
-    EPwm10Regs.ETPS.bit.SOCAPRD = ET_1ST;			// Dispara ADCSOC a cada TBCTR = 0x00
+	if(UDC_V2_0)
+	{
+		/*
+		 * 	Modify standard initialization:
+		 *  	1. Configure as low-active signal
+		 *  	2. CMPA = 15 sysclk -> 100 ns CNVST pulse
+		 *  	3. Disable One-Shot Trip
+		 */
 
-	GpioDataRegs.GPBSET.bit.GPIO32 	= 0x1;			// Seta GPIO32 para não disparar o ADC precocemente
-	GpioCtrlRegs.GPBDIR.bit.GPIO32 = 1;
-	GpioCtrlRegs.GPBMUX1.bit.GPIO32 = 0x3;			// Configura GPIO32 como ADCSOCA externo que dispara o AD7634*/
+		EPwm10Regs.AQCTLA.bit.CAU = AQ_SET;
+		EPwm10Regs.AQCTLA.bit.CAD = AQ_NO_ACTION;
+		EPwm10Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+		EPwm10Regs.CMPA.half.CMPA = 15;
+		EPwm10Regs.TZSEL.bit.OSHT1 = 0;
+		EPwm10Regs.TZCLR.bit.OST = 1;
+
+		GpioCtrlRegs.GPEMUX1.bit.GPIO130 = 1;			// Set GPIO130 as HRADC_CNVST
+	}
+
+    else if(UDC_V2_1)
+    {
+		EPwm10Regs.ETSEL.bit.SOCAEN = 1;				// Habilita evento que dispara ADCSOC
+		EPwm10Regs.ETSEL.bit.SOCASEL = ET_CTR_ZERO;		// Dispara ADCSOC quando TBCTR = 0x00
+		EPwm10Regs.ETPS.bit.SOCAPRD = ET_1ST;			// Dispara ADCSOC a cada TBCTR = 0x00
+
+		GpioDataRegs.GPBSET.bit.GPIO32 	= 0x1;			// Seta GPIO32 para não disparar o ADC precocemente
+		GpioCtrlRegs.GPBMUX1.bit.GPIO32 = 0x3;			// Set GPIO32 as HRADC_CNVST
+    }
+
 	EDIS;
 }
 

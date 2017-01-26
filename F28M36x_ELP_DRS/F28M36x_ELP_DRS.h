@@ -33,6 +33,12 @@ typedef volatile struct
 } tBuffer;
 
 /*
+ * Especifica versão do UDC
+ */
+#define UDC_V2_0	0
+#define UDC_V2_1	1
+
+/*
  * Especificações do core C28 do Concerto
  */
 
@@ -43,6 +49,14 @@ typedef volatile struct
 /*
  * Macro defines
  */
+
+#define BUZZER_PITCH_FREQ		4000.0
+#define BUZZER_MOD_FREQ			16.0
+
+#define BUZZER_MOD_CLKDIV		0x7		// CLKDIV    : /128
+#define BUZZER_MOD_HSPCLKDIV	0x5		// HSPCLKDIV : /10
+#define BUZZER_MOD_PERIOD		7323	// PERIOD    : int(150 MHz / (FREQ * CLKDIV * HSPCLKDIV)) - 1
+
 #define INIT_DEBUG_GPIO0 		GpioCtrlRegs.GPBMUX1.bit.GPIO46 = 0;	\
 								GpioDataRegs.GPBCLEAR.bit.GPIO46 = 1;	\
 								GpioCtrlRegs.GPBDIR.bit.GPIO46 = 1;

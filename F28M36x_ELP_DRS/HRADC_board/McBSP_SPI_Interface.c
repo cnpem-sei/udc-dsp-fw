@@ -172,6 +172,7 @@ void Init_SPIMaster_McBSP_HRADC_UFM(void)
 void Init_SPIMaster_Gpio(void)
 {
     EALLOW;
+
     // MDXA : GPIO20 <- HRADC_SPI_IN
     // Qualification is asynchronous
     GpioCtrlRegs.GPAMUX2.bit.GPIO20 = 2;
@@ -195,37 +196,61 @@ void Init_SPIMaster_Gpio(void)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO23 = 3;
     GpioTripRegs.GPTRIP4SEL.bit.GPTRIP4SEL = 0x17;
 
-    // GPIO_CS1 : GPIO128 <- HRADC_CS1
-	GpioCtrlRegs.GPEMUX1.bit.GPIO128 = 0;
-	GpioDataRegs.GPECLEAR.bit.GPIO128 = 1;
-	GpioCtrlRegs.GPEDIR.bit.GPIO128 = 1;
+    if(UDC_V2_0)
+	{
+        // GPIO_CS1 : GPIO128 <- HRADC_CS1
+    	GpioCtrlRegs.GPEMUX1.bit.GPIO128 = 0;
+    	GpioDataRegs.GPECLEAR.bit.GPIO128 = 1;
+    	GpioCtrlRegs.GPEDIR.bit.GPIO128 = 1;
+
+    	// PWM_SOC : GPIO130 <- HRADC_CNVST
+    	GpioCtrlRegs.GPEMUX1.bit.GPIO130 = 1;
+    	GpioDataRegs.GPESET.bit.GPIO130 = 1;
+    	GpioCtrlRegs.GPEDIR.bit.GPIO130 = 1;
+
+    	// STATUS_ADC0 : GPIO132 <- HRADC_STATUS_A
+    	GpioCtrlRegs.GPEMUX1.bit.GPIO132 = 0;
+    	GpioCtrlRegs.GPEDIR.bit.GPIO132 = 0;
+
+    	// STATUS_ADC2 : GPIO134 <- HRADC_STATUS_C
+    	GpioCtrlRegs.GPEMUX1.bit.GPIO134 = 0;
+    	GpioCtrlRegs.GPEDIR.bit.GPIO134 = 0;
+	}
+
+	else if(UDC_V2_1)
+	{
+	    // GPIO_CS1 : GPIO130 <- HRADC_CS1
+		GpioCtrlRegs.GPEMUX1.bit.GPIO130 = 0;
+		GpioDataRegs.GPECLEAR.bit.GPIO130 = 1;
+		GpioCtrlRegs.GPEDIR.bit.GPIO130 = 1;
+
+    	// PWM_SOC : GPIO32 <- HRADC_CNVST
+		GpioDataRegs.GPBSET.bit.GPIO32 = 1;
+		GpioCtrlRegs.GPBMUX1.bit.GPIO32 = 3;
+    	GpioCtrlRegs.GPBDIR.bit.GPIO32 = 1;
+
+    	// STATUS_ADC0 : GPIO42 <- HRADC_STATUS_A
+    	GpioCtrlRegs.GPBMUX1.bit.GPIO42 = 0;
+    	GpioCtrlRegs.GPBDIR.bit.GPIO42 = 0;
+
+    	// STATUS_ADC2 : GPIO45 <- HRADC_STATUS_C
+    	GpioCtrlRegs.GPBMUX1.bit.GPIO45 = 0;
+    	GpioCtrlRegs.GPBDIR.bit.GPIO45 = 0;
+	}
 
 	// GPIO_CS2 : GPIO129 <- HRADC_CS2
 	GpioCtrlRegs.GPEMUX1.bit.GPIO129 = 0;
 	GpioDataRegs.GPECLEAR.bit.GPIO129 = 1;
 	GpioCtrlRegs.GPEDIR.bit.GPIO129 = 1;
 
-	// PWM_SOC : GPIO130 <- HRADC_CNVST
-	GpioCtrlRegs.GPEMUX1.bit.GPIO130 = 1;
-	GpioDataRegs.GPESET.bit.GPIO130 = 1;
-	GpioCtrlRegs.GPEDIR.bit.GPIO130 = 1;
-
 	// GPIO_CONFIG : GPIO131 <- HRADC_CONFIG
 	GpioCtrlRegs.GPEMUX1.bit.GPIO131 = 0;
 	GpioDataRegs.GPECLEAR.bit.GPIO131 = 1;
 	GpioCtrlRegs.GPEDIR.bit.GPIO131 = 1;
 
-	// STATUS_ADC0 : GPIO132 <- HRADC_STATUS_A
-	GpioCtrlRegs.GPEMUX1.bit.GPIO132 = 0;
-	GpioCtrlRegs.GPEDIR.bit.GPIO132 = 0;
-
 	// STATUS_ADC1 : GPIO133 <- HRADC_STATUS_B
 	GpioCtrlRegs.GPEMUX1.bit.GPIO133 = 0;
 	GpioCtrlRegs.GPEDIR.bit.GPIO133 = 0;
-
-	// STATUS_ADC2 : GPIO134 <- HRADC_STATUS_C
-	GpioCtrlRegs.GPEMUX1.bit.GPIO134 = 0;
-	GpioCtrlRegs.GPEDIR.bit.GPIO134 = 0;
 
 	// STATUS_ADC3 : GPIO135 <- HRADC_STATUS_D
 	GpioCtrlRegs.GPEMUX1.bit.GPIO135 = 0;
