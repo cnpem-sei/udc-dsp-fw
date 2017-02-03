@@ -33,13 +33,13 @@ typedef volatile struct
 } tBuffer;
 
 /*
- * Especifica versão do UDC
+ * Especifica versï¿½o do UDC
  */
-#define UDC_V2_0	0
-#define UDC_V2_1	1
+#define UDC_V2_0	1
+#define UDC_V2_1	0
 
 /*
- * Especificações do core C28 do Concerto
+ * Especificaï¿½ï¿½es do core C28 do Concerto
  */
 
 #define C28_FREQ_MHZ	150
