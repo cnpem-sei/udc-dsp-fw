@@ -118,7 +118,7 @@ void main(void)
 		{
 			case FBP_100kHz:
 			{
-				main_FBP_100kHz();
+				//main_FBP_100kHz();
 				break;
 			}
 
@@ -178,12 +178,12 @@ void main(void)
 
 			case JIGA_HRADC:
 			{
-				main_Jiga_HRADC();
+				//main_Jiga_HRADC();
 			}
 
 			case FAP_DCDC_15kHz_225A:
 			{
-				//main_FAP_DCDC_15kHz_225A();
+				main_FAP_DCDC_15kHz_225A();
 			}
 
 			case FBPx4_100kHz:

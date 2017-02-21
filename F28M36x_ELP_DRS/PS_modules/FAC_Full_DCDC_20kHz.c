@@ -99,7 +99,7 @@ static void InitPeripheralsDrivers(void)
 
 	/* Initialization of HRADC boards */
 
-	Init_DMA_McBSP_nBuffers(1, DECIMATION_FACTOR, HRADC_SPI_CLK);
+	Init_DMA_McBSP_nBuffers(3, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
 	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
 	Init_SPIMaster_Gpio();
@@ -108,6 +108,14 @@ static void InitPeripheralsDrivers(void)
 	HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
 	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+
+	HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
+	Init_HRADC_Info(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
+	Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+
+	HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
+	Init_HRADC_Info(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
+	Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
 
@@ -136,11 +144,8 @@ static void InitPeripheralsDrivers(void)
 	InitPWMModule(PWM_Modules.PWM_Regs[2], PWM_FREQ, 0, SlavePWM, 90, COMPLEMENTARY, PWM_DEAD_TIME);
 	InitPWMModule(PWM_Modules.PWM_Regs[3], PWM_FREQ, 7, SlavePWM, 270, COMPLEMENTARY, PWM_DEAD_TIME);
 
-	InitPWMDAC(PWM_DAC_MODULE, PWM_DAC_FREQ);
-
 	InitEPwm1Gpio();
 	InitEPwm2Gpio();
-	InitEPwm4Gpio();
 	InitEPwm7Gpio();
 	InitEPwm8Gpio();
 
@@ -211,15 +216,36 @@ static void InitControllers(void)
 	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD, KP_ILOAD, KI_ILOAD, CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[8], &DP_Framework.NetSignals[9]);
 
 	/*
+	 * 	      name: 	IIR_2P2Z_FF_REFERENCE
+	 * description: 	Reference load current feed-forward
+	 *    DP class:     ELP_IIR_2P2Z;
+	 *     	    in:		NetSignals[0]
+	 * 		   out:		NetSignals[13]
+	 */
+
+	// Fctrl = 20480 Hz
+	Init_ELP_IIR_2P2Z(IIR_2P2Z_FF_REFERENCE, 0.03163094210223, -0.031626812567677, 0.0,
+					  -0.969783893510680, 0.0, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[0], &DP_Framework.NetSignals[13]);
+
+	// Fctrl = 40960 Hz
+	//Init_ELP_IIR_2P2Z(IIR_2P2Z_FF_REFERENCE, 0.031870661544369, -0.031868581061066, 0.0,
+	//					-0.984776951441255, 0.0, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[0], &DP_Framework.NetSignals[13]);
+
+
+	/************************************************/
+	/* INITIALIZATION OF CURRENT SHARE CONTROL LOOP */
+	/************************************************/
+
+	/*
 	 * 	      name: 	ISHARE_ERROR_CALCULATOR
 	 * description: 	Current share error
 	 *    DP class:     ELP_Error
 	 *     	    +:		MtoC.NetSignals[0]
-	 *     	    -:		MtoC.NetSignals[1]
+	 *     	    -:		NetSignals[12]
 	 * 		   out:		NetSignals[10]
 	 */
 
-	Init_ELP_Error(ISHARE_ERROR_CALCULATOR, &DP_Framework_MtoC.NetSignals[0], &DP_Framework_MtoC.NetSignals[1], &DP_Framework.NetSignals[10]);
+	Init_ELP_Error(ISHARE_ERROR_CALCULATOR, &DP_Framework_MtoC.NetSignals[0], &DP_Framework.NetSignals[12], &DP_Framework.NetSignals[10]);
 
 	/*
 	 * 	      name: 	PI_DAWU_CONTROLLER_ISHARE
@@ -231,6 +257,54 @@ static void InitControllers(void)
 
 	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ISHARE, KP_ISHARE, KI_ISHARE, (CONTROL_FREQ/ISHARE_DECIMATION), PWM_MAX_SHARE_DUTY, -PWM_MAX_SHARE_DUTY, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
 
+	/*****************************************/
+	/* INITIALIZATION OF DC LINK FEEDFORWARD */
+	/*****************************************/
+
+	/*
+	 * 	      name: 	IIR_2P2Z_LPF_VDCLINK_MOD1
+	 * description: 	Module 1 DC-Link voltage low-pass filter
+	 *    DP class:     ELP_IIR_2P2Z
+	 *     	    in:		NetSignals[17]
+	 * 		   out:		NetSignals[18]
+	 */
+
+	Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD1, 0.126216944768300, 0.252433889536601, 0.126216944768300,
+					  -0.774934273867545, 0.279802052940746, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[17], &DP_Framework.NetSignals[18]);
+
+	/*
+	 * 	      name: 	IIR_2P2Z_LPF_VDCLINK_MOD2
+	 * description: 	Module 2 DC-Link voltage low-pass filter
+	 *    DP class:     ELP_IIR_2P2Z
+	 *     	    in:		NetSignals[19]
+	 * 		   out:		NetSignals[20]
+	 */
+
+	Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD2, 0.126216944768300, 0.252433889536601, 0.126216944768300,
+			          -0.774934273867545, 0.279802052940746, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[19], &DP_Framework.NetSignals[20]);
+
+	/*
+	 * 	      name: 	FF_VDCLINK_MOD1
+	 * description: 	Module 1 DC-Link voltage feed-forward law
+	 *    DP class:     ELP_DCLink_FF
+	 *    vdc_meas:		NetSignals[18]
+	 *     	    in:		NetSignals[15]
+	 * 		   out:		DutySignals[0]
+	 */
+
+	Init_ELP_DCLink_FF(FF_VDCLINK_MOD1, NOM_VDCLINK, MIN_DCLINK, &DP_Framework.NetSignals[18], &DP_Framework.NetSignals[15], &DP_Framework.DutySignals[0]);
+
+
+	/*
+	 * 	      name: 	FF_VDCLINK_MOD2
+	 * description: 	Module 2 DC-Link voltage feed-forward law
+	 *    DP class:     ELP_DCLink_FF
+	 *    vdc_meas:		NetSignals[20]
+	 *     	    in:		NetSignals[16]
+	 * 		   out:		DutySignals[1]
+	 */
+
+	Init_ELP_DCLink_FF(FF_VDCLINK_MOD2, NOM_VDCLINK, MIN_DCLINK, &DP_Framework.NetSignals[20], &DP_Framework.NetSignals[16], &DP_Framework.DutySignals[1]);
 
 	/*********************************************/
 	/* INITIALIZATION OF SIGNAL GENERATOR MODULE */
@@ -314,13 +388,19 @@ static void InitInterruptions(void)
 	EALLOW;
 	PieVectTable.EPWM1_INT =  &isr_ePWM_CTR_ZERO_1st;
 	PieVectTable.EPWM2_INT =  &isr_ePWM_CTR_ZERO;
+	//PieVectTable.EPWM7_INT =  &isr_ePWM_CTR_ZERO;
+	//PieVectTable.EPWM8_INT =  &isr_ePWM_CTR_ZERO;
 	EDIS;
 
 	PieCtrlRegs.PIEIER3.bit.INTx1 = 1;  // ePWM1
 	PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  // ePWM2
+	//PieCtrlRegs.PIEIER3.bit.INTx7 = 1;  // ePWM7
+	//PieCtrlRegs.PIEIER3.bit.INTx8 = 1;  // ePWM8
 
 	EnablePWMInterrupt(PWM_Modules.PWM_Regs[0]);
 	EnablePWMInterrupt(PWM_Modules.PWM_Regs[1]);
+	//EnablePWMInterrupt(PWM_Modules.PWM_Regs[2]);
+	//EnablePWMInterrupt(PWM_Modules.PWM_Regs[3]);
 
 	IER |= M_INT1;
 	IER |= M_INT3;
@@ -339,29 +419,49 @@ static void InitInterruptions(void)
 interrupt void isr_ePWM_CTR_ZERO(void)
 {
 	static Uint16 i, bypass_SRLim;
-	static float temp0;
+	static float temp0, temp1, temp2;
 
 	//SET_DEBUG_GPIO1;
-	if((IPC_CtoM_Msg.PSModule.OpMode == WfmRef) && (IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK == IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart))
+	if((IPC_CtoM_Msg.PSModule.OpMode == WfmRef) && ((IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK == IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart) || wfmSyncFlag == 1))
 	{
 		CLEAR_DEBUG_GPIO1;
+		wfmSyncFlag = 0;
 	}
 
 	temp0 = 0.0;
+	temp1 = 0.0;
+	temp2 = 0.0;
+	
 	bypass_SRLim = USE_MODULE;
 
 	for(i = 0; i < DECIMATION_FACTOR; i++)
 	{
 		temp0 += (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer++);
+		temp1 += (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer++);
+		temp2 += (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer++);
 	}
 
 	HRADCs_Info.HRADC_boards[0]->SamplesBuffer = buffers_HRADC.buffer_0;
+	HRADCs_Info.HRADC_boards[1]->SamplesBuffer = buffers_HRADC.buffer_1;
+	HRADCs_Info.HRADC_boards[2]->SamplesBuffer = buffers_HRADC.buffer_2;
 
 	temp0 *= AverageFilter;
 	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
+	temp0 *= HRADC_0_GAIN_ERROR;
+	temp0 += HRADC_0_OFFSET_ERROR;
+
+	temp1 *= AverageFilter;
+	temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
+	temp1 *= *(HRADCs_Info.HRADC_boards[1]->gain);
+
+	temp2 *= AverageFilter;
+	temp2 -= *(HRADCs_Info.HRADC_boards[2]->offset);
+	temp2 *= *(HRADCs_Info.HRADC_boards[2]->gain);
 
 	DP_Framework.NetSignals[1] = temp0;
+	DP_Framework.NetSignals[17] = temp1;
+	DP_Framework.NetSignals[19] = temp2;
 
 	if(fabs(temp0) > MAX_ILOAD_MEASURED)
 	{
@@ -371,9 +471,19 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 		}
 	}
 
-	else if(IPC_CtoM_Msg.PSModule.OnOff)
+	if(fabs(temp1) > MAX_DCLINK || fabs(temp2) > MAX_DCLINK)
 	{
+		if(CHECK_INTERLOCK(IN_OVERVOLTAGE))
+		{
+			Set_HardInterlock(IN_OVERVOLTAGE);
+		}
+	}
 
+	Run_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD1);
+	Run_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD2);
+
+	if(IPC_CtoM_Msg.PSModule.OnOff)
+	{
 		switch(IPC_CtoM_Msg.PSModule.OpMode)
 		{
 			case FastRef:
@@ -382,22 +492,29 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 
 			case WfmRef:
 
-				if(IPC_CtoM_Msg.WfmRef.SyncMode == OneShot)
+				switch(IPC_CtoM_Msg.WfmRef.SyncMode)
 				{
-					RUN_TIMESLICE(0); /************************************************************/
+					case OneShot:
+					{
+						RUN_TIMESLICE(0); /************************************************************/
 
+							if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+							{
+								IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+							}
+
+						END_TIMESLICE(0); /************************************************************/
+						break;
+					}
+
+					case SampleBySample:
+					case SampleBySample_Continuous:
+					{
 						if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
 						{
-							IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+							IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
 						}
-
-					END_TIMESLICE(0); /************************************************************/
-				}
-				else if(IPC_CtoM_Msg.WfmRef.SyncMode == SampleBySample)
-				{
-					if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
-					{
-						IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+						break;
 					}
 				}
 
@@ -429,16 +546,22 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 			SATURATE(DP_Framework.NetSignals[0], MAX_REF, MIN_REF);
 			Run_ELP_Error(ERROR_CALCULATOR);
 			Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD);
+			Run_ELP_IIR_2P2Z(IIR_2P2Z_FF_REFERENCE);
+			DP_Framework.NetSignals[14] = DP_Framework.NetSignals[9] + DP_Framework.NetSignals[13];
 
 			RUN_TIMESLICE(2); /************************************************************/
 
+				DP_Framework.NetSignals[12] = DP_Framework.NetSignals[1] * 0.5;
 				Run_ELP_Error(ISHARE_ERROR_CALCULATOR);
 				Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_ISHARE);
 
 			END_TIMESLICE(2); /************************************************************/
 
-			DP_Framework.DutySignals[0] = DP_Framework.NetSignals[9] - DP_Framework.NetSignals[11];
-			DP_Framework.DutySignals[1] = DP_Framework.NetSignals[9] + DP_Framework.NetSignals[11];
+			DP_Framework.NetSignals[15] = DP_Framework.NetSignals[14] - DP_Framework.NetSignals[11];
+			DP_Framework.NetSignals[16] = DP_Framework.NetSignals[14] + DP_Framework.NetSignals[11];
+
+			Run_ELP_DCLink_FF(FF_VDCLINK_MOD1);
+			Run_ELP_DCLink_FF(FF_VDCLINK_MOD2);
 
 			SATURATE(DP_Framework.DutySignals[0], PWM_MAX_DUTY, PWM_MIN_DUTY);
 			SATURATE(DP_Framework.DutySignals[1], PWM_MAX_DUTY, PWM_MIN_DUTY);
@@ -450,7 +573,7 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[8]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[8]);		// iLoad error signal
 
 	END_TIMESLICE(1); /************************************************************/
 

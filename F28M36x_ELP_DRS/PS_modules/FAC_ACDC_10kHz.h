@@ -23,16 +23,16 @@
  * Controller specs
  */
 
-#define MAX_REF				90.0		// Valor máximo da referência de tensão no banco de capacitores [V]
+#define MAX_REF				450.0 // 90.0		// Valor máximo da referência de tensão no banco de capacitores [V]
 #define MIN_REF				0.0			// Valor máximo da referência de tensão no banco de capacitores [V]
-#define MAX_LOAD			101.0		// Limite de tensão no banco de capacitores para interlock [V]
-#define MAX_IIN_REF			170.0		// Limite da referência de corrente máxima na entrada do regulador da tensão no banco de capacitores [A]
+#define MAX_LOAD			500.0 // 101.0		// Limite de tensão no banco de capacitores para interlock [V]
+#define MAX_IIN_REF			150.0	//170.0		// Limite da referência de corrente máxima na entrada do regulador da tensão no banco de capacitores [A]
 #define MIN_IIN_REF			0.0			// Limite da referência de corrente mínima na entrada do regulador da tensão no banco de capacitores [A]
 #define MAX_IIN				180.0		// Limite de corrente máxima na entrada para interlock [A]
 
-#define MAX_REF_SLEWRATE		9.0		// Slew-rate máximo [V/s]
-#define MAX_SR_SIGGEN_OFFSET	9.0		// Slew-rate máximo do offset do gerador senoidal [V/s]
-#define MAX_SR_SIGGEN_AMP		9.0		// Slew-rate máximo da amplitude do gerador senoidal [V/s]
+#define MAX_REF_SLEWRATE		50.0	//9.0		// Slew-rate máximo [V/s]
+#define MAX_SR_SIGGEN_OFFSET	50.0	//9.0		// Slew-rate máximo do offset do gerador senoidal [V/s]
+#define MAX_SR_SIGGEN_AMP		50.0	//9.0		// Slew-rate máximo da amplitude do gerador senoidal [V/s]
 
 #define KP						5.0264
 #define KI						3.154
@@ -61,21 +61,21 @@
 #define HRADC_FREQ_SAMP					(float) CONTROL_FREQ*DECIMATION_FACTOR
 #define HRADC_SPI_CLK					SPI_15MHz
 
-#define TRANSDUCER_0_INPUT_RATED		110.0				// Divisor de Tensão + Isolador Verivolt IsoBlock V-4:
-#define TRANSDUCER_0_OUTPUT_RATED		10.0				//   In_rated 	= +/- 110 V
+#define TRANSDUCER_0_INPUT_RATED		500.0	//110.0				// Divisor de Tensão + Isolador Verivolt IsoBlock V-4:
+#define TRANSDUCER_0_OUTPUT_RATED		10.0				//   In_rated 	= +/- 500 V // 110 V
 #define TRANSDUCER_0_OUTPUT_TYPE		Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_0_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
 #define HRADC_0_R_BURDEN				20.0				// Resistor Burden = 20 R
 
-#define TRANSDUCER_1_INPUT_RATED		200.0				// LEM LF 210-S
-#define TRANSDUCER_1_OUTPUT_RATED		-0.1				//   In_rated 	= +/- 200 A
-#define TRANSDUCER_1_OUTPUT_TYPE		Iin_bipolar			//   Out_rated 	= +/- 100 mA
+#define TRANSDUCER_1_INPUT_RATED		300.0 	//200.0				// LEM LF 310-S // LEM LF 210-S
+#define TRANSDUCER_1_OUTPUT_RATED		-0.15	// -0.1				//   In_rated 	= +/- 300 A // 200 A
+#define TRANSDUCER_1_OUTPUT_TYPE		Iin_bipolar			//   Out_rated 	= +/- 150 mA // 100 mA
 #define TRANSDUCER_1_GAIN				(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
 #define HRADC_1_R_BURDEN				10.0				// Resistor Burden = 10 R
 
-#define HRADC_R_BURDEN				5.0						// Resistor Burden = 5 R
+/*#define HRADC_R_BURDEN				5.0						// Resistor Burden = 5 R
 #define HRADC_VIN_BI_P_GAIN			(20.0/262144.0)
-#define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))
+#define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))*/
 
 /*
  * DP modules defines

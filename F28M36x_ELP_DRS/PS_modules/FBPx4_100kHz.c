@@ -238,7 +238,8 @@ static void InitControllers(void)
 	 * 		   out:		DutySignals[0]
 	 */
 
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS1, IPC_MtoC_Msg.DPModule.Coeffs[0], IPC_MtoC_Msg.DPModule.Coeffs[1], CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[6], &DP_Framework.DutySignals[0]);
+	//Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS1, IPC_MtoC_Msg.DPModule.Coeffs[0], IPC_MtoC_Msg.DPModule.Coeffs[1], CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[6], &DP_Framework.DutySignals[0]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS1, KP, KI, CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[6], &DP_Framework.DutySignals[0]);
 
 	/******************************************************************/
 	/* INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 2 */
@@ -263,7 +264,8 @@ static void InitControllers(void)
 	 * 		   out:		DutySignals[1]
 	 */
 
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS2, IPC_MtoC_Msg.DPModule.Coeffs[0], IPC_MtoC_Msg.DPModule.Coeffs[1], CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[8], &DP_Framework.DutySignals[1]);
+	//Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS2, IPC_MtoC_Msg.DPModule.Coeffs[0], IPC_MtoC_Msg.DPModule.Coeffs[1], CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[8], &DP_Framework.DutySignals[1]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS2, KP, KI, CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[8], &DP_Framework.DutySignals[1]);
 
 	/******************************************************************/
 	/* INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 3 */
@@ -288,7 +290,8 @@ static void InitControllers(void)
 	 * 		   out:		DutySignals[2]
 	 */
 
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS3, IPC_MtoC_Msg.DPModule.Coeffs[0], IPC_MtoC_Msg.DPModule.Coeffs[1], CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[10], &DP_Framework.DutySignals[2]);
+	//Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS3, IPC_MtoC_Msg.DPModule.Coeffs[0], IPC_MtoC_Msg.DPModule.Coeffs[1], CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[10], &DP_Framework.DutySignals[2]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS3, KP, KI, CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[10], &DP_Framework.DutySignals[2]);
 
 	/******************************************************************/
 	/* INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 4 */
@@ -313,7 +316,31 @@ static void InitControllers(void)
 	 * 		   out:		DutySignals[3]
 	 */
 
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS4, IPC_MtoC_Msg.DPModule.Coeffs[0], IPC_MtoC_Msg.DPModule.Coeffs[1], CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[3]);
+	//Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS4, IPC_MtoC_Msg.DPModule.Coeffs[0], IPC_MtoC_Msg.DPModule.Coeffs[1], CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[3]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD_PS4, KP, KI, CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[3]);
+
+	/*********************************************/
+	/* INITIALIZATION OF SIGNAL GENERATOR MODULE */
+	/*********************************************/
+
+	/*
+	 * 	      name: 	SignalGenerator
+	 * description: 	Signal generator module
+	 * 		   out:		DP_Framework.Ref
+	 */
+
+	Disable_ELP_SigGen(&SignalGenerator);
+	Init_ELP_SigGen(&SignalGenerator, Sine, 0.0, 0.0, 0.0, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Freq, IPC_MtoC_Msg.SigGen.Amplitude, &IPC_MtoC_Msg.SigGen.Offset, &IPC_MtoC_Msg.SigGen.Aux, DP_Framework.Ref);
+
+	/**********************************/
+	/* INITIALIZATION OF TIME SLICERS */
+	/**********************************/
+
+	// 0: Time-slicer for WfmRef sweep decimation
+	Set_TimeSlicer(0, CONTROL_FREQ/WFMREF_SAMPLING_FREQ);
+
+	// 1: Time-slicer for SamplesBuffer
+	Set_TimeSlicer(1, BUFFER_DECIMATION);
 
 	ResetControllers();
 }
@@ -403,9 +430,9 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 	static float temp0, temp1, temp2, temp3;
 
 	//StartCpuTimer0();
-	SET_DEBUG_GPIO1;
+	//SET_DEBUG_GPIO1;
 
-	temp0 = 0.0;
+	/*temp0 = 0.0;
 	temp1 = 0.0;
 	temp2 = 0.0;
 	temp3 = 0.0;
@@ -421,12 +448,23 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 	HRADCs_Info.HRADC_boards[0]->SamplesBuffer = buffers_HRADC.buffer_0;
 	HRADCs_Info.HRADC_boards[1]->SamplesBuffer = buffers_HRADC.buffer_1;
 	HRADCs_Info.HRADC_boards[2]->SamplesBuffer = buffers_HRADC.buffer_2;
-	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;
+	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;*/
 
-	temp0 *= AverageFilter;
+	/*temp0 *= AverageFilter;
 	temp1 *= AverageFilter;
 	temp2 *= AverageFilter;
-	temp3 *= AverageFilter;
+	temp3 *= AverageFilter;*/
+
+	if((IPC_CtoM_Msg.PSModule.OpMode == WfmRef) && ((IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK == IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart) || wfmSyncFlag == 1))
+	{
+		CLEAR_DEBUG_GPIO1;
+		wfmSyncFlag = 0;
+	}
+
+	temp0 = (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer);
+	temp1 = (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer);
+	temp2 = (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer);
+	temp3 = (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer);
 
 	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
@@ -468,18 +506,70 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 				break;
 
 			case WfmRef:
+				#if (FBPx4_TESTS)
 
-				i = (Uint16) IPC_CtoM_Msg.WfmRef.Gain;
-				SATURATE(i,4,1);
+					i = (Uint16) IPC_CtoM_Msg.WfmRef.Gain;
+					SATURATE(i,4,1);
 
-				DP_Framework.NetSignals[0] = IPC_CtoM_Msg.WfmRef.Offset;
-				DP_Framework.NetSignals[i] = DP_Framework.NetSignals[0];
+					IPC_CtoM_Msg.PSModule.IRef = IPC_CtoM_Msg.WfmRef.Offset;
+					DP_Framework.NetSignals[0] = IPC_CtoM_Msg.WfmRef.Offset;
+					DP_Framework.NetSignals[i] = IPC_CtoM_Msg.WfmRef.Offset;
+
+				#endif
+
+
+				#if (FBPx4_WFMREF)
+
+					switch(IPC_CtoM_Msg.WfmRef.SyncMode)
+					{
+						case OneShot:
+						{
+							RUN_TIMESLICE(0); /************************************************************/
+
+								if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+								{
+									IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+								}
+
+							END_TIMESLICE(0); /************************************************************/
+							break;
+						}
+
+						case SampleBySample:
+						case SampleBySample_Continuous:
+						{
+							if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+							{
+								IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+							}
+							break;
+						}
+					}
+
+					DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
+					DP_Framework.NetSignals[1] = DP_Framework.NetSignals[0];
+					DP_Framework.NetSignals[2] = DP_Framework.NetSignals[0];
+					DP_Framework.NetSignals[3] = DP_Framework.NetSignals[0];
+					DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];
+
+				#endif
 
 				break;
 
 			case SigGen:
 
-				DP_Framework.NetSignals[0] = IPC_MtoC_Msg.SigGen.Amplitude[0] + IPC_MtoC_Msg.SigGen.Offset;
+				//Run_ELP_SRLim(SRLIM_SIGGEN_AMP, USE_MODULE);
+				//Run_ELP_SRLim(SRLIM_SIGGEN_OFFSET, USE_MODULE);
+				SignalGenerator.Run_ELP_SigGen(&SignalGenerator);
+				DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
+				DP_Framework.NetSignals[1] = DP_Framework.NetSignals[0];
+				DP_Framework.NetSignals[2] = DP_Framework.NetSignals[0];
+				DP_Framework.NetSignals[3] = DP_Framework.NetSignals[0];
+				DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];
+
+				break;
+
+				/*DP_Framework.NetSignals[0] = IPC_MtoC_Msg.SigGen.Amplitude[0] + IPC_MtoC_Msg.SigGen.Offset;
 
 				for(i = 1; i < 5; i++)
 				{
@@ -488,7 +578,7 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 						DP_Framework.NetSignals[i] = DP_Framework.NetSignals[0];
 					}
 				}
-				break;
+				break;*/
 
 			default:
 				break;
@@ -534,12 +624,14 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[2],DP_Framework.DutySignals[2]);
 		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[4],DP_Framework.DutySignals[1]);
 		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[6],DP_Framework.DutySignals[0]);
-
 	}
 
-	RUN_TIMESLICE(1); /************************************************************/
-
+	//RUN_TIMESLICE(1); /************************************************************/
+/*
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[5]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[7]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[9]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[11]);
 
 	END_TIMESLICE(1); /************************************************************/
 
@@ -547,7 +639,7 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 	valorCounter = ReadCpuTimer0Counter();
 	ReloadCpuTimer0();*/
 
-	CLEAR_DEBUG_GPIO1;
+	//CLEAR_DEBUG_GPIO1;
 
 	for(i = 0; i < PWM_Modules.N_modules; i++)
 	{

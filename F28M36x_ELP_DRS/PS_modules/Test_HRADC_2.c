@@ -180,26 +180,26 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	}
 
 	temp0 *= AverageFilter;
-	temp1 *= AverageFilter;
+	/*temp1 *= AverageFilter;
 	temp2 *= AverageFilter;
-	temp3 *= AverageFilter;
+	temp3 *= AverageFilter;*/
 
 	HRADCs_Info.HRADC_boards[0]->SamplesBuffer = buffers_HRADC.buffer_0;
-	HRADCs_Info.HRADC_boards[1]->SamplesBuffer = buffers_HRADC.buffer_1;
+	/*HRADCs_Info.HRADC_boards[1]->SamplesBuffer = buffers_HRADC.buffer_1;
 	HRADCs_Info.HRADC_boards[2]->SamplesBuffer = buffers_HRADC.buffer_2;
-	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;
+	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;*/
 
 	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
 
-	temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
+	/*temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
 	temp1 *= *(HRADCs_Info.HRADC_boards[1]->gain);
 
 	temp2 -= *(HRADCs_Info.HRADC_boards[2]->offset);
 	temp2 *= *(HRADCs_Info.HRADC_boards[2]->gain);
 
 	temp3 -= *(HRADCs_Info.HRADC_boards[3]->offset);
-	temp3 *= *(HRADCs_Info.HRADC_boards[3]->gain);
+	temp3 *= *(HRADCs_Info.HRADC_boards[3]->gain);*/
 
 	DP_Framework.NetSignals[1] = temp0;
 

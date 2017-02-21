@@ -6,8 +6,8 @@
  */
 
 #define PWM_FREQ					100000				// PWM Master frequency [Hz]
-#define HRADC_FREQ_SAMP	   			100000				// Sampling frequency [Hz]
-#define DECIMATION_FACTOR			1
+#define HRADC_FREQ_SAMP	   			500000				// Sampling frequency [Hz]
+#define DECIMATION_FACTOR			5
 #define HRADC_SPI_CLK				SPI_15MHz
 #define TRANSFER_BUFFER_SIZE		DECIMATION_FACTOR
 #define	N_HRADC_BOARDS				1

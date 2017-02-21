@@ -1,6 +1,10 @@
 #ifndef FBPX4_100KHZ_H
 #define FBPX4_100KHZ_H
 
+
+#define FBPx4_TESTS		0
+#define FBPx4_WFMREF	1
+
 /*
  * Especificações da fonte
  */
@@ -23,8 +27,8 @@
 #define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate máximo do offset do gerador senoidal (A/s)
 #define MAX_SR_SIGGEN_AMP		100.0		// Slew-rate máximo da amplitude do gerador senoidal (A/s)
 
-#define KP						2.8
-#define KI						470.0
+#define KP						1.9			//2.8
+#define KI						559.0		//470.0
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
@@ -38,26 +42,51 @@
 #define TRANSDUCER_0_INPUT_RATED		12.5			// 			LEM ITN 12-P:
 #define TRANSDUCER_0_OUTPUT_RATED		0.05			//   In_rated 	= +/- 12.5 A
 #define TRANSDUCER_0_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
-#define TRANSDUCER_0_GAIN				-(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
+#if (HRADC_v2_0)
+	#define TRANSDUCER_0_GAIN				-(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
+#endif
+
+#if (HRADC_v2_1)
+	#define TRANSDUCER_0_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
+#endif
 #define HRADC_0_R_BURDEN				20.0			// Resistor Burden = 20 R
 
 #define TRANSDUCER_1_INPUT_RATED		12.5			// 			LEM ITN 12-P:
 #define TRANSDUCER_1_OUTPUT_RATED		0.05			//   In_rated 	= +/- 12.5 A
 #define TRANSDUCER_1_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
-#define TRANSDUCER_1_GAIN				-(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
+#if (HRADC_v2_0)
+	#define TRANSDUCER_1_GAIN				-(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
+#endif
+
+#if (HRADC_v2_1)
+	#define TRANSDUCER_1_GAIN				(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
+#endif
 #define HRADC_1_R_BURDEN				20.0			// Resistor Burden = 20 R
 
 #define TRANSDUCER_2_INPUT_RATED		12.5			// 			LEM ITN 12-P:
 #define TRANSDUCER_2_OUTPUT_RATED		0.05			//   In_rated 	= +/- 12.5 A
 #define TRANSDUCER_2_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
-#define TRANSDUCER_2_GAIN				-(TRANSDUCER_2_INPUT_RATED/TRANSDUCER_2_OUTPUT_RATED)
+#if (HRADC_v2_0)
+	#define TRANSDUCER_2_GAIN				-(TRANSDUCER_2_INPUT_RATED/TRANSDUCER_2_OUTPUT_RATED)
+#endif
+
+#if (HRADC_v2_1)
+	#define TRANSDUCER_2_GAIN				(TRANSDUCER_2_INPUT_RATED/TRANSDUCER_2_OUTPUT_RATED)
+#endif
 #define HRADC_2_R_BURDEN				20.0				// Resistor Burden = 20 R
 
 #define TRANSDUCER_3_INPUT_RATED		12.5			// 			LEM ITN 12-P:
 #define TRANSDUCER_3_OUTPUT_RATED		0.05			//   In_rated 	= +/- 12.5 A
 #define TRANSDUCER_3_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
-#define TRANSDUCER_3_GAIN				-(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
+#if (HRADC_v2_0)
+	#define TRANSDUCER_3_GAIN				-(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
+#endif
+
+#if (HRADC_v2_1)
+	#define TRANSDUCER_3_GAIN				(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
+#endif
 #define HRADC_3_R_BURDEN				20.0			// Resistor Burden = 20 R
+
 
 /*
  * DP modules mnemonics

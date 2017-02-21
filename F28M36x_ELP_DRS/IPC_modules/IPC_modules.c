@@ -115,7 +115,9 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 	    XIntruptRegs.XINT3CR.bit.POLARITY = 0;*/
 	}
 
+	/* Set synchronization output EPWMSYNCO */
 
+	GpioCtrlRegs.GPBMUX1.bit.GPIO33 = 2; // Configures GPIO33 for EPWMSYNCO
 
 	/* Map IPC_MtoC interrupts */
 
@@ -259,7 +261,7 @@ interrupt void isr_IPC_Channel_1(void)
 		{
 			CtoMIpcRegs.MTOCIPCACK.all = SAMPLES_BUFFER_ON_OFF;
 			IPC_CtoM_Msg.PSModule.BufferOnOff = IPC_MtoC_Msg.PSModule.BufferOnOff;
-			IPC_CtoM_Msg.SamplesBuffer.BufferBusy = IPC_MtoC_Msg.PSModule.BufferOnOff;
+			IPC_CtoM_Msg.SamplesBuffer.BufferBusy = (eBlockBusy) IPC_MtoC_Msg.PSModule.BufferOnOff;
 			PieCtrlRegs.PIEACK.all |= M_INT11;
 			break;
 		}
@@ -396,7 +398,6 @@ interrupt void isr_IPC_Channel_2(void)
 			{
 				IPC_CtoM_Msg.WfmRef = IPC_MtoC_Msg.WfmRef;
 				TimeSlicer.Counter[0] = TimeSlicer.FreqRatio[0];
-				wfmSyncFlag = 1;
 				break;
 			}
 
@@ -418,6 +419,7 @@ interrupt void isr_IPC_Channel_2(void)
 
 			case SampleBySample_Continuous:
 			{
+				wfmSyncFlag = 1;
 				if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++ >= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
 				{
 					IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart;

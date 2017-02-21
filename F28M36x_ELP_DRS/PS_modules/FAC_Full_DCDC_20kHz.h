@@ -20,12 +20,16 @@
 #define MIN_REF					-1100.0		// Valor mínimo da referência de corrente na carga [A]
 #define MAX_ILOAD_MEASURED		1110.0		// Limite de corrente na carga para interlock [A]
 
-#define MAX_REF_SLEWRATE		50.0		// Slew-rate máximo [A/s]
-#define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate máximo do offset do gerador senoidal [A/s]
-#define MAX_SR_SIGGEN_AMP		100.0		// Slew-rate máximo da amplitude do gerador senoidal [A/s]
+#define MAX_DCLINK				105.0		// Valor maximo de tensao no DC-Link para interlock [V]
+#define MIN_DCLINK				0.0			// Valor minimo de tensao no DC-Link para feed-forward operar [V]
+#define NOM_VDCLINK				90.0		// Valor nominal da tensao de DC-Link [V]
 
-#define KP_ILOAD				0.040			// iLoad Kp coeff
-#define KI_ILOAD				0.100			// iLoad Ki coeff
+#define MAX_REF_SLEWRATE		50.0		// Slew-rate maximo [A/s]
+#define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate maximo do offset do gerador senoidal [A/s]
+#define MAX_SR_SIGGEN_AMP		100.0		// Slew-rate maximo da amplitude do gerador senoidal [A/s]
+
+#define KP_ILOAD				0.04//0.1606//0.080			// iLoad Kp coeff
+#define KI_ILOAD				0.1//0.4294//0.200			// iLoad Ki coeff
 
 #define KP_ISHARE				0.00001		// iShare Kp coeff
 #define KI_ISHARE				0.0001024	// iShare Ki coeff
@@ -34,10 +38,10 @@
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
 #define ISHARE_DECIMATION		20
 
-#define DECIMATION_FACTOR		10
+#define DECIMATION_FACTOR		6
 #define TRANSFER_BUFFER_SIZE	DECIMATION_FACTOR
 #define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
-#define HRADC_SPI_CLK			SPI_15MHz
+#define HRADC_SPI_CLK			SPI_10_71MHz
 
 #define	BUFFER_DECIMATION		10
 
@@ -48,22 +52,41 @@
 #define TRANSDUCER_0_OUTPUT_RATED	10.0			//   In_rated 	= +/- 1200 A
 #define TRANSDUCER_0_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_0_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
-#define HRADC_0_R_BURDEN			1.0				// Resistor Burden = 1 R
+#define HRADC_0_R_BURDEN			20.0				// Resistor Burden = 20 R
+#define HRADC_0_GAIN_ERROR			1.000438296351930
+#define HRADC_0_OFFSET_ERROR		0.098357670811765
 
-#define HRADC_R_BURDEN				1.0				// Resistor Burden = 1 R
-#define HRADC_VIN_BI_P_GAIN			(20.0/262144.0)
-#define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))
+#define TRANSDUCER_1_INPUT_RATED	110.0			// Verivolt IsoBlock + Divisor resistivo
+#define TRANSDUCER_1_OUTPUT_RATED	10.0			//   In_rated 	= +/- 110 V
+#define TRANSDUCER_1_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
+#define TRANSDUCER_1_GAIN			TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED
+#define HRADC_1_R_BURDEN			1.0				// Resistor Burden = 1 R
+
+#define TRANSDUCER_2_INPUT_RATED	110.0			// Verivolt IsoBlock + Divisor resistivo
+#define TRANSDUCER_2_OUTPUT_RATED	10.0			//   In_rated 	= +/- 110 V
+#define TRANSDUCER_2_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
+#define TRANSDUCER_2_GAIN			TRANSDUCER_2_INPUT_RATED/TRANSDUCER_2_OUTPUT_RATED
+#define HRADC_2_R_BURDEN			1.0				// Resistor Burden = 1 R
 
 /*
  * DP modules mnemonics
  */
 
 #define SRLIM_ILOAD_REFERENCE 		&DP_Framework.DPlibrary.ELP_SRLim[0]
+
 #define ERROR_CALCULATOR			&DP_Framework.DPlibrary.ELP_Error[0]
 #define ISHARE_ERROR_CALCULATOR		&DP_Framework.DPlibrary.ELP_Error[1]
+
 #define	PI_DAWU_CONTROLLER_ILOAD	&DP_Framework.DPlibrary.ELP_PI_dawu[0]
 #define	PI_DAWU_CONTROLLER_ISHARE	&DP_Framework.DPlibrary.ELP_PI_dawu[1]
 
+#define IIR_2P2Z_FF_REFERENCE		&DP_Framework.DPlibrary.ELP_IIR_2P2Z[0]
+
+#define IIR_2P2Z_LPF_VDCLINK_MOD1	&DP_Framework.DPlibrary.ELP_IIR_2P2Z[1]
+#define IIR_2P2Z_LPF_VDCLINK_MOD2	&DP_Framework.DPlibrary.ELP_IIR_2P2Z[2]
+
+#define FF_VDCLINK_MOD1				&DP_Framework.DPlibrary.ELP_DCLink_FF[0]
+#define FF_VDCLINK_MOD2				&DP_Framework.DPlibrary.ELP_DCLink_FF[1]
 
 #define SRLIM_SIGGEN_AMP	 		&DP_Framework.DPlibrary.ELP_SRLim[1]
 #define SRLIM_SIGGEN_OFFSET 		&DP_Framework.DPlibrary.ELP_SRLim[2]
