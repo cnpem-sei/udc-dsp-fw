@@ -215,9 +215,6 @@ static void InitControllers(void)
 
 	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD, KP_ILOAD, KI_ILOAD, CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[8], &DP_Framework.NetSignals[9]);
 
-	/************************************************/
-	/* INITIALIZATION OF CURRENT SHARE CONTROL LOOP */
-	/************************************************/
 	/*
 	 * 	      name: 	IIR_2P2Z_FF_REFERENCE
 	 * description: 	Reference load current feed-forward
@@ -233,7 +230,6 @@ static void InitControllers(void)
 	// Fctrl = 40960 Hz
 	//Init_ELP_IIR_2P2Z(IIR_2P2Z_FF_REFERENCE, 0.031870661544369, -0.031868581061066, 0.0,
 	//					-0.984776951441255, 0.0, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[0], &DP_Framework.NetSignals[13]);
-
 
 	/************************************************/
 	/* INITIALIZATION OF CURRENT SHARE CONTROL LOOP */
@@ -265,7 +261,6 @@ static void InitControllers(void)
 	/*****************************************/
 
 	/*
-<<<<<<< HEAD
 	 * 	      name: 	IIR_2P2Z_LPF_VDCLINK_MOD1
 	 * description: 	Module 1 DC-Link voltage low-pass filter
 	 *    DP class:     ELP_IIR_2P2Z
@@ -309,63 +304,6 @@ static void InitControllers(void)
 	 */
 
 	Init_ELP_DCLink_FF(FF_VDCLINK_MOD2, NOM_VDCLINK, MIN_DCLINK, &DP_Framework.NetSignals[20], &DP_Framework.NetSignals[16], &DP_Framework.DutySignals[1]);
-=======
-	 * 	      name: 	IIR_2P2Z_FF_REFERENCE
-	 * description: 	Reference load current feed-forward
-	 *    DP class:     ELP_IIR_2P2Z
-	 *     	    in:		NetSignals[]
-	 * 		   out:		NetSignals[]
-	 */
-
-	Init_ELP_IIR_2P2Z(IIR_2P2Z_FF_REFERENCE, 0.0, 0.0, 0.0,
-					  0.0, 0.0, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[], &DP_Framework.NetSignals[]);
-
-
-	/*
-	 * 	      name: 	IIR_2P2Z_LPF_VDCLINK_MOD1
-	 * description: 	Module 1 DC-Link voltage low-pass filter
-	 *    DP class:     ELP_IIR_2P2Z
-	 *     	    in:		NetSignals[]
-	 * 		   out:		NetSignals[]
-	 */
-
-	Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD1, 0.0, 0.0, 0.0,
-					  0.0, 0.0, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[], &DP_Framework.NetSignals[]);
-
-	/*
-	 * 	      name: 	IIR_2P2Z_LPF_VDCLINK_MOD2
-	 * description: 	Module 2 DC-Link voltage low-pass filter
-	 *    DP class:     ELP_IIR_2P2Z
-	 *     	    in:		NetSignals[]
-	 * 		   out:		NetSignals[]
-	 */
-
-	Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD2, 0.0, 0.0, 0.0,
-					  0.0, 0.0, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[], &DP_Framework.NetSignals[]);
-
-	/*
-	 * 	      name: 	FF_VDCLINK_1
-	 * description: 	Module 1 DC-Link voltage feed-forward law
-	 *    DP class:     ELP_DCLink_FF
-	 *    vdc_meas:		NetSignals[]
-	 *     	    in:		NetSignals[]
-	 * 		   out:		NetSignals[]
-	 */
-
-	Init_ELP_DCLink_FF(FF_VDCLINK_1, NOM_VDCLINK, MIN_DCLINK, &DP_Framework.NetSignals[], &DP_Framework.NetSignals[], &DP_Framework.NetSignals[]);
-
-
-	/*
-	 * 	      name: 	FF_VDCLINK_2
-	 * description: 	Module 2 DC-Link voltage feed-forward law
-	 *    DP class:     ELP_DCLink_FF
-	 *    vdc_meas:		NetSignals[]
-	 *     	    in:		NetSignals[]
-	 * 		   out:		NetSignals[]
-	 */
-
-	Init_ELP_DCLink_FF(FF_VDCLINK_2, NOM_VDCLINK, MIN_DCLINK, &DP_Framework.NetSignals[], &DP_Framework.NetSignals[], &DP_Framework.NetSignals[]);
->>>>>>> branch 'master' of https://github.com/lnls-elp/C28.git
 
 	/*********************************************/
 	/* INITIALIZATION OF SIGNAL GENERATOR MODULE */
@@ -489,16 +427,10 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 		wfmSyncFlag = 0;
 	}
 
-	temp0 = 0.0
 	temp0 = 0.0;
-<<<<<<< HEAD
 	temp1 = 0.0;
 	temp2 = 0.0;
-	
-=======
-	temp0 = 0.0;
 
->>>>>>> branch 'master' of https://github.com/lnls-elp/C28.git
 	bypass_SRLim = USE_MODULE;
 
 	for(i = 0; i < DECIMATION_FACTOR; i++)
@@ -527,13 +459,8 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 	temp2 *= *(HRADCs_Info.HRADC_boards[2]->gain);
 
 	DP_Framework.NetSignals[1] = temp0;
-<<<<<<< HEAD
 	DP_Framework.NetSignals[17] = temp1;
 	DP_Framework.NetSignals[19] = temp2;
-=======
-	DP_Framework.NetSignals[?] = temp1;
-	DP_Framework.NetSignals[?] = temp2;
->>>>>>> branch 'master' of https://github.com/lnls-elp/C28.git
 
 	if(fabs(temp0) > MAX_ILOAD_MEASURED)
 	{
@@ -630,31 +557,19 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 			Run_ELP_Error(ERROR_CALCULATOR);
 			Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD);
 			Run_ELP_IIR_2P2Z(IIR_2P2Z_FF_REFERENCE);
-<<<<<<< HEAD
+
 			DP_Framework.NetSignals[14] = DP_Framework.NetSignals[9] + DP_Framework.NetSignals[13];
-=======
->>>>>>> branch 'master' of https://github.com/lnls-elp/C28.git
 
 			RUN_TIMESLICE(2); /************************************************************/
 
-<<<<<<< HEAD
 				DP_Framework.NetSignals[12] = DP_Framework.NetSignals[1] * 0.5;
-=======
-				DP_Framework.NetSignals[] = DP_Framework.NetSignals[1] * 0.5;
->>>>>>> branch 'master' of https://github.com/lnls-elp/C28.git
 				Run_ELP_Error(ISHARE_ERROR_CALCULATOR);
 				Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_ISHARE);
 
 			END_TIMESLICE(2); /************************************************************/
 
-<<<<<<< HEAD
 			DP_Framework.NetSignals[15] = DP_Framework.NetSignals[14] - DP_Framework.NetSignals[11];
 			DP_Framework.NetSignals[16] = DP_Framework.NetSignals[14] + DP_Framework.NetSignals[11];
-=======
-			DP_Framework.NetSignals[] = DP_Framework.Netsignal[] + DP_Framework.Netsignal[];
-			DP_Framework.NetSignals[] = DP_Framework.Netsignal[] - DP_Framework.Netsignal[];
-			DP_Framework.NetSignals[] = DP_Framework.Netsignal[] + DP_Framework.Netsignal[];
->>>>>>> branch 'master' of https://github.com/lnls-elp/C28.git
 
 			Run_ELP_DCLink_FF(FF_VDCLINK_MOD1);
 			Run_ELP_DCLink_FF(FF_VDCLINK_MOD2);
@@ -669,11 +584,7 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-<<<<<<< HEAD
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[8]);		// iLoad error signal
-=======
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);
->>>>>>> branch 'master' of https://github.com/lnls-elp/C28.git
 
 	END_TIMESLICE(1); /************************************************************/
 
