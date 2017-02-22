@@ -2,7 +2,7 @@
 #define FAC_FULL_DCDC_20KHZ_H
 
 /*
- * Especificações da fonte
+ * Especificaï¿½ï¿½es da fonte
  */
 
 #define FONTE_MODO		OnePS4Q				// Topologia da fonte a ser controlada
@@ -16,13 +16,23 @@
 #define PWM_MIN_DUTY_OL			-0.2		// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
 #define PWM_MAX_SHARE_DUTY		0.01
 
-#define MAX_REF					1100.0		// Valor máximo da referência de corrente na carga [A]
-#define MIN_REF					-1100.0		// Valor mínimo da referência de corrente na carga [A]
+#define MAX_REF					1100.0		// Valor mï¿½ximo da referï¿½ncia de corrente na carga [A]
+#define MIN_REF					-1100.0		// Valor mï¿½nimo da referï¿½ncia de corrente na carga [A]
 #define MAX_ILOAD_MEASURED		1110.0		// Limite de corrente na carga para interlock [A]
 
+<<<<<<< HEAD
 #define MAX_DCLINK				105.0		// Valor maximo de tensao no DC-Link para interlock [V]
 #define MIN_DCLINK				0.0			// Valor minimo de tensao no DC-Link para feed-forward operar [V]
 #define NOM_VDCLINK				90.0		// Valor nominal da tensao de DC-Link [V]
+=======
+#define MAX_DCLINK				105.0		// Valor mï¿½ximo de tensï¿½o no DC-Link para interlock [V]
+#define MIN_DCLINK				0.0			// Valor mï¿½nimo de tensï¿½o no DC-Link para feed-forward operar [V]
+#define NOM_VDCLINK				90.0		// Valor nominal da tensï¿½o de DC-Link [V]
+
+#define MAX_REF_SLEWRATE		50.0		// Slew-rate mï¿½ximo [A/s]
+#define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate mï¿½ximo do offset do gerador senoidal [A/s]
+#define MAX_SR_SIGGEN_AMP		100.0		// Slew-rate mï¿½ximo da amplitude do gerador senoidal [A/s]
+>>>>>>> branch 'master' of https://github.com/lnls-elp/C28.git
 
 #define MAX_REF_SLEWRATE		50.0		// Slew-rate maximo [A/s]
 #define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate maximo do offset do gerador senoidal [A/s]
@@ -56,6 +66,7 @@
 #define HRADC_0_GAIN_ERROR			1.000438296351930
 #define HRADC_0_OFFSET_ERROR		0.098357670811765
 
+<<<<<<< HEAD
 #define TRANSDUCER_1_INPUT_RATED	110.0			// Verivolt IsoBlock + Divisor resistivo
 #define TRANSDUCER_1_OUTPUT_RATED	10.0			//   In_rated 	= +/- 110 V
 #define TRANSDUCER_1_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
@@ -67,6 +78,23 @@
 #define TRANSDUCER_2_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_2_GAIN			TRANSDUCER_2_INPUT_RATED/TRANSDUCER_2_OUTPUT_RATED
 #define HRADC_2_R_BURDEN			1.0				// Resistor Burden = 1 R
+=======
+#define TRANSDUCER_1_INPUT_RATED	1200.0			// Verivolt IsoBlock + Divisor resistivo
+#define TRANSDUCER_1_OUTPUT_RATED	10.0			//   In_rated 	= +/- 1200 V
+#define TRANSDUCER_1_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
+#define TRANSDUCER_1_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
+#define HRADC_1_R_BURDEN			1.0				// Resistor Burden = 1 R
+
+#define TRANSDUCER_2_INPUT_RATED	1200.0			// Verivolt IsoBlock + Divisor resistivo
+#define TRANSDUCER_2_OUTPUT_RATED	10.0			//   In_rated 	= +/- 1200 V
+#define TRANSDUCER_2_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
+#define TRANSDUCER_2_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
+#define HRADC_2_R_BURDEN			1.0				// Resistor Burden = 1 R
+
+/*#define HRADC_R_BURDEN				1.0				// Resistor Burden = 1 R
+#define HRADC_VIN_BI_P_GAIN			(20.0/262144.0)
+#define HRADC_IIN_BI_P_GAIN			(1.0/(HRADC_R_BURDEN * 131072.0))*/
+>>>>>>> branch 'master' of https://github.com/lnls-elp/C28.git
 
 /*
  * DP modules mnemonics
