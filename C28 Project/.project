@@ -26,6 +26,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>.gitignore</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/.gitignore</locationURI>
+		</link>
+		<link>
 			<name>F28M36x_ELP_DRS</name>
 			<type>2</type>
 			<locationURI>F28M36x_ELP_DRS</locationURI>

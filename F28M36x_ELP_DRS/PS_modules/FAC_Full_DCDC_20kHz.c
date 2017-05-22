@@ -267,9 +267,15 @@ static void InitControllers(void)
 	 *     	    in:		NetSignals[17]
 	 * 		   out:		NetSignals[18]
 	 */
-
-	Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD1, 0.126216944768300, 0.252433889536601, 0.126216944768300,
+	if(FF_ONOFF)
+	{
+		Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD1, 0.126216944768300, 0.252433889536601, 0.126216944768300,
 					  -0.774934273867545, 0.279802052940746, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[17], &DP_Framework.NetSignals[18]);
+	}
+	else
+	{
+		Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD1, 0.0, 0.0, 0.0, 0.0, 0.0, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[17], &DP_Framework.NetSignals[18]);
+	}
 
 	/*
 	 * 	      name: 	IIR_2P2Z_LPF_VDCLINK_MOD2
@@ -278,9 +284,15 @@ static void InitControllers(void)
 	 *     	    in:		NetSignals[19]
 	 * 		   out:		NetSignals[20]
 	 */
-
-	Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD2, 0.126216944768300, 0.252433889536601, 0.126216944768300,
+	if(FF_ONOFF)
+	{
+		Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD2, 0.126216944768300, 0.252433889536601, 0.126216944768300,
 			          -0.774934273867545, 0.279802052940746, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[19], &DP_Framework.NetSignals[20]);
+	}
+	else
+	{
+		Init_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD2, 0.0, 0.0, 0.0, 0.0, 0.0, FLT_MAX, -FLT_MAX, &DP_Framework.NetSignals[19], &DP_Framework.NetSignals[20]);
+	}
 
 	/*
 	 * 	      name: 	FF_VDCLINK_MOD1
@@ -415,7 +427,7 @@ static void InitInterruptions(void)
 //*****************************************************************************
 // Esvazia buffer FIFO com valores amostrados e recebidos via SPI
 //*****************************************************************************
-interrupt void isr_ePWM_CTR_ZERO(void)
+static interrupt void isr_ePWM_CTR_ZERO(void)
 {
 	static Uint16 i, bypass_SRLim;
 	static float temp0, temp1, temp2;
@@ -584,7 +596,9 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[8]);		// iLoad error signal
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);		// iLoad error signal
+		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework_MtoC.NetSignals[0]-DP_Framework_MtoC.NetSignals[1]);	// iMod's difference
+		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework_MtoC.NetSignals[1]);	// iMod1 signal
 
 	END_TIMESLICE(1); /************************************************************/
 

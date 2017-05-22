@@ -1,5 +1,5 @@
-#ifndef FAP_DCDC_20KHZ_H
-#define FAP_DCDC_20KHZ_H
+#ifndef FAP_DCDC_15KHZ_225A_H
+#define FAP_DCDC_15KHZ_225A_H
 
 /*
  * Especifica��es da fonte
@@ -49,6 +49,8 @@
 #define TRANSDUCER_0_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_0_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
 #define HRADC_0_R_BURDEN			10.0				// Resistor Burden = 10 R
+#define HRADC_0_GAIN_ERROR			1.000279389463440
+#define HRADC_0_OFFSET_ERROR		0.035112926315790
 
 /*
  * DP modules mnemonics

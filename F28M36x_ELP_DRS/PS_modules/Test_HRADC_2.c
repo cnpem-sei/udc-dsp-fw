@@ -169,30 +169,37 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	temp2 = 0.0;
 	temp3 = 0.0;
 
-	//while(!McbspaRegs.SPCR1.bit.RRDY){}
+	CLEAR_DEBUG_GPIO1;
+
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+
+	SET_DEBUG_GPIO1;
+	//CLEAR_DEBUG_GPIO1;
 
 	for(i = 0; i < DECIMATION_FACTOR; i++)
 	{
 		temp0 += (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer++);
-		/*temp1 += (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer++);
-		temp2 += (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer++);
-		temp3 += (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer++);*/
+		//temp1 += (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer++);
+		//temp2 += (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer++);
+		//temp3 += (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer++);
 	}
 
+	//SET_DEBUG_GPIO1
+
 	temp0 *= AverageFilter;
-	/*temp1 *= AverageFilter;
+	temp1 *= AverageFilter;
 	temp2 *= AverageFilter;
-	temp3 *= AverageFilter;*/
+	temp3 *= AverageFilter;
 
 	HRADCs_Info.HRADC_boards[0]->SamplesBuffer = buffers_HRADC.buffer_0;
-	/*HRADCs_Info.HRADC_boards[1]->SamplesBuffer = buffers_HRADC.buffer_1;
+	HRADCs_Info.HRADC_boards[1]->SamplesBuffer = buffers_HRADC.buffer_1;
 	HRADCs_Info.HRADC_boards[2]->SamplesBuffer = buffers_HRADC.buffer_2;
-	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;*/
+	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;
 
-	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
+	/*temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
 
-	/*temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
+	temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
 	temp1 *= *(HRADCs_Info.HRADC_boards[1]->gain);
 
 	temp2 -= *(HRADCs_Info.HRADC_boards[2]->offset);
@@ -201,7 +208,10 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	temp3 -= *(HRADCs_Info.HRADC_boards[3]->offset);
 	temp3 *= *(HRADCs_Info.HRADC_boards[3]->gain);*/
 
-	DP_Framework.NetSignals[1] = temp0;
+	DP_Framework.NetSignals[0] = temp0;
+	DP_Framework.NetSignals[1] = temp1;
+	DP_Framework.NetSignals[2] = temp2;
+	DP_Framework.NetSignals[3] = temp3;
 
 	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp0);
 	/*WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp1);

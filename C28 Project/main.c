@@ -32,6 +32,7 @@ extern void main_Test_HRADC(void);
 extern void main_Jiga_HRADC(void);
 extern void main_FAP_DCDC_15kHz_225A(void);
 extern void main_FBPx4_100kHz(void);
+extern void main_FAP_6U_DCDC_20kHz(void);
 
 void main(void)
 {
@@ -80,6 +81,8 @@ void main(void)
 
 	if(UDC_V2_1)
 	{
+		PWM_Modules.N_modules = 8;
+
 		DisablePWMOutputs();
 		DisablePWM_TBCLK();
 
@@ -119,6 +122,7 @@ void main(void)
 			case FBP_100kHz:
 			{
 				//main_FBP_100kHz();
+				//main_Test_BCB_Board();
 				break;
 			}
 
@@ -154,7 +158,7 @@ void main(void)
 
 			case FAP_ACDC:
 			{
-				main_FAP_ACDC();
+				//main_FAP_ACDC();
 				break;
 			}
 
@@ -183,13 +187,19 @@ void main(void)
 
 			case FAP_DCDC_15kHz_225A:
 			{
-				main_FAP_DCDC_15kHz_225A();
+				//main_FAP_DCDC_15kHz_225A();
 			}
 
 			case FBPx4_100kHz:
 			{
 				main_FBPx4_100kHz();
 			}
+
+			case FAP_6U_DCDC_20kHz:
+			{
+				main_FAP_6U_DCDC_20kHz();
+			}
+
 			default:
 			{
 				break;

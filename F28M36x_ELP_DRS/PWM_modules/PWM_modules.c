@@ -255,6 +255,13 @@ void SetPWMDutyCycle_HBridge(volatile struct EPWM_REGS *pwmPtr, float duty_pu)
 
 void InitPWMModule(volatile struct EPWM_REGS *pwmPtr, double freq, Uint16 primary_module, ePWMSync sync_mode, Uint16 phase_degrees, ePWMComp comp_mode, Uint16 dt_ns)
 {
+	/* Counter-register configuration */
+    pwmPtr->TBCTL.bit.HSPCLKDIV = TB_DIV1;
+    pwmPtr->TBCTL.bit.CLKDIV = TB_DIV1;
+    pwmPtr->TBCTL.bit.PRDLD = TB_IMMEDIATE;
+   	pwmPtr->TBCTL.bit.CTRMODE = TB_COUNT_UP;
+    pwmPtr->TBCTR = 0;
+
 	/* Parametric configuration */
 	SetPWMFreq(pwmPtr,freq);
 	SetPWMDutyCycle_ChA(pwmPtr,0.0);
@@ -263,13 +270,6 @@ void InitPWMModule(volatile struct EPWM_REGS *pwmPtr, double freq, Uint16 primar
     SetPWMComplementary(pwmPtr, comp_mode);
     SetPWMDeadTime(pwmPtr, dt_ns);
     LinkPWM_Modules(pwmPtr, primary_module);
-
-	/* Counter-register configuration */
-    pwmPtr->TBCTL.bit.HSPCLKDIV = TB_DIV1;
-    pwmPtr->TBCTL.bit.CLKDIV = TB_DIV1;
-    pwmPtr->TBCTL.bit.PRDLD = TB_SHADOW;
-   	pwmPtr->TBCTL.bit.CTRMODE = TB_COUNT_UP;
-    pwmPtr->TBCTR = 0;
 
     /* Action-Qualifier configuration */
 	pwmPtr->AQCTLA.bit.ZRO = AQ_SET;
@@ -400,6 +400,18 @@ void DisablePWMOutputs(void)
 
 void EnablePWM_TBCLK(void)
 {
+	Uint16 i;
+
+	for(i = 0; i < N_MAX_PWM_MODULES; i++)
+	{
+		PWM_Modules.PWM_Regs[i]->TBCTR = PWM_Modules.PWM_Regs[i]->TBPHS.half.TBPHS;
+		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
+	}
+
+	PieCtrlRegs.PIEIFR3.all = 0x0000;
+	PieCtrlRegs.PIEACK.all |= M_INT3;
+	IFR &= ~M_INT3;
+
     EALLOW;
     SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 1;
     EDIS;
@@ -418,11 +430,15 @@ void DisablePWM_TBCLK(void)
     EDIS;
 
     /* Adicionado 11/03/2016, vindo do FW da FAC/DCDC */
-	for(i = 0; i < PWM_Modules.N_modules; i++)
+	for(i = 0; i < N_MAX_PWM_MODULES; i++)
 	{
 		PWM_Modules.PWM_Regs[i]->TBCTR = PWM_Modules.PWM_Regs[i]->TBPHS.half.TBPHS;
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
+
+	PieCtrlRegs.PIEIFR3.all = 0x0000;
+	PieCtrlRegs.PIEACK.all |= M_INT3;
+	IFR &= ~M_INT3;
 }
 
 /*

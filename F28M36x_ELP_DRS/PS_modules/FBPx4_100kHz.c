@@ -424,13 +424,15 @@ static void TerminateInterruptions(void)
 //*****************************************************************************
 // Esvazia buffer FIFO com valores amostrados e recebidos via SPI
 //*****************************************************************************
-interrupt void isr_ePWM_CTR_ZERO(void)
+static interrupt void isr_ePWM_CTR_ZERO(void)
 {
 	static Uint16 i;
 	static float temp0, temp1, temp2, temp3;
 
 	//StartCpuTimer0();
 	//SET_DEBUG_GPIO1;
+
+	//PIN_CLOSE_PS4_DCLINK_RELAY;
 
 	/*temp0 = 0.0;
 	temp1 = 0.0;
@@ -439,16 +441,16 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 
 	for(i = 0; i < DECIMATION_FACTOR; i++)
 	{
-		temp0 += (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer++);
-		temp1 += (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer++);
-		temp2 += (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer++);
-		temp3 += (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer++);
+		temp0 = (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer++);
+		temp1 = (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer++);
+		temp2 = (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer++);
+		temp3 = (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer++);
 	}
 
 	HRADCs_Info.HRADC_boards[0]->SamplesBuffer = buffers_HRADC.buffer_0;
 	HRADCs_Info.HRADC_boards[1]->SamplesBuffer = buffers_HRADC.buffer_1;
 	HRADCs_Info.HRADC_boards[2]->SamplesBuffer = buffers_HRADC.buffer_2;
-	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;*/
+	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;
 
 	/*temp0 *= AverageFilter;
 	temp1 *= AverageFilter;
@@ -506,20 +508,17 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 				break;
 
 			case WfmRef:
-				#if (FBPx4_TESTS)
-
+				if(INDEPENDENT_SETPOINT_TEST)
+				{
 					i = (Uint16) IPC_CtoM_Msg.WfmRef.Gain;
 					SATURATE(i,4,1);
 
 					IPC_CtoM_Msg.PSModule.IRef = IPC_CtoM_Msg.WfmRef.Offset;
 					DP_Framework.NetSignals[0] = IPC_CtoM_Msg.WfmRef.Offset;
 					DP_Framework.NetSignals[i] = IPC_CtoM_Msg.WfmRef.Offset;
-
-				#endif
-
-
-				#if (FBPx4_WFMREF)
-
+				}
+				else
+				{
 					switch(IPC_CtoM_Msg.WfmRef.SyncMode)
 					{
 						case OneShot:
@@ -551,34 +550,38 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 					DP_Framework.NetSignals[2] = DP_Framework.NetSignals[0];
 					DP_Framework.NetSignals[3] = DP_Framework.NetSignals[0];
 					DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];
-
-				#endif
+				}
 
 				break;
 
 			case SigGen:
 
-				//Run_ELP_SRLim(SRLIM_SIGGEN_AMP, USE_MODULE);
-				//Run_ELP_SRLim(SRLIM_SIGGEN_OFFSET, USE_MODULE);
-				SignalGenerator.Run_ELP_SigGen(&SignalGenerator);
-				DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
-				DP_Framework.NetSignals[1] = DP_Framework.NetSignals[0];
-				DP_Framework.NetSignals[2] = DP_Framework.NetSignals[0];
-				DP_Framework.NetSignals[3] = DP_Framework.NetSignals[0];
-				DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];
-
-				break;
-
-				/*DP_Framework.NetSignals[0] = IPC_MtoC_Msg.SigGen.Amplitude[0] + IPC_MtoC_Msg.SigGen.Offset;
-
-				for(i = 1; i < 5; i++)
+				if(CROSSTALK_TEST)
 				{
-					if(i != ((Uint16) IPC_MtoC_Msg.SigGen.Freq))
+					DP_Framework.NetSignals[0] = IPC_MtoC_Msg.SigGen.Amplitude[0] + IPC_MtoC_Msg.SigGen.Offset;
+
+					for(i = 1; i < 5; i++)
 					{
-						DP_Framework.NetSignals[i] = DP_Framework.NetSignals[0];
+						if(i != ((Uint16) IPC_MtoC_Msg.SigGen.Freq))
+						{
+							DP_Framework.NetSignals[i] = DP_Framework.NetSignals[0];
+						}
 					}
 				}
-				break;*/
+
+				else
+				{
+					//Run_ELP_SRLim(SRLIM_SIGGEN_AMP, USE_MODULE);
+					//Run_ELP_SRLim(SRLIM_SIGGEN_OFFSET, USE_MODULE);
+					SignalGenerator.Run_ELP_SigGen(&SignalGenerator);
+					DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
+					DP_Framework.NetSignals[1] = DP_Framework.NetSignals[0];
+					DP_Framework.NetSignals[2] = DP_Framework.NetSignals[0];
+					DP_Framework.NetSignals[3] = DP_Framework.NetSignals[0];
+					DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];
+				}
+
+				break;
 
 			default:
 				break;
@@ -626,8 +629,8 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[6],DP_Framework.DutySignals[0]);
 	}
 
-	//RUN_TIMESLICE(1); /************************************************************/
-/*
+	RUN_TIMESLICE(1); /************************************************************/
+
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[5]);
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[7]);
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[9]);
@@ -645,6 +648,8 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 	{
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
+
+	//PIN_OPEN_PS4_DCLINK_RELAY;
 
 	PieCtrlRegs.PIEACK.all |= M_INT3;
 }

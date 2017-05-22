@@ -29,8 +29,8 @@
 #pragma CODE_SECTION(isr_SoftInterlock, "ramfuncs");
 #pragma CODE_SECTION(isr_HardInterlock, "ramfuncs");
 
-static __interrupt void isr_ePWM_CTR_ZERO(void);
-static __interrupt void isr_ePWM_CTR_ZERO_1st(void);
+static interrupt void isr_ePWM_CTR_ZERO(void);
+static interrupt void isr_ePWM_CTR_ZERO_1st(void);
 
 void main_FAC_Full_ACDC_10kHz(void);
 
@@ -490,7 +490,7 @@ static void InitInterruptions(void)
 //*****************************************************************************
 // Esvazia buffer FIFO com valores amostrados e recebidos via SPI
 //*****************************************************************************
-__interrupt void isr_ePWM_CTR_ZERO(void)
+static interrupt void isr_ePWM_CTR_ZERO(void)
 {
 	static Uint16 i, bypass_SRLim;
 	static float temp0, temp1, temp2, temp3;
@@ -668,7 +668,7 @@ __interrupt void isr_ePWM_CTR_ZERO(void)
 	PieCtrlRegs.PIEACK.all |= M_INT3;
 }
 
-static __interrupt void isr_ePWM_CTR_ZERO_1st(void)
+static interrupt void isr_ePWM_CTR_ZERO_1st(void)
 {
 	// Contador auxiliar
 	static Uint16 i;

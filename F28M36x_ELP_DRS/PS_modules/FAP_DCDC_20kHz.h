@@ -19,7 +19,7 @@
 #define MIN_REF					0.0			// Valor m�nimo da refer�ncia de corrente na carga [A]
 #define MAX_LOAD				210.0		// Limite de corrente na carga para interlock [A]
 
-#define MAX_DCLINK				110.0		// Valor m�ximo de tens�o no DC-Link para interlock [V]
+#define MAX_DCLINK				109.0		// Valor m�ximo de tens�o no DC-Link para interlock [V]
 #define MIN_DCLINK				50.0		// Valor m�nimo de tens�o no DC-Link para interlock e para feed-forward operar [V]
 #define NOM_VDCLINK				100.0		// Valor nominal da tens�o de DC-Link [V]
 

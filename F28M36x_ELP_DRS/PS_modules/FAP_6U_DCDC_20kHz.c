@@ -1,57 +1,20 @@
 /*
- * 		FILE: 		FAP_DCDC_20kHz.c
+ * 		FILE: 		FAP_6UDCDC_20kHz.c
  * 		PROJECT: 	DRS v2.0
- * 		CREATION:	06/06/2016
+ * 		CREATION:	05/05/2017
  * 		MODIFIED:
  *
  * 		AUTHOR: 	Gabriel O. B.  (LNLS/ELP)
  *
  * 		DESCRIPTION: Firmware for control of DC/DC stage for
- * 					 200 A / 50 V FAP prototype v2.0
+ * 					 200 A / 50 V FAP 6U prototype
  *
  *
  *		TODO:
  */
 
 #include "F28M36x_ELP_DRS.h"
-#include "FAP_DCDC_20kHz.h"
-
-/*
- * DP modules mnemonics
- */
-
-#define SRLIM_ILOAD_REFERENCE 		&DP_Framework.DPlibrary.ELP_SRLim[0]
-#define ERROR_CALCULATOR			&DP_Framework.DPlibrary.ELP_Error[0]
-#define ISHARE_ERROR_CALCULATOR		&DP_Framework.DPlibrary.ELP_Error[1]
-#define	PI_DAWU_CONTROLLER_ILOAD	&DP_Framework.DPlibrary.ELP_PI_dawu[0]
-#define	PI_DAWU_CONTROLLER_ISHARE	&DP_Framework.DPlibrary.ELP_PI_dawu[1]
-
-#define ISHARE_DECIMATION			400
-#define ISHARE_CONTROL_FREQ			1000.0
-
-#define IIR_2P2Z_LPF_VDCLINK		&DP_Framework.DPlibrary.ELP_IIR_2P2Z[0]
-#define FF_DCLINK_ILOAD				&DP_Framework.DPlibrary.ELP_DCLink_FF[0]
-#define FF_DCLINK_ISHARE			&DP_Framework.DPlibrary.ELP_DCLink_FF[1]
-
-#define SRLIM_SIGGEN_AMP	 		&DP_Framework.DPlibrary.ELP_SRLim[1]
-#define SRLIM_SIGGEN_OFFSET 		&DP_Framework.DPlibrary.ELP_SRLim[2]
-
-
-/*
- * Timeouts
- */
-
-#define TIMEOUT_uS_DCLINK_CONTACTOR		3000000
-
-/*
- * Digital IO's defines
- */
-
-#define PIN_STATUS_DCLINK_CONTACTOR		DP_Framework_MtoC.NetSignals[17]
-#define MAX_ILOAD_MEASURED				DP_Framework.NetSignals[18]
-
-#define PIN_OPEN_DCLINK_CONTACTOR		GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
-#define PIN_CLOSE_DCLINK_CONTACTOR		GpioDataRegs.GPCSET.bit.GPIO67 = 1;
+#include "FAP_6U_DCDC_20kHz.h"
 
 // Prototype statements for functions found within this file.
 
@@ -68,7 +31,7 @@
 static interrupt void isr_ePWM_CTR_ZERO(void);
 static interrupt void isr_ePWM_CTR_ZERO_1st(void);
 
-void main_FAP_DCDC_20kHz(void);
+void main_FAP_6U_DCDC_20kHz(void);
 
 static void PS_turnOn(void);
 static void PS_turnOff(void);
@@ -88,14 +51,8 @@ static void InitInterruptions(void);
 
 static Uint16 pinStatus_DCLink_Contactor;
 
-static float magnetCycling_Amplitude = 180.0;
-static float magnetCycling_TopTime = 2.0;
-static float magnetCycling_Freq = 0.0;
 
-//static tELP_SigGen MagnetCyclingGenerator;
-
-
-void main_FAP_DCDC_20kHz(void)
+void main_FAP_6U_DCDC_20kHz(void)
 {
 	InitPeripheralsDrivers();
 
@@ -124,10 +81,15 @@ void main_FAP_DCDC_20kHz(void)
 				Set_HardInterlock(ACDC_FAULT);
 			}
 
-			if( CHECK_INTERLOCK(OUTPUT_CAP_CHARGE_FAULT) && DP_Framework.NetSignals[13] < MIN_DCLINK )
+			if( CHECK_INTERLOCK(EXTERNAL_INTERLOCK) && PIN_STATUS_DCCT_ILOAD )
+			{
+				Set_HardInterlock(EXTERNAL_INTERLOCK);
+			}
+
+			/*if( CHECK_INTERLOCK(OUTPUT_CAP_CHARGE_FAULT) && DP_Framework.NetSignals[13] < MIN_DCLINK )
 			{
 				Set_HardInterlock(OUTPUT_CAP_CHARGE_FAULT);
-			}
+			}*/
 		}
 
 		EINT;
@@ -180,15 +142,9 @@ static void InitPeripheralsDrivers(void)
 	GpioDataRegs.GPASET.bit.GPIO29 = 1;
 	EDIS;
 
-	PWM_Modules.N_modules = 8;
+	PWM_Modules.N_modules = 2;
 	PWM_Modules.PWM_Regs[0] = &EPwm1Regs;
 	PWM_Modules.PWM_Regs[1] = &EPwm2Regs;
-	PWM_Modules.PWM_Regs[2] = &EPwm3Regs;
-	PWM_Modules.PWM_Regs[3] = &EPwm4Regs;
-	PWM_Modules.PWM_Regs[4] = &EPwm5Regs;
-	PWM_Modules.PWM_Regs[5] = &EPwm6Regs;
-	PWM_Modules.PWM_Regs[6] = &EPwm7Regs;
-	PWM_Modules.PWM_Regs[7] = &EPwm8Regs;
 
 	DisablePWMOutputs();
 	DisablePWM_TBCLK();
@@ -196,35 +152,25 @@ static void InitPeripheralsDrivers(void)
 
 	InitPWMModule(PWM_Modules.PWM_Regs[0], PWM_FREQ, 0, MasterPWM, 0, NO_COMPLEMENTARY, PWM_DEAD_TIME);
 	InitPWMModule(PWM_Modules.PWM_Regs[1], PWM_FREQ, 0, SlavePWM, 180, NO_COMPLEMENTARY, PWM_DEAD_TIME);
-	InitPWMModule(PWM_Modules.PWM_Regs[2], PWM_FREQ, 0, SlavePWM, 180, NO_COMPLEMENTARY, PWM_DEAD_TIME);
-	InitPWMModule(PWM_Modules.PWM_Regs[3], PWM_FREQ, 0, SlavePWM, 180, NO_COMPLEMENTARY, PWM_DEAD_TIME);
-	InitPWMModule(PWM_Modules.PWM_Regs[4], PWM_FREQ, 0, SlavePWM, 180, NO_COMPLEMENTARY, PWM_DEAD_TIME);
-	InitPWMModule(PWM_Modules.PWM_Regs[5], PWM_FREQ, 0, SlavePWM, 180, NO_COMPLEMENTARY, PWM_DEAD_TIME);
-	InitPWMModule(PWM_Modules.PWM_Regs[6], PWM_FREQ, 0, SlavePWM, 180, NO_COMPLEMENTARY, PWM_DEAD_TIME);
-	InitPWMModule(PWM_Modules.PWM_Regs[7], PWM_FREQ, 0, SlavePWM, 180, NO_COMPLEMENTARY, PWM_DEAD_TIME);
-
-	//InitPWMDAC(PWM_DAC_MODULE, PWM_DAC_FREQ);
 
 	InitEPwm1Gpio();
 	InitEPwm2Gpio();
-	InitEPwm3Gpio();
-	InitEPwm4Gpio();
-	InitEPwm5Gpio();
-	InitEPwm6Gpio();
-	InitEPwm7Gpio();
-	InitEPwm8Gpio();
 
 	/* Initialization of GPIOs */
 
 	EALLOW;
 
-    /*GpioCtrlRegs.GPAMUX1.bit.GPIO0 = 0;
-    GpioDataRegs.GPASET.bit.GPIO0 = 1;   	// Configure GPIO0 as output
-    GpioCtrlRegs.GPADIR.bit.GPIO0 = 1;*/
+	GpioCtrlRegs.GPDMUX2.bit.GPIO126 = 0;
+	GpioDataRegs.GPDCLEAR.bit.GPIO126 = 1;		// GPDI1: DC-Link contactor status
+	GpioCtrlRegs.GPDDIR.bit.GPIO126 = 0;
 
 	GpioCtrlRegs.GPCMUX1.bit.GPIO67 = 0;
-	GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;		// GPDO1: DC-Link contactor
+	GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;		// GPDO1: DC-Link contactor switch
 	GpioCtrlRegs.GPCDIR.bit.GPIO67 = 1;
+
+	GpioCtrlRegs.GPDMUX2.bit.GPIO125 = 0;
+	GpioDataRegs.GPDCLEAR.bit.GPIO125 = 1;		// GPDI4: Load current DCCT status
+	GpioCtrlRegs.GPDDIR.bit.GPIO125 = 0;
 
 	INIT_DEBUG_GPIO1;
 
@@ -269,6 +215,7 @@ static void InitControllers(void)
 	/* Initiaization of DP Framework */
 	InitDP_Framework(&DP_Framework, &(IPC_CtoM_Msg.PSModule.IRef));
 
+
 	/***********************************************/
 	/* INITIALIZATION OF LOAD CURRENT CONTROL LOOP */
 	/***********************************************/
@@ -308,13 +255,13 @@ static void InitControllers(void)
 	 * 	      name: 	ISHARE_ERROR_CALCULATOR
 	 * description: 	Current share error
 	 *    DP class:     ELP_Error
-	 *     	    +:		MtoC.NetSignals[2]
-	 *     	    -:		NetSignals[16]
+	 *     	    +:		MtoC.NetSignals[0]
+	 *     	    -:		MtoC.NetSignals[1]
 	 * 		   out:		NetSignals[10]
 	 */
 
-	//Init_ELP_Error(ISHARE_ERROR_CALCULATOR, &DP_Framework_MtoC.NetSignals[2], &DP_Framework_MtoC.NetSignals[3], &DP_Framework.NetSignals[10]);
-	Init_ELP_Error(ISHARE_ERROR_CALCULATOR, &DP_Framework_MtoC.NetSignals[2], &DP_Framework.NetSignals[16], &DP_Framework.NetSignals[10]);
+	//Init_ELP_Error(ISHARE_ERROR_CALCULATOR, &DP_Framework_MtoC.NetSignals[0], &DP_Framework.NetSignals[16], &DP_Framework.NetSignals[10]);
+	Init_ELP_Error(ISHARE_ERROR_CALCULATOR, &DP_Framework_MtoC.NetSignals[0], &DP_Framework_MtoC.NetSignals[1], &DP_Framework.NetSignals[10]);
 
 	/*
 	 * 	      name: 	PI_DAWU_CONTROLLER_ISHARE
@@ -325,6 +272,7 @@ static void InitControllers(void)
 	 */
 
 	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_ISHARE, KP2, KI2, ISHARE_CONTROL_FREQ, PWM_MAX_SHARE_DUTY, -PWM_MAX_SHARE_DUTY, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
+
 
 	/*****************************************/
 	/* INITIALIZATION OF DC LINK FEEDFORWARD */
@@ -363,6 +311,7 @@ static void InitControllers(void)
 
 	Init_ELP_DCLink_FF(FF_DCLINK_ISHARE, NOM_VDCLINK, MIN_DCLINK, &DP_Framework.NetSignals[13], &DP_Framework.NetSignals[11], &DP_Framework.NetSignals[15]);
 
+
 	/*********************************************/
 	/* INITIALIZATION OF SIGNAL GENERATOR MODULE */
 	/*********************************************/
@@ -374,7 +323,8 @@ static void InitControllers(void)
 	 */
 
 	Disable_ELP_SigGen(&SignalGenerator);
-	Init_ELP_SigGen(&SignalGenerator, Trapezoidal, 30.0, 30.0, 1.0, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Freq, &magnetCycling_Amplitude, &IPC_MtoC_Msg.SigGen.Offset, &magnetCycling_TopTime, DP_Framework.Ref);
+	Init_ELP_SigGen(&SignalGenerator, Sine, 0.0, 0.0, 10, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Freq,
+					&DP_Framework.NetSignals[N_MAX_NET_SIGNALS-2], &DP_Framework.NetSignals[N_MAX_NET_SIGNALS-1], &IPC_MtoC_Msg.SigGen.Aux, DP_Framework.Ref);
 
 	/*
 	 * 	      name: 	SRLIM_SIGGEN_AMP
@@ -395,6 +345,7 @@ static void InitControllers(void)
 	 */
 
 	Init_ELP_SRLim(SRLIM_SIGGEN_OFFSET, MAX_SR_SIGGEN_OFFSET, CONTROL_FREQ, &IPC_MtoC_Msg.SigGen.Offset, &DP_Framework.NetSignals[N_MAX_NET_SIGNALS-1]);
+
 
 	/**********************************/
 	/* INITIALIZATION OF TIME SLICERS */
@@ -418,13 +369,6 @@ static void ResetControllers(void)
 
 	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[0], 0.0);
 	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[1], 0.0);
-	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[2], 0.0);
-	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[3], 0.0);
-	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[4], 0.0);
-	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[5], 0.0);
-	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[6], 0.0);
-	SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[7], 0.0);
-
 
 	Reset_ELP_SRLim(SRLIM_ILOAD_REFERENCE);
 
@@ -455,16 +399,12 @@ static void InitInterruptions(void)
 	EALLOW;
 	PieVectTable.EPWM1_INT =  &isr_ePWM_CTR_ZERO_1st;
 	PieVectTable.EPWM2_INT =  &isr_ePWM_CTR_ZERO;
-	//PieVectTable.EPWM3_INT =  &isr_ePWM_CTR_ZERO;
 	EDIS;
 
 	PieCtrlRegs.PIEIER3.bit.INTx1 = 1;  // ePWM1
 	PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  // ePWM2
-	//PieCtrlRegs.PIEIER3.bit.INTx3 = 1;  // ePWM3
 
 	EnablePWMInterrupt(PWM_Modules.PWM_Regs[0]);
-	//EnablePWMInterrupt(PWM_Modules.PWM_Regs[1]);
-	//EnablePWMInterrupt(PWM_Modules.PWM_Regs[2]);
 
 	IER |= M_INT1;
 	IER |= M_INT3;
@@ -485,7 +425,6 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	static Uint16 i, bypass_SRLim;
 	static float temp0, temp1;
 
-	//StartCpuTimer0();
 	SET_DEBUG_GPIO1;
 
 	temp0 = 0.0;
@@ -509,7 +448,6 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
-
 	temp0 *= HRADC_0_GAIN_ERROR;
 	temp0 += HRADC_0_OFFSET_ERROR;
 
@@ -540,6 +478,22 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 		}
 	}
 
+	if(fabs(DP_Framework_MtoC.NetSignals[0]) > MAX_IMOD)
+	{
+		if(CHECK_INTERLOCK(ARM1_OVERCURRENT))
+		{
+			Set_HardInterlock(ARM1_OVERCURRENT);
+		}
+	}
+
+	if(fabs(DP_Framework_MtoC.NetSignals[1]) > MAX_IMOD)
+	{
+		if(CHECK_INTERLOCK(ARM2_OVERCURRENT))
+		{
+			Set_HardInterlock(ARM2_OVERCURRENT);
+		}
+	}
+
 	Run_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK);
 
 	if(IPC_CtoM_Msg.PSModule.OnOff)
@@ -553,22 +507,29 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 			case WfmRef:
 
-				if(IPC_CtoM_Msg.WfmRef.SyncMode == OneShot)
+				switch(IPC_CtoM_Msg.WfmRef.SyncMode)
 				{
-					RUN_TIMESLICE(0); /************************************************************/
+					case OneShot:
+					{
+						RUN_TIMESLICE(0); /************************************************************/
 
+							if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+							{
+								IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+							}
+
+						END_TIMESLICE(0); /************************************************************/
+						break;
+					}
+
+					case SampleBySample:
+					case SampleBySample_Continuous:
+					{
 						if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
 						{
-							IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+							IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
 						}
-
-					END_TIMESLICE(0); /************************************************************/
-				}
-				else if(IPC_CtoM_Msg.WfmRef.SyncMode == SampleBySample)
-				{
-					if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
-					{
-						IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+						break;
 					}
 				}
 
@@ -603,7 +564,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 			RUN_TIMESLICE(2); /************************************************************/
 
-				DP_Framework.NetSignals[16] = DP_Framework.NetSignals[1] * 0.5;
+				//DP_Framework.NetSignals[16] = DP_Framework.NetSignals[1] * 0.5;
 				Run_ELP_Error(ISHARE_ERROR_CALCULATOR);
 				Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_ISHARE);
 
@@ -611,6 +572,8 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 			Run_ELP_DCLink_FF(FF_DCLINK_ILOAD);
 			Run_ELP_DCLink_FF(FF_DCLINK_ISHARE);
+			DP_Framework.NetSignals[14] = DP_Framework.NetSignals[9];
+			DP_Framework.NetSignals[15] = DP_Framework.NetSignals[11];
 
 			DP_Framework.DutySignals[0] = DP_Framework.NetSignals[14] - DP_Framework.NetSignals[15];
 			DP_Framework.DutySignals[1] = DP_Framework.NetSignals[14] + DP_Framework.NetSignals[15];
@@ -621,23 +584,11 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[0], DP_Framework.DutySignals[0]);
 		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[1], DP_Framework.DutySignals[1]);
-		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[2], DP_Framework.DutySignals[1]);
-		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[3], DP_Framework.DutySignals[1]);
-		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[4], DP_Framework.DutySignals[1]);
-		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[5], DP_Framework.DutySignals[1]);
-		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[6], DP_Framework.DutySignals[1]);
-		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[7], DP_Framework.DutySignals[1]);
-
-		//SetPWMDutyCycle_ChA(PWM_DAC_MODULE, DP_Framework.NetSignals[1]); // delta(Net) = 0.05 mA => delta(DAC_OUT) = 0.05 mV
-		//SetPWMDutyCycle_ChB(PWM_DAC_MODULE, DP_Framework.DutySignals[0]);
 	}
 
 	RUN_TIMESLICE(1); /************************************************************/
 
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);
-		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework_MtoC.NetSignals[2]);
-		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[0]);
-		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[1]);
 
 	END_TIMESLICE(1); /************************************************************/
 
@@ -647,10 +598,6 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	}
 
 	CLEAR_DEBUG_GPIO1;
-
-	//StopCpuTimer0();
-	//valorCounter = ReadCpuTimer0Counter();
-	//ReloadCpuTimer0();
 
 	PieCtrlRegs.PIEACK.all |= M_INT3;
 }
@@ -761,7 +708,6 @@ static void PS_turnOff(void)
 
 	PIN_OPEN_DCLINK_CONTACTOR;
 
-
 	// Start timeout monitor
 	StartCpuTimer1();
 
@@ -781,8 +727,6 @@ static void PS_turnOff(void)
 
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 	IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
-
-	DELAY_US(20000);
 
 	ResetPeripheralsDrivers();
 	ResetControllers();

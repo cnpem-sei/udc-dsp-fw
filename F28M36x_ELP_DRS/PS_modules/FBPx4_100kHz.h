@@ -2,8 +2,8 @@
 #define FBPX4_100KHZ_H
 
 
-#define FBPx4_TESTS		0
-#define FBPx4_WFMREF	1
+#define INDEPENDENT_SETPOINT_TEST		1
+#define CROSSTALK_TEST					0
 
 /*
  * Especificações da fonte

@@ -376,9 +376,10 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	HRADCs_Info.HRADC_boards[0]->SamplesBuffer = buffers_HRADC.buffer_0;
 
 	temp0 *= AverageFilter;
-
 	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
+	temp0 *= HRADC_0_GAIN_ERROR;
+	temp0 += HRADC_0_OFFSET_ERROR;
 
 	DP_Framework.NetSignals[1] = temp0;
 

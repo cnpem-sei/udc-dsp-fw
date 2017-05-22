@@ -77,12 +77,12 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 	EALLOW;
 
 	/*
-    *  Set WfmRef synchronization via EPWMSYNCI pin (defined by UDC version)
+    *  Set WfmRef synchronization via INT_GENERAL or EPWMSYNCI pin (defined by UDC version)
     *
     *  	Qualification is asynchronous
-    *  	Define GPIO32/38 as interrupt source XINT2
+    *  	Define GPIO32/38/55 as interrupt source XINT2
     *  	Enable XINT2
-    *  	EPWMSYNCI negative-edge triggering
+    *  	Negative-edge triggering
     */
 
 	if(UDC_V2_0)
@@ -102,11 +102,15 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 
 	else if(UDC_V2_1)
 	{
-	    GpioCtrlRegs.GPBMUX1.bit.GPIO38 = 0;
+		GpioCtrlRegs.GPBMUX2.bit.GPIO55 = 0;	// GPIO55: INT_GENERAL/SYNC_IN
+		GpioCtrlRegs.GPBDIR.bit.GPIO55 = 0;
+		GpioCtrlRegs.GPBQSEL2.bit.GPIO55 = 1;
+
+	    GpioCtrlRegs.GPBMUX1.bit.GPIO38 = 0;    // GPIO38: EPWMSYNCI
 	    GpioCtrlRegs.GPBDIR.bit.GPIO38 = 0;
 	    GpioCtrlRegs.GPBQSEL1.bit.GPIO38 = 1;
 
-	    GpioTripRegs.GPTRIP5SEL.bit.GPTRIP5SEL = 38;
+	    GpioTripRegs.GPTRIP5SEL.bit.GPTRIP5SEL = 55;//38;
 		XIntruptRegs.XINT2CR.bit.ENABLE = 1;
 		XIntruptRegs.XINT2CR.bit.POLARITY = 0;
 
