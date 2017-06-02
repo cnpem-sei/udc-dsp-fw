@@ -430,7 +430,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	static float temp0, temp1, temp2, temp3;
 
 	//StartCpuTimer0();
-	//SET_DEBUG_GPIO1;
+	SET_DEBUG_GPIO1;
 
 	//PIN_CLOSE_PS4_DCLINK_RELAY;
 
@@ -642,7 +642,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	valorCounter = ReadCpuTimer0Counter();
 	ReloadCpuTimer0();*/
 
-	//CLEAR_DEBUG_GPIO1;
+	CLEAR_DEBUG_GPIO1;
 
 	for(i = 0; i < PWM_Modules.N_modules; i++)
 	{

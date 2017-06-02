@@ -649,8 +649,8 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[9]);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[14]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[11]);
+		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[14]);
 
 	END_TIMESLICE(1); /************************************************************/
 

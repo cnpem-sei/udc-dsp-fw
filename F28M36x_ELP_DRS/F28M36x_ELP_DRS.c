@@ -35,20 +35,19 @@ Uint16 IndexBuffer(tBuffer *ptrBuff)
 	return idx;
 }
 
-Uint16 WriteBuffer(tBuffer *ptrBuff, float data)
+void WriteBuffer(tBuffer *ptrBuff, float data)
 {
-	if(ptrBuff->BufferBusy)
+	if(ptrBuff->PtrBufferK == ptrBuff->PtrBufferEnd)
 	{
-		*(ptrBuff->PtrBufferK) = data;
-		if(ptrBuff->PtrBufferK++ >= ptrBuff->PtrBufferEnd)
+		if(ptrBuff->BufferBusy)
 		{
+			*(ptrBuff->PtrBufferK) = data;
 			ptrBuff->PtrBufferK = ptrBuff->PtrBufferStart;
-			return 1;
 		}
-		else
-		{
-			return 0;
-		}
+	}
+	else
+	{
+		*(ptrBuff->PtrBufferK++) = data;
 	}
 }
 

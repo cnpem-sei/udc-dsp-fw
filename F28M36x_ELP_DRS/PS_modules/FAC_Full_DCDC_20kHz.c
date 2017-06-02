@@ -493,17 +493,6 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	Run_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD1);
 	Run_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD2);
 
-	if(fabs(temp1) > MAX_DCLINK || fabs(temp2) > MAX_DCLINK)
-	{
-		if(CHECK_INTERLOCK(IN_OVERVOLTAGE))
-		{
-			Set_HardInterlock(IN_OVERVOLTAGE);
-		}
-	}
-
-	Run_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD1);
-	Run_ELP_IIR_2P2Z(IIR_2P2Z_LPF_VDCLINK_MOD2);
-
 	if(IPC_CtoM_Msg.PSModule.OnOff)
 	{
 		switch(IPC_CtoM_Msg.PSModule.OpMode)
@@ -596,7 +585,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);		// iLoad error signal
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);		// iLoad signal
 		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework_MtoC.NetSignals[0]-DP_Framework_MtoC.NetSignals[1]);	// iMod's difference
 		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework_MtoC.NetSignals[1]);	// iMod1 signal
 
