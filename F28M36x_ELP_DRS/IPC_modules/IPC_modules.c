@@ -31,7 +31,7 @@
 //#pragma CODE_SECTION(isr_IPC_Channel_4, "ramfuncs");
 #pragma CODE_SECTION(ConfigPSOpMode, "ramfuncs");
 
-void InitIPC(void (*ps_turnOn)(void),void (*ps_turnOff)(void), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void));
+void InitIPC(void (*ps_turnOn)(Uint16), void (*ps_turnOff)(Uint16), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void));
 void SendIpcFlag(Uint32 flag);
 
 interrupt void isr_IPC_Channel_1(void);
@@ -52,11 +52,11 @@ tIPC_MTOC_PARAM_RAM		IPC_MtoC_Param;
 tIPC_PS_FUNCS			IPC_PS_funcs;
 
 
-void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void))
+void InitIPC(void (*ps_turnOn)(Uint16), void (*ps_turnOff)(Uint16), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void))
 {
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 	IPC_CtoM_Msg.PSModule.OpMode = SlowRef;
-	IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
+	IPC_CtoM_Msg.PSModule.OpenLoop = 0x000F;
 	IPC_CtoM_Msg.PSModule.SoftInterlocks = 0x00000000;
 	IPC_CtoM_Msg.PSModule.HardInterlocks = 0x00000000;
 	IPC_CtoM_Msg.PSModule.BufferOnOff = 0;
@@ -162,22 +162,13 @@ interrupt void isr_IPC_Channel_1(void)
 
 	switch(aux)
 	{
-		case IPC_PS_ON_OFF: //IPC1 +IPC5
+		case TURN_ON: //IPC1 +IPC5
 		{
-			CtoMIpcRegs.MTOCIPCACK.all = IPC_PS_ON_OFF;
+			CtoMIpcRegs.MTOCIPCACK.all = TURN_ON;
 
-			if(IPC_MtoC_Msg.PSModule.OnOff)
-			{
-				Disable_ELP_SigGen(&SignalGenerator);
-				IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
-				IPC_PS_funcs.PS_turnOn();
-			}
-			else
-			{
-				IPC_PS_funcs.PS_turnOff();
-				Disable_ELP_SigGen(&SignalGenerator);
-				IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
-			}
+			Disable_ELP_SigGen(&SignalGenerator);
+			IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
+			IPC_PS_funcs.PS_turnOn(IPC_MtoC_Msg.PSModule.OnOff);
 
 			PieCtrlRegs.PIEACK.all |= M_INT11;
 			break;
@@ -275,6 +266,8 @@ interrupt void isr_IPC_Channel_1(void)
 			CtoMIpcRegs.MTOCIPCACK.all = RESET_INTERLOCKS;
 			IPC_CtoM_Msg.PSModule.SoftInterlocks = 0;
 			IPC_CtoM_Msg.PSModule.HardInterlocks = 0;
+			IPC_CtoM_Msg.PSModule.BufferOnOff = Buffer_All;
+			IPC_CtoM_Msg.SamplesBuffer.BufferBusy = Buffer_All;
 			PieCtrlRegs.PIEACK.all |= M_INT11;
 			break;
 		}
@@ -283,6 +276,18 @@ interrupt void isr_IPC_Channel_1(void)
 		{
 			CtoMIpcRegs.MTOCIPCACK.all = RESET_WFMREF;
 			IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
+		case TURN_OFF: //IPC1 +IPC15
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = TURN_OFF;
+
+			IPC_PS_funcs.PS_turnOff(IPC_MtoC_Msg.PSModule.OnOff);
+			Disable_ELP_SigGen(&SignalGenerator);
+			IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
+
 			PieCtrlRegs.PIEACK.all |= M_INT11;
 			break;
 		}

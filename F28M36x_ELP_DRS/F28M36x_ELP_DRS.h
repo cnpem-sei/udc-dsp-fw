@@ -102,7 +102,7 @@ extern void InitBuffer(tBuffer *ptrBuff, volatile float *ptrStart, Uint16 size);
 extern void ResetBuffer(tBuffer *ptrBuff);
 extern Uint16 SizeBuffer(tBuffer *ptrBuff);
 extern Uint16 IndexBuffer(tBuffer *ptrBuff);
-extern void WriteBuffer(tBuffer *ptrBuff, float data);
+extern Uint16 WriteBuffer(tBuffer *ptrBuff, float data);
 extern Uint16 Test_SamplesLimit(tBuffer *ptrBuff, float value, float tol);
 
 #endif

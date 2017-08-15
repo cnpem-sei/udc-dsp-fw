@@ -10,7 +10,7 @@
 #define DECIMATION_FACTOR			1
 #define HRADC_SPI_CLK				SPI_15MHz
 #define TRANSFER_BUFFER_SIZE		DECIMATION_FACTOR
-#define	N_HRADC_BOARDS				1
+#define	N_HRADC_BOARDS				4
 
 #define TRANSDUCER_0_INPUT_RATED	10.0				//
 #define TRANSDUCER_0_OUTPUT_RATED	10.0				//   In_rated 	= +/- 10 V

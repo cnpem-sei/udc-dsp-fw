@@ -264,7 +264,19 @@ static void InitControllers(void)
 	 * 		   out:		NetSignals[11]
 	 */
 
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK, KP, KI, V_CONTROL_FREQ, MAX_IIN_REF, -MAX_IIN_REF, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
+	//Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK, KP, KI, V_CONTROL_FREQ, MAX_IIN_REF, -MAX_IIN_REF, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK, KP, KI, V_CONTROL_FREQ, MAX_IIN_REF, MIN_IIN_REF, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
+
+	/*
+	 * 	      name: 	IIR_2P2Z_CONTROLLER_VCAPBANK
+	 * description: 	Cap bank voltage IIR 2P2Z controller
+	 *    DP class:     ELP_IIR_2P2Z
+	 *     	    in:		NetSignals[10]
+	 * 		   out:		NetSignals[11]
+	 */
+
+	Init_ELP_IIR_2P2Z(IIR_2P2Z_CONTROLLER_VCAPBANK, 0.107277884239820e-5, 0.214555768479641e-5, 0.107277884239820e-5,
+					  -1.999804706571624, 0.999804706571624, MAX_IIN_REF, MIN_IIN_REF, &DP_Framework.NetSignals[10], &DP_Framework.NetSignals[11]);
 
 	/*
 	 * 	      name: 	NF_V_CAPBANK_2HZ
@@ -312,18 +324,19 @@ static void InitControllers(void)
 	 *     	    in:		NetSignals[12]
 	 * 		   out:		DutySignals[0]
 	 */
-	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN, KP2, KI2, CONTROL_FREQ, PWM_MAX_DUTY, -PWM_MAX_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[0]);
+	//Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN, KP2, KI2, CONTROL_FREQ, PWM_MAX_DUTY, -PWM_MAX_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[0]);
+	Init_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN, KP2, KI2, CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[0]);
 
 	/*
-	 * 	      name: 	IIR_3P3Z_CONTROLLER_IIN
-	 * description: 	Input inductor current IIR 3P3Z controller
-	 *    DP class:     ELP_IIR_3P3Z
+	 * 	      name: 	IIR_2P2Z_CONTROLLER_IIN
+	 * description: 	Input inductor current IIR 2P2Z controller
+	 *    DP class:     ELP_IIR_2P2Z
 	 *     	    in:		NetSignals[12]
 	 * 		   out:		DutySignals[0]
 	 */
 
-	Init_ELP_IIR_3P3Z(IIR_3P3Z_CONTROLLER_IIN, 4.018979021166166e-04, -3.464285079728809e-04, -4.002609202934738e-04, 3.480654897960237e-04, -2.459643017305727e+00,
-					  1.983576904041343e+00, -5.239338867356150e-01, PWM_MAX_DUTY, -PWM_MAX_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[0]);
+	Init_ELP_IIR_2P2Z(IIR_2P2Z_CONTROLLER_IIN, 0.049231877100336, -0.049087854056649, 0.0,
+					  -0.966394623139702, 0.0, PWM_MAX_DUTY, PWM_MIN_DUTY, &DP_Framework.NetSignals[12], &DP_Framework.DutySignals[0]);
 
 	/*********************************************/
 	/* INITIALIZATION OF SIGNAL GENERATOR MODULE */
@@ -385,10 +398,11 @@ static void ResetControllers(void)
 	Reset_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK);
 	Reset_ELP_IIR_2P2Z(NF_V_CAPBANK_2HZ);
 	Reset_ELP_IIR_2P2Z(NF_V_CAPBANK_4HZ);
+	Reset_ELP_IIR_2P2Z(IIR_2P2Z_CONTROLLER_VCAPBANK);
 
 	Reset_ELP_Error(I_ERROR_CALCULATOR);
 	Reset_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN);
-	Reset_ELP_IIR_3P3Z(IIR_3P3Z_CONTROLLER_IIN);
+	Reset_ELP_IIR_2P2Z(IIR_2P2Z_CONTROLLER_IIN);
 
 	Reset_ELP_SRLim(SRLIM_SIGGEN_AMP);
 	Reset_ELP_SRLim(SRLIM_SIGGEN_OFFSET);
@@ -534,7 +548,8 @@ static __interrupt void isr_ePWM_CTR_ZERO(void)
 				SATURATE(DP_Framework.NetSignals[0], MAX_REF, MIN_REF);
 				Run_ELP_Error(V_ERROR_CALCULATOR);
 				Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_VCAPBANK);
-				SATURATE(DP_Framework.NetSignals[4], MAX_IIN_REF, MIN_IIN_REF);
+				//Run_ELP_IIR_2P2Z(IIR_2P2Z_CONTROLLER_VCAPBANK);
+				SATURATE(DP_Framework.NetSignals[11], MAX_IIN_REF, MIN_IIN_REF);
 			}
 		}
 
@@ -546,7 +561,7 @@ static __interrupt void isr_ePWM_CTR_ZERO(void)
 		{
 			Run_ELP_Error(I_ERROR_CALCULATOR);
 			Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_IIN);
-			//Run_ELP_IIR_3P3Z(IIR_3P3Z_CONTROLLER_IIN);
+			//Run_ELP_IIR_2P2Z(IIR_2P2Z_CONTROLLER_IIN);
 			SATURATE(DP_Framework.DutySignals[0], PWM_MAX_DUTY, PWM_MIN_DUTY);
 		}
 

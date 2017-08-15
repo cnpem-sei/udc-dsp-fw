@@ -8,8 +8,8 @@
 #define FONTE_MODO		OnePS4Q				// Topologia da fonte a ser controlada
 #define	n_PS			1
 
-#define PWM_FREQ	   			10240		// Frequencia do sinal PWM gerado [Hz]
-#define PWM_DEAD_TIME			4000		// Dead-time dos sinais PWM [ns]
+#define PWM_FREQ	   			10240//6144		// Frequencia do sinal PWM gerado [Hz]
+#define PWM_DEAD_TIME			2000		// Dead-time dos sinais PWM [ns]
 #define PWM_MAX_DUTY    		0.9         // Maximo ciclo de trabalho para o PWM (em p.u.)
 #define PWM_MIN_DUTY    		-0.9		// Minimo ciclo de trabalho para o PWM (em p.u.)
 #define PWM_MAX_DUTY_OL			0.45			// Maximo ciclo de trabalho para o PWM em malha aberta (em p.u.)
@@ -31,7 +31,7 @@
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
-#define DECIMATION_FACTOR		6
+#define DECIMATION_FACTOR		10
 #define TRANSFER_BUFFER_SIZE	DECIMATION_FACTOR
 #define HRADC_FREQ_SAMP			(float) CONTROL_FREQ*DECIMATION_FACTOR
 #define HRADC_SPI_CLK			SPI_15MHz

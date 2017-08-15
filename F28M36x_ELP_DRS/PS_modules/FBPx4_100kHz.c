@@ -97,7 +97,7 @@ static void InitPeripheralsDrivers(void)
 
 	stop_DMA();
 
-	Init_DMA_McBSP_nBuffers(4, DECIMATION_FACTOR, HRADC_SPI_CLK);
+	Init_DMA_McBSP_nBuffers(n_PS, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
     Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
@@ -105,18 +105,18 @@ static void InitPeripheralsDrivers(void)
 
     HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
 	HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
-	HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
-	HRADCs_Info.HRADC_boards[3] = &HRADC3_board;
+	//HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
+	//HRADCs_Info.HRADC_boards[3] = &HRADC3_board;
 
 	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
 	Init_HRADC_Info(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
+	//Init_HRADC_Info(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
+	//Init_HRADC_Info(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
 
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-	Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-	Config_HRADC_board(HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+	//Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+	//Config_HRADC_board(HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
 
@@ -160,10 +160,10 @@ static void InitPeripheralsDrivers(void)
     InitPWMModule(PWM_Modules.PWM_Regs[6], PWM_FREQ, 0, SlavePWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
     InitPWMModule(PWM_Modules.PWM_Regs[7], PWM_FREQ, 7, SlavePWM, 180, COMPLEMENTARY, PWM_DEAD_TIME);
 
-    InitEPwm1Gpio();
-    InitEPwm2Gpio();
-    InitEPwm3Gpio();
-    InitEPwm4Gpio();
+    //InitEPwm1Gpio();
+    //InitEPwm2Gpio();
+    //InitEPwm3Gpio();
+    //InitEPwm4Gpio();
     InitEPwm5Gpio();
     InitEPwm6Gpio();
     InitEPwm7Gpio();
@@ -434,7 +434,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	//PIN_CLOSE_PS4_DCLINK_RELAY;
 
-	/*temp0 = 0.0;
+	temp0 = 0.0;
 	temp1 = 0.0;
 	temp2 = 0.0;
 	temp3 = 0.0;
@@ -452,10 +452,10 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	HRADCs_Info.HRADC_boards[2]->SamplesBuffer = buffers_HRADC.buffer_2;
 	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;
 
-	/*temp0 *= AverageFilter;
+	temp0 *= AverageFilter;
 	temp1 *= AverageFilter;
 	temp2 *= AverageFilter;
-	temp3 *= AverageFilter;*/
+	temp3 *= AverageFilter;
 
 	if((IPC_CtoM_Msg.PSModule.OpMode == WfmRef) && ((IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK == IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferStart) || wfmSyncFlag == 1))
 	{
@@ -485,7 +485,8 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	DP_Framework.NetSignals[9] = temp2;
 	DP_Framework.NetSignals[11] = temp3;
 
-	if((fabs(temp0) > MAX_LOAD) || (fabs(temp1) > MAX_LOAD) || (fabs(temp2) > MAX_LOAD) || (fabs(temp3) > MAX_LOAD))
+	//if((fabs(temp0) > MAX_LOAD) || (fabs(temp1) > MAX_LOAD) || (fabs(temp2) > MAX_LOAD) || (fabs(temp3) > MAX_LOAD))
+	if((fabs(temp0) > MAX_LOAD) || (fabs(temp1) > MAX_LOAD))
 	{
 		if(CHECK_INTERLOCK(LOAD_OVERCURRENT))
 		{
@@ -623,8 +624,8 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 			SATURATE(DP_Framework.DutySignals[3], PWM_MAX_DUTY, PWM_MIN_DUTY);
 		}
 
-		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[0],DP_Framework.DutySignals[3]);
-		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[2],DP_Framework.DutySignals[2]);
+		//SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[0],DP_Framework.DutySignals[3]);
+		//SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[2],DP_Framework.DutySignals[2]);
 		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[4],DP_Framework.DutySignals[1]);
 		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[6],DP_Framework.DutySignals[0]);
 	}
@@ -633,8 +634,8 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[5]);
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[7]);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[9]);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[11]);
+		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[9]);
+		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[11]);
 
 	END_TIMESLICE(1); /************************************************************/
 
@@ -726,8 +727,8 @@ static void PS_turnOn(void)
 
 		PIN_CLOSE_PS1_DCLINK_RELAY;
 		PIN_CLOSE_PS2_DCLINK_RELAY;
-		PIN_CLOSE_PS3_DCLINK_RELAY;
-		PIN_CLOSE_PS4_DCLINK_RELAY;
+		//PIN_CLOSE_PS3_DCLINK_RELAY;
+		//PIN_CLOSE_PS4_DCLINK_RELAY;
 
 		DELAY_US(500000);			// Wait 0.5 s
 
@@ -741,8 +742,8 @@ static void PS_turnOff(void)
 
 	PIN_OPEN_PS1_DCLINK_RELAY;
 	PIN_OPEN_PS2_DCLINK_RELAY;
-	PIN_OPEN_PS3_DCLINK_RELAY;
-	PIN_OPEN_PS4_DCLINK_RELAY;
+	//PIN_OPEN_PS3_DCLINK_RELAY;
+	//PIN_OPEN_PS4_DCLINK_RELAY;
 
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 	IPC_CtoM_Msg.PSModule.OpenLoop = 1;
