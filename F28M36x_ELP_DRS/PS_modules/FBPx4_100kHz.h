@@ -2,7 +2,7 @@
 #define FBPX4_100KHZ_H
 
 
-#define INDEPENDENT_SETPOINT_TEST		1
+#define INDEPENDENT_SETPOINT_TEST		0
 #define CROSSTALK_TEST					0
 
 /*
@@ -10,7 +10,7 @@
  */
 
 #define FONTE_MODO		OnePS4Q				// Topologia da fonte a ser controlada
-#define	n_PS			1
+#define	n_PS			2
 
 #define PWM_FREQ	   			50000.0		// Frequencia do sinal PWM gerado [Hz]
 #define PWM_DEAD_TIME			300			// Dead-time dos sinais PWM [ns]
@@ -27,8 +27,8 @@
 #define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate máximo do offset do gerador senoidal (A/s)
 #define MAX_SR_SIGGEN_AMP		100.0		// Slew-rate máximo da amplitude do gerador senoidal (A/s)
 
-#define KP						1.9			//2.8
-#define KI						559.0		//470.0
+#define KP						5.7			//1.9			//2.8
+#define KI						117.0		// 559.0		//470.0
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)

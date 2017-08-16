@@ -239,6 +239,7 @@ static void InitPeripheralsDrivers(void)
 
 static void ResetPeripheralsDrivers(void)
 {
+	SET_DEBUG_GPIO1;
 	DisablePWM_TBCLK();
 	stop_DMA();
 
@@ -258,6 +259,7 @@ static void ResetPeripheralsDrivers(void)
 	DELAY_US(5);
 	start_DMA();
 	EnablePWM_TBCLK();
+	CLEAR_DEBUG_GPIO1;
 }
 
 static void InitControllers(void)
@@ -634,10 +636,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	RUN_TIMESLICE(1); /************************************************************/
 
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[1]);
-		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework_MtoC.NetSignals[2]);
-		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[0]);
-		//WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.DutySignals[1]);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[12]);				// Vdc-link
 
 	END_TIMESLICE(1); /************************************************************/
 
@@ -689,6 +688,8 @@ static void Set_HardInterlock(Uint32 itlk)
 	PS_turnOff();
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= itlk;
 	SendIpcFlag(HARD_INTERLOCK_CTOM);
+	IPC_CtoM_Msg.PSModule.BufferOnOff = Buffer_Idle;
+	IPC_CtoM_Msg.SamplesBuffer.BufferBusy = Buffer_Idle;
 }
 
 static interrupt void isr_SoftInterlock(void)

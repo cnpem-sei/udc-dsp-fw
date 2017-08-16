@@ -23,22 +23,22 @@
  * Controller specs
  */
 
-#define MAX_REF				450.0 // 90.0		// Valor máximo da referência de tensão no banco de capacitores [V]
+#define MAX_REF				280.0 // 90.0		// Valor máximo da referência de tensão no banco de capacitores [V]
 #define MIN_REF				0.0			// Valor máximo da referência de tensão no banco de capacitores [V]
-#define MAX_LOAD			500.0 // 101.0		// Limite de tensão no banco de capacitores para interlock [V]
+#define MAX_LOAD			305.0 // 101.0		// Limite de tensão no banco de capacitores para interlock [V]
 #define MAX_IIN_REF			150.0	//170.0		// Limite da referência de corrente máxima na entrada do regulador da tensão no banco de capacitores [A]
 #define MIN_IIN_REF			0.0			// Limite da referência de corrente mínima na entrada do regulador da tensão no banco de capacitores [A]
 #define MAX_IIN				180.0		// Limite de corrente máxima na entrada para interlock [A]
 
-#define MAX_REF_SLEWRATE		50.0	//9.0		// Slew-rate máximo [V/s]
-#define MAX_SR_SIGGEN_OFFSET	50.0	//9.0		// Slew-rate máximo do offset do gerador senoidal [V/s]
-#define MAX_SR_SIGGEN_AMP		50.0	//9.0		// Slew-rate máximo da amplitude do gerador senoidal [V/s]
+#define MAX_REF_SLEWRATE		30.0	//9.0		// Slew-rate máximo [V/s]
+#define MAX_SR_SIGGEN_OFFSET	30.0	//9.0		// Slew-rate máximo do offset do gerador senoidal [V/s]
+#define MAX_SR_SIGGEN_AMP		30.0	//9.0		// Slew-rate máximo da amplitude do gerador senoidal [V/s]
 
-#define KP						5.0264
-#define KI						3.154
+#define KP						1.908168	//5.0264 - FAC ACDC v2.0 vCap
+#define KI						0.717564	//3.154 - FAC ACDC v2.0 vCap
 
-#define KP2						0.002
-#define KI2						1.5
+#define KP2						0.00086877	//0.002 - FAC ACDC v2.0 iIn
+#define KI2						0.0847056	//1.5 - FAC ACDC v2.0 iIn
 
 #define CONTROL_FREQ			PWM_FREQ
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
@@ -86,10 +86,11 @@
 #define	PI_DAWU_CONTROLLER_VCAPBANK	&DP_Framework.DPlibrary.ELP_PI_dawu[0]
 #define	NF_V_CAPBANK_2HZ			&DP_Framework.DPlibrary.ELP_IIR_2P2Z[0]
 #define	NF_V_CAPBANK_4HZ			&DP_Framework.DPlibrary.ELP_IIR_2P2Z[1]
+#define	IIR_2P2Z_CONTROLLER_VCAPBANK &DP_Framework.DPlibrary.ELP_IIR_2P2Z[2]
 
 #define I_ERROR_CALCULATOR			&DP_Framework.DPlibrary.ELP_Error[1]
 #define	PI_DAWU_CONTROLLER_IIN		&DP_Framework.DPlibrary.ELP_PI_dawu[1]
-#define	IIR_3P3Z_CONTROLLER_IIN		&DP_Framework.DPlibrary.ELP_IIR_3P3Z[0]
+#define	IIR_2P2Z_CONTROLLER_IIN		&DP_Framework.DPlibrary.ELP_IIR_2P2Z[3]
 
 #define SRLIM_SIGGEN_AMP	 		&DP_Framework.DPlibrary.ELP_SRLim[1]
 #define SRLIM_SIGGEN_OFFSET 		&DP_Framework.DPlibrary.ELP_SRLim[2]

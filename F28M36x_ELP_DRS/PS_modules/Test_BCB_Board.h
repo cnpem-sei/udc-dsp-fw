@@ -5,8 +5,8 @@
  * Test specifications
  */
 
-#define PWM_FREQ					100000				// PWM Master frequency [Hz]
-#define HRADC_FREQ_SAMP	   			100000				// Sampling frequency [Hz]
+#define PWM_FREQ					20000				// PWM Master frequency [Hz]
+#define HRADC_FREQ_SAMP	   			20000				// Sampling frequency [Hz]
 #define DECIMATION_FACTOR			1
 #define HRADC_SPI_CLK				SPI_15MHz
 #define TRANSFER_BUFFER_SIZE		DECIMATION_FACTOR
@@ -49,10 +49,10 @@
 #define HRADC_3_OFFSET_ERROR		0.0
 
 // Define the CPU frequency in MHz
-// Define the SCI frequency
+// Define the SCI frequency in bps
 // Low-speed clock, LSPCLK, is set to CPU_FREQ/4
 // Calculate BRR: 16-bit baud rate register value
-#define SCI_FREQ     625000
+#define SCI_FREQ     6000000
 #define LSPCLK_FREQ  C28_FREQ_MHZ*1e6/(LSPCLK_DV+1)
 #define SCI_PRD     (LSPCLK_FREQ/(SCI_FREQ*8))-1
 

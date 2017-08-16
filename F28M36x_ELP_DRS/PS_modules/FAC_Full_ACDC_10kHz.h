@@ -55,9 +55,15 @@
 #define HRADC_0_R_BURDEN				20.0				// Resistor Burden = 20 R
 
 #define TRANSDUCER_1_INPUT_RATED		200.0				// LEM LF 210-S
-#define TRANSDUCER_1_OUTPUT_RATED		-0.1				//   In_rated 	= +/- 200 A
+#define TRANSDUCER_1_OUTPUT_RATED		0.1				//   In_rated 	= +/- 200 A
 #define TRANSDUCER_1_OUTPUT_TYPE		Iin_bipolar			//   Out_rated 	= +/- 100 mA
-#define TRANSDUCER_1_GAIN				(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
+#if (HRADC_v2_0)
+	#define TRANSDUCER_1_GAIN				-(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
+#endif
+
+#if (HRADC_v2_1)
+	#define TRANSDUCER_1_GAIN				(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
+#endif
 #define HRADC_1_R_BURDEN				5.0				// Resistor Burden = 5 R
 
 #define TRANSDUCER_2_INPUT_RATED		110.0				// Divisor de Tensão + Isolador Verivolt IsoBlock V-4:
@@ -67,9 +73,15 @@
 #define HRADC_2_R_BURDEN				20.0				// Resistor Burden = 20 R
 
 #define TRANSDUCER_3_INPUT_RATED		200.0				// LEM LF 210-S
-#define TRANSDUCER_3_OUTPUT_RATED		-0.1				//   In_rated 	= +/- 200 A
+#define TRANSDUCER_3_OUTPUT_RATED		0.1				//   In_rated 	= +/- 200 A
 #define TRANSDUCER_3_OUTPUT_TYPE		Iin_bipolar			//   Out_rated 	= +/- 100 mA
-#define TRANSDUCER_3_GAIN				(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
+#if (HRADC_v2_0)
+	#define TRANSDUCER_3_GAIN				-(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
+#endif
+
+#if (HRADC_v2_1)
+	#define TRANSDUCER_3_GAIN				(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
+#endif
 #define HRADC_3_R_BURDEN				10.0				// Resistor Burden = 10 R
 
 /*

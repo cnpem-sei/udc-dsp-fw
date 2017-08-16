@@ -151,7 +151,7 @@ static void InitPeripheralsDrivers(void)
 	InitPWM_MEP_SFO();
 
 	InitPWMModule(PWM_Modules.PWM_Regs[0], PWM_FREQ, 0, MasterPWM, 0, NO_COMPLEMENTARY, PWM_DEAD_TIME);
-	InitPWMModule(PWM_Modules.PWM_Regs[1], PWM_FREQ, 0, SlavePWM, 0, NO_COMPLEMENTARY, PWM_DEAD_TIME);
+	InitPWMModule(PWM_Modules.PWM_Regs[1], PWM_FREQ, 0, SlavePWM, 180, NO_COMPLEMENTARY, PWM_DEAD_TIME);
 
 	InitEPwm1Gpio();
 	InitEPwm2Gpio();
@@ -398,11 +398,11 @@ static void InitInterruptions(void)
 {
 	EALLOW;
 	PieVectTable.EPWM1_INT =  &isr_ePWM_CTR_ZERO_1st;
-	//PieVectTable.EPWM2_INT =  &isr_ePWM_CTR_ZERO;
+	PieVectTable.EPWM2_INT =  &isr_ePWM_CTR_ZERO;
 	EDIS;
 
 	PieCtrlRegs.PIEIER3.bit.INTx1 = 1;  // ePWM1
-	//PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  // ePWM2
+	PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  // ePWM2
 
 	EnablePWMInterrupt(PWM_Modules.PWM_Regs[0]);
 
@@ -619,7 +619,7 @@ static interrupt void isr_ePWM_CTR_ZERO_1st(void)
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
 
-	//EnablePWMInterrupt(PWM_Modules.PWM_Regs[1]);
+	EnablePWMInterrupt(PWM_Modules.PWM_Regs[1]);
 
     // Acknowledge this interrupt to receive more interrupts from group 3
     PieCtrlRegs.PIEACK.all |= M_INT3;

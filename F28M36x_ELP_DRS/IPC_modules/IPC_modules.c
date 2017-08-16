@@ -275,6 +275,8 @@ interrupt void isr_IPC_Channel_1(void)
 			CtoMIpcRegs.MTOCIPCACK.all = RESET_INTERLOCKS;
 			IPC_CtoM_Msg.PSModule.SoftInterlocks = 0;
 			IPC_CtoM_Msg.PSModule.HardInterlocks = 0;
+			IPC_CtoM_Msg.PSModule.BufferOnOff = Buffer_All;
+			IPC_CtoM_Msg.SamplesBuffer.BufferBusy = Buffer_All;
 			PieCtrlRegs.PIEACK.all |= M_INT11;
 			break;
 		}

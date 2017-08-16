@@ -44,6 +44,7 @@ void main_Test_BCB_Board(void);
 
 static void PS_turnOn(void);
 static void PS_turnOff(void);
+static void scia_fifo_init(void);
 
 static void Set_SoftInterlock(Uint32 itlk);
 static void Set_HardInterlock(Uint32 itlk);
@@ -78,13 +79,13 @@ void main_Test_BCB_Board(void)
 	start_DMA();
 	EnablePWM_TBCLK();
 
-	EnablePWMOutputs();
+	//EnablePWMOutputs();
 
 	for(i = 0; i < PWM_Modules.N_modules; i++)
 	{
-		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[i], 0.9);
+		SetPWMDutyCycle_ChA(PWM_Modules.PWM_Regs[i], 1.0);
 		//DELAY_US(500000);
-		SetPWMDutyCycle_ChB(PWM_Modules.PWM_Regs[i], 0.9);
+		SetPWMDutyCycle_ChB(PWM_Modules.PWM_Regs[i], 1.0);
 		//DELAY_US(500000);
 	}
 
@@ -411,14 +412,16 @@ static interrupt void isr_HardInterlock(void)
 static void PS_turnOn(void)
 {
 	EnablePWMOutputs();
+	IPC_CtoM_Msg.PSModule.OnOff = 1;
 }
 
 static void PS_turnOff(void)
 {
 	DisablePWMOutputs();
+	IPC_CtoM_Msg.PSModule.OnOff = 0;
 }
 
-void scia_fifo_init()
+static void scia_fifo_init(void)
 {
 	EALLOW;
 
@@ -455,7 +458,7 @@ void scia_fifo_init()
     SciaRegs.SCICTL2.bit.TXINTENA = 0;
     SciaRegs.SCICTL2.bit.RXBKINTENA = 1;
     SciaRegs.SCIHBAUD = 0x0000;
-    SciaRegs.SCILBAUD = SCI_PRD;
+    SciaRegs.SCILBAUD = 0x0003;//SCI_PRD;
 
     // Transmit FIFO reset
     // 2 level transmit FIFO
