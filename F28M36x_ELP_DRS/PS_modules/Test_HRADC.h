@@ -10,7 +10,7 @@
 #define DECIMATION_FACTOR			1
 #define HRADC_SPI_CLK				SPI_15MHz
 #define TRANSFER_BUFFER_SIZE		DECIMATION_FACTOR
-#define	N_HRADC_BOARDS				4
+#define	N_HRADC_BOARDS				3
 
 #define TRANSDUCER_0_INPUT_RATED	10.0				//
 #define TRANSDUCER_0_OUTPUT_RATED	10.0				//   In_rated 	= +/- 10 V
@@ -47,6 +47,10 @@
 #define HRADC_3_R_BURDEN			20.0				// Resistor Burden = 20 R
 #define HRADC_3_GAIN_ERROR			1.0
 #define HRADC_3_OFFSET_ERROR		0.0
+
+
+#define UFM_BUFFER_SIZE 32
+
 
 extern void main_Test_HRADC(void);
 

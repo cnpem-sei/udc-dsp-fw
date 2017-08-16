@@ -37,13 +37,55 @@ static void InitInterruptions(void);
 static void PS_turnOn(void);
 static void PS_turnOff(void);
 
+volatile Uint16 ID;
+volatile Uint16 UFM_buffer[UFM_BUFFER_SIZE];
+
+
 void main_Test_HRADC(void)
 {
+	Uint16 i;
+
+	ID = 1;
+
+	for(i = 0; i < UFM_BUFFER_SIZE; i++)
+	{
+		UFM_buffer[i] = 0;
+	}
+
 	InitPeripheralsDrivers();
 
 	InitControllers();
 
 	InitInterruptions();
+
+	Config_HRADC_UFM_OpMode(0);
+	Config_HRADC_UFM_OpMode(1);
+	Config_HRADC_UFM_OpMode(2);
+
+	for(i = 0; i < 3; i++)
+	{
+		Erase_HRADC_UFM(i);
+		Write_HRADC_UFM(i, 0, 0xDCBA);
+		Write_HRADC_UFM(i, 1, 0xABCD);
+		Write_HRADC_UFM(i, 2, 0x1234);
+		Write_HRADC_UFM(i, 3, 0x5678);
+		Write_HRADC_UFM(i, 4, 0x8765);
+		Write_HRADC_UFM(i, 5, 0xCADE);
+		Write_HRADC_UFM(i, 6, 0xBABA);
+		Write_HRADC_UFM(i, 7, 0xFAFA);
+	}
+
+	Read_HRADC_UFM(0, 0, 8, UFM_buffer);
+	Read_HRADC_UFM(1, 0, 8, UFM_buffer+8);
+	Read_HRADC_UFM(2, 0, 8, UFM_buffer+16);
+
+	Config_HRADC_Sampling_OpMode(ID);
+
+	// Clear DMA events triggers flags
+	EALLOW;
+	DmaRegs.CH1.CONTROL.bit.PERINTCLR = 1;
+	DmaRegs.CH2.CONTROL.bit.PERINTCLR = 1;
+	EDIS;
 
 	while(1)
 	{
@@ -86,8 +128,8 @@ static void InitPeripheralsDrivers(void)
     Init_HRADC_Info(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, &buffers_HRADC.buffer_3[0], TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
 
     Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-    //Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-    //Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+    Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+    Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
     //Config_HRADC_board(HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
     AverageFilter = 1.0/((float) DECIMATION_FACTOR);
@@ -179,8 +221,8 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	for(i = 0; i < DECIMATION_FACTOR; i++)
 	{
 		temp0 += (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer++);
-		//temp1 += (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer++);
-		//temp2 += (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer++);
+		temp1 += (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer++);
+		temp2 += (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer++);
 		//temp3 += (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer++);
 	}
 
