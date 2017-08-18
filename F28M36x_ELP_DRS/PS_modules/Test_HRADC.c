@@ -16,20 +16,15 @@
 #include "F28M36x_ELP_DRS.h"
 #include "Test_HRADC.h"
 
-#define BUFFER_SIZE 2048
-#define UFM_BUFFER_SIZE 100
-
 /*
  * Prototype statements for functions found within this file.
  */
 
 #pragma CODE_SECTION(isr_ePWM_CTR_ZERO, "ramfuncs");
 #pragma CODE_SECTION(isr_ePWM_CTR_ZERO_1st, "ramfuncs");
-#pragma CODE_SECTION(isr_DMA_CH2, "ramfuncs");
 
 static interrupt void isr_ePWM_CTR_ZERO(void);
 static interrupt void isr_ePWM_CTR_ZERO_1st(void);
-static interrupt void isr_DMA_CH2(void);
 static interrupt void isr_SoftInterlock(void);
 static interrupt void isr_HardInterlock(void);
 
@@ -38,49 +33,51 @@ void main_Test_HRADC(void);
 static void InitPeripheralsDrivers(void);
 static void InitControllers(void);
 static void InitInterruptions(void);
+
 static void PS_turnOn(void);
 static void PS_turnOff(void);
 
-volatile Uint16 SamplingEnable;
-volatile Uint16 SendCommand;
 volatile Uint16 ID;
-volatile Uint16 enableHeater;
-volatile Uint16 enableRailsMonitor;
-volatile Uint16 UFM_buffer[UFM_BUFFER_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+volatile Uint16 UFM_buffer[UFM_BUFFER_SIZE];
 
-volatile Uint32 valorCounter;
-volatile eInputType AnalogInput;
-
-volatile float HRADC0;
-volatile float HRADC1;
-volatile float HRADC2;
-volatile float HRADC3;
 
 void main_Test_HRADC(void)
 {
-	ID = 0;
-	AnalogInput = Iin_bipolar;
-	enableHeater = HEATER_DISABLE;
-	enableRailsMonitor = RAILS_DISABLE;
+	Uint16 i;
 
-	SamplingEnable = 0;
-	SendCommand = 0;
+	ID = 1;
+
+	for(i = 0; i < UFM_BUFFER_SIZE; i++)
+	{
+		UFM_buffer[i] = 0;
+	}
 
 	InitPeripheralsDrivers();
+
 	InitControllers();
+
 	InitInterruptions();
-	
-	Config_HRADC_UFM_OpMode(ID);
-	Erase_HRADC_UFM(ID);
-	Write_HRADC_UFM(0, 0, 0xDCBA);
-	Write_HRADC_UFM(0, 1, 0xABCD);
-	Write_HRADC_UFM(0, 2, 0x1234);
-	Write_HRADC_UFM(0, 3, 0x5678);
-	Write_HRADC_UFM(0, 4, 0x8765);
-	Write_HRADC_UFM(0, 5, 0xCADE);
-	Write_HRADC_UFM(0, 6, 0xBABA);
-	Write_HRADC_UFM(0, 7, 0xFAFA);
-	Read_HRADC_UFM(0, 0, 16, UFM_buffer);
+
+	Config_HRADC_UFM_OpMode(0);
+	Config_HRADC_UFM_OpMode(1);
+	Config_HRADC_UFM_OpMode(2);
+
+	for(i = 0; i < 3; i++)
+	{
+		Erase_HRADC_UFM(i);
+		Write_HRADC_UFM(i, 0, 0xFFFE);
+		Write_HRADC_UFM(i, 1, 0xEEEE);
+		Write_HRADC_UFM(i, 2, 0xDDDD);
+		Write_HRADC_UFM(i, 3, 0xCCCC);
+		Write_HRADC_UFM(i, 4, 0xBBBB);
+		Write_HRADC_UFM(i, 5, 0xAAAA);
+		Write_HRADC_UFM(i, 6, 0x0000);
+		Write_HRADC_UFM(i, 7, 0x9999);
+	}
+
+	Read_HRADC_UFM(0, 0, 8, UFM_buffer);
+	Read_HRADC_UFM(1, 0, 8, UFM_buffer+8);
+	Read_HRADC_UFM(2, 0, 8, UFM_buffer+16);
 
 	Config_HRADC_Sampling_OpMode(ID);
 
@@ -92,29 +89,7 @@ void main_Test_HRADC(void)
 
 	while(1)
 	{
-		if(SendCommand){
 
-		   SendCommand = 0;
-		   Config_HRADC_board(HRADCs_Info.HRADC_boards[ID], AnalogInput, enableHeater, enableRailsMonitor);
-		}
-
-		if(SamplingEnable){
-
-		   start_DMA();
-		   EnablePWMOutputs();
-		   EnablePWM_TBCLK();
-
-		   while(SamplingEnable){}
-
-		   DisablePWMOutputs();
-		   DisablePWM_TBCLK();
-
-		   DELAY_US(2);
-		   stop_DMA();
-
-		}
-
-		TunningPWM_MEP_SFO();
 	}
 }
 
@@ -133,11 +108,14 @@ static void InitPeripheralsDrivers(void)
 
 	stop_DMA();
 
-	Init_DMA_McBSP_nBuffers(N_HRADC_BOARDS, DECIMATION_FACTOR, HRADC_SPI_CLK);
+    Init_DMA_McBSP_nBuffers(N_HRADC_BOARDS, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
-    Init_SPIMaster_McBSP(HRADC_SPI_CLK);
+	Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
     InitMcbspa20bit();
+
+    HRADCs_Info.enable_Sampling = 0;
+    HRADCs_Info.n_HRADC_boards = N_HRADC_BOARDS;
 
     HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
     HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
@@ -150,9 +128,9 @@ static void InitPeripheralsDrivers(void)
     Init_HRADC_Info(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, &buffers_HRADC.buffer_3[0], TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
 
     Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-    //Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-    /*Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-    Config_HRADC_board(HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);*/
+    Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+    Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+    //Config_HRADC_board(HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
     AverageFilter = 1.0/((float) DECIMATION_FACTOR);
 
@@ -226,7 +204,6 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	static Uint16 i;
 	static float temp0, temp1, temp2, temp3;
 
-	StartCpuTimer0();
 	SET_DEBUG_GPIO1;
 
 	temp0 = 0.0;
@@ -234,13 +211,22 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	temp2 = 0.0;
 	temp3 = 0.0;
 
+	CLEAR_DEBUG_GPIO1;
+
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+
+	SET_DEBUG_GPIO1;
+	//CLEAR_DEBUG_GPIO1;
+
 	for(i = 0; i < DECIMATION_FACTOR; i++)
 	{
 		temp0 += (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer++);
 		temp1 += (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer++);
 		temp2 += (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer++);
-		temp3 += (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer++);
+		//temp3 += (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer++);
 	}
+
+	//SET_DEBUG_GPIO1
 
 	temp0 *= AverageFilter;
 	temp1 *= AverageFilter;
@@ -252,7 +238,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	HRADCs_Info.HRADC_boards[2]->SamplesBuffer = buffers_HRADC.buffer_2;
 	HRADCs_Info.HRADC_boards[3]->SamplesBuffer = buffers_HRADC.buffer_3;
 
-	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
+	/*temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
 	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
 
 	temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
@@ -262,27 +248,22 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	temp2 *= *(HRADCs_Info.HRADC_boards[2]->gain);
 
 	temp3 -= *(HRADCs_Info.HRADC_boards[3]->offset);
-	temp3 *= *(HRADCs_Info.HRADC_boards[3]->gain);
+	temp3 *= *(HRADCs_Info.HRADC_boards[3]->gain);*/
 
-	HRADC0 = temp0;
-	HRADC1 = temp1;
-	HRADC2 = temp2;
-	HRADC3 = temp3;
+	DP_Framework.NetSignals[0] = temp0;
+	DP_Framework.NetSignals[1] = temp1;
+	DP_Framework.NetSignals[2] = temp2;
+	DP_Framework.NetSignals[3] = temp3;
 
-	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, HRADC0);
-	/*WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, HRADC1);
-	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, HRADC2);
-	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, HRADC3);*/
-
+	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp0);
+	/*WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp1);
+	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp2);
+	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp3);*/
 
 	for(i = 0; i < PWM_Modules.N_modules; i++)
 	{
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
-
-	StopCpuTimer0();
-	valorCounter = ReadCpuTimer0Counter();
-	ReloadCpuTimer0();
 
 	CLEAR_DEBUG_GPIO1;
 
@@ -293,8 +274,6 @@ static interrupt void isr_ePWM_CTR_ZERO_1st(void)
 {
 	// Contador auxiliar
 	static Uint16 i;
-
-	//GpioG1DataRegs.GPDSET.bit.GPIO111 = 1;
 
     // Remapeia a ISR que esvazia buffer FIFO
 	EALLOW;
@@ -307,20 +286,8 @@ static interrupt void isr_ePWM_CTR_ZERO_1st(void)
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
 
-	//GpioG1DataRegs.GPDCLEAR.bit.GPIO111 = 1;
-
     // Acknowledge this interrupt to receive more interrupts from group 3
     PieCtrlRegs.PIEACK.all |= M_INT3;
-}
-
-static __interrupt void isr_DMA_CH2(void)
-{
-	SET_DEBUG_GPIO1;
-	EALLOW;
-	DmaRegs.CH3.CONTROL.bit.RUN = 1;
-	EDIS;
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP7;
-    CLEAR_DEBUG_GPIO1;
 }
 
 static interrupt void isr_SoftInterlock(void)
@@ -333,8 +300,10 @@ static interrupt void isr_HardInterlock(void)
 
 static void PS_turnOn(void)
 {
+	EnablePWMOutputs();
 }
 
 static void PS_turnOff(void)
 {
+	DisablePWMOutputs();
 }

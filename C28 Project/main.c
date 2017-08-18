@@ -35,7 +35,7 @@ extern void main_FBPx4_100kHz(void);
 extern void main_FAP_6U_DCDC_20kHz(void);
 
 void main(void)
-{
+	{
 	// Initialize the Control System:
 	// Enable peripheral clocks
 	// This example function is found in the F28M36x_SysCtrl.c file.
@@ -193,11 +193,13 @@ void main(void)
 			case FBPx4_100kHz:
 			{
 				main_FBPx4_100kHz();
+				break;
 			}
 
 			case FAP_6U_DCDC_20kHz:
 			{
 				main_FAP_6U_DCDC_20kHz();
+				break;
 			}
 
 			default:

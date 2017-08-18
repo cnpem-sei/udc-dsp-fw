@@ -26,16 +26,21 @@
 
 #define HRADC_BI_OFFSET		131072.0
 
-#define UFM_OPCODE_WREN			0x06
-#define UFM_OPCODE_WRDI			0x04
-#define UFM_OPCODE_RDSR			0x05
-#define UFM_OPCODE_WRSR			0x01
-#define UFM_OPCODE_READ			0x03
-#define UFM_OPCODE_WRITE		0x02
-#define UFM_OPCODE_SECTOR_ERASE	0x20
-#define UFM_OPCODE_UFM_ERASE	0x60
+#define UFM_OPCODE_WREN			0x0006
+#define UFM_OPCODE_WRDI			0x0004
+#define UFM_OPCODE_RDSR			0x0005
+#define UFM_OPCODE_WRSR			0x0001
+#define UFM_OPCODE_READ			0x0003
+#define UFM_OPCODE_WRITE		0x0002
+#define UFM_OPCODE_SECTOR_ERASE	0x0020
+#define UFM_OPCODE_UFM_ERASE	0x0060
+
+#define UFM_BOARDDATA_SIZE		24
+#define UFM_BOARDDATA_ADDRESS	0x0000
 
 #define HRADC_VIN_BI_P_GAIN		(20.0/262144.0)
+
+
 
 /**********************************************************************************************/
 //
@@ -65,6 +70,11 @@ typedef enum {
 		HRADC_UFM
 } eHRADCOpMode;
 
+typedef enum {
+	FBP,
+	FAx
+} eHRADCVar;
+
 //#include "DSP28x_Project.h"
 //#include "../C28 Project/config.h"
 //#include "../PWM_modules/PWM_modules.h"
@@ -91,68 +101,60 @@ typedef enum {
 #define HRADC_CS_SET(id) 		GpioDataRegs.GPESET.all = HRADC_BoardSelector[id];
 //#define HRADC_CS_SET(id) 		GpioDataRegs.GPESET.all = id;
 
-#define HRADC_CS_RESET(id)		HRADC_CS_CLEAR; \
+#define HRADC_CS_RESET(id)		DELAY_US(1); \
+								HRADC_CS_CLEAR; \
 								HRADC_CS_SET((~id) & 3); \
 								DELAY_US(1); \
 								HRADC_CS_CLEAR; \
-								HRADC_CS_SET(id);
+								HRADC_CS_SET(id); \
+								DELAY_US(1);
+
+/**********************************************************************************************/
+//
+// 	HRADC Board Data from UFM
+//
+typedef volatile struct
+{
+	Uint64 		SerialNumber;			// Unique identification
+	eHRADCVar	Variant;				// Board variant (FBP/FAx/...)
+	float		Rburden;				// Nominal value of burden resistor
+	Uint16	 	CalibDate[5]; 			// Date of last calibration [DD/MM/AAAA/hh/mm]
+	float 		CalibTemp;	  			// Ambient temperature during last calibration
+	float		gain_Vin_bipolar;		// Calibration gain		Vin bipolar
+	float		offset_Vin_bipolar;		// Calibration offset	Vin bipolar
+	float		gain_Iin_bipolar;		// Calibration gain		Iin bipolar
+	float		offset_Iin_bipolar;		// Calibration offset	Iin bipolar
+	float		Vref_bipolar_p;			// + Voltage reference 	Bipolar
+	float		Vref_bipolar_n;			// - Voltage reference 	Bipolar
+	float		GND_bipolar;			// GND					Bipolar
+
+} tHRADC_BoardData;
+
+typedef volatile union
+{
+	tHRADC_BoardData	t;
+	Uint16 				u[UFM_BOARDDATA_SIZE];
+} uHRADC_BoardData;
 
 
 /**********************************************************************************************/
 //
-// 	HRADC Board Calibration Database
+// 	HRADC Board Information
 //
 typedef volatile struct
 {
-	unsigned char	date_hw[8];			// Date of last hardware modification [MMDDYYYY]
-	unsigned char	name_hw[8];	  		// Responsible for last hardware modification
-	unsigned char 	date_calib[8]; 		// Date of last calibration [MMDDYYYY]
-	unsigned char	name_calib[8]; 		// Responsible for last calibration
-	float 			temp_calib;	  		// Ambiente temperature during last calibration
-
-	float	gain_Vin_bipolar;			// Calibration gain		Vin bipolar
-	float	offset_Vin_bipolar;			// Calibration offset	Vin bipolar
-	float	gain_Vin_unipolar_p;	 	// Calibration gain		Vin unipolar (+)
-	float	offset_Vin_unipolar_p;	  	// Calibration offset	Vin unipolar (+)
-	float	gain_Vin_unipolar_n;		// Calibration gain		Vin unipolar
-	float	offset_Vin_unipolar_n;		// Calibration offset	Vin unipolar
-	float	gain_Iin_bipolar;			// Calibration gain		Iin bipolar
-	float	offset_Iin_bipolar;			// Calibration offset	Iin bipolar
-	float	gain_Iin_unipolar_p;		// Calibration gain		Iin unipolar (+)
-	float	offset_Iin_unipolar_p;		// Calibration offset	Iin unipolar (+)
-	float	gain_Iin_unipolar_n;		// Calibration gain		Iin unipolar (-)
-	float	offset_Iin_unipolar_n;		// Calibration offset	Iin unipolar (-)
-	float	Vref_bipolar_p;				// + Voltage reference 	Bipolar
-	float	Vref_bipolar_n;				// - Voltage reference 	Bipolar
-	float	GND_bipolar;				// GND					Bipolar
-	float	Vref_unipolar_p;			// + Voltage reference 	Unipolar
-	float	Vref_unipolar_n;			// - Voltage reference 	Unipolar
-	float	GND_unipolar;				// GND					Unipolar
-
-} HRADC_CalibInfo;
-
-
-/**********************************************************************************************/
-//
-// 	HRADC Board Database
-//
-typedef volatile struct
-{
-
 	Uint16 				ID;						// Backplane position
-	Uint16 				SerialNumber;			// Unique identification
-	Uint32				HW_version;				// Hardware information: Rburden / Fcut / Filter order / Heater_TempRef
-	eInputType		AnalogInput;			// Analog input
-	Uint16 				enable_Heater;			// Enable temperature controller
-	Uint16 				enable_RailsMonitor;	// Enable rails monitor
-	Uint32				Status;					// Configuration/Status Register
+	uHRADC_BoardData	BoardData;				// Calibration database
+	Uint32				StatusReg;				// Configuration/Status Register
+	eHRADCOpMode		OpMode;					// Operation mode;
+	eInputType			AnalogInput;			// Current analog input
+	Uint16 				enable_Heater;			// Current temperature controller status
+	Uint16 				enable_RailsMonitor;	// Rails monitor status
 	Uint16				size_SamplesBuffer;		// Size of samples buffer
 	Uint16				index_SamplesBuffer;	// Current buffer pointer position
 	volatile Uint32		*SamplesBuffer;			// Pointer to samples buffer
 	volatile float		*gain;					// Pointer to gain value of current analog input
 	volatile float		*offset;				// Pointer to offset value of current analog input
-	HRADC_CalibInfo 	CalibrationInfo;		// Calibration database
-
 } HRADC_struct;
 
 typedef volatile struct
@@ -196,7 +198,6 @@ extern void Erase_HRADC_UFM(Uint16 ID);
 extern void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint16 *ufm_buffer);
 extern void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data);
 
-extern void Start_HRADC_Sampling(void);
-extern void Stop_HRADC_Sampling(void);
+extern void Read_HRADC_BoardData(HRADC_struct *hradcPtr);
 
 #endif
