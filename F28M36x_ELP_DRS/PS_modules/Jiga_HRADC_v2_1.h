@@ -43,6 +43,7 @@
 #define HRADC_3_R_BURDEN				0.1					// Resistor Burden = 0.1 R
 															// This value makes Vin and Iin gain equal
 
+
 extern void main_Jiga_HRADC_v2_1(void);
 
 #endif

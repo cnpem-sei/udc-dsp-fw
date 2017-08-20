@@ -122,12 +122,6 @@ static void InitPeripheralsDrivers(void)
 
     /* Initialization of PWM modules */
 
-    EALLOW;
-	GpioCtrlRegs.GPAMUX2.bit.GPIO29 = 0;
-	GpioCtrlRegs.GPADIR.bit.GPIO29 = 1;			// Auxiliar GPIO for which GPTRIP1 is selected
-	GpioDataRegs.GPASET.bit.GPIO29 = 1;
-	EDIS;
-
     PWM_Modules.N_modules = 1;
     PWM_Modules.PWM_Regs[0] = &EPwm1Regs;
 
@@ -137,14 +131,17 @@ static void InitPeripheralsDrivers(void)
 
     InitPWMModule(PWM_Modules.PWM_Regs[0], PWM_FREQ, 0, MasterPWM, 0, NO_COMPLEMENTARY, 0);
 
-    SetPWMDutyCycle_ChA(&EPwm1Regs,0.0);
-
-    InitEPwm1Gpio();
 
 	/* Initialization of GPIOs */
 
 	EALLOW;
+
 	INIT_DEBUG_GPIO1;		// Debug GPIO's
+
+	GpioG1CtrlRegs.GPAMUX1.all = 0x0000;
+	GpioG1DataRegs.GPACLEAR.all = 0x0000FFFF; // PWM1 to PWM16 as GPDO
+	GpioG1CtrlRegs.GPADIR.all = 0x0000FFFF;
+
 	EDIS;
 
 	/* Initialization of timers */
@@ -314,4 +311,51 @@ static Uint32 RunTests(void)
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 
 	return IPC_CtoM_Msg.PSModule.HardInterlocks;
+}
+
+static void SelectHRADCBoard(Uint16 ID)
+{
+	// Selects HRADC0 as default, then turns on respective relays
+	GpioG1DataRegs.GPACLEAR.all = 0x0000CAEA;
+
+	switch(ID)
+	{
+		case 1:
+			GpioG1DataRegs.GPASET.all = 0x0000400A;
+			break;
+		case 2:
+			GpioG1DataRegs.GPASET.all = 0x000080A0;
+			break;
+		case 3:
+			GpioG1DataRegs.GPASET.all = 0x0000CAEA;
+			break;
+		default:
+			break;
+	}
+}
+
+static void SelectHRADCSource(Uint16 ID, eInputType analogIn)
+{
+	// Selects SOURCE = V and DMM = V as default, then turns on respective relays
+
+														// SOURCE_HI_SELECTOR = 0
+	GpioG1DataRegs.GPACLEAR.all = 0x00000015;			// DMM_HI_SELECTOR = 0
+														// SOURCE_LO_SELECTOR = 0
+
+	switch(analogIn)
+	{
+		case Iin_bipolar:								//SOURCE_HI_SELECTOR = 1
+			GpioG1DataRegs.GPASET.all = 0x00000015;		//DMM_HI_SELECTOR = 1
+			break;										//SOURCE_LO_SELECTOR = 1
+
+		case GND:
+		case Vref_bipolar_p:
+		case Vref_bipolar_n:
+		case Temp:										// SOURCE_HI_SELECTOR = 0
+			GpioG1DataRegs.GPASET.all = 0x00000004;		// DMM_HI_SELECTOR = 1
+			break;										// SOURCE_LO_SELECTOR = 0
+
+		default:
+			break;
+	}
 }
