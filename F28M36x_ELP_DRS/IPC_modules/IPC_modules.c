@@ -289,6 +289,67 @@ interrupt void isr_IPC_Channel_1(void)
 			break;
 		}
 
+		case HRADC_SELECT_BOARD: //IPC1 +IPC26
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = HRADC_SELECT_BOARD;
+
+			// Selects HRADC0 as default, then turns on respective relays
+			GpioG1DataRegs.GPACLEAR.all = 0x0000CAEA;
+
+			switch(IPC_MtoC_Msg.HRADCConfig.ID)
+			{
+				case 1:
+					GpioG1DataRegs.GPASET.all = 0x0000400A;
+					break;
+				case 2:
+					GpioG1DataRegs.GPASET.all = 0x000080A0;
+					break;
+				case 3:
+					GpioG1DataRegs.GPASET.all = 0x0000CAEA;
+					break;
+				default:
+					IPC_CtoM_Msg.PSModule.ErrorMtoC = HRADC_CONFIG_ERROR;
+					SendIpcFlag(MTOC_MESSAGE_ERROR);
+					break;
+			}
+
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
+		case HRADC_TEST_SOURCE: //IPC1 +IPC27
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = HRADC_TEST_SOURCE;
+
+			// Selects SOURCE = V and DMM = V as default, then turns on respective relays
+
+																// SOURCE_HI_SELECTOR = 0
+			GpioG1DataRegs.GPACLEAR.all = 0x00000015;			// DMM_HI_SELECTOR = 0
+																// SOURCE_LO_SELECTOR = 0
+
+			switch(IPC_MtoC_Msg.HRADCConfig.InputType)
+			{
+				case Iin_bipolar:								//SOURCE_HI_SELECTOR = 1
+					GpioG1DataRegs.GPASET.all = 0x00000015;		//DMM_HI_SELECTOR = 1
+					break;										//SOURCE_LO_SELECTOR = 1
+
+				case GND:
+				case Vref_bipolar_p:
+				case Vref_bipolar_n:
+				case Temp:										// SOURCE_HI_SELECTOR = 0
+					GpioG1DataRegs.GPASET.all = 0x00000004;		// DMM_HI_SELECTOR = 1
+					break;										// SOURCE_LO_SELECTOR = 0
+
+				default:
+					IPC_CtoM_Msg.PSModule.ErrorMtoC = HRADC_CONFIG_ERROR;
+					SendIpcFlag(MTOC_MESSAGE_ERROR);
+					break;
+			}
+
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
 		case HRADC_SAMPLING_DISABLE: //IPC1 +IPC28
 		{
 			CtoMIpcRegs.MTOCIPCACK.all = HRADC_SAMPLING_DISABLE;
@@ -338,7 +399,7 @@ interrupt void isr_IPC_Channel_1(void)
 
 			Config_HRADC_SoC(IPC_MtoC_Msg.HRADCConfig.FreqSampling);
 
-			if(Try_Config_HRADC_board(HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID],
+			if(Try_Config_HRADC_board(&HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID],
 			   IPC_MtoC_Msg.HRADCConfig.InputType,
 			   IPC_MtoC_Msg.HRADCConfig.EnableHeater,
 			   IPC_MtoC_Msg.HRADCConfig.EnableMonitor))

@@ -79,7 +79,9 @@ void main_Test_HRADC(void)
 	Read_HRADC_UFM(1, 0, 8, UFM_buffer+8);
 	Read_HRADC_UFM(2, 0, 8, UFM_buffer+16);
 
-	Config_HRADC_Sampling_OpMode(ID);
+	Config_HRADC_Sampling_OpMode(0);
+	Config_HRADC_Sampling_OpMode(1);
+	Config_HRADC_Sampling_OpMode(2);
 
 	// Clear DMA events triggers flags
 	EALLOW;

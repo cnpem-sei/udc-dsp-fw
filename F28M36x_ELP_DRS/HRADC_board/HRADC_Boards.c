@@ -47,16 +47,16 @@ void Read_HRADC_BoardData(HRADC_struct *hradcPtr);
 //	Place them in shared memory RAMS1
 //
 #pragma DATA_SECTION(HRADCs_Info, "SHARERAMS1_1")
-#pragma DATA_SECTION(HRADC0_board, "SHARERAMS1_1")
+/*#pragma DATA_SECTION(HRADC0_board, "SHARERAMS1_1")
 #pragma DATA_SECTION(HRADC1_board, "SHARERAMS1_1")
 #pragma DATA_SECTION(HRADC2_board, "SHARERAMS1_1")
-#pragma DATA_SECTION(HRADC3_board, "SHARERAMS1_1")
+#pragma DATA_SECTION(HRADC3_board, "SHARERAMS1_1")*/
 
 volatile HRADCs_struct HRADCs_Info;
-volatile HRADC_struct  HRADC0_board;
+/*volatile HRADC_struct  HRADC0_board;
 volatile HRADC_struct  HRADC1_board;
 volatile HRADC_struct  HRADC2_board;
-volatile HRADC_struct  HRADC3_board;
+volatile HRADC_struct  HRADC3_board;*/
 
 volatile Uint32 counterErrorSendCommand;
 volatile float AverageFilter;
@@ -406,7 +406,7 @@ void Config_HRADC_Sampling_OpMode(Uint16 ID)
 	// Store previous HRADC configuration and status
 	auxH = (Uint32) McbspaRegs.DRR2.all << 16;
 	auxL = (Uint32) McbspaRegs.DRR1.all;
-	HRADCs_Info.HRADC_boards[ID]->StatusReg = auxH + auxL;
+	HRADCs_Info.HRADC_boards[ID].StatusReg = auxH + auxL;
 
 	// Clear Chip-Select and CONFIG signals
 	HRADC_CONFIG_CLEAR;
@@ -444,7 +444,7 @@ void Config_HRADC_UFM_OpMode(Uint16 ID)
 	// Store previous HRADC configuration and status
 	auxH = (Uint32) McbspaRegs.DRR2.all << 16;
 	auxL = (Uint32) McbspaRegs.DRR1.all;
-	HRADCs_Info.HRADC_boards[ID]->StatusReg = auxH + auxL;
+	HRADCs_Info.HRADC_boards[ID].StatusReg = auxH + auxL;
 
 	// Clear Chip-Select and CONFIG signals
 	HRADC_CONFIG_CLEAR;

@@ -116,9 +116,9 @@ typedef enum {
 typedef volatile struct
 {
 	Uint64 		SerialNumber;			// Unique identification
+	Uint16	 	CalibDate[5]; 			// Date of last calibration [DD/MM/AAAA/hh/mm]
 	eHRADCVar	Variant;				// Board variant (FBP/FAx/...)
 	float		Rburden;				// Nominal value of burden resistor
-	Uint16	 	CalibDate[5]; 			// Date of last calibration [DD/MM/AAAA/hh/mm]
 	float 		CalibTemp;	  			// Ambient temperature during last calibration
 	float		gain_Vin_bipolar;		// Calibration gain		Vin bipolar
 	float		offset_Vin_bipolar;		// Calibration offset	Vin bipolar
@@ -127,7 +127,6 @@ typedef volatile struct
 	float		Vref_bipolar_p;			// + Voltage reference 	Bipolar
 	float		Vref_bipolar_n;			// - Voltage reference 	Bipolar
 	float		GND_bipolar;			// GND					Bipolar
-
 } tHRADC_BoardData;
 
 typedef volatile union
@@ -144,25 +143,25 @@ typedef volatile union
 typedef volatile struct
 {
 	Uint16 				ID;						// Backplane position
-	uHRADC_BoardData	BoardData;				// Calibration database
-	Uint32				StatusReg;				// Configuration/Status Register
 	eHRADCOpMode		OpMode;					// Operation mode;
 	eInputType			AnalogInput;			// Current analog input
 	Uint16 				enable_Heater;			// Current temperature controller status
 	Uint16 				enable_RailsMonitor;	// Rails monitor status
 	Uint16				size_SamplesBuffer;		// Size of samples buffer
 	Uint16				index_SamplesBuffer;	// Current buffer pointer position
+	Uint32				StatusReg;				// Configuration/Status Register
 	volatile Uint32		*SamplesBuffer;			// Pointer to samples buffer
 	volatile float		*gain;					// Pointer to gain value of current analog input
 	volatile float		*offset;				// Pointer to offset value of current analog input
+	uHRADC_BoardData	BoardData;				// Calibration database
 } HRADC_struct;
 
 typedef volatile struct
 {
-	float					freq_Sampling;
-	Uint16 					enable_Sampling;
-	Uint16 					n_HRADC_boards;
-	volatile HRADC_struct 	*HRADC_boards[4];
+	float			freq_Sampling;
+	Uint16 			enable_Sampling;
+	Uint16 			n_HRADC_boards;
+	HRADC_struct 	HRADC_boards[4];
 } HRADCs_struct;
 
 
@@ -171,10 +170,10 @@ typedef volatile struct
 // 	Prototype statements for variables and functions found in source code HRADC_Boards.c
 //
 extern volatile HRADCs_struct HRADCs_Info;
-extern volatile HRADC_struct  HRADC0_board;
+/*extern volatile HRADC_struct  HRADC0_board;
 extern volatile HRADC_struct  HRADC1_board;
 extern volatile HRADC_struct  HRADC2_board;
-extern volatile HRADC_struct  HRADC3_board;
+extern volatile HRADC_struct  HRADC3_board;*/
 
 extern volatile Uint32 HRADC_BoardSelector[4];
 
