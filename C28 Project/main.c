@@ -20,23 +20,10 @@
 extern Uint16 RamfuncsLoadSize_RAML3;
 extern Uint16 RamfuncsRunStart_RAML3;*/
 
-extern void main_FBP_100kHz(void);
-extern void main_FAC_ACDC_10kHz(void);
-extern void main_FAC_DCDC_20kHz(void);
-extern void main_FAC_Full_ACDC_10kHz(void);
-extern void main_FAC_Full_DCDC_20kHz(void);
-extern void main_FAP_ACDC(void);
-extern void main_FAP_DCDC_20kHz(void);
-extern void main_Test_HRPWM(void);
-extern void main_Test_HRADC(void);
-extern void main_Jiga_HRADC(void);
 extern void main_Jiga_HRADC_v2_1(void);
-extern void main_FAP_DCDC_15kHz_225A(void);
-extern void main_FBPx4_100kHz(void);
-extern void main_FAP_6U_DCDC_20kHz(void);
 
 void main(void)
-	{
+{
 	// Initialize the Control System:
 	// Enable peripheral clocks
 	// This example function is found in the F28M36x_SysCtrl.c file.
@@ -115,102 +102,23 @@ void main(void)
 		EDIS;
 	}
 
-	while(1)
-	{
-		switch(IPC_MtoC_Msg.PSModule.Model)
-		//switch(PS_MODEL)
-		{
-			case FBP_100kHz:
-			{
-				//main_FBP_100kHz();
-				//main_Test_BCB_Board();
-				break;
-			}
+	/* Initialization of GPIOs */
 
-			case FBP_Parallel_100kHz:
-			{
-				//main_FBP_Parallel_100kHz();
-				break;
-			}
+	EALLOW;
 
-			case FAC_ACDC_10kHz:
-			{
-				//main_FAC_ACDC_10kHz();
-				break;
-			}
+	INIT_DEBUG_GPIO1;		// Debug GPIO's
 
-			case FAC_DCDC_20kHz:
-			{
-				//main_FAC_DCDC_20kHz();
-				break;
-			}
+	GpioG1CtrlRegs.GPAMUX1.all = 0x0000;
+	GpioG1DataRegs.GPACLEAR.all = 0x0000FFFF; // PWM1 to PWM16 as GPDO
+	GpioG1CtrlRegs.GPADIR.all = 0x0000FFFF;
 
-			case FAC_Full_ACDC_10kHz:
-			{
-				//main_FAC_Full_ACDC_10kHz();
-				break;
-			}
+	EDIS;
 
-			case FAC_Full_DCDC_20kHz:
-			{
-				//main_FAC_Full_DCDC_20kHz();
-				break;
-			}
+	DELAY_US(1000000);
 
-			case FAP_ACDC:
-			{
-				//main_FAP_ACDC();
-				break;
-			}
+	SendIpcFlag(ENABLE_HRADC_BOARDS);
 
-			case FAP_DCDC_20kHz:
-			{
-				//main_FAP_DCDC_20kHz();
-				break;
-			}
+	main_Jiga_HRADC_v2_1();
 
-			case TEST_HRPWM:
-			{
-				//main_Test_HRPWM();
-				break;
-			}
-
-			case TEST_HRADC:
-			{
-				//main_Test_HRADC();
-				break;
-			}
-
-			case JIGA_HRADC:
-			{
-				//main_Jiga_HRADC();
-				main_Jiga_HRADC_v2_1();
-				break;
-			}
-
-			case FAP_DCDC_15kHz_225A:
-			{
-				//main_FAP_DCDC_15kHz_225A();
-				break;
-			}
-
-			case FBPx4_100kHz:
-			{
-				//main_FBPx4_100kHz();
-				break;
-			}
-
-			case FAP_6U_DCDC_20kHz:
-			{
-				//main_FAP_6U_DCDC_20kHz();
-				break;
-			}
-
-			default:
-			{
-				break;
-			}
-		}
-
-	}
+	while(1){}
 }

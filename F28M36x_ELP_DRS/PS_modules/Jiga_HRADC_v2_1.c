@@ -119,19 +119,6 @@ static void InitPeripheralsDrivers(void)
 
     InitPWMModule(PWM_Modules.PWM_Regs[0], PWM_FREQ, 0, MasterPWM, 0, NO_COMPLEMENTARY, 0);
 
-
-	/* Initialization of GPIOs */
-
-	EALLOW;
-
-	INIT_DEBUG_GPIO1;		// Debug GPIO's
-
-	GpioG1CtrlRegs.GPAMUX1.all = 0x0000;
-	GpioG1DataRegs.GPACLEAR.all = 0x0000FFFF; // PWM1 to PWM16 as GPDO
-	GpioG1CtrlRegs.GPADIR.all = 0x0000FFFF;
-
-	EDIS;
-
 	/* Initialization of timers */
 	InitCpuTimers();
 	CpuTimer0Regs.TCR.bit.TIE = 0;
