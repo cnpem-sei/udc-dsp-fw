@@ -149,6 +149,7 @@ typedef volatile struct
 	Uint16 				enable_RailsMonitor;	// Rails monitor status
 	Uint16				size_SamplesBuffer;		// Size of samples buffer
 	Uint16				index_SamplesBuffer;	// Current buffer pointer position
+	Uint16              UFMData;                // Auxiliary byte for UFM reads
 	Uint32				StatusReg;				// Configuration/Status Register
 	volatile Uint32		*SamplesBuffer;			// Pointer to samples buffer
 	volatile float		*gain;					// Pointer to gain value of current analog input

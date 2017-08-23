@@ -23,7 +23,7 @@
 
 #define TRANSDUCER_1_INPUT_RATED	10.0				//
 #define TRANSDUCER_1_OUTPUT_RATED	10.0				//   In_rated 	= +/- 10 V
-#define TRANSDUCER_1_OUTPUT_TYPE	Iin_bipolar			//   Out_rated 	= +/- 10 V
+#define TRANSDUCER_1_OUTPUT_TYPE	Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_1_GAIN			(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
 
 #define HRADC_1_R_BURDEN			20.0				// Resistor Burden = 20 R
@@ -32,7 +32,7 @@
 
 #define TRANSDUCER_2_INPUT_RATED	10.0				//
 #define TRANSDUCER_2_OUTPUT_RATED	10.0				//   In_rated 	= +/- 10 V
-#define TRANSDUCER_2_OUTPUT_TYPE	Vref_bipolar_p			//   Out_rated 	= +/- 10 V
+#define TRANSDUCER_2_OUTPUT_TYPE	Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_2_GAIN			(TRANSDUCER_2_INPUT_RATED/TRANSDUCER_2_OUTPUT_RATED)
 
 #define HRADC_2_R_BURDEN			20.0				// Resistor Burden = 20 R
@@ -41,7 +41,7 @@
 
 #define TRANSDUCER_3_INPUT_RATED	10.0				//
 #define TRANSDUCER_3_OUTPUT_RATED	10.0				//   In_rated 	= +/- 10 V
-#define TRANSDUCER_3_OUTPUT_TYPE	Vref_bipolar_n			//   Out_rated 	= +/- 10 V
+#define TRANSDUCER_3_OUTPUT_TYPE	Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_3_GAIN			(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
 
 #define HRADC_3_R_BURDEN			20.0				// Resistor Burden = 20 R

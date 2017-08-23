@@ -53,6 +53,8 @@ static Uint32 valorCounter;
 
 void main_Jiga_HRADC_v2_1(void)
 {
+	while( (IPC_MtoC_Msg.HRADCConfig.nHRADC < 1) || (IPC_MtoC_Msg.HRADCConfig.nHRADC > 4) ){}
+
 	InitPeripheralsDrivers();
 	InitControllers();
 	InitInterruptions();
@@ -78,14 +80,14 @@ static void InitPeripheralsDrivers(void)
 
 	stop_DMA();
 
-    Init_DMA_McBSP_nBuffers(N_HRADC_BOARDS, DECIMATION_FACTOR, HRADC_SPI_CLK);
+	HRADCs_Info.enable_Sampling = 0;
+	HRADCs_Info.n_HRADC_boards = IPC_MtoC_Msg.HRADCConfig.nHRADC;
+
+    Init_DMA_McBSP_nBuffers(HRADCs_Info.n_HRADC_boards, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
     Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
     InitMcbspa20bit();
-
-    HRADCs_Info.enable_Sampling = 0;
-    HRADCs_Info.n_HRADC_boards = N_HRADC_BOARDS;
 
     /*HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
     HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
@@ -97,10 +99,10 @@ static void InitPeripheralsDrivers(void)
     Init_HRADC_Info(&HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
     Init_HRADC_Info(&HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
 
-    Config_HRADC_board(&HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+    /*Config_HRADC_board(&HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
     Config_HRADC_board(&HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
     Config_HRADC_board(&HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-    Config_HRADC_board(&HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+    Config_HRADC_board(&HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);*/
 
     Config_HRADC_SoC(HRADC_FREQ_SAMP);
 
@@ -141,7 +143,7 @@ static void InitControllers(void)
 {
 	/* Initialization of IPC module */
 	InitIPC(&PS_turnOn, &PS_turnOff, &isr_SoftInterlock, &isr_HardInterlock);
-	IPC_CtoM_Msg.SamplesBuffer.BufferBusy = Buffer_All;
+	IPC_CtoM_Msg.SamplesBuffer.BufferBusy = Buffer_Idle;
 }
 
 static void InitInterruptions(void)
@@ -167,14 +169,14 @@ static void InitInterruptions(void)
 interrupt void isr_ePWM_CTR_ZERO(void)
 {
 	static Uint16 i;
-	static float temp0, temp1, temp2, temp3;
+	static float temp[4];
 
 	SET_DEBUG_GPIO1;
 
-	temp0 = 0.0;
-	temp1 = 0.0;
-	temp2 = 0.0;
-	temp3 = 0.0;
+	/*temp[0] = 0.0;
+	temp[1] = 0.0;
+	temp[2] = 0.0;
+	temp[3] = 0.0;*/
 
 	CLEAR_DEBUG_GPIO1;
 
@@ -183,47 +185,36 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 	SET_DEBUG_GPIO1;
 	//CLEAR_DEBUG_GPIO1;
 
-	for(i = 0; i < DECIMATION_FACTOR; i++)
+	for(i = 0; i < HRADCs_Info.n_HRADC_boards; i++)
 	{
-		temp0 += (float) *(HRADCs_Info.HRADC_boards[0].SamplesBuffer++);
-		temp1 += (float) *(HRADCs_Info.HRADC_boards[1].SamplesBuffer++);
-		temp2 += (float) *(HRADCs_Info.HRADC_boards[2].SamplesBuffer++);
-		temp3 += (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer++);
+		temp[i] = (float) *(HRADCs_Info.HRADC_boards[i].SamplesBuffer++);
 	}
 
 	//SET_DEBUG_GPIO1
-
-	/*temp0 *= AverageFilter;
-	temp1 *= AverageFilter;
-	temp2 *= AverageFilter;
-	temp3 *= AverageFilter;*/
 
 	HRADCs_Info.HRADC_boards[0].SamplesBuffer = buffers_HRADC.buffer_0;
 	HRADCs_Info.HRADC_boards[1].SamplesBuffer = buffers_HRADC.buffer_1;
 	HRADCs_Info.HRADC_boards[2].SamplesBuffer = buffers_HRADC.buffer_2;
 	HRADCs_Info.HRADC_boards[3].SamplesBuffer = buffers_HRADC.buffer_3;
 
-	/*temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
-	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
+	temp[0] -= *(HRADCs_Info.HRADC_boards[0].offset);
+	temp[0] *= *(HRADCs_Info.HRADC_boards[0].gain);
 
-	temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
-	temp1 *= *(HRADCs_Info.HRADC_boards[1]->gain);
+	temp[1] -= *(HRADCs_Info.HRADC_boards[1].offset);
+	temp[1] *= *(HRADCs_Info.HRADC_boards[1].gain);
 
-	temp2 -= *(HRADCs_Info.HRADC_boards[2]->offset);
-	temp2 *= *(HRADCs_Info.HRADC_boards[2]->gain);
+	temp[2] -= *(HRADCs_Info.HRADC_boards[2].offset);
+	temp[2] *= *(HRADCs_Info.HRADC_boards[2].gain);
 
-	temp3 -= *(HRADCs_Info.HRADC_boards[3]->offset);
-	temp3 *= *(HRADCs_Info.HRADC_boards[3]->gain);*/
+	temp[3] -= *(HRADCs_Info.HRADC_boards[3].offset);
+	temp[3] *= *(HRADCs_Info.HRADC_boards[3].gain);
 
-	DP_Framework.NetSignals[0] = temp0;
-	DP_Framework.NetSignals[1] = temp1;
-	DP_Framework.NetSignals[2] = temp2;
-	DP_Framework.NetSignals[3] = temp3;
+	DP_Framework.NetSignals[0] = temp[0];
+	DP_Framework.NetSignals[1] = temp[1];
+	DP_Framework.NetSignals[2] = temp[2];
+	DP_Framework.NetSignals[3] = temp[3];
 
 	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[IPC_MtoC_Msg.HRADCConfig.ID]);
-	/*WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp1);
-	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp2);
-	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, temp3);*/
 
 	for(i = 0; i < PWM_Modules.N_modules; i++)
 	{

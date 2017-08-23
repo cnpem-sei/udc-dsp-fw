@@ -289,6 +289,37 @@ interrupt void isr_IPC_Channel_1(void)
 			break;
 		}
 
+		case HRADC_UFM_READ:  // IPC1 + IPC22
+        {
+            Read_HRADC_UFM(IPC_MtoC_Msg.HRADCConfig.ID, IPC_MtoC_Msg.HRADCConfig.UFMAdd, 1, &HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID].UFMData);
+            CtoMIpcRegs.MTOCIPCACK.all = HRADC_UFM_READ;
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
+
+		case HRADC_UFM_WRITE:  // IPC1 + IPC23
+        {
+            CtoMIpcRegs.MTOCIPCACK.all = HRADC_UFM_WRITE;
+            Write_HRADC_UFM(IPC_MtoC_Msg.HRADCConfig.ID, IPC_MtoC_Msg.HRADCConfig.UFMAdd, IPC_MtoC_Msg.HRADCConfig.UFMData);
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
+
+		case HRADC_UFM_ERASE:  // IPC1 + IPC24
+        {
+            CtoMIpcRegs.MTOCIPCACK.all = HRADC_UFM_ERASE;
+            Erase_HRADC_UFM(IPC_MtoC_Msg.HRADCConfig.ID);
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
+
+		case HRADC_BOARDDATA:  // IPC1 + IPC25
+        {
+            CtoMIpcRegs.MTOCIPCACK.all = HRADC_BOARDDATA;
+            Read_HRADC_BoardData(&HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID]);
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
 		case HRADC_SELECT_BOARD: //IPC1 +IPC26
 		{
 			CtoMIpcRegs.MTOCIPCACK.all = HRADC_SELECT_BOARD;
