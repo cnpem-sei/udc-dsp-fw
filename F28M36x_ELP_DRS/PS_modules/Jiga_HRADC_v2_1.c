@@ -196,10 +196,10 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 	temp[3] -= *(HRADCs_Info.HRADC_boards[3].offset);
 	temp[3] *= *(HRADCs_Info.HRADC_boards[3].gain);
 
-	DP_Framework.NetSignals[5] = temp[0];
-	DP_Framework.NetSignals[7] = temp[1];
-	DP_Framework.NetSignals[9] = temp[2];
-	DP_Framework.NetSignals[11] = temp[3];
+	DP_Framework.NetSignals[0] = temp[0];
+	DP_Framework.NetSignals[1] = temp[1];
+	DP_Framework.NetSignals[2] = temp[2];
+	DP_Framework.NetSignals[3] = temp[3];
 
 	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[IPC_MtoC_Msg.HRADCConfig.ID]);
 
