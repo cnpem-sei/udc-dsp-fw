@@ -151,6 +151,7 @@ void start_DMA(void)
     // Enable channel 1 and channel 2
     // Disable access to protected registers (EDIS)
     //
+
     EALLOW;
     DmaRegs.CH1.CONTROL.bit.RUN = 1;
     DmaRegs.CH2.CONTROL.bit.RUN = 1;
@@ -168,6 +169,9 @@ void stop_DMA(void)
     // Enable channel 1 and channel 2
     // Disable access to protected registers (EDIS)
     //
+
+    DELAY_US(10);
+
     EALLOW;
     DmaRegs.CH1.CONTROL.bit.HALT = 1;
     DmaRegs.CH2.CONTROL.bit.HALT = 1;

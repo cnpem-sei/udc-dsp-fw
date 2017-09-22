@@ -356,11 +356,14 @@ void Enable_HRADC_Sampling(void)
 	{
 		return;
 	}
-
 	HRADCs_Info.enable_Sampling = 1;
+
+	//stop_DMA();
+	//DELAY_US(5);
 	start_DMA();
 	//EnablePWMOutputs();
 	EnablePWM_TBCLK();
+
 }
 
 void Disable_HRADC_Sampling(void)
@@ -369,7 +372,7 @@ void Disable_HRADC_Sampling(void)
 	{
 		//DisablePWMOutputs();
 		DisablePWM_TBCLK();
-		DELAY_US(2);
+		DELAY_US(10);
 		stop_DMA();
 		HRADCs_Info.enable_Sampling = 0;
 	}

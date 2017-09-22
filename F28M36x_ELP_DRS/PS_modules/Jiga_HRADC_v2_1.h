@@ -19,28 +19,28 @@
 #define TRANSDUCER_0_OUTPUT_RATED		10.0				//   In_rated 	= +/- 10 A
 #define TRANSDUCER_0_OUTPUT_TYPE		Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_0_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
-#define HRADC_0_R_BURDEN				0.1					// Resistor Burden = 0.1 R
+#define HRADC_0_R_BURDEN				20.0					// Resistor Burden = 0.1 R
 															// This value makes Vin and Iin gain equal
 
 #define TRANSDUCER_1_INPUT_RATED		10.0				//
 #define TRANSDUCER_1_OUTPUT_RATED		10.0				//   In_rated 	= +/- 10 A
 #define TRANSDUCER_1_OUTPUT_TYPE		Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_1_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
-#define HRADC_1_R_BURDEN				0.1					// Resistor Burden = 0.1 R
+#define HRADC_1_R_BURDEN				20.0					// Resistor Burden = 0.1 R
 															// This value makes Vin and Iin gain equal
 
 #define TRANSDUCER_2_INPUT_RATED		10.0				//
 #define TRANSDUCER_2_OUTPUT_RATED		10.0				//   In_rated 	= +/- 10 A
 #define TRANSDUCER_2_OUTPUT_TYPE		Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_2_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
-#define HRADC_2_R_BURDEN				0.1					// Resistor Burden = 0.1 R
+#define HRADC_2_R_BURDEN				20.0                // Resistor Burden = 0.1 R
 															// This value makes Vin and Iin gain equal
 
 #define TRANSDUCER_3_INPUT_RATED		10.0				//
 #define TRANSDUCER_3_OUTPUT_RATED		10.0				//   In_rated 	= +/- 10 A
 #define TRANSDUCER_3_OUTPUT_TYPE		Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_3_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
-#define HRADC_3_R_BURDEN				0.1					// Resistor Burden = 0.1 R
+#define HRADC_3_R_BURDEN				20.0				// Resistor Burden = 0.1 R
 															// This value makes Vin and Iin gain equal
 
 

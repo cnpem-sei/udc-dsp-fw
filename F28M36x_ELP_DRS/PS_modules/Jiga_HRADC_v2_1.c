@@ -165,24 +165,31 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 	temp[2] = 0.0;
 	temp[3] = 0.0;*/
 
-	CLEAR_DEBUG_GPIO1;
-
-	while(!McbspaRegs.SPCR1.bit.RRDY){}
-
-	SET_DEBUG_GPIO1;
 	//CLEAR_DEBUG_GPIO1;
 
-	for(i = 0; i < HRADCs_Info.n_HRADC_boards; i++)
+	//while(!McbspaRegs.SPCR1.bit.RRDY){}
+	//DELAY_US(3.1);
+
+	//SET_DEBUG_GPIO1;
+	CLEAR_DEBUG_GPIO1;
+
+	/*for(i = 0; i < HRADCs_Info.n_HRADC_boards; i++)
 	{
 		temp[i] = (float) *(HRADCs_Info.HRADC_boards[i].SamplesBuffer++);
-	}
+	}*/
 
-	//SET_DEBUG_GPIO1
+	temp[0] = (float) *(HRADCs_Info.HRADC_boards[0].SamplesBuffer);
+	temp[1] = (float) *(HRADCs_Info.HRADC_boards[1].SamplesBuffer);
+	temp[2] = (float) *(HRADCs_Info.HRADC_boards[2].SamplesBuffer);
+	temp[3] = (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer);
 
-	HRADCs_Info.HRADC_boards[0].SamplesBuffer = buffers_HRADC.buffer_0;
+
+	SET_DEBUG_GPIO1;
+
+	/*HRADCs_Info.HRADC_boards[0].SamplesBuffer = buffers_HRADC.buffer_0;
 	HRADCs_Info.HRADC_boards[1].SamplesBuffer = buffers_HRADC.buffer_1;
 	HRADCs_Info.HRADC_boards[2].SamplesBuffer = buffers_HRADC.buffer_2;
-	HRADCs_Info.HRADC_boards[3].SamplesBuffer = buffers_HRADC.buffer_3;
+	HRADCs_Info.HRADC_boards[3].SamplesBuffer = buffers_HRADC.buffer_3;*/
 
 	temp[0] -= *(HRADCs_Info.HRADC_boards[0].offset);
 	temp[0] *= *(HRADCs_Info.HRADC_boards[0].gain);
@@ -203,10 +210,14 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 
 	WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DP_Framework.NetSignals[IPC_MtoC_Msg.HRADCConfig.ID]);
 
-	for(i = 0; i < PWM_Modules.N_modules; i++)
+	/*for(i = 0; i < PWM_Modules.N_modules; i++)
 	{
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
-	}
+	}*/
+	PWM_Modules.PWM_Regs[0]->ETCLR.bit.INT = 1;
+	PWM_Modules.PWM_Regs[1]->ETCLR.bit.INT = 1;
+	PWM_Modules.PWM_Regs[2]->ETCLR.bit.INT = 1;
+	PWM_Modules.PWM_Regs[3]->ETCLR.bit.INT = 1;
 
 	CLEAR_DEBUG_GPIO1;
 
