@@ -95,8 +95,8 @@ void main(void)
 		EPwm9Regs.TZCLR.bit.OST = 1;
 		EPwm11Regs.TZCLR.bit.OST = 1;
 
-		// Set 50% duty cycle
-		SetPWMDutyCycle_ChA(&EPwm9Regs, 0.5);
+		// Set 10% duty cycle
+		SetPWMDutyCycle_ChA(&EPwm9Regs, 0.01);
 		SetPWMDutyCycle_ChA(&EPwm11Regs, 0.5);
 
 		EDIS;

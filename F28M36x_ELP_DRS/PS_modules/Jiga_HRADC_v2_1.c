@@ -191,17 +191,20 @@ interrupt void isr_ePWM_CTR_ZERO(void)
 	HRADCs_Info.HRADC_boards[2].SamplesBuffer = buffers_HRADC.buffer_2;
 	HRADCs_Info.HRADC_boards[3].SamplesBuffer = buffers_HRADC.buffer_3;*/
 
-	temp[0] -= *(HRADCs_Info.HRADC_boards[0].offset);
-	temp[0] *= *(HRADCs_Info.HRADC_boards[0].gain);
+	if(IPC_CtoM_Msg.PSModule.OpMode == SlowRef)
+	{
+	    temp[0] -= *(HRADCs_Info.HRADC_boards[0].offset);
+        temp[0] *= *(HRADCs_Info.HRADC_boards[0].gain);
 
-	temp[1] -= *(HRADCs_Info.HRADC_boards[1].offset);
-	temp[1] *= *(HRADCs_Info.HRADC_boards[1].gain);
+        temp[1] -= *(HRADCs_Info.HRADC_boards[1].offset);
+        temp[1] *= *(HRADCs_Info.HRADC_boards[1].gain);
 
-	temp[2] -= *(HRADCs_Info.HRADC_boards[2].offset);
-	temp[2] *= *(HRADCs_Info.HRADC_boards[2].gain);
+        temp[2] -= *(HRADCs_Info.HRADC_boards[2].offset);
+        temp[2] *= *(HRADCs_Info.HRADC_boards[2].gain);
 
-	temp[3] -= *(HRADCs_Info.HRADC_boards[3].offset);
-	temp[3] *= *(HRADCs_Info.HRADC_boards[3].gain);
+        temp[3] -= *(HRADCs_Info.HRADC_boards[3].offset);
+        temp[3] *= *(HRADCs_Info.HRADC_boards[3].gain);
+	}
 
 	DP_Framework.NetSignals[0] = temp[0];
 	DP_Framework.NetSignals[1] = temp[1];
