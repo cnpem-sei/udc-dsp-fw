@@ -20,7 +20,7 @@
 //
 // 	Prototype statements for functions found within this file
 //
-void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden);
+void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain);
 void Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType AnalogInput, Uint16 enHeater, Uint16 enRails);
 Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType AnalogInput, Uint16 enHeater, Uint16 enRails);
 
@@ -33,9 +33,12 @@ void Disable_HRADC_Sampling(void);
 
 void Config_HRADC_Sampling_OpMode(Uint16 ID);
 void Config_HRADC_UFM_OpMode(Uint16 ID);
+
 void Erase_HRADC_UFM(Uint16 ID);
 void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint16 *ufm_buffer);
 void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data);
+
+void Read_HRADC_BoardData(HRADC_struct *hradcPtr);
 
 /**********************************************************************************************/
 //
@@ -44,16 +47,17 @@ void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data);
 //	Place them in shared memory RAMS1
 //
 #pragma DATA_SECTION(HRADCs_Info, "SHARERAMS1_1")
-#pragma DATA_SECTION(HRADC0_board, "SHARERAMS1_1")
+/*#pragma DATA_SECTION(HRADC0_board, "SHARERAMS1_1")
 #pragma DATA_SECTION(HRADC1_board, "SHARERAMS1_1")
 #pragma DATA_SECTION(HRADC2_board, "SHARERAMS1_1")
-#pragma DATA_SECTION(HRADC3_board, "SHARERAMS1_1")
+#pragma DATA_SECTION(HRADC3_board, "SHARERAMS1_1")*/
 
 volatile HRADCs_struct HRADCs_Info;
-volatile HRADC_struct  HRADC0_board;
+/*volatile HRADC_struct  HRADC0_board;
 volatile HRADC_struct  HRADC1_board;
 volatile HRADC_struct  HRADC2_board;
-volatile HRADC_struct  HRADC3_board;
+volatile HRADC_struct  HRADC3_board;*/
+
 
 volatile Uint32 counterErrorSendCommand;
 volatile float AverageFilter;
@@ -65,7 +69,7 @@ volatile Uint32 HRADC_BoardSelector[4] = GPE_PORT_BITS_HRADC_CS;
 //	Initialize information of selected HRADC board
 //
 
-void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain, float rburden)
+void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain )
 {
 	hradcPtr->ID = ID;
 	hradcPtr->index_SamplesBuffer = 0;
@@ -79,26 +83,20 @@ void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_s
 
 	hradcPtr->SamplesBuffer = buffer;
 
-	hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
-	hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
+	Config_HRADC_UFM_OpMode(ID);
 
-	hradcPtr->CalibrationInfo.gain_Vin_bipolar = 		transducer_gain * HRADC_VIN_BI_P_GAIN;
-	hradcPtr->CalibrationInfo.offset_Vin_bipolar = 		HRADC_BI_OFFSET;
+	Read_HRADC_BoardData(hradcPtr);
 
-	hradcPtr->CalibrationInfo.gain_Vin_unipolar_p = 	0.0;
-	hradcPtr->CalibrationInfo.offset_Vin_unipolar_p =	0.0;
+	Config_HRADC_Sampling_OpMode(ID);
 
-	hradcPtr->CalibrationInfo.gain_Vin_unipolar_n =		0.0;
-	hradcPtr->CalibrationInfo.offset_Vin_unipolar_n =	0.0;
+	hradcPtr->BoardData.t.gain_Vin_bipolar *= 		transducer_gain * HRADC_VIN_BI_P_GAIN;
+	hradcPtr->BoardData.t.offset_Vin_bipolar -= 	hradcPtr->BoardData.t.gain_Vin_bipolar*HRADC_BI_OFFSET;
 
-	hradcPtr->CalibrationInfo.gain_Iin_bipolar = 		transducer_gain * (1.0/(rburden * 131072.0));
-	hradcPtr->CalibrationInfo.offset_Iin_bipolar =		HRADC_BI_OFFSET;
+	hradcPtr->BoardData.t.gain_Iin_bipolar *= 		transducer_gain * (1.0/(hradcPtr->BoardData.t.Rburden * HRADC_BI_OFFSET));
+	hradcPtr->BoardData.t.offset_Iin_bipolar -=		hradcPtr->BoardData.t.gain_Iin_bipolar*HRADC_BI_OFFSET;
 
-	hradcPtr->CalibrationInfo.gain_Iin_unipolar_p = 	0.0;
-	hradcPtr->CalibrationInfo.offset_Iin_unipolar_p =	0.0;
-
-	hradcPtr->CalibrationInfo.gain_Iin_unipolar_n = 	0.0;
-	hradcPtr->CalibrationInfo.offset_Iin_unipolar_n =	0.0;
+    hradcPtr->gain = hradcPtr->BoardData.t.gain_Vin_bipolar;
+    hradcPtr->offset = hradcPtr->BoardData.t.offset_Vin_bipolar;
 }
 
 /**********************************************************************************************/
@@ -118,44 +116,22 @@ void Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType AnalogInput,
 	{
 		case Vin_bipolar:
 		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
+			hradcPtr->gain = hradcPtr->BoardData.t.gain_Vin_bipolar;
+			hradcPtr->offset = hradcPtr->BoardData.t.offset_Vin_bipolar;
 			break;
 		}
-		case Vin_unipolar_p:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_p;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_p;
-			break;
-		}
-		case Vin_unipolar_n:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_n;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_n;
-			break;
-		}
+
 		case Iin_bipolar:
 		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_bipolar;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_bipolar;
+			hradcPtr->gain = hradcPtr->BoardData.t.gain_Iin_bipolar;
+			hradcPtr->offset = hradcPtr->BoardData.t.offset_Iin_bipolar;
 			break;
 		}
-		case Iin_unipolar_p:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_p;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_p;
-			break;
-		}
-		case Iin_unipolar_n:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_n;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_n;
-			break;
-		}
+
 		default:
 		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
+			hradcPtr->gain = hradcPtr->BoardData.t.gain_Vin_bipolar;
+			hradcPtr->offset = hradcPtr->BoardData.t.offset_Vin_bipolar;
 			break;
 		}
 	}
@@ -190,44 +166,22 @@ Uint16 Try_Config_HRADC_board(volatile HRADC_struct *hradcPtr, eInputType Analog
 	{
 		case Vin_bipolar:
 		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
+			hradcPtr->gain = hradcPtr->BoardData.t.gain_Vin_bipolar;
+			hradcPtr->offset = hradcPtr->BoardData.t.offset_Vin_bipolar;
 			break;
 		}
-		case Vin_unipolar_p:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_p;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_p;
-			break;
-		}
-		case Vin_unipolar_n:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_unipolar_n;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_unipolar_n;
-			break;
-		}
+
 		case Iin_bipolar:
 		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_bipolar;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_bipolar;
+			hradcPtr->gain = hradcPtr->BoardData.t.gain_Iin_bipolar;
+			hradcPtr->offset = hradcPtr->BoardData.t.offset_Iin_bipolar;
 			break;
 		}
-		case Iin_unipolar_p:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_p;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_p;
-			break;
-		}
-		case Iin_unipolar_n:
-		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Iin_unipolar_n;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Iin_unipolar_n;
-			break;
-		}
+
 		default:
 		{
-			hradcPtr->gain = &hradcPtr->CalibrationInfo.gain_Vin_bipolar;
-			hradcPtr->offset = &hradcPtr->CalibrationInfo.offset_Vin_bipolar;
+			hradcPtr->gain = hradcPtr->BoardData.t.gain_Vin_bipolar;
+			hradcPtr->offset = hradcPtr->BoardData.t.offset_Vin_bipolar;
 			break;
 		}
 	}
@@ -306,7 +260,7 @@ void SendCommand_HRADC(volatile HRADC_struct *hradcPtr, Uint16 command)
 	// Store previous HRADC configuration and status
 	auxH = (Uint32) McbspaRegs.DRR2.all << 16;
 	auxL = (Uint32) McbspaRegs.DRR1.all;
-	hradcPtr->Status = auxH + auxL;
+	hradcPtr->StatusReg = auxH + auxL;
 
 	// Clear DMA events triggers flags
 	EALLOW;
@@ -335,7 +289,7 @@ Uint16 CheckStatus_HRADC(volatile HRADC_struct *hradcPtr)
 	}
 
 	SendCommand_HRADC(hradcPtr,CHECK_STATUS);
-	statusAux = (hradcPtr->Status & 0x00000078) >> 3;
+	statusAux = (hradcPtr->StatusReg & 0x00000078) >> 3;
 
 	if(statusAux != hradcPtr->AnalogInput)
 	{
@@ -396,7 +350,7 @@ void Config_HRADC_SoC(float freq)
 		EPwm10Regs.ETSEL.bit.SOCASEL = ET_CTR_ZERO;		// Dispara ADCSOC quando TBCTR = 0x00
 		EPwm10Regs.ETPS.bit.SOCAPRD = ET_1ST;			// Dispara ADCSOC a cada TBCTR = 0x00
 
-		GpioDataRegs.GPBSET.bit.GPIO32 	= 0x1;			// Seta GPIO32 para não disparar o ADC precocemente
+		GpioDataRegs.GPBSET.bit.GPIO32 	= 0x1;			// Seta GPIO32 para nï¿½o disparar o ADC precocemente
 		GpioCtrlRegs.GPBMUX1.bit.GPIO32 = 0x3;			// Set GPIO32 as HRADC_CNVST
     }
 
@@ -409,11 +363,14 @@ void Enable_HRADC_Sampling(void)
 	{
 		return;
 	}
-
 	HRADCs_Info.enable_Sampling = 1;
+
+	//stop_DMA();
+	//DELAY_US(5);
 	start_DMA();
 	//EnablePWMOutputs();
 	EnablePWM_TBCLK();
+
 }
 
 void Disable_HRADC_Sampling(void)
@@ -422,7 +379,7 @@ void Disable_HRADC_Sampling(void)
 	{
 		//DisablePWMOutputs();
 		DisablePWM_TBCLK();
-		DELAY_US(2);
+		DELAY_US(10);
 		stop_DMA();
 		HRADCs_Info.enable_Sampling = 0;
 	}
@@ -430,7 +387,7 @@ void Disable_HRADC_Sampling(void)
 
 void Config_HRADC_Sampling_OpMode(Uint16 ID)
 {
-	static Uint32 auxH, auxL;
+	Uint32 auxH, auxL;
 
 	if(HRADCs_Info.enable_Sampling)
 	{
@@ -459,7 +416,7 @@ void Config_HRADC_Sampling_OpMode(Uint16 ID)
 	// Store previous HRADC configuration and status
 	auxH = (Uint32) McbspaRegs.DRR2.all << 16;
 	auxL = (Uint32) McbspaRegs.DRR1.all;
-	HRADCs_Info.HRADC_boards[ID]->Status = auxH + auxL;
+	HRADCs_Info.HRADC_boards[ID].StatusReg = auxH + auxL;
 
 	// Clear Chip-Select and CONFIG signals
 	HRADC_CONFIG_CLEAR;
@@ -468,12 +425,12 @@ void Config_HRADC_Sampling_OpMode(Uint16 ID)
 
 void Config_HRADC_UFM_OpMode(Uint16 ID)
 {
+	Uint32 auxH, auxL;
+
 	if(HRADCs_Info.enable_Sampling)
 	{
 		return;
 	}
-
-	static Uint32 auxH, auxL;
 
 	// Stop DMA controller to prevent DMA access to McBSP
 	// during configuration
@@ -497,7 +454,7 @@ void Config_HRADC_UFM_OpMode(Uint16 ID)
 	// Store previous HRADC configuration and status
 	auxH = (Uint32) McbspaRegs.DRR2.all << 16;
 	auxL = (Uint32) McbspaRegs.DRR1.all;
-	HRADCs_Info.HRADC_boards[ID]->Status = auxH + auxL;
+	HRADCs_Info.HRADC_boards[ID].StatusReg = auxH + auxL;
 
 	// Clear Chip-Select and CONFIG signals
 	HRADC_CONFIG_CLEAR;
@@ -506,11 +463,52 @@ void Config_HRADC_UFM_OpMode(Uint16 ID)
 	// Configure SPI to UFM access settings
 	Init_SPIMaster_McBSP_HRADC_UFM();
 	InitMcbspa8bit();
+
+	// Transmit UFM opcode for Write Status Register command
+	HRADC_CS_SET(ID);
+	McbspaRegs.DXR1.all = UFM_OPCODE_WRDI;
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+	auxH = McbspaRegs.DRR1.all;
+	HRADC_CS_RESET(ID);
+
+	// Transmit UFM opcode for Write Status Register command
+	McbspaRegs.DXR1.all = UFM_OPCODE_WRSR;
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+	auxH = McbspaRegs.DRR1.all;
+
+	McbspaRegs.DXR1.all = 0x0000;
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+	auxH = McbspaRegs.DRR1.all;
+	HRADC_CS_RESET(ID);
+
+	auxH = 1;
+
+	while(auxH)		// While UFM is busy, write is enable or protection bits activated
+	{
+		// Transmit UFM opcode for Read Status Register command
+		McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
+		while(!McbspaRegs.SPCR1.bit.RRDY){}
+		auxH = McbspaRegs.DRR1.all;
+
+		McbspaRegs.DXR1.all = 0x0000;
+		while(!McbspaRegs.SPCR1.bit.RRDY){}
+		auxH = (McbspaRegs.DRR1.all) & 0x000F;
+
+		McbspaRegs.DXR1.all = 0x0000;
+		while(!McbspaRegs.SPCR1.bit.RRDY){}
+		auxL = McbspaRegs.DRR1.all;
+
+		// Reset Chip-Select signals
+		HRADC_CS_RESET(ID);
+	}
+
+	// Clear Chip-Select signals
+	HRADC_CS_CLEAR;
 }
 
 void Erase_HRADC_UFM(Uint16 ID)
 {
-	if(HRADCs_Info.enable_Sampling)
+if(HRADCs_Info.enable_Sampling)
 	{
 		return;
 	}
@@ -521,7 +519,15 @@ void Erase_HRADC_UFM(Uint16 ID)
 	HRADC_CS_SET(ID);
 
 	// Transmit UFM opcode for UFM-ERASE command
-	McbspaRegs.DXR1.all = UFM_OPCODE_UFM_ERASE;
+	McbspaRegs.DXR1.all = UFM_OPCODE_SECTOR_ERASE;
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+	aux = McbspaRegs.DRR1.all;
+
+	McbspaRegs.DXR1.all = 0x0000;
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+	aux = McbspaRegs.DRR1.all;
+
+	McbspaRegs.DXR1.all = 0x0000;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
 	aux = McbspaRegs.DRR1.all;
 
@@ -549,21 +555,58 @@ void Erase_HRADC_UFM(Uint16 ID)
 		HRADC_CS_RESET(ID);
 	}
 
+	// Transmit UFM opcode for UFM-ERASE command
+	McbspaRegs.DXR1.all = UFM_OPCODE_SECTOR_ERASE;
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+	aux = McbspaRegs.DRR1.all;
+
+	McbspaRegs.DXR1.all = 0x0001;
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+	aux = McbspaRegs.DRR1.all;
+
+	McbspaRegs.DXR1.all = 0x0000;
+	while(!McbspaRegs.SPCR1.bit.RRDY){}
+	aux = McbspaRegs.DRR1.all;
+
+	// Reset and Clear Chip-Select signals
+	HRADC_CS_RESET(ID);
+
+	aux = 1;
+
+	while(aux)
+	{
+		// Transmit UFM opcode for Read Status Register command
+		McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
+		while(!McbspaRegs.SPCR1.bit.RRDY){}
+		aux = McbspaRegs.DRR1.all;
+
+		McbspaRegs.DXR1.all = 0x00;
+		while(!McbspaRegs.SPCR1.bit.RRDY){}
+		aux = (McbspaRegs.DRR1.all) & 0x01;
+
+		McbspaRegs.DXR1.all = 0x00;
+		while(!McbspaRegs.SPCR1.bit.RRDY){}
+		aux2 = McbspaRegs.DRR1.all;
+
+		// Reset and Clear Chip-Select signals
+		HRADC_CS_RESET(ID);
+	}
+
+
 	// Clear Chip-Select signals
 	HRADC_CS_CLEAR;
 }
 
 void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint16 *ufm_buffer)
 {
+	Uint16 dummy, n;
+
 	if(HRADCs_Info.enable_Sampling)
 	{
 		return;
 	}
 
-	static Uint16 auxH, auxL, n;
-
-	auxH = 0;
-	auxL = 0;
+	dummy = 0;
 	n = 0;
 
 	// Set appropriate Chip-Select signals
@@ -572,16 +615,16 @@ void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint
 	// Transmit UFM opcode for READ command
 	McbspaRegs.DXR1.all = UFM_OPCODE_READ;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	dummy = McbspaRegs.DRR1.all;
 
 	// Transmit UFM data address (Extended Mode: Address size = 16 bits)
 	McbspaRegs.DXR1.all = (ufm_address >> 8) & 0x00FF;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	dummy = McbspaRegs.DRR1.all;
 
-	McbspaRegs.DXR1.all = ufm_address & 0x00FF;;
+	McbspaRegs.DXR1.all = ufm_address & 0x00FF;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	dummy = McbspaRegs.DRR1.all;
 
 	// Iterates to receive n_words
 	while(n++ < n_words)
@@ -603,15 +646,15 @@ void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint
 
 void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data)
 {
+	Uint16 status, dummy, n;
+
 	if(HRADCs_Info.enable_Sampling)
 	{
 		return;
 	}
 
-	static Uint16 auxH, auxL, n;
-
-	auxH = 0;
-	auxL = 0;
+	status = 0;
+	dummy = 0;
 	n = 0;
 
 	// Set appropriate Chip-Select signals
@@ -620,27 +663,25 @@ void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data)
 	// Transmit UFM opcode for Write Status Register command
 	McbspaRegs.DXR1.all = UFM_OPCODE_WREN;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
-
-	// Reset Chip-Select signals
+	dummy = McbspaRegs.DRR1.all;
 	HRADC_CS_RESET(ID);
 
-	auxH = 1;
+	status = 1;
 
-	while(auxH)
+	while(status != 0x0002)
 	{
 		// Transmit UFM opcode for Read Status Register command
 		McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
 		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		auxH = McbspaRegs.DRR1.all;
+		status = McbspaRegs.DRR1.all;
 
 		McbspaRegs.DXR1.all = 0x00;
 		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		auxH = (McbspaRegs.DRR1.all) & 0x01;
+		status = (McbspaRegs.DRR1.all) & 0x000F;
 
 		McbspaRegs.DXR1.all = 0x00;
 		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		auxL = McbspaRegs.DRR1.all;
+		dummy = McbspaRegs.DRR1.all;
 
 		// Reset Chip-Select signals
 		HRADC_CS_RESET(ID);
@@ -649,45 +690,45 @@ void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data)
 	// Transmit UFM opcode for WRITE command
 	McbspaRegs.DXR1.all = UFM_OPCODE_WRITE;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	status = McbspaRegs.DRR1.all;
 
 	// Transmit UFM data address (Extended Mode: Address size = 16 bits)
 	McbspaRegs.DXR1.all = (ufm_address >> 8) & 0x00FF;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	status = McbspaRegs.DRR1.all;
 
 	McbspaRegs.DXR1.all = ufm_address & 0x00FF;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	status = McbspaRegs.DRR1.all;
 
 	// Transmit new data
 	McbspaRegs.DXR1.all = (data >> 8) & 0x00FF;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	status = McbspaRegs.DRR1.all;
 
 	McbspaRegs.DXR1.all = data & 0x00FF;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	status = McbspaRegs.DRR1.all;
 
 	// Reset Chip-Select signals
 	HRADC_CS_RESET(ID);
 
-	auxH = 1;
+	status = 1;
 
-	while(auxH)
+	while(status)
 	{
 		// Transmit UFM opcode for Read Status Register command
 		McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
 		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		auxH = McbspaRegs.DRR1.all;
+		status = McbspaRegs.DRR1.all;
 
 		McbspaRegs.DXR1.all = 0x00;
 		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		auxH = (McbspaRegs.DRR1.all) & 0x01;
+		status = (McbspaRegs.DRR1.all) & 0x0001;
 
 		McbspaRegs.DXR1.all = 0x00;
 		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		auxL = McbspaRegs.DRR1.all;
+		dummy = McbspaRegs.DRR1.all;
 
 		// Reset Chip-Select signals
 		HRADC_CS_RESET(ID);
@@ -695,4 +736,9 @@ void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data)
 
 	// Clear Chip-Select signals
 	HRADC_CS_CLEAR;
+}
+
+void Read_HRADC_BoardData(HRADC_struct *hradcPtr)
+{
+	Read_HRADC_UFM(hradcPtr->ID, UFM_BOARDDATA_ADDRESS, UFM_BOARDDATA_SIZE, hradcPtr->BoardData.u);
 }

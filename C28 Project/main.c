@@ -10,7 +10,7 @@
  *
  *
  *		TODO:
- *				- Incluir teste da flag do ARM que libera o C28 para inicialização
+ *				- Incluir teste da flag do ARM que libera o C28 para inicializaï¿½ï¿½o
  */
 
 #include <string.h>
@@ -78,7 +78,7 @@ void main(void)
 
 
 	/*
-	 * 	TODO: Antes de realizar esta inicialização, garantir que ARM já fez a sua
+	 * 	TODO: Antes de realizar esta inicializaï¿½ï¿½o, garantir que ARM jï¿½ fez a sua
 	 */
 
 	if(UDC_V2_1)
@@ -197,7 +197,7 @@ void main(void)
 
 			case FBPx4_100kHz:
 			{
-				main_FBPx4_100kHz();
+				//main_FBPx4_100kHz();
 				break;
 			}
 

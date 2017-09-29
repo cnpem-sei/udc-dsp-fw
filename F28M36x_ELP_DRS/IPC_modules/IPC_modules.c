@@ -11,9 +11,9 @@
  *
  *		TODO:
  *				- ReadDPModule
- *				- ConfigDPModules só executa caso a fonte esteja desligada?
+ *				- ConfigDPModules sï¿½ executa caso a fonte esteja desligada?
  *				- Ajustar WfmSync
- *				- Incluir flag no IPC_MtoC_Msg para ARM avisar C28 quando está pronto
+ *				- Incluir flag no IPC_MtoC_Msg para ARM avisar C28 quando estï¿½ pronto
  */
 
 #include "IPC_modules.h"
@@ -292,6 +292,98 @@ interrupt void isr_IPC_Channel_1(void)
 			break;
 		}
 
+		case HRADC_UFM_READ:  // IPC1 + IPC22
+        {
+            Read_HRADC_UFM(IPC_MtoC_Msg.HRADCConfig.ID, IPC_MtoC_Msg.HRADCConfig.UFMAdd, 1, &HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID].UFMData);
+            CtoMIpcRegs.MTOCIPCACK.all = HRADC_UFM_READ;
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
+
+		case HRADC_UFM_WRITE:  // IPC1 + IPC23
+        {
+            CtoMIpcRegs.MTOCIPCACK.all = HRADC_UFM_WRITE;
+            Write_HRADC_UFM(IPC_MtoC_Msg.HRADCConfig.ID, IPC_MtoC_Msg.HRADCConfig.UFMAdd, IPC_MtoC_Msg.HRADCConfig.UFMData);
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
+
+		case HRADC_UFM_ERASE:  // IPC1 + IPC24
+        {
+            CtoMIpcRegs.MTOCIPCACK.all = HRADC_UFM_ERASE;
+            Erase_HRADC_UFM(IPC_MtoC_Msg.HRADCConfig.ID);
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
+
+		case HRADC_BOARDDATA:  // IPC1 + IPC25
+        {
+            CtoMIpcRegs.MTOCIPCACK.all = HRADC_BOARDDATA;
+            Read_HRADC_BoardData(&HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID]);
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
+		case HRADC_SELECT_BOARD: //IPC1 +IPC26
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = HRADC_SELECT_BOARD;
+
+			// Selects HRADC0 as default, then turns on respective relays
+			GpioG1DataRegs.GPACLEAR.all = 0x0000CAEA;
+
+			switch(IPC_MtoC_Msg.HRADCConfig.ID)
+			{
+				case 1:
+					GpioG1DataRegs.GPASET.all = 0x0000400A;
+					break;
+				case 2:
+					GpioG1DataRegs.GPASET.all = 0x000080A0;
+					break;
+				case 3:
+					GpioG1DataRegs.GPASET.all = 0x0000CAEA;
+					break;
+				default:
+					IPC_CtoM_Msg.PSModule.ErrorMtoC = HRADC_CONFIG_ERROR;
+					SendIpcFlag(MTOC_MESSAGE_ERROR);
+					break;
+			}
+
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
+		case HRADC_TEST_SOURCE: //IPC1 +IPC27
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = HRADC_TEST_SOURCE;
+
+			// Selects SOURCE = V and DMM = V as default, then turns on respective relays
+
+																// SOURCE_HI_SELECTOR = 0
+			GpioG1DataRegs.GPACLEAR.all = 0x00000015;			// DMM_HI_SELECTOR = 0
+																// SOURCE_LO_SELECTOR = 0
+
+			switch(IPC_MtoC_Msg.HRADCConfig.InputType)
+			{
+				case Iin_bipolar:								//SOURCE_HI_SELECTOR = 1
+					GpioG1DataRegs.GPASET.all = 0x00000015;		//DMM_HI_SELECTOR = 1
+					break;										//SOURCE_LO_SELECTOR = 1
+
+				case GND:
+				case Vref_bipolar_p:
+				case Vref_bipolar_n:
+				case Temp:										// SOURCE_HI_SELECTOR = 0
+					GpioG1DataRegs.GPASET.all = 0x00000004;		// DMM_HI_SELECTOR = 1
+					break;										// SOURCE_LO_SELECTOR = 0
+
+				default:
+					IPC_CtoM_Msg.PSModule.ErrorMtoC = HRADC_CONFIG_ERROR;
+					SendIpcFlag(MTOC_MESSAGE_ERROR);
+					break;
+			}
+
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
 		case HRADC_SAMPLING_DISABLE: //IPC1 +IPC28
 		{
 			CtoMIpcRegs.MTOCIPCACK.all = HRADC_SAMPLING_DISABLE;
@@ -341,7 +433,7 @@ interrupt void isr_IPC_Channel_1(void)
 
 			Config_HRADC_SoC(IPC_MtoC_Msg.HRADCConfig.FreqSampling);
 
-			if(Try_Config_HRADC_board(HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID],
+			if(Try_Config_HRADC_board(&HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID],
 			   IPC_MtoC_Msg.HRADCConfig.InputType,
 			   IPC_MtoC_Msg.HRADCConfig.EnableHeater,
 			   IPC_MtoC_Msg.HRADCConfig.EnableMonitor))
@@ -380,13 +472,13 @@ interrupt void isr_IPC_Channel_2(void)
 	/*
 	 * WfmRef sync via software
 	 *
-	 * 		TODO: Incluir um condicional para esta sincronização via software,
-	 * 			  uma vez que via hardware também força o sincronismo (de maneira
-	 * 			  até mais determinística) e aciona esta ISR, o que resetaria o
-	 * 			  contador do PWM duas vezes consecutivas, levando à possíveis
-	 * 			  glitches nos sinais PWM. A flag PIEIFR não pode ser usada, pois
+	 * 		TODO: Incluir um condicional para esta sincronizaï¿½ï¿½o via software,
+	 * 			  uma vez que via hardware tambï¿½m forï¿½a o sincronismo (de maneira
+	 * 			  atï¿½ mais determinï¿½stica) e aciona esta ISR, o que resetaria o
+	 * 			  contador do PWM duas vezes consecutivas, levando ï¿½ possï¿½veis
+	 * 			  glitches nos sinais PWM. A flag PIEIFR nï¿½o pode ser usada, pois
 	 * 			  a CPU reseta ela assim que entra nesta ISR. Talvez usar o contador
-	 * 			  XIntruptRegs.XINT2CTR. Verificar se também precisa condicionar o
+	 * 			  XIntruptRegs.XINT2CTR. Verificar se tambï¿½m precisa condicionar o
 	 * 			  ACK dos grupos INT1 (XINT2) e INT11 (MTOCIPCINT2).
 	 */
 

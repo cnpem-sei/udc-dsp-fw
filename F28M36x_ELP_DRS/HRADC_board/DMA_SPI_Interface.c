@@ -8,7 +8,7 @@ void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers, Uint16 spiCl
 void start_DMA(void);
 void stop_DMA(void);
 
-#pragma DATA_SECTION(buffers_HRADC, "SHARERAMS1_1")
+//#pragma DATA_SECTION(buffers_HRADC, "SHARERAMS1_1")
 
 volatile Uint16 DMATransferSize[5][4] = { {1, 15, 45, 60},
 										  {1, 15, 45, 60},
@@ -40,7 +40,7 @@ void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers, Uint16 spiCl
   //
   // Transfer two 16-bit words per burst
   // Increment the source by 1 between words
-  // Decrement the destination by 1 between words - começa no MSB e decrementa um para o LSB;
+  // Decrement the destination by 1 between words - comeï¿½a no MSB e decrementa um para o LSB;
   //
   DmaRegs.CH2.BURST_SIZE.all = 1;
   DmaRegs.CH2.SRC_BURST_STEP = 1;
@@ -151,6 +151,7 @@ void start_DMA(void)
     // Enable channel 1 and channel 2
     // Disable access to protected registers (EDIS)
     //
+
     EALLOW;
     DmaRegs.CH1.CONTROL.bit.RUN = 1;
     DmaRegs.CH2.CONTROL.bit.RUN = 1;
@@ -168,6 +169,9 @@ void stop_DMA(void)
     // Enable channel 1 and channel 2
     // Disable access to protected registers (EDIS)
     //
+
+    DELAY_US(10);
+
     EALLOW;
     DmaRegs.CH1.CONTROL.bit.HALT = 1;
     DmaRegs.CH2.CONTROL.bit.HALT = 1;

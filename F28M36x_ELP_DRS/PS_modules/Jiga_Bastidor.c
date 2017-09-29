@@ -15,7 +15,7 @@
  * 							- Feedback filtered with oversampled moving
  * 							  average filter
  *
- *		TODO: Não executar PS_TurnOn e PS_TurnOff se fonte já estiver ligada/desligada
+ *		TODO: Nï¿½o executar PS_TurnOn e PS_TurnOff se fonte jï¿½ estiver ligada/desligada
  */
 
 #include "F28M36x_ELP_DRS.h"
@@ -330,20 +330,20 @@ static void InitPeripheralsDrivers(void)
     Init_SPIMaster_Gpio();
     InitMcbspa20bit();
 
-    HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
+    /*HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
 	HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
 	HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
-	HRADCs_Info.HRADC_boards[3] = &HRADC3_board;
+	HRADCs_Info.HRADC_boards[3] = &HRADC3_board;*/
 
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
-	Init_HRADC_Info(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
+	Init_HRADC_Info(&HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN);
+	Init_HRADC_Info(&HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN);
+	Init_HRADC_Info(&HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN);
+	Init_HRADC_Info(&HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_3_GAIN);
 
-	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-	Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-	Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-	Config_HRADC_board(HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+	Config_HRADC_board(&HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+	Config_HRADC_board(&HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+	Config_HRADC_board(&HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
+	Config_HRADC_board(&HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
 
@@ -717,22 +717,22 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	SET_DEBUG_GPIO1;
 
-	temp0 = (float) *(HRADCs_Info.HRADC_boards[0]->SamplesBuffer);
-	temp1 = (float) *(HRADCs_Info.HRADC_boards[1]->SamplesBuffer);
-	temp2 = (float) *(HRADCs_Info.HRADC_boards[2]->SamplesBuffer);
-	temp3 = (float) *(HRADCs_Info.HRADC_boards[3]->SamplesBuffer);
+	temp0 = (float) *(HRADCs_Info.HRADC_boards[0].SamplesBuffer);
+	temp1 = (float) *(HRADCs_Info.HRADC_boards[1].SamplesBuffer);
+	temp2 = (float) *(HRADCs_Info.HRADC_boards[2].SamplesBuffer);
+	temp3 = (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer);
 
-	temp0 -= *(HRADCs_Info.HRADC_boards[0]->offset);
-	temp0 *= *(HRADCs_Info.HRADC_boards[0]->gain);
+	temp0 *= HRADCs_Info.HRADC_boards[0].gain;
+	temp0 += HRADCs_Info.HRADC_boards[0].offset;
 
-	temp1 -= *(HRADCs_Info.HRADC_boards[1]->offset);
-	temp1 *= *(HRADCs_Info.HRADC_boards[1]->gain);
+	temp1 *= HRADCs_Info.HRADC_boards[1].gain;
+	temp1 += HRADCs_Info.HRADC_boards[1].offset;
 
-	temp2 -= *(HRADCs_Info.HRADC_boards[2]->offset);
-	temp2 *= *(HRADCs_Info.HRADC_boards[2]->gain);
+    temp2 *= HRADCs_Info.HRADC_boards[2].gain;
+    temp2 += HRADCs_Info.HRADC_boards[2].offset;
 
-	temp3 -= *(HRADCs_Info.HRADC_boards[3]->offset);
-	temp3 *= *(HRADCs_Info.HRADC_boards[3]->gain);
+    temp3 *= HRADCs_Info.HRADC_boards[3].gain;
+    temp3 += HRADCs_Info.HRADC_boards[3].offset;
 
 	PS1_LOAD_CURRENT = temp0;
 	PS2_LOAD_CURRENT = temp1;
