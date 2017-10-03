@@ -60,6 +60,7 @@
 #define TRANSDUCER_3_GAIN				(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
 #define HRADC_3_R_BURDEN				20.0			// Resistor Burden = 20 R
 
+#define TRANSDUCER_GAIN                 TRANSDUCER_0_GAIN
 /*
  * DP modules mnemonics
  */

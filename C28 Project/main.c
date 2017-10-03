@@ -81,6 +81,90 @@ void main(void)
 	 * 	TODO: Antes de realizar esta inicializa��o, garantir que ARM j� fez a sua
 	 */
 
+    /* Initialization of GPIOs */
+
+    EALLOW;
+
+    GpioCtrlRegs.GPCMUX1.bit.GPIO67 = 0;
+    GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;       // GPDO1: PS3_OUTPUT_CTRL (FBP v4.0)
+    GpioCtrlRegs.GPCDIR.bit.GPIO67 = 1;
+
+    GpioCtrlRegs.GPCMUX1.bit.GPIO65 = 0;
+    GpioDataRegs.GPCCLEAR.bit.GPIO65 = 1;       // GPDO2: PS4_OUTPUT_CTRL (FBP v4.0)
+    GpioCtrlRegs.GPCDIR.bit.GPIO65 = 1;
+
+    GpioCtrlRegs.GPCMUX1.bit.GPIO66 = 0;
+    GpioDataRegs.GPCCLEAR.bit.GPIO66 = 1;       // GPDO3: PS2_OUTPUT_CTRL (FBP v4.0)
+    GpioCtrlRegs.GPCDIR.bit.GPIO66 = 1;
+
+    GpioCtrlRegs.GPCMUX1.bit.GPIO64 = 0;
+    GpioDataRegs.GPCCLEAR.bit.GPIO64 = 1;       // GPDO4: PS1_OUTPUT_CTRL (FBP v4.0)
+    GpioCtrlRegs.GPCDIR.bit.GPIO64 = 1;
+
+    GpioCtrlRegs.GPDMUX2.bit.GPIO126 = 0;
+    GpioDataRegs.GPDCLEAR.bit.GPIO126 = 1;      // GPDI1: PIN_STATUS_PS3_DRIVER_ERROR
+    GpioCtrlRegs.GPDDIR.bit.GPIO126 = 0;
+
+    GpioCtrlRegs.GPDMUX2.bit.GPIO127 = 0;
+    GpioDataRegs.GPDCLEAR.bit.GPIO127 = 1;      // GPDI2: PIN_STATUS_PS4_DCLINK_RELAY
+    GpioCtrlRegs.GPDDIR.bit.GPIO127 = 0;
+
+    GpioCtrlRegs.GPDMUX2.bit.GPIO124 = 0;
+    GpioDataRegs.GPDCLEAR.bit.GPIO124 = 1;      // GPDI3: PIN_STATUS_PS4_DRIVER_ERROR
+    GpioCtrlRegs.GPDDIR.bit.GPIO124 = 0;
+
+    GpioCtrlRegs.GPDMUX2.bit.GPIO125 = 0;
+    GpioDataRegs.GPDCLEAR.bit.GPIO125 = 1;      // GPDI4: PIN_STATUS_PS1_DCLINK_RELAY
+    GpioCtrlRegs.GPDDIR.bit.GPIO125 = 0;
+
+    GpioG2CtrlRegs.GPGMUX1.bit.GPIO195 = 0;
+    GpioG2DataRegs.GPGCLEAR.bit.GPIO195 = 1;    // GPDI5: PIN_STATUS_PS1_DRIVER_ERROR
+    GpioG2CtrlRegs.GPGDIR.bit.GPIO195 = 0;
+
+    GpioG2CtrlRegs.GPGMUX1.bit.GPIO192 = 0;
+    GpioG2DataRegs.GPGCLEAR.bit.GPIO192 = 1;    // GPDI8: PIN_STATUS_PS3_DCLINK_RELAY
+    GpioG2CtrlRegs.GPGDIR.bit.GPIO192 = 0;
+
+    GpioCtrlRegs.GPDMUX1.bit.GPIO109 = 0;
+    GpioDataRegs.GPDCLEAR.bit.GPIO109 = 1;      // GPDI9: PIN_STATUS_PS2_DRIVER_ERROR
+    GpioCtrlRegs.GPDDIR.bit.GPIO109 = 0;
+
+    GpioCtrlRegs.GPDMUX2.bit.GPIO113 = 0;
+    GpioDataRegs.GPDCLEAR.bit.GPIO113 = 1;      // GPDI11: PIN_STATUS_PS2_DCLINK_RELAY
+    GpioCtrlRegs.GPDDIR.bit.GPIO113 = 0;
+
+    GpioG2CtrlRegs.GPGMUX1.bit.GPIO197 = 0;
+    GpioG2DataRegs.GPGCLEAR.bit.GPIO197 = 1;    // GPDI13: PIN_STATUS_PS3_FUSE
+    GpioG2CtrlRegs.GPGDIR.bit.GPIO197 = 0;
+
+    GpioG2CtrlRegs.GPGMUX1.bit.GPIO196 = 0;
+    GpioG2DataRegs.GPGCLEAR.bit.GPIO196 = 1;    // GPDI14: PIN_STATUS_PS1_FUSE
+    GpioG2CtrlRegs.GPGDIR.bit.GPIO196 = 0;
+
+    GpioG2CtrlRegs.GPGMUX1.bit.GPIO198 = 0;
+    GpioG2DataRegs.GPGCLEAR.bit.GPIO198 = 1;    // GPDI15: PIN_STATUS_PS2_FUSE
+    GpioG2CtrlRegs.GPGDIR.bit.GPIO198 = 0;
+
+    GpioG2CtrlRegs.GPGMUX1.bit.GPIO199 = 0;
+    GpioG2DataRegs.GPGCLEAR.bit.GPIO199 = 1;    // GPDI16: PIN_STATUS_PS4_FUSE
+    GpioG2CtrlRegs.GPGDIR.bit.GPIO199 = 0;
+
+    INIT_DEBUG_GPIO1;
+
+    EDIS;
+
+    InitEPwm1Gpio();
+    InitEPwm2Gpio();
+    InitEPwm3Gpio();
+    InitEPwm4Gpio();
+    InitEPwm5Gpio();
+    InitEPwm6Gpio();
+    InitEPwm7Gpio();
+    InitEPwm8Gpio();
+
+
+    /* Initialization of buzzer */
+
 	if(UDC_V2_1)
 	{
 		PWM_Modules.N_modules = 8;
