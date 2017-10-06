@@ -27,8 +27,8 @@
 #define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate máximo do offset do gerador senoidal (A/s)
 #define MAX_SR_SIGGEN_AMP		100.0		// Slew-rate máximo da amplitude do gerador senoidal (A/s)
 
-#define KP						5.7			//1.9			//2.8
-#define KI						117.0		// 559.0		//470.0
+#define KP						3.56        //5.7			//1.9			//2.8
+#define KI						73.304      //117.0		// 559.0		//470.0
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)

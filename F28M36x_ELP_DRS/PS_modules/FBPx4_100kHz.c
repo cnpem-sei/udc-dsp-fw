@@ -500,11 +500,11 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 		switch(IPC_CtoM_Msg.PSModule.OpMode)
 		{
 			case SlowRef:
-				DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
+				/*DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
 				DP_Framework.NetSignals[1] = DP_Framework.NetSignals[0];
 				DP_Framework.NetSignals[2] = DP_Framework.NetSignals[0];
 				DP_Framework.NetSignals[3] = DP_Framework.NetSignals[0];
-				DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];
+				DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];*/
 
 				break;
 
