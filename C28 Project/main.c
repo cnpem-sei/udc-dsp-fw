@@ -10,7 +10,7 @@
  *
  *
  *		TODO:
- *				- Incluir teste da flag do ARM que libera o C28 para inicialização
+ *				- Incluir teste da flag do ARM que libera o C28 para inicializaï¿½ï¿½o
  */
 
 #include <string.h>
@@ -76,7 +76,7 @@ void main(void)
 
 
 	/*
-	 * 	TODO: Antes de realizar esta inicialização, garantir que ARM já fez a sua
+	 * 	TODO: Antes de realizar esta inicializaï¿½ï¿½o, garantir que ARM jï¿½ fez a sua
 	 */
 
 	if(UDC_V2_1)
@@ -146,13 +146,13 @@ void main(void)
 
 			case FAC_Full_ACDC_10kHz:
 			{
-				main_FAC_Full_ACDC_10kHz();
+				//main_FAC_Full_ACDC_10kHz();
 				break;
 			}
 
 			case FAC_Full_DCDC_20kHz:
 			{
-				main_FAC_Full_DCDC_20kHz();
+				//main_FAC_Full_DCDC_20kHz();
 				break;
 			}
 
@@ -164,7 +164,7 @@ void main(void)
 
 			case FAP_DCDC_20kHz:
 			{
-				main_FAP_DCDC_20kHz();
+				//main_FAP_DCDC_20kHz();
 				break;
 			}
 
@@ -176,7 +176,7 @@ void main(void)
 
 			case TEST_HRADC:
 			{
-				main_Test_HRADC();
+				//main_Test_HRADC();
 				break;
 			}
 
@@ -197,7 +197,7 @@ void main(void)
 
 			case FAP_6U_DCDC_20kHz:
 			{
-				main_FAP_6U_DCDC_20kHz();
+				//main_FAP_6U_DCDC_20kHz();
 			}
 
 			default:

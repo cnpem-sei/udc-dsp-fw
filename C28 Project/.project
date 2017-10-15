@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>C28_V2.0</name>
+	<name>C28_V2.1</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -31,42 +31,41 @@
 			<locationURI>PARENT-1-PROJECT_LOC/.gitignore</locationURI>
 		</link>
 		<link>
-			<name>F28M36x_ELP_DRS</name>
-			<type>2</type>
-			<locationURI>F28M36x_ELP_DRS</locationURI>
-		</link>
-		<link>
 			<name>SFO_TI_Build_V7_FPU.lib</name>
 			<type>1</type>
 			<locationURI>F28M36x_COMMON_PATH/lib/SFO_TI_Build_V7_FPU.lib</locationURI>
 		</link>
 		<link>
-			<name>source</name>
+			<name>ti_libs/common/source</name>
 			<type>2</type>
-			<locationURI>F28M36x_COMMON_PATH/source</locationURI>
+			<locationURI>$%7BCONTROLSUITE%7D/F28M36x_common/source</locationURI>
 		</link>
 		<link>
-			<name>source2</name>
+			<name>ti_libs/headers/source</name>
 			<type>2</type>
-			<locationURI>F28M36x_HEADERS_PATH/source</locationURI>
+			<locationURI>$%7BCONTROLSUITE%7D/F28M36x_headers/source</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>
 		<variable>
+			<name>CONTROLSUITE</name>
+			<value>$%7BPARENT-2-PROJECT_LOC%7D/controlsuite/c28</value>
+		</variable>
+		<variable>
 			<name>F28M36x_COMMON_PATH</name>
-			<value>$%7BPARENT-1-PROJECT_LOC%7D/F28M36x_common</value>
+			<value>$%7BCONTROLSUITE%7D/F28M36x_common</value>
 		</variable>
 		<variable>
 			<name>F28M36x_ELP_DRS</name>
-			<value>$%7BPARENT-1-PROJECT_LOC%7D/F28M36x_ELP_DRS</value>
+			<value>$%7BPROJECT_LOC%7D/elp_libs</value>
 		</variable>
 		<variable>
 			<name>F28M36x_HEADERS_PATH</name>
-			<value>$%7BPARENT-1-PROJECT_LOC%7D/F28M36x_headers</value>
+			<value>$%7BCONTROLSUITE%7D/F28M36x_headers</value>
 		</variable>
 		<variable>
 			<name>FPUfastRTS_PATH</name>
-			<value>$%7BPARENT-1-PROJECT_LOC%7D/FPUfastRTS</value>
+			<value>$%7BCONTROLSUITE%7D/FPUfastRTS/V100</value>
 		</variable>
 	</variableList>
 </projectDescription>

@@ -5,10 +5,11 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.ti.ccstudio.buildDefinitions.C2000.Debug.2056255541" moduleId="org.eclipse.cdt.core.settings" name="FLASH_UDC_V2_0">
 				<externalSettings/>
 				<extensions>
+					<extension id="com.ti.ccstudio.binaryparser.CoffParser" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="com.ti.ccstudio.errorparser.CoffErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="com.ti.ccstudio.errorparser.LinkErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="com.ti.ccstudio.errorparser.AsmErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="com.ti.ccstudio.binaryparser.CoffParser" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -22,11 +23,11 @@
 								<listOptionValue builtIn="false" value="LINKER_COMMAND_FILE=F28M36x_Headers_nonBIOS.cmd"/>
 								<listOptionValue builtIn="false" value="RUNTIME_SUPPORT_LIBRARY=rts2800_fpu32.lib"/>
 								<listOptionValue builtIn="false" value="OUTPUT_TYPE=executable"/>
-								<listOptionValue builtIn="false" value="LINK_ORDER=F28M36x_ELP_DRS/F28M36x_ELP_DRS.c;F28M36x_ELP_DRS/PS_modules/PS_modules.c;"/>
+								<listOptionValue builtIn="false" value="LINK_ORDER=F28M36x_ELP_DRS/F28M36x_ELP_DRS.c;F28M36x_ELP_DRS/PS_modules/PS_modules.c;-lrts2800_fpu32_fast_supplement.lib;-lrts2800_fpu32.lib;"/>
 							</option>
 							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.892957538" name="Compiler version" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION" value="6.2.11" valueType="string"/>
 							<targetPlatform id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.targetPlatformDebug.1500299893" name="Platform" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.targetPlatformDebug"/>
-							<builder buildPath="${BuildDirectory}" id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.builderDebug.1629440695" keepEnvironmentInBuildfile="false" name="GNU Make" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.builderDebug"/>
+							<builder buildPath="${BuildDirectory}" id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.builderDebug.1629440695" keepEnvironmentInBuildfile="false" name="GNU Make" stopOnErr="true" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.builderDebug"/>
 							<tool id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.compilerDebug.1236527532" name="C2000 Compiler" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.compilerDebug">
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.LARGE_MEMORY_MODEL.1028094353" name="Use large memory model (--large_memory_model, -ml)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.LARGE_MEMORY_MODEL" value="true" valueType="boolean"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.UNIFIED_MEMORY.89880435" name="Unified memory (--unified_memory, -mt)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.UNIFIED_MEMORY" value="true" valueType="boolean"/>
@@ -70,13 +71,14 @@
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH.1274894458" name="Add &lt;dir&gt; to library search path (--search_path, -i)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${FPUfastRTS_PATH}/lib&quot;"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DISPLAY_ERROR_NUMBER.549840139" name="Emit diagnostic identifier numbers (--display_error_number)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DISPLAY_ERROR_NUMBER" value="true" valueType="boolean"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DIAG_WRAP.9274905" name="Wrap diagnostic messages (--diag_wrap)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DIAG_WRAP" value="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DIAG_WRAP.off" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.XML_LINK_INFO.797943670" name="Detailed link information data-base into &lt;file&gt; (--xml_link_info, -xml_link_info)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.XML_LINK_INFO" value="&quot;${ProjName}_linkInfo.xml&quot;" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.LIBRARY.1341013134" name="Include library file or command file as input (--library, -l)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.LIBRARY" valueType="libs">
 									<listOptionValue builtIn="false" value="&quot;libc.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${FPUfastRTS_PATH}/V100/lib/rts2800_fpu32_fast_supplement.lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;rts2800_fpu32_fast_supplement.lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;rts2800_fpu32.lib&quot;"/>
 								</option>
 								<inputType id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__CMD_SRCS.939530746" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__CMD_SRCS"/>
@@ -87,7 +89,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="F28M36x_ELP_DRS/PS_modules/Test_BCB_Board.c|F28M36x_ELP_DRS/PS_modules/FBP_100kHz.c|F28M36x_ELP_DRS/PS_modules/FAP_ACDC.c|F28M36x_ELP_DRS/PS_modules/FAC_DCDC_20kHz.c|F28M36x_ELP_DRS/PS_modules/FAP_DCDC_15kHz_225A.c|F28M36x_ELP_DRS/PS_modules/Jiga_HRADC.c|F28M36x_ELP_DRS/PS_modules/FAC_ACDC_10kHz.c|F28M36x_ELP_DRS/PS_modules/Test_HRADC.c|F28M36x_ELP_DRS/PS_modules/FBP_Parallel_100kHz.c|F28M36x_ELP_DRS/DP_framework/TI_DCL|F28M36x_ELP_DRS/DP_framework/RefManager|F28M36x_generic_wshared_C28_FLASH.cmd|F28M36x_ELP_DRS/PWM_modules/PWM_modules_old.c|F28M36x_ELP_DRS/shared_memory|F28M36x_ELP_DRS/Regulators_modules|main_FBP_v2_0_1.c|app|app/PS_modules|app/DP_framework|app/IPC_modules|FLASH|main_v5.c|main_v2.c|main_HRADC_Debug.c|main_v3.c|main_v8.c|main_v7.c|old|main_v6.c|app/shared_memory/main_var.c|main_v4.c|app/shared_memory2|F28M36x_generic_wshared_C28_RAM.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="elp_libs/PS_modules/Test_HRPWM.c|elp_libs/PS_modules/Test_HRADC.c|elp_libs/PS_modules/Test_HRADC_2.c|elp_libs/PS_modules/Test_BCB_Board.c|elp_libs/PS_modules/Jiga_HRADC.c|elp_libs/PS_modules/Jiga_HRADC_v2_1.c|elp_libs/PS_modules/FBP_Parallel_100kHz.c|elp_libs/PS_modules/FBP_100kHz.c|elp_libs/PS_modules/FAP_DCDC_20kHz.c|elp_libs/PS_modules/FAP_DCDC_15kHz_225A.c|elp_libs/PS_modules/FAP_ACDC.c|elp_libs/PS_modules/FAP_6U_DCDC_20kHz.c|elp_libs/PS_modules/FAC_Full_DCDC_20kHz.c|elp_libs/PS_modules/FAC_Full_ACDC_10kHz.c|elp_libs/PS_modules/FAC_DCDC_20kHz.c|elp_libs/PS_modules/FAC_ACDC_10kHz.c|F28M36x_ELP_DRS/DP_framework/RefManager|F28M36x_generic_wshared_C28_FLASH.cmd|F28M36x_ELP_DRS/PWM_modules/PWM_modules_old.c|F28M36x_ELP_DRS/shared_memory|F28M36x_ELP_DRS/Regulators_modules|main_FBP_v2_0_1.c|app|app/PS_modules|app/DP_framework|app/IPC_modules|FLASH|main_v5.c|main_v2.c|main_HRADC_Debug.c|main_v3.c|main_v8.c|main_v7.c|old|main_v6.c|app/shared_memory/main_var.c|main_v4.c|app/shared_memory2|F28M36x_generic_wshared_C28_RAM.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -97,10 +99,11 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.ti.ccstudio.buildDefinitions.C2000.Debug.2056255541.241353577" moduleId="org.eclipse.cdt.core.settings" name="FLASH_UDC_V2_0_HRADC_Debug">
 				<externalSettings/>
 				<extensions>
+					<extension id="com.ti.ccstudio.binaryparser.CoffParser" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="com.ti.ccstudio.errorparser.CoffErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="com.ti.ccstudio.errorparser.LinkErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="com.ti.ccstudio.errorparser.AsmErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="com.ti.ccstudio.binaryparser.CoffParser" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -175,7 +178,7 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="C28_V2.0.com.ti.ccstudio.buildDefinitions.C2000.ProjectType.57887683" name="C2000" projectType="com.ti.ccstudio.buildDefinitions.C2000.ProjectType"/>
+		<project id="C28_V2.1.com.ti.ccstudio.buildDefinitions.C2000.ProjectType.57887683" name="C2000" projectType="com.ti.ccstudio.buildDefinitions.C2000.ProjectType"/>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration"/>
 	<storageModule moduleId="org.eclipse.cdt.core.language.mapping">
@@ -187,6 +190,7 @@
 			<content-type-mapping configuration="" content-type="org.eclipse.cdt.core.cxxSource" language="com.ti.ccstudio.core.TIGPPLanguage"/>
 		</project-mappings>
 	</storageModule>
+	<storageModule moduleId="refreshScope"/>
 	<storageModule moduleId="null.endianPreference"/>
 	<storageModule moduleId="cpuFamily"/>
 </cproject>
