@@ -112,6 +112,8 @@ PDE_DEPS__QUOTED :=
 # Every subdirectory with source files must be described here
 SUBDIRS := \
 . \
+controlsuite_common_source \
+controlsuite_headers_source \
 elp_libs/DP_framework \
 elp_libs/DP_framework/ELP_DCL \
 elp_libs/DP_framework/SigGen \
@@ -122,6 +124,5 @@ elp_libs/HRADC_board \
 elp_libs/IPC_modules \
 elp_libs/PS_modules \
 elp_libs/PWM_modules \
-ti_libs/common/source \
-ti_libs/headers/source \
+elp_libs/cmd \
 

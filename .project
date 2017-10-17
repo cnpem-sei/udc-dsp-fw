@@ -28,17 +28,17 @@
 		<link>
 			<name>.gitignore</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/.gitignore</locationURI>
+			<locationURI>$%7BPROJECT_LOC%7D/.gitignore</locationURI>
 		</link>
 		<link>
-			<name>ti_libs/common/source</name>
+			<name>controlsuite_common_source</name>
 			<type>2</type>
-			<locationURI>$%7BCONTROLSUITE%7D/F28M36x_common/source</locationURI>
+			<locationURI>$%7BF28M36x_COMMON_PATH%7D/source</locationURI>
 		</link>
 		<link>
-			<name>ti_libs/headers/source</name>
+			<name>controlsuite_headers_source</name>
 			<type>2</type>
-			<locationURI>$%7BCONTROLSUITE%7D/F28M36x_headers/source</locationURI>
+			<locationURI>$%7BF28M36x_HEADERS_PATH%7D/source</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>
@@ -61,6 +61,10 @@
 		<variable>
 			<name>FPUfastRTS_PATH</name>
 			<value>$%7BCONTROLSUITE%7D/FPUfastRTS/V100</value>
+		</variable>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-1-TI_PRODUCTS_DIR%7D/lnls-elp</value>
 		</variable>
 	</variableList>
 </projectDescription>

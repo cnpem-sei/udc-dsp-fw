@@ -68,21 +68,18 @@
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.STACK_SIZE.1447605799" name="Set C system stack size (--stack_size, -stack)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.STACK_SIZE" value="0x300" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE.947989827" name="Specify output file name (--output_file, -o)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE" value="&quot;${ProjName}.out&quot;" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.MAP_FILE.549955281" name="Input and output sections listed into &lt;file&gt; (--map_file, -m)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.MAP_FILE" value="&quot;${ProjName}.map&quot;" valueType="string"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH.1274894458" name="Add &lt;dir&gt; to library search path (--search_path, -i)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${FPUfastRTS_PATH}/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${F28M36x_COMMON_PATH}/lib&quot;"/>
-								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH.1274894458" name="Add &lt;dir&gt; to library search path (--search_path, -i)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DISPLAY_ERROR_NUMBER.549840139" name="Emit diagnostic identifier numbers (--display_error_number)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DISPLAY_ERROR_NUMBER" value="true" valueType="boolean"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DIAG_WRAP.9274905" name="Wrap diagnostic messages (--diag_wrap)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DIAG_WRAP" value="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DIAG_WRAP.off" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.XML_LINK_INFO.797943670" name="Detailed link information data-base into &lt;file&gt; (--xml_link_info, -xml_link_info)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.XML_LINK_INFO" value="&quot;${ProjName}_linkInfo.xml&quot;" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.LIBRARY.1341013134" name="Include library file or command file as input (--library, -l)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.LIBRARY" valueType="libs">
-									<listOptionValue builtIn="false" value="&quot;libc.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;rts2800_fpu32_fast_supplement.lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;rts2800_fpu32.lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;SFO_TI_Build_V7_FPU.lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${F28M36x_HEADERS_PATH}/cmd/F28M36x_Headers_nonBIOS.cmd&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${F28M36x_COMMON_PATH}/lib/SFO_TI_Build_V7_FPU.lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${FPUfastRTS_PATH}/lib/rts2800_fpu32_fast_supplement.lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/lib/rts2800_fpu32.lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/lib/libc.a&quot;"/>
 								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.PRIORITY.843759218" name="Search libraries in priority order (--priority, -priority)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.PRIORITY" value="true" valueType="boolean"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__CMD_SRCS.939530746" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__CMD_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__CMD2_SRCS.656785152" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__CMD2_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__GEN_CMDS.760980432" name="Generated Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__GEN_CMDS"/>
@@ -91,7 +88,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="SFO_TI_Build_V7_FPU.lib|elp_libs/PS_modules/Test_HRPWM.c|elp_libs/PS_modules/Test_HRADC.c|elp_libs/PS_modules/Test_HRADC_2.c|elp_libs/PS_modules/Test_BCB_Board.c|elp_libs/PS_modules/Jiga_HRADC.c|elp_libs/PS_modules/Jiga_HRADC_v2_1.c|elp_libs/PS_modules/FBP_Parallel_100kHz.c|elp_libs/PS_modules/FBP_100kHz.c|elp_libs/PS_modules/FAP_DCDC_20kHz.c|elp_libs/PS_modules/FAP_DCDC_15kHz_225A.c|elp_libs/PS_modules/FAP_ACDC.c|elp_libs/PS_modules/FAP_6U_DCDC_20kHz.c|elp_libs/PS_modules/FAC_Full_DCDC_20kHz.c|elp_libs/PS_modules/FAC_Full_ACDC_10kHz.c|elp_libs/PS_modules/FAC_DCDC_20kHz.c|elp_libs/PS_modules/FAC_ACDC_10kHz.c|F28M36x_ELP_DRS/DP_framework/RefManager|F28M36x_generic_wshared_C28_FLASH.cmd|F28M36x_ELP_DRS/PWM_modules/PWM_modules_old.c|F28M36x_ELP_DRS/shared_memory|F28M36x_ELP_DRS/Regulators_modules|main_FBP_v2_0_1.c|app|app/PS_modules|app/DP_framework|app/IPC_modules|FLASH|main_v5.c|main_v2.c|main_HRADC_Debug.c|main_v3.c|main_v8.c|main_v7.c|old|main_v6.c|app/shared_memory/main_var.c|main_v4.c|app/shared_memory2|F28M36x_generic_wshared_C28_RAM.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="elp_libs/PS_modules/Test_HRPWM.c|elp_libs/PS_modules/FAP_6U_DCDC_20kHz.c|elp_libs/PS_modules/Jiga_HRADC_v2_1.c|elp_libs/PS_modules/Test_BCB_Board.c|app/DP_framework|main_v3.c|F28M36x_ELP_DRS/shared_memory|main_v7.c|elp_libs/PS_modules/FAC_Full_DCDC_20kHz.c|FLASH|app/shared_memory2|F28M36x_generic_wshared_C28_FLASH.cmd|app/IPC_modules|F28M36x_ELP_DRS/Regulators_modules|elp_libs/PS_modules/FAP_DCDC_15kHz_225A.c|elp_libs/PS_modules/FAP_DCDC_20kHz.c|old|elp_libs/PS_modules/Jiga_HRADC.c|main_v2.c|main_v6.c|elp_libs/PS_modules/Test_HRADC.c|F28M36x_ELP_DRS/PWM_modules/PWM_modules_old.c|main_FBP_v2_0_1.c|elp_libs/PS_modules/FBP_Parallel_100kHz.c|elp_libs/PS_modules/FAC_ACDC_10kHz.c|app/PS_modules|F28M36x_generic_wshared_C28_RAM.cmd|main_v5.c|elp_libs/PS_modules/FBP_100kHz.c|elp_libs/PS_modules/FAC_DCDC_20kHz.c|app|F28M36x_ELP_DRS/DP_framework/RefManager|elp_libs/PS_modules/FAP_ACDC.c|main_HRADC_Debug.c|elp_libs/PS_modules/Test_HRADC_2.c|elp_libs/PS_modules/FAC_Full_ACDC_10kHz.c|main_v4.c|SFO_TI_Build_V7_FPU.lib|main_v8.c|app/shared_memory/main_var.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

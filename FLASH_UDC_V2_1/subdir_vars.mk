@@ -3,9 +3,6 @@
 ################################################################################
 
 # Add inputs and outputs from these tool invocations to the build variables 
-CMD_SRCS += \
-../F28M36x_Headers_nonBIOS.cmd 
-
 C_SRCS += \
 ../main.c 
 
