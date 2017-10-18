@@ -5,6 +5,8 @@
  * Especificações da fonte
  */
 
+#define USE_ITLK
+
 #define PWM_FREQ	   			50000.0		// Frequencia do sinal PWM gerado [Hz]
 #define PWM_DEAD_TIME			300			// Dead-time dos sinais PWM [ns]
 #define PWM_MAX_DUTY    		0.9         // Maximo ciclo de trabalho para o PWM (em p.u.)

@@ -836,7 +836,10 @@ static void Set_SoftInterlock(Uint32 itlk, Uint16 ps_modules)
 
 static void Set_HardInterlock(Uint32 itlk, Uint16 ps_modules)
 {
-	//PS_turnOff(ps_modules);
+#ifdef USE_ITLK
+    PS_turnOff(ps_modules);
+#endif
+
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= itlk;
 	SendIpcFlag(HARD_INTERLOCK_CTOM);
 }
@@ -845,7 +848,7 @@ static interrupt void isr_SoftInterlock(void)
 {
 	CtoMIpcRegs.MTOCIPCACK.all = SOFT_INTERLOCK_MTOC;
 
-	PS_turnOff(PS_ALL_ID);
+	//PS_turnOff(PS_ALL_ID);
 	IPC_CtoM_Msg.PSModule.SoftInterlocks |= IPC_MtoC_Msg.PSModule.SoftInterlocks;
 
 	PieCtrlRegs.PIEACK.all |= M_INT11;
@@ -855,7 +858,10 @@ static interrupt void isr_HardInterlock(void)
 {
 	CtoMIpcRegs.MTOCIPCACK.all = HARD_INTERLOCK_MTOC;
 
-	//PS_turnOff(PS_ALL_ID);
+#ifdef USE_ITLK
+    PS_turnOff(PS_ALL_ID);
+#endif
+
 	IPC_CtoM_Msg.PSModule.HardInterlocks |= IPC_MtoC_Msg.PSModule.HardInterlocks;
 
 	PieCtrlRegs.PIEACK.all |= M_INT11;
@@ -865,17 +871,22 @@ static void PS_turnOn(Uint16 ps_modules)
 {
 	ResetControllers(ps_modules);
 
-	//if((ps_modules & PS1_ID) && !(IPC_CtoM_Msg.PSModule.HardInterlocks & 0x000000FF))
+#ifdef USE_ITLK
+	if((ps_modules & PS1_ID) && !(IPC_CtoM_Msg.PSModule.HardInterlocks & 0x000000FF))
+#else
 	if(ps_modules & PS1_ID)
+#endif
 	{
 		PIN_CLOSE_PS1_DCLINK_RELAY;
 		DELAY_US(100000);
 
-		/*if(!PIN_STATUS_PS1_DCLINK_RELAY && CHECK_INTERLOCK(PS1_DCLINK_RELAY_FAIL))
+#ifdef USE_ITLK
+		if(!PIN_STATUS_PS1_DCLINK_RELAY && CHECK_INTERLOCK(PS1_DCLINK_RELAY_FAIL))
 		{
 			Set_HardInterlock(PS1_DCLINK_RELAY_FAIL,PS1_ID);
 		}
-		else*/
+		else
+#endif
 		{
 			IPC_CtoM_Msg.PSModule.OpenLoop |= PS1_ID;
 			IPC_CtoM_Msg.PSModule.OnOff |= PS1_ID;
@@ -885,17 +896,22 @@ static void PS_turnOn(Uint16 ps_modules)
 		}
 	}
 
-	//if((ps_modules & PS2_ID) && !(IPC_CtoM_Msg.PSModule.HardInterlocks & 0x0000FF00))
+#ifdef USE_ITLK
+	if((ps_modules & PS2_ID) && !(IPC_CtoM_Msg.PSModule.HardInterlocks & 0x0000FF00))
+#else
 	if(ps_modules & PS2_ID)
+#endif
 	{
 		PIN_CLOSE_PS2_DCLINK_RELAY;
 		DELAY_US(100000);
 
-		/*if(!PIN_STATUS_PS2_DCLINK_RELAY && CHECK_INTERLOCK(PS2_DCLINK_RELAY_FAIL))
+#ifdef USE_ITLK
+		if(!PIN_STATUS_PS2_DCLINK_RELAY && CHECK_INTERLOCK(PS2_DCLINK_RELAY_FAIL))
 		{
 			Set_HardInterlock(PS2_DCLINK_RELAY_FAIL,PS2_ID);
 		}
-		else*/
+		else
+#endif
 		{
 			IPC_CtoM_Msg.PSModule.OpenLoop |= PS2_ID;
 			IPC_CtoM_Msg.PSModule.OnOff |= PS2_ID;
@@ -905,17 +921,22 @@ static void PS_turnOn(Uint16 ps_modules)
 		}
 	}
 
-	//if((ps_modules & PS3_ID) && !(IPC_CtoM_Msg.PSModule.HardInterlocks & 0x00FF0000))
-	if(ps_modules & PS3_ID)
+#ifdef USE_ITLK
+	if((ps_modules & PS3_ID) && !(IPC_CtoM_Msg.PSModule.HardInterlocks & 0x00FF0000))
+#else
+    if(ps_modules & PS3_ID)
+#endif
 	{
 		PIN_CLOSE_PS3_DCLINK_RELAY;
 		DELAY_US(100000);
 
-		/*if(!PIN_STATUS_PS3_DCLINK_RELAY && CHECK_INTERLOCK(PS3_DCLINK_RELAY_FAIL))
+#ifdef USE_ITLK
+		if(!PIN_STATUS_PS3_DCLINK_RELAY && CHECK_INTERLOCK(PS3_DCLINK_RELAY_FAIL))
 		{
 			Set_HardInterlock(PS3_DCLINK_RELAY_FAIL,PS3_ID);
 		}
-		else*/
+		else
+#endif
 		{
 			IPC_CtoM_Msg.PSModule.OpenLoop |= PS3_ID;
 			IPC_CtoM_Msg.PSModule.OnOff |= PS3_ID;
@@ -925,17 +946,22 @@ static void PS_turnOn(Uint16 ps_modules)
 		}
 	}
 
-	//if((ps_modules & PS4_ID) && !(IPC_CtoM_Msg.PSModule.HardInterlocks & 0xFF000000))
-	if(ps_modules & PS4_ID)
+#ifdef USE_ITLK
+	if((ps_modules & PS4_ID) && !(IPC_CtoM_Msg.PSModule.HardInterlocks & 0xFF000000))
+#else
+    if(ps_modules & PS4_ID)
+#endif
 	{
 		PIN_CLOSE_PS4_DCLINK_RELAY;
 		DELAY_US(100000);
 
-		/*if(!PIN_STATUS_PS4_DCLINK_RELAY && CHECK_INTERLOCK(PS4_DCLINK_RELAY_FAIL))
+#ifdef USE_ITLK
+		if(!PIN_STATUS_PS4_DCLINK_RELAY && CHECK_INTERLOCK(PS4_DCLINK_RELAY_FAIL))
 		{
 			Set_HardInterlock(PS4_DCLINK_RELAY_FAIL,PS4_ID);
 		}
-		else*/
+		else
+#endif
 		{
 			IPC_CtoM_Msg.PSModule.OpenLoop |= PS4_ID;
 			IPC_CtoM_Msg.PSModule.OnOff |= PS4_ID;
