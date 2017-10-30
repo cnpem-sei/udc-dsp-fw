@@ -20,9 +20,9 @@
 #define MAX_LOAD				210.0		// Limite de corrente na carga para interlock [A]
 #define MAX_IMOD				130.0		// Limite de corrente nos módulos IGBT para interlock [A]
 
-#define MAX_DCLINK				109.0		// Valor maximo de tensao no DC-Link para interlock [V]
-#define MIN_DCLINK				50.0		// Valor minimo de tensao no DC-Link para interlock e para feed-forward operar [V]
-#define NOM_VDCLINK				100.0		// Valor nominal da tensao de DC-Link [V]
+#define MAX_DCLINK				410.0		// Valor maximo de tensao no DC-Link para interlock [V]
+#define MIN_DCLINK				0.0		// Valor minimo de tensao no DC-Link para interlock e para feed-forward operar [V]
+#define NOM_VDCLINK				400.0		// Valor nominal da tensao de DC-Link [V]
 
 #define MAX_REF_SLEWRATE		5.0		// Slew-rate maximo [A/s]
 #define MAX_SR_SIGGEN_OFFSET	5.0		// Slew-rate maximo do offset do gerador senoidal [A/s]
@@ -56,8 +56,8 @@
 #define HRADC_0_GAIN_ERROR			1.0
 #define HRADC_0_OFFSET_ERROR		0.0
 
-#define TRANSDUCER_1_INPUT_RATED	110.0			// Divisor de Tensao + Isolador Verivolt IsoBlock V-4:
-#define TRANSDUCER_1_OUTPUT_RATED	10.0			//   In_rated 	= +/- 110.0 V
+#define TRANSDUCER_1_INPUT_RATED	500.0			// Divisor de Tensao + Isolador Verivolt IsoBlock V-4:
+#define TRANSDUCER_1_OUTPUT_RATED	10.0			//   In_rated 	= +/- 500 V
 #define TRANSDUCER_1_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_1_GAIN			TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED
 #define HRADC_1_R_BURDEN			20.0				// Resistor Burden = 20 R

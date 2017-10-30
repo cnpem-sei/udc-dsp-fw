@@ -33,6 +33,7 @@ extern void main_Jiga_HRADC(void);
 extern void main_FAP_DCDC_15kHz_225A(void);
 extern void main_FBPx4_100kHz(void);
 extern void main_FAP_6U_DCDC_20kHz(void);
+extern void main_FBP_FAC_UFJF(void);
 
 void main(void)
 {
@@ -146,13 +147,13 @@ void main(void)
 
 			case FAC_Full_ACDC_10kHz:
 			{
-				main_FAC_Full_ACDC_10kHz();
+				//main_FAC_Full_ACDC_10kHz();
 				break;
 			}
 
 			case FAC_Full_DCDC_20kHz:
 			{
-				main_FAC_Full_DCDC_20kHz();
+				//main_FAC_Full_DCDC_20kHz();
 				break;
 			}
 
@@ -164,7 +165,7 @@ void main(void)
 
 			case FAP_DCDC_20kHz:
 			{
-				main_FAP_DCDC_20kHz();
+				//main_FAP_DCDC_20kHz();
 				break;
 			}
 
@@ -176,7 +177,7 @@ void main(void)
 
 			case TEST_HRADC:
 			{
-				main_Test_HRADC();
+				//main_Test_HRADC();
 				break;
 			}
 
@@ -198,6 +199,11 @@ void main(void)
 			case FAP_6U_DCDC_20kHz:
 			{
 				main_FAP_6U_DCDC_20kHz();
+			}
+
+			case FBP_FAC_UFJF:
+			{
+			    main_FBP_FAC_UFJF();
 			}
 
 			default:

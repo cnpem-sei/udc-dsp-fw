@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><templates><template autoinsert="false" context="org.eclipse.cdt.core.cSource.contenttype_context" deleted="false" description="RTSC 'Hello World' main program" enabled="true" id="org.eclipse.rtsc.xdctools.templates.main.c" name="RTSC 'Hello World' main">/*
+ *  ======= ${file_base} ========
+ *
+ *  Created on: ${date}
+ *  Author:     ${user}
+ */
+#include &lt;xdc/runtime/System.h&gt;
+
+/*
+ * ======== main ========
+ */
+Int main(void)
+{
+    System_printf("hello world.\n");
+
+    return (0);
+}</template><template autoinsert="false" context="org.eclipse.cdt.core.cSource.contenttype_context" deleted="false" description="Default template for newly created C source files" enabled="true" id="org.eclipse.cdt.ui.text.codetemplates.csourcefile" name="Default C source template">${filecomment}
+
+/**
+ * TODO: Put here your includes
+ */
+${includes}
+
+/**
+ * TODO: Put here your defines. Just what is local. If you don't
+ * need to access it from other module, consider use a constant (const)
+ */
+
+
+/**
+ * TODO: Put here your constants and variables. Always use static for 
+ * private members.
+ */
+
+/**
+ * TODO: Put here your function prototypes for private functions. Use
+ * static in declaration.
+ */
+
+${declarations}
+
+/**
+ * TODO: Put here the implementation for your public functions.
+ */
+
+/**
+ * TODO: Put here the implementation for your private functions.
+ */</template><template autoinsert="false" context="org.eclipse.cdt.core.cSource.contenttype_context" deleted="false" description="RTSC module's C implementation" enabled="true" id="org.eclipse.rtsc.xdctools.templates.Module.c" name="RTSC C Module Source">/*
+ *  ======= ${file_base} ========
+ *  ${file_base} target-side implementation
+ *
+ *  Created on: ${date}
+ *  Author:     ${user}
+ */
+#include &lt;xdc/std.h&gt;
+#include &lt;xdc/runtime/Startup.h&gt;
+
+#include "${file_base}.h"
+
+/* include ${file_base} internal implementation definitions */
+#include "package/internal/${file_base}.xdc.h"
+
+/*
+ *  ======== ${file_base}_Module_startup ========
+ */
+Int ${file_base}_Module_startup(Int state)
+{
+    return (Startup_DONE);
+}
+
+#ifdef ${file_base}_Object
+/*
+ *  ======== ${file_base}_Instance_init ========
+ *  ${file_base} created or constructed instance object initialization
+ */
+Void ${file_base}_Instance_init(${file_base}_Object *obj, const ${file_base}_Params *params)
+{
+    /* TODO: initialize ${file_base} instance state fields */
+}
+#endif</template></templates>

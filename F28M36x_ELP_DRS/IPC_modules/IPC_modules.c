@@ -64,7 +64,9 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 	IPC_CtoM_Msg.PSModule.ErrorMtoC = NO_ERROR_MTOC;
 
 	InitBuffer(&IPC_CtoM_Msg.SamplesBuffer, samplesBuffer, SIZE_SAMPLES_BUFFER);
-	IPC_CtoM_Msg.SamplesBuffer.BufferBusy = Buffer_All;
+	//IPC_CtoM_Msg.SamplesBuffer.BufferBusy = Buffer_Idle;
+	ResetBuffer(&IPC_CtoM_Msg.SamplesBuffer);
+
 	InitBuffer(&IPC_CtoM_Msg.WfmRef.BufferInfo, wfmRef_Curve.WfmRef_Block.A, SIZE_WFMREF_BLOCK);
 	IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
 
@@ -206,6 +208,9 @@ interrupt void isr_IPC_Channel_1(void)
 			if(IPC_CtoM_Msg.PSModule.OpMode == SlowRef)
 			{
 				IPC_CtoM_Msg.PSModule.IRef = IPC_MtoC_Msg.PSModule.ISlowRef;
+				IPC_CtoM_Msg.PSModule.BufferOnOff = 1;
+				IPC_CtoM_Msg.SamplesBuffer.BufferBusy = 1;
+				IPC_CtoM_Msg.SamplesBuffer.PtrBufferK = IPC_CtoM_Msg.SamplesBuffer.PtrBufferStart;
 			}
 			else
 			{
@@ -415,7 +420,7 @@ interrupt void isr_IPC_Channel_2(void)
 
 	//checkar a flag do IPC para fazer condicional
 
-	SET_DEBUG_GPIO1;
+	//SET_DEBUG_GPIO1;
 
 	if(IPC_CtoM_Msg.PSModule.OpMode == WfmRef)
 	{

@@ -68,6 +68,10 @@ void Init_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff, float vdc_nom, float vdc_min, vo
 void Reset_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff);
 void Run_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff);
 
+void Init_ELP_MultiplyMatrix(tELP_MultiplyMatrix *ptr_mtx, Uint16 num_rows, Uint16 num_cols, volatile float matrix[num_rows][num_cols], volatile float *in, volatile float *out);
+void Reset_ELP_MultiplyMatrix(tELP_MultiplyMatrix *ptr_mtx);
+void Run_ELP_MatrixMultiplication(tELP_MultiplyMatrix *ptr_mtx);
+
 /****************/
 
 /*
@@ -456,4 +460,49 @@ void Run_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff)
 	{
 		*(ptr_ff->out) = *(ptr_ff->in) * ptr_ff->vdc_nom / *(ptr_ff->vdc_meas);
 	}
+}
+
+void Init_ELP_MultiplyMatrix(tELP_MultiplyMatrix *ptr_mtx, Uint16 num_rows, Uint16 num_cols,
+                             volatile float matrix[num_rows][num_cols], volatile float *in, volatile float *out)
+{
+    Uint16 r,c;
+
+    ptr_mtx->matrix.num_rows = num_rows;
+    ptr_mtx->matrix.num_cols = num_cols;
+    ptr_mtx->in = in;
+    ptr_mtx->out = out;
+
+    for(r = 0; r < ptr_mtx->matrix.num_rows; r++)
+    {
+        for(c = 0; c < ptr_mtx->matrix.num_cols; c++)
+        {
+            ptr_mtx->matrix.data[r][c] = matrix[r][c];
+
+        }
+    }
+}
+
+void Reset_ELP_MultiplyMatrix(tELP_MultiplyMatrix *ptr_mtx)
+{
+    Uint16 r;
+
+    for(r = 0; r < ptr_mtx->matrix.num_rows; r++)
+    {
+        ptr_mtx->out[r] = 0.0;
+    }
+}
+
+void Run_ELP_MatrixMultiplication(tELP_MultiplyMatrix *ptr_mtx)
+{
+    Uint16 r,c;
+
+    for(r = 0; r < ptr_mtx->matrix.num_rows; r++)
+    {
+        ptr_mtx->out[r] = 0.0;
+
+        for(c = 0; c < ptr_mtx->matrix.num_cols; c++)
+        {
+            ptr_mtx->out[r] += ptr_mtx->matrix.data[r][c] * ptr_mtx->in[c];
+        }
+    }
 }

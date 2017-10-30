@@ -28,6 +28,7 @@
 #define	USE_MODULE		0
 #define	BYPASS_MODULE	1
 
+#define NUM_MAX_MATRIX_SIZE 16
 
 //typedef enum {Sine, Square, Triangle, FreqSweep} eSigGenType;
 
@@ -110,6 +111,20 @@ typedef volatile struct
 	volatile float *out;
 } tELP_DCLink_FF;
 
+typedef volatile struct
+{
+    Uint16  num_rows;
+    Uint16  num_cols;
+    float   data[NUM_MAX_MATRIX_SIZE][NUM_MAX_MATRIX_SIZE];
+} matrix_t;
+
+typedef volatile struct
+{
+    matrix_t        matrix;
+    volatile float  *in;
+    volatile float  *out;
+} tELP_MultiplyMatrix;
+
 extern float b_coeff_NF_Vdc[3];
 extern float a_coeff_NF_Vdc[2];
 extern float b_coeff_LPF_Iin[3];
@@ -146,6 +161,10 @@ extern void Run_ELP_IIR_3P3Z(tELP_IIR_3P3Z *ptr_iir);
 extern void Init_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff, float vdc_nom, float vdc_min, volatile float *vdc_meas, volatile float *in, volatile float *out);
 extern void Reset_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff);
 extern void Run_ELP_DCLink_FF(tELP_DCLink_FF *ptr_ff);
+
+extern void Init_ELP_MultiplyMatrix(tELP_MultiplyMatrix *ptr_mtx, Uint16 num_rows, Uint16 num_cols, volatile float matrix[num_rows][num_cols], volatile float *in, volatile float *out);
+extern void Reset_ELP_MultiplyMatrix(tELP_MultiplyMatrix *ptr_mtx);
+extern void Run_ELP_MatrixMultiplication(tELP_MultiplyMatrix *ptr_mtx);
 
 #endif	/* ELP_DCL_H */
 

@@ -13,12 +13,13 @@ void ResetBuffer(tBuffer *ptrBuff)
 {
 	ptrBuff->PtrBufferK = ptrBuff->PtrBufferStart;
 
-	while(ptrBuff->PtrBufferK < ptrBuff->PtrBufferEnd)
+	while(ptrBuff->PtrBufferK++ < ptrBuff->PtrBufferEnd)
 	{
-		*(ptrBuff->PtrBufferK++) = 0.0;
+		*(ptrBuff->PtrBufferK) = 0.0;
 	}
 
-	ptrBuff->PtrBufferK = ptrBuff->PtrBufferStart;
+	ptrBuff->PtrBufferK = ptrBuff->PtrBufferEnd;
+	ptrBuff->BufferBusy = Buffer_Idle;
 }
 
 Uint16 SizeBuffer(tBuffer *ptrBuff)
