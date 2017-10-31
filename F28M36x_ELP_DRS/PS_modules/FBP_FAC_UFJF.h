@@ -86,6 +86,11 @@
  * DP modules mnemonics
  */
 
+//#define FULL_OBSERVER
+#define REDUCED_OBSERVER
+
+#ifdef  FULL_OBSERVER
+
 #define ILOAD                   DP_Framework.NetSignals[1]
 #define Y                       ILOAD
 
@@ -107,18 +112,65 @@
 #define XMOD1_3                 DP_Framework.NetSignals[6]     // v_Mod1
 
 #define XMOD1_FUT               DP_Framework.NetSignals[7]     // Estimated future states
-#define XMOD1_0_FUT             DP_Framework.NetSignals[7]     // iL_Load
-#define XMOD1_1_FUT             DP_Framework.NetSignals[8]     // iMod1
+#define XMOD1_0_FUT             DP_Framework.NetSignals[7]     // iLoad
+#define XMOD1_1_FUT             DP_Framework.NetSignals[8]     // iL_Mod1
 #define XMOD1_2_FUT             DP_Framework.NetSignals[9]     // vD
 #define XMOD1_3_FUT             DP_Framework.NetSignals[10]    // v_Mod1
 
 #define STATE_OBSERVER          &Observer
 #define STATE_OBSERVER_IN       &DP_Framework.NetSignals[1]
 #define STATE_OBSERVER_OUT      &DP_Framework.NetSignals[7]
+#define NUM_ROWS_OBSERVER       4
+#define NUM_COLUMNS_OBSERVER    6
+#define NUM_INPUT_OUTPUT        9
 
 #define TIMESLICER_WFMREF       0
 #define TIMESLICER_BUFFER       1
 
+#endif
+
+#ifdef REDUCED_OBSERVER
+
+#define ILOAD                   DP_Framework.NetSignals[6]
+
+#define VLOAD_MOD1_ARM          DP_Framework_MtoC.NetSignals[9] // ANI6
+#define VLOAD_MOD1_DSP          DP_Framework.NetSignals[7]
+
+#define IMOD1                   DP_Framework.NetSignals[10]
+#define IMOD2                   DP_Framework.NetSignals[11]
+
+#define X_A_MOD1                DP_Framework.NetSignals[6]      // Current measured states: x_a[k]
+#define X_A_MOD1_0              DP_Framework.NetSignals[6]      // iLoad[k]
+#define X_A_MOD1_1              DP_Framework.NetSignals[7]      // vLoad[k]
+
+#define X_A_MOD1_PAST           DP_Framework.NetSignals[1]      // Past measured states: x_a[k-1]
+#define X_A_MOD1_0_PAST         DP_Framework.NetSignals[1]      // iLoad[k-1]
+#define X_A_MOD1_1_PAST         DP_Framework.NetSignals[2]      // vLoad[k-1]
+
+#define DUTY_MOD1               DP_Framework.DutySignals[0]     // Current control input: u[k]
+#define U_MOD1_PAST             DP_Framework.NetSignals[5]      // Past control input: u[k-1]
+
+#define VDCLINK_MOD1            DP_Framework_MtoC.NetSignals[5] // ANI2
+
+#define X_B_MOD1                DP_Framework.NetSignals[8]      // Current estimated states: x_b[k]
+#define X_B_MOD1_0              DP_Framework.NetSignals[8]      // iL_Mod1[k]
+#define X_B_MOD1_1              DP_Framework.NetSignals[9]      // vD[k]
+
+#define X_B_MOD1_PAST           DP_Framework.NetSignals[3]     // Last estimated states: x_b[k-1]
+#define X_B_MOD1_0_PAST         DP_Framework.NetSignals[3]     // iL_Mod1[k-1]
+#define X_B_MOD1_1_PAST         DP_Framework.NetSignals[4]     // vD[k-1]
+
+#define STATE_OBSERVER          &Observer
+#define STATE_OBSERVER_IN       &DP_Framework.NetSignals[1]       // Input: NetSignals[1..7]
+#define STATE_OBSERVER_OUT      &DP_Framework.NetSignals[8]       // Output: NetSignals[8..9]
+#define NUM_ROWS_OBSERVER       2
+#define NUM_COLUMNS_OBSERVER    7
+#define NUM_INPUT_OUTPUT        9
+
+#define TIMESLICER_WFMREF       0
+#define TIMESLICER_BUFFER       1
+
+#endif
 
 
 /*

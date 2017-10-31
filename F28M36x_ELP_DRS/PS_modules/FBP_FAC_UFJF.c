@@ -222,11 +222,11 @@ static void InitControllers(void)
 	 * 	      name: 	STATE_OBSERVER
 	 * description: 	State observer
 	 *    DP class:     ELP_MultiplyMatrix
-	 *     	    in:		NetSignals[1..6]
-	 * 		   out:		NetSignals[7..10]
+	 *     	    in:		NetSignals[1..7]
+	 * 		   out:		NetSignals[8..9]
 	 */
 
-	Init_ELP_MultiplyMatrix(STATE_OBSERVER, 4, 6, O, STATE_OBSERVER_IN, STATE_OBSERVER_OUT);
+	Init_ELP_MultiplyMatrix(STATE_OBSERVER, NUM_ROWS_OBSERVER, NUM_COLUMNS_OBSERVER, O, STATE_OBSERVER_IN, STATE_OBSERVER_OUT);
 
 	/*********************************************/
 	/* INITIALIZATION OF SIGNAL GENERATOR MODULE */
@@ -256,16 +256,28 @@ static void InitControllers(void)
 
 static void ResetControllers(void)
 {
+    Uint16 i;
+
 	SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[0], 0.0);
 	SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[2], 0.0);
 	SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[4], 0.0);
 	SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[6], 0.0);
 
 	Reset_ELP_MultiplyMatrix(STATE_OBSERVER);
+
+#ifdef  FULL_OBSERVER
 	XMOD1_0 = 0.0;
 	XMOD1_1 = 0.0;
 	XMOD1_2 = 0.0;
 	XMOD1_3 = 0.0;
+#endif
+
+#ifdef REDUCED_OBSERVER
+	for(i = 1; i < (NUM_INPUT_OUTPUT + 1); i++)
+	{
+	    DP_Framework.NetSignals[i] = 0.0;
+	}
+#endif
 
 	IPC_CtoM_Msg.PSModule.IRef = 0.0;
 
@@ -376,6 +388,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	IMOD1 = temp0;
 	IMOD2 = temp1;
 	ILOAD = temp2;
+	VLOAD_MOD1_DSP = VLOAD_MOD1_ARM;
 
 	//if((fabs(temp0) > MAX_LOAD) || (fabs(temp1) > MAX_LOAD) || (fabs(temp2) > MAX_LOAD) || (fabs(temp3) > MAX_LOAD))
 
@@ -442,8 +455,6 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 		{
 		    DUTY_MOD1 = 0.01*IPC_CtoM_Msg.PSModule.IRef;				// For open loop, Iref value represents duty-cycle
 			SATURATE(DUTY_MOD1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
-
-			U1 = DUTY_MOD1;
 		}
 
 		else
@@ -452,22 +463,34 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 			SATURATE(DUTY_MOD1, PWM_MAX_DUTY, PWM_MIN_DUTY);
 		}
 
+#ifdef FULL_OBSERVER
 		U1 = DUTY_MOD1;
+#endif
 
 		Run_ELP_MatrixMultiplication(STATE_OBSERVER);
 
-		XMOD1_0 = XMOD1_0_FUT;
-		XMOD1_1 = XMOD1_1_FUT;
-		XMOD1_2 = XMOD1_2_FUT;
-		XMOD1_3 = XMOD1_3_FUT;
+#ifdef FULL_OBSERVER
+        XMOD1_0 = XMOD1_0_FUT;
+        XMOD1_1 = XMOD1_1_FUT;
+        XMOD1_2 = XMOD1_2_FUT;
+        XMOD1_3 = XMOD1_3_FUT;
+#endif
+
+#ifdef REDUCED_OBSERVER
+        X_A_MOD1_0_PAST = X_A_MOD1_0;
+        X_A_MOD1_1_PAST = X_A_MOD1_1;
+        X_B_MOD1_0_PAST = X_B_MOD1_0;
+        X_B_MOD1_1_PAST = X_B_MOD1_1;
+        U_MOD1_PAST = DUTY_MOD1;
+#endif
 
 		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[6], DUTY_MOD1);
 	}
 
 	RUN_TIMESLICE(TIMESLICER_BUFFER); /************************************************************/
 
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, VLOAD_MOD1);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, XMOD1_3);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, VLOAD_MOD1_DSP);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, X_B_MOD1_1);
 
 	END_TIMESLICE(TIMESLICER_BUFFER); /************************************************************/
 
