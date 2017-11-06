@@ -36,50 +36,20 @@
 #define TRANSDUCER_0_INPUT_RATED		12.5			// 			LEM ITN 12-P:
 #define TRANSDUCER_0_OUTPUT_RATED		0.05			//   In_rated 	= +/- 12.5 A
 #define TRANSDUCER_0_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
-#if (HRADC_v2_0)
-	#define TRANSDUCER_0_GAIN				-(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
-#endif
-
-#if (HRADC_v2_1)
-	#define TRANSDUCER_0_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
-#endif
+#define TRANSDUCER_0_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
 #define HRADC_0_R_BURDEN				20.0			// Resistor Burden = 20 R
 
 #define TRANSDUCER_1_INPUT_RATED		12.5			// 			LEM ITN 12-P:
 #define TRANSDUCER_1_OUTPUT_RATED		0.05			//   In_rated 	= +/- 12.5 A
 #define TRANSDUCER_1_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
-#if (HRADC_v2_0)
-	#define TRANSDUCER_1_GAIN				-(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
-#endif
-
-#if (HRADC_v2_1)
-	#define TRANSDUCER_1_GAIN				(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
-#endif
+#define TRANSDUCER_1_GAIN				(TRANSDUCER_1_INPUT_RATED/TRANSDUCER_1_OUTPUT_RATED)
 #define HRADC_1_R_BURDEN				20.0			// Resistor Burden = 20 R
 
 #define TRANSDUCER_2_INPUT_RATED		150.0/7			// 	    PM Topacc 150 A
 #define TRANSDUCER_2_OUTPUT_RATED		10.0			//   In_rated 	= +/- 150/7 A (7 voltas na cabeça)
 #define TRANSDUCER_2_OUTPUT_TYPE		Vin_bipolar		//   Out_rated 	= +/- 50 mA
-#if (HRADC_v2_0)
-	#define TRANSDUCER_2_GAIN				-(TRANSDUCER_2_INPUT_RATED/TRANSDUCER_2_OUTPUT_RATED)
-#endif
-
-#if (HRADC_v2_1)
-	#define TRANSDUCER_2_GAIN				(TRANSDUCER_2_INPUT_RATED/TRANSDUCER_2_OUTPUT_RATED)
-#endif
+#define TRANSDUCER_2_GAIN				(TRANSDUCER_2_INPUT_RATED/TRANSDUCER_2_OUTPUT_RATED)
 #define HRADC_2_R_BURDEN				20.0				// Resistor Burden = 20 R
-
-#define TRANSDUCER_3_INPUT_RATED		12.5			// 			LEM ITN 12-P:
-#define TRANSDUCER_3_OUTPUT_RATED		0.05			//   In_rated 	= +/- 12.5 A
-#define TRANSDUCER_3_OUTPUT_TYPE		Iin_bipolar		//   Out_rated 	= +/- 50 mA
-#if (HRADC_v2_0)
-	#define TRANSDUCER_3_GAIN				-(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
-#endif
-
-#if (HRADC_v2_1)
-	#define TRANSDUCER_3_GAIN				(TRANSDUCER_3_INPUT_RATED/TRANSDUCER_3_OUTPUT_RATED)
-#endif
-#define HRADC_3_R_BURDEN				20.0			// Resistor Burden = 20 R
 
 
 /*
@@ -90,6 +60,8 @@
 #define REDUCED_OBSERVER
 
 #ifdef  FULL_OBSERVER
+
+#define REFERENCE               DP_Framework.NetSignals[15]
 
 #define ILOAD                   DP_Framework.NetSignals[1]
 #define Y                       ILOAD
@@ -131,13 +103,14 @@
 
 #ifdef REDUCED_OBSERVER
 
+#define REFERENCE               DP_Framework.NetSignals[10]
 #define ILOAD                   DP_Framework.NetSignals[6]
 
 #define VLOAD_MOD1_ARM          DP_Framework_MtoC.NetSignals[9] // ANI6
 #define VLOAD_MOD1_DSP          DP_Framework.NetSignals[7]
 
-#define IMOD1                   DP_Framework.NetSignals[10]
-#define IMOD2                   DP_Framework.NetSignals[11]
+#define IMOD1                   DP_Framework.NetSignals[11]
+#define IMOD2                   DP_Framework.NetSignals[12]
 
 #define X_A_MOD1                DP_Framework.NetSignals[6]      // Current measured states: x_a[k]
 #define X_A_MOD1_0              DP_Framework.NetSignals[6]      // iLoad[k]
@@ -165,7 +138,12 @@
 #define STATE_OBSERVER_OUT      &DP_Framework.NetSignals[8]       // Output: NetSignals[8..9]
 #define NUM_ROWS_OBSERVER       2
 #define NUM_COLUMNS_OBSERVER    7
-#define NUM_INPUT_OUTPUT        9
+
+#define STATE_CONTROLLER        &Controller
+#define STATE_CONTROLLER_IN     &DP_Framework.NetSignals[6]       // Input: NetSignals[6..10]
+#define STATE_CONTROLLER_OUT    &DUTY_MOD1                        // Output: DutySignals[0]
+#define NUM_ROWS_CONTROLLER     1
+#define NUM_COLUMNS_CONTROLLER  5
 
 #define TIMESLICER_WFMREF       0
 #define TIMESLICER_BUFFER       1
@@ -190,5 +168,20 @@
 #define PIN_CLOSE_PS4_DCLINK_RELAY		GpioDataRegs.GPCSET.bit.GPIO65 = 1;
 
 extern void main_FBP_FAC_UFJF(void);
+
+/*
+ * PWM defines
+ */
+#define PWM_MOD1_A                      PWM_Modules.PWM_Regs[6]
+#define PWM_MOD1_B                      PWM_Modules.PWM_Regs[7]
+
+#define PWM_MOD2_A                      PWM_Modules.PWM_Regs[4]
+#define PWM_MOD2_B                      PWM_Modules.PWM_Regs[5]
+
+#define PWM_MOD3_A                      PWM_Modules.PWM_Regs[2]
+#define PWM_MOD3_B                      PWM_Modules.PWM_Regs[3]
+
+#define PWM_MOD4_A                      PWM_Modules.PWM_Regs[0]
+#define PWM_MOD4_B                      PWM_Modules.PWM_Regs[1]
 
 #endif

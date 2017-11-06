@@ -21,6 +21,7 @@
 #include "F28M36x_ELP_DRS.h"
 #include "FBP_FAC_UFJF.h"
 #include "FBP_FAC_UFJF_Observer.h"
+#include "FBP_FAC_UFJF_Controller.h"
 
 /*
  * Prototype statements for functions found within this file.
@@ -58,7 +59,7 @@ static void InitInterruptions(void);
 static void TerminateInterruptions(void);
 
 volatile static Uint32 valorCounter;
-volatile tELP_MultiplyMatrix Observer;
+volatile tELP_MultiplyMatrix Observer, Controller;
 
 void main_FBP_FAC_UFJF(void)
 {
@@ -105,17 +106,14 @@ static void InitPeripheralsDrivers(void)
     HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
 	HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
 	HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
-	//HRADCs_Info.HRADC_boards[3] = &HRADC3_board;
 
 	Init_HRADC_Info(HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
 	Init_HRADC_Info(HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
 	Init_HRADC_Info(HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
-	//Init_HRADC_Info(HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
 
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 	Config_HRADC_board(HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-	//Config_HRADC_board(HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
 
@@ -130,34 +128,38 @@ static void InitPeripheralsDrivers(void)
 	EDIS;
 
     PWM_Modules.N_modules = 8;
-    PWM_Modules.PWM_Regs[0] = &EPwm1Regs;		// PS-4 Positive polarity switches
-    PWM_Modules.PWM_Regs[1] = &EPwm2Regs;		// PS-4 Negative polarity switches
-    PWM_Modules.PWM_Regs[2] = &EPwm3Regs;		// PS-3 Positive polarity switches
-    PWM_Modules.PWM_Regs[3] = &EPwm4Regs;		// PS-3 Negative polarity switches
-	PWM_Modules.PWM_Regs[4] = &EPwm5Regs;		// PS-2 Positive polarity switches
-	PWM_Modules.PWM_Regs[5] = &EPwm6Regs;		// PS-2 Negative polarity switches
-	PWM_Modules.PWM_Regs[6] = &EPwm7Regs;		// PS-1 Positive polarity switches
-	PWM_Modules.PWM_Regs[7] = &EPwm8Regs;		// PS-1 Negative polarity switches
+
+    PWM_MOD1_A = &EPwm7Regs;        // PS-1 Positive polarity switches
+    PWM_MOD1_B = &EPwm8Regs;        // PS-1 Negative polarity switches
+
+    PWM_MOD2_A = &EPwm5Regs;        // PS-2 Positive polarity switches
+    PWM_MOD2_B = &EPwm6Regs;        // PS-2 Negative polarity switches
+
+    PWM_MOD3_A = &EPwm3Regs;        // PS-3 Positive polarity switches
+    PWM_MOD3_B = &EPwm4Regs;        // PS-3 Negative polarity switches
+
+    PWM_MOD4_A = &EPwm1Regs;		// PS-4 Positive polarity switches
+    PWM_MOD4_B = &EPwm2Regs;		// PS-4 Negative polarity switches
 
     DisablePWMOutputs();
     DisablePWM_TBCLK();
     InitPWM_MEP_SFO();
 
     // PS-4 PWM initialization
-    InitPWMModule(PWM_Modules.PWM_Regs[0], PWM_FREQ, 0, MasterPWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
-    InitPWMModule(PWM_Modules.PWM_Regs[1], PWM_FREQ, 1, SlavePWM, 180, COMPLEMENTARY, PWM_DEAD_TIME);
+    InitPWMModule(PWM_MOD4_A, PWM_FREQ, 0, MasterPWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
+    InitPWMModule(PWM_MOD4_B, PWM_FREQ, 1, SlavePWM, 180, COMPLEMENTARY, PWM_DEAD_TIME);
 
     // PS-3 PWM initialization
-    InitPWMModule(PWM_Modules.PWM_Regs[2], PWM_FREQ, 0, SlavePWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
-    InitPWMModule(PWM_Modules.PWM_Regs[3], PWM_FREQ, 3, SlavePWM, 180, COMPLEMENTARY, PWM_DEAD_TIME);
+    InitPWMModule(PWM_MOD3_A, PWM_FREQ, 0, SlavePWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
+    InitPWMModule(PWM_MOD3_B, PWM_FREQ, 3, SlavePWM, 180, COMPLEMENTARY, PWM_DEAD_TIME);
 
     // PS-2 PWM initialization
-    InitPWMModule(PWM_Modules.PWM_Regs[4], PWM_FREQ, 0, SlavePWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
-    InitPWMModule(PWM_Modules.PWM_Regs[5], PWM_FREQ, 5, SlavePWM, 180, COMPLEMENTARY, PWM_DEAD_TIME);
+    InitPWMModule(PWM_MOD2_A, PWM_FREQ, 0, SlavePWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
+    InitPWMModule(PWM_MOD2_B, PWM_FREQ, 5, SlavePWM, 180, COMPLEMENTARY, PWM_DEAD_TIME);
 
     // PS-1 PWM initialization
-    InitPWMModule(PWM_Modules.PWM_Regs[6], PWM_FREQ, 0, SlavePWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
-    InitPWMModule(PWM_Modules.PWM_Regs[7], PWM_FREQ, 7, SlavePWM, 180, COMPLEMENTARY, PWM_DEAD_TIME);
+    InitPWMModule(PWM_MOD1_A, PWM_FREQ, 0, SlavePWM, 0, COMPLEMENTARY, PWM_DEAD_TIME);
+    InitPWMModule(PWM_MOD1_B, PWM_FREQ, 7, SlavePWM, 180, COMPLEMENTARY, PWM_DEAD_TIME);
 
     //InitEPwm1Gpio();
     //InitEPwm2Gpio();
@@ -228,6 +230,20 @@ static void InitControllers(void)
 
 	Init_ELP_MultiplyMatrix(STATE_OBSERVER, NUM_ROWS_OBSERVER, NUM_COLUMNS_OBSERVER, O, STATE_OBSERVER_IN, STATE_OBSERVER_OUT);
 
+    /**************************************/
+    /* INITIALIZATION OF STATE CONTROLLER */
+    /**************************************/
+
+    /*
+     *        name:     STATE_CONTROLLER
+     * description:     State controller
+     *    DP class:     ELP_MultiplyMatrix
+     *          in:     NetSignals[6..10]
+     *         out:     DutySignals[0]
+     */
+
+    Init_ELP_MultiplyMatrix(STATE_CONTROLLER, NUM_ROWS_CONTROLLER, NUM_COLUMNS_CONTROLLER, Kp, STATE_CONTROLLER_IN, STATE_CONTROLLER_OUT);
+
 	/*********************************************/
 	/* INITIALIZATION OF SIGNAL GENERATOR MODULE */
 	/*********************************************/
@@ -258,10 +274,10 @@ static void ResetControllers(void)
 {
     Uint16 i;
 
-	SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[0], 0.0);
-	SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[2], 0.0);
-	SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[4], 0.0);
-	SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[6], 0.0);
+	SetPWMDutyCycle_HBridge(PWM_MOD1_A, 0.0);
+	SetPWMDutyCycle_HBridge(PWM_MOD2_A, 0.0);
+	SetPWMDutyCycle_HBridge(PWM_MOD3_A, 0.0);
+	SetPWMDutyCycle_HBridge(PWM_MOD4_A, 0.0);
 
 	Reset_ELP_MultiplyMatrix(STATE_OBSERVER);
 
@@ -273,7 +289,7 @@ static void ResetControllers(void)
 #endif
 
 #ifdef REDUCED_OBSERVER
-	for(i = 1; i < (NUM_INPUT_OUTPUT + 1); i++)
+	for(i = 1; i < (NUM_ROWS_OBSERVER + NUM_COLUMNS_OBSERVER + 1); i++)
 	{
 	    DP_Framework.NetSignals[i] = 0.0;
 	}
@@ -302,7 +318,7 @@ static void InitInterruptions(void)
 	PieCtrlRegs.PIEIER3.bit.INTx1 = 1;  // ePWM1
 	//PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  // ePWM2
 
-	EnablePWMInterrupt(PWM_Modules.PWM_Regs[0]);
+	EnablePWMInterrupt(PWM_MOD4_A);
 	//EnablePWMInterrupt(PWM_Modules.PWM_Regs[1]);
 
 	IER |= M_INT1;
@@ -451,25 +467,33 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 				break;
 		}
 
+		REFERENCE = IPC_CtoM_Msg.PSModule.IRef;
+
+#ifdef REDUCED_OBSERVER
+		Run_ELP_MatrixMultiplication(STATE_OBSERVER);
+#endif
+
 		if(IPC_CtoM_Msg.PSModule.OpenLoop)
 		{
-		    DUTY_MOD1 = 0.01*IPC_CtoM_Msg.PSModule.IRef;				// For open loop, Iref value represents duty-cycle
+		    // For open loop, Iref value represents duty-cycle
+		    DUTY_MOD1 = 0.01*REFERENCE;
 			SATURATE(DUTY_MOD1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
 		}
 
 		else
 		{
-			SATURATE(IPC_CtoM_Msg.PSModule.IRef, MAX_REF, MIN_REF);
+			SATURATE(REFERENCE, MAX_REF, MIN_REF);
+
+			Run_ELP_MatrixMultiplication(STATE_CONTROLLER);
+
 			SATURATE(DUTY_MOD1, PWM_MAX_DUTY, PWM_MIN_DUTY);
 		}
 
 #ifdef FULL_OBSERVER
 		U1 = DUTY_MOD1;
-#endif
 
 		Run_ELP_MatrixMultiplication(STATE_OBSERVER);
 
-#ifdef FULL_OBSERVER
         XMOD1_0 = XMOD1_0_FUT;
         XMOD1_1 = XMOD1_1_FUT;
         XMOD1_2 = XMOD1_2_FUT;
@@ -484,13 +508,14 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
         U_MOD1_PAST = DUTY_MOD1;
 #endif
 
-		SetPWMDutyCycle_HBridge(PWM_Modules.PWM_Regs[6], DUTY_MOD1);
+		SetPWMDutyCycle_HBridge(PWM_MOD1_A, DUTY_MOD1);
 	}
 
 	RUN_TIMESLICE(TIMESLICER_BUFFER); /************************************************************/
 
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, ILOAD);
+		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, DUTY_MOD1);
 		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, VLOAD_MOD1_DSP);
-		WriteBuffer(&IPC_CtoM_Msg.SamplesBuffer, X_B_MOD1_1);
 
 	END_TIMESLICE(TIMESLICER_BUFFER); /************************************************************/
 
@@ -575,9 +600,9 @@ static void PS_turnOn(void)
 		IPC_CtoM_Msg.PSModule.OnOff = 1;
 
 		PIN_CLOSE_PS1_DCLINK_RELAY;
-		//PIN_CLOSE_PS2_DCLINK_RELAY;
-		//PIN_CLOSE_PS3_DCLINK_RELAY;
-		//PIN_CLOSE_PS4_DCLINK_RELAY;
+		PIN_CLOSE_PS2_DCLINK_RELAY;
+		PIN_CLOSE_PS3_DCLINK_RELAY;
+		PIN_CLOSE_PS4_DCLINK_RELAY;
 
 		DELAY_US(500000);			// Wait 0.5 s
 
@@ -590,9 +615,9 @@ static void PS_turnOff(void)
 	DisablePWMOutputs();
 
 	PIN_OPEN_PS1_DCLINK_RELAY;
-	//PIN_OPEN_PS2_DCLINK_RELAY;
-	//PIN_OPEN_PS3_DCLINK_RELAY;
-	//PIN_OPEN_PS4_DCLINK_RELAY;
+	PIN_OPEN_PS2_DCLINK_RELAY;
+	PIN_OPEN_PS3_DCLINK_RELAY;
+	PIN_OPEN_PS4_DCLINK_RELAY;
 
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 	IPC_CtoM_Msg.PSModule.OpenLoop = 1;
