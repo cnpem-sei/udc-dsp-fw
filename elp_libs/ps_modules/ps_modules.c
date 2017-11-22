@@ -46,13 +46,15 @@
  * @param p_ps_module pointer to the ps module struct
  * @param model power supply model to be initialized
  * @param turn_on address of ```turn_on()``` function to that power supply
- * @param turn_off address of ```turn_off()``` function to that power supply
+ * @param turn_off address of ```turn_off()``` function
+ * @param isr_softinterlock address of ```isr_softinterlock()``` function
+ * @param isr_hardinterlock address of ```isr_hardinterlock()``` function
  * @param reset_interlocks address of ```reset_interlocks()``` function to that power supply
  */
 void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
                     void (*turn_on)(void), void (*turn_off)(void),
-                    void (*set_softinterlock)(void),
-                    void (*set_hardinterlock)(void),
+                    void (*isr_softinterlock)(void),
+                    void (*isr_hardinterlock)(void),
                     void (*reset_interlocks)(void))
 {
     p_ps_module->ps_status.bit.state        = Off;
@@ -61,16 +63,16 @@ void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
     p_ps_module->ps_status.bit.active       = ACTIVE;
     p_ps_module->ps_status.bit.model        = model;
     p_ps_module->ps_status.bit.unlocked     = LOCKED;
-    p_ps_module->ps_status.bit.reserved =   0;
+    p_ps_module->ps_status.bit.reserved     = 0;
 
-    p_ps_module->ps_setpoint    = 0.0;
-    p_ps_module->ps_reference   = 0.0;
+    p_ps_module->ps_setpoint        = 0.0;
+    p_ps_module->ps_reference       = 0.0;
 
-    p_ps_module->turn_on           = turn_on;
-    p_ps_module->turn_off          = turn_off;
-    p_ps_module->set_softinterlock = set_softinterlock;
-    p_ps_module->set_hardinterlock = set_hardinterlock;
-    p_ps_module->reset_interlocks  = reset_interlocks;
+    p_ps_module->turn_on            = turn_on;
+    p_ps_module->turn_off           = turn_off;
+    p_ps_module->isr_softinterlock  = isr_softinterlock;
+    p_ps_module->isr_hardinterlock  = isr_hardinterlock;
+    p_ps_module->reset_interlocks   = reset_interlocks;
 }
 
 /**
@@ -131,12 +133,6 @@ void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode)
             // TODO:
             IPC_CtoM_Msg.WfmRef = IPC_MtoC_Msg.WfmRef;
             IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
-
-            /*
-             * TODO:    - Clear XINT2 FLAGs
-             *          - Procurar forma correta de setar/resetar
-             *          os bits do PIEIER
-             */
             break;
         }
 
@@ -146,23 +142,15 @@ void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode)
             IPC_CtoM_Msg.WfmRef = IPC_MtoC_Msg.WfmRef;
             IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
 
-            /*
-             * TODO:    - Clear XINT2 FLAGs
-             *          - Procurar forma correta de setar/resetar
-             *          os bits do PIEIER
-             */
             break;
         }
 
         case Cycle:
         {
-            //sigGenSyncFlag = 1;
             disable_siggen(&p_ps_module->siggen);
             cfg_siggen(&p_ps_module->siggen, IPC_MtoC_Msg.SigGen.Type,
                        IPC_MtoC_Msg.SigGen.Ncycles, IPC_MtoC_Msg.SigGen.Freq,
                        p_ps_module->siggen.aux_param);
-//          PieCtrlRegs.PIEIER11.bit.INTx2 = 1;
-//          PieCtrlRegs.PIEIER1.bit.INTx5  = 0;
             break;
         }
 
@@ -184,7 +172,7 @@ void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode)
 void open_loop(ps_module_t *p_ps_module)
 {
     if( (p_ps_module->ps_status.bit.state == Off) ||
-        (p_ps_module->ps_status.bit.unlocked) )
+        (p_ps_module->ps_status.bit.unlocked == UNLOCKED) )
     {
         p_ps_module->ps_status.bit.openloop = tOPEN_LOOP;
     }
@@ -222,9 +210,9 @@ void cfg_ps_inteface(ps_module_t *p_ps_module, ps_interface_t interface)
  *
  * @param p_ps_module pointer to the ps module struct
  */
-void activate_ps_module(ps_module_t *p_ps_module, uint16_t password)
+void activate_ps_module(ps_module_t *p_ps_module)
 {
-    if(password == PASSWORD)
+    if(p_ps_module->ps_status.bit.unlocked == UNLOCKED)
     {
         p_ps_module->ps_status.bit.active = ACTIVE;
     }
@@ -236,9 +224,9 @@ void activate_ps_module(ps_module_t *p_ps_module, uint16_t password)
  *
  * @param p_ps_module pointer to the ps module struct
  */
-void deactivate_ps_module(ps_module_t *p_ps_module, uint16_t password)
+void deactivate_ps_module(ps_module_t *p_ps_module)
 {
-    if(password == PASSWORD)
+    if(p_ps_module->ps_status.bit.unlocked == UNLOCKED)
     {
         p_ps_module->ps_status.bit.active = INACTIVE;
     }

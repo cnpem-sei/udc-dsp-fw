@@ -10,30 +10,54 @@
 
 /**
  * @file ipc.h
- * @brief Brief description of module
- * 
- * Detailed description
+ * @brief Interprocessor Communication module
  *
- * @author gabriel
- * @date 17 de nov de 2017
+ * This module is responsible for definition of interprocessor communication
+ * functionalities, between ARM and C28 cores.
+ * 
+ * @author gabriel.brunheira
+ * @date 22/11/2017
  *
  */
 
 #ifndef IPC_H_
 #define IPC_H_
 
+#include <stdint.h>
+#include "ps_modules/ps_modules.h"
+#include "control/siggen/siggen.h"
+#include "control/wfmref/wfmref.h"
 
-/**
- * TODO: Put here your defines. Just what need 
- * to be accessed by other modules.
- */
+typedef enum {No_Error_CtoM,
+              Error1,
+              Error2,
+              Error3,
+              Error4} error_ctom;
 
+typedef enum {No_Error_MtoC,
+              Invalid_Argument,
+              IPC_LowPriority_Full,
+              HRADC_Config_Error} error_mtoc;
 
-/**
- * TODO: Put here your functions prototypes. Just what need 
- * to be accessed by other modules.
- */
+typedef volatile struct
+{
+    ps_module_t     ps_module;
+    siggen_t        siggen;
+    wfmref_t        wfmref;
+    buf_t           buf_samples;
+    error_ctom      error_ctom;
+} ipc_ctom_t;
 
+typedef volatile struct
+{
+    ps_module_t     ps_module;
+    siggen_t        siggen;
+    wfmref_t        wfmref;
+    buf_t           buf_samples;
+    error_mtoc      error_mtoc;
+} ipc_mtoc_t;
 
+extern void init_ipc(ipc_ctom_t *p_ipc_ctom);
+extern void send_ipc_flag(uint32_t flag);
 
 #endif /* IPC_H_ */

@@ -46,7 +46,7 @@ typedef volatile struct siggen_t siggen_t;
 
 struct siggen_t
 {
-	uint16_t 		enable;
+    uint16_t 		enable;
 	siggen_type_t	type;
 	uint16_t		num_cycles;
 	float           freq;

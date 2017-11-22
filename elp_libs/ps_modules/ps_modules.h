@@ -25,7 +25,6 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "../control/siggen/siggen.h"
 
 /**
  * TODO: update macros for interlock check
@@ -94,29 +93,15 @@ typedef struct
     float           ps_reference;
     void            (*turn_on)(void);
     void            (*turn_off)(void);
-    void            (*set_softinterlock)(void);
-    void            (*set_hardinterlock)(void);
+    void            (*isr_softinterlock)(void);
+    void            (*isr_hardinterlock)(void);
     void            (*reset_interlocks)(void);
-    //wfmref_t        wfmref;
-    siggen_t        siggen;
 } ps_module_t;
 
-/**
- * Initialization of power supply module. It requires address of specific power
- * supply functions ```turn_on```, ```turn_off``` and ```reset_interlocks```.
- *
- * @param p_ps_module pointer to the ps module struct
- * @param model power supply model to be initialized
- * @param turn_on address of ```turn_on()``` function to that power supply
- * @param turn_off address of ```turn_off()``` function
- * @param set_softinterlock address of ```set_softinterlock()``` function
- * @param set_hardinterlock address of ```set_hardinterlock()``` function
- * @param reset_interlocks address of ```reset_interlocks()``` function to that power supply
- */
 extern void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
                     void (*turn_on)(void), void (*turn_off)(void),
-                    void (*set_softinterlock)(void),
-                    void (*set_hardinterlock)(void),
+                    void (*isr_softinterlock)(void),
+                    void (*isr_hardinterlock)(void),
                     void (*reset_interlocks)(void));
 
 extern void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode);
