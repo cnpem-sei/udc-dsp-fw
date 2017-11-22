@@ -15,7 +15,7 @@
  * 							- Feedback filtered with oversampled moving
  * 							  average filter
  *
- *		TODO: Não executar PS_TurnOn e PS_TurnOff se fonte já estiver ligada/desligada
+ *		TODO: Nï¿½o executar PS_TurnOn e PS_TurnOff se fonte jï¿½ estiver ligada/desligada
  */
 
 #include "F28M36x_ELP_DRS.h"
@@ -80,6 +80,8 @@ void main_FBPx4_100kHz(void)
 		TunningPWM_MEP_SFO();
 	}
 
+	TerminatePeripheralsDrivers();
+	TerminateInterruptions();
 }
 
 /*
@@ -198,11 +200,6 @@ static void InitPeripheralsDrivers(void)
     InitCpuTimers();
 	ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
 	CpuTimer0Regs.TCR.bit.TIE = 0;
-}
-
-static void TerminatePeripheralsDrivers(void)
-{
-
 }
 
 static void InitControllers(void)

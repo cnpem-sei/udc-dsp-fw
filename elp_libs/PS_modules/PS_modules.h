@@ -1,6 +1,10 @@
 #ifndef PS_MODULES_H
 #define PS_MODULES_H
 
+#define CHECK_SOFTINTERLOCK(itlk)   !(IPC_CtoM_Msg.PSModule.SoftInterlocks & itlk)
+#define CHECK_INTERLOCK(itlk)       !(IPC_CtoM_Msg.PSModule.HardInterlocks & itlk)
+#define CHECK_INTERLOCKS            !(IPC_CtoM_Msg.PSModule.HardInterlocks)
+
 typedef enum
 {
 	SlowRef,
@@ -33,8 +37,6 @@ typedef enum
 	FAP_6U_DCDC_20kHz,
 	JIGA_BASTIDOR
 } ePSModel;
-
-#define PS_MODEL	TEST_HRADC
 
 #include "F28M36x_ELP_DRS.h"
 

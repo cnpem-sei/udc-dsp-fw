@@ -11,9 +11,9 @@
  *
  *		TODO:
  *				- ReadDPModule
- *				- ConfigDPModules só executa caso a fonte esteja desligada?
+ *				- ConfigDPModules so executa caso a fonte esteja desligada?
  *				- Ajustar WfmSync
- *				- Incluir flag no IPC_MtoC_Msg para ARM avisar C28 quando está pronto
+ *				- Incluir flag no IPC_MtoC_Msg para ARM avisar C28 quando esta pronto
  */
 
 #include "IPC_modules.h"
@@ -403,13 +403,13 @@ interrupt void isr_IPC_Channel_2(void)
 	/*
 	 * WfmRef sync via software
 	 *
-	 * 		TODO: Incluir um condicional para esta sincronização via software,
-	 * 			  uma vez que via hardware também força o sincronismo (de maneira
-	 * 			  até mais determinística) e aciona esta ISR, o que resetaria o
-	 * 			  contador do PWM duas vezes consecutivas, levando à possíveis
-	 * 			  glitches nos sinais PWM. A flag PIEIFR não pode ser usada, pois
+	 * 		TODO: Incluir um condicional para esta sincronizacao via software,
+	 * 			  uma vez que via hardware tambem forca o sincronismo (de maneira
+	 * 			  ate mais determinestica) e aciona esta ISR, o que resetaria o
+	 * 			  contador do PWM duas vezes consecutivas, levando a possiveis
+	 * 			  glitches nos sinais PWM. A flag PIEIFR nao pode ser usada, pois
 	 * 			  a CPU reseta ela assim que entra nesta ISR. Talvez usar o contador
-	 * 			  XIntruptRegs.XINT2CTR. Verificar se também precisa condicionar o
+	 * 			  XIntruptRegs.XINT2CTR. Verificar se tambem precisa condicionar o
 	 * 			  ACK dos grupos INT1 (XINT2) e INT11 (MTOCIPCINT2).
 	 */
 

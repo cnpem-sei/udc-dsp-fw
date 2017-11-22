@@ -396,7 +396,7 @@ void Config_HRADC_SoC(float freq)
 		EPwm10Regs.ETSEL.bit.SOCASEL = ET_CTR_ZERO;		// Dispara ADCSOC quando TBCTR = 0x00
 		EPwm10Regs.ETPS.bit.SOCAPRD = ET_1ST;			// Dispara ADCSOC a cada TBCTR = 0x00
 
-		GpioDataRegs.GPBSET.bit.GPIO32 	= 0x1;			// Seta GPIO32 para não disparar o ADC precocemente
+		GpioDataRegs.GPBSET.bit.GPIO32 	= 0x1;			// Seta GPIO32 para nï¿½o disparar o ADC precocemente
 		GpioCtrlRegs.GPBMUX1.bit.GPIO32 = 0x3;			// Set GPIO32 as HRADC_CNVST
     }
 
@@ -515,7 +515,7 @@ void Erase_HRADC_UFM(Uint16 ID)
 		return;
 	}
 
-	static Uint16 aux, aux2;
+	static Uint16 status, dummy;
 
 	// Set appropriate Chip-Select signals
 	HRADC_CS_SET(ID);
@@ -523,27 +523,27 @@ void Erase_HRADC_UFM(Uint16 ID)
 	// Transmit UFM opcode for UFM-ERASE command
 	McbspaRegs.DXR1.all = UFM_OPCODE_UFM_ERASE;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	aux = McbspaRegs.DRR1.all;
+	status = McbspaRegs.DRR1.all;
 
 	// Reset and Clear Chip-Select signals
 	HRADC_CS_RESET(ID);
 
-	aux = 1;
+	status = 1;
 
-	while(aux)
+	while(status)
 	{
 		// Transmit UFM opcode for Read Status Register command
 		McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
 		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		aux = McbspaRegs.DRR1.all;
+		status = McbspaRegs.DRR1.all;
 
 		McbspaRegs.DXR1.all = 0x00;
 		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		aux = (McbspaRegs.DRR1.all) & 0x01;
+		status = (McbspaRegs.DRR1.all) & 0x01;
 
 		McbspaRegs.DXR1.all = 0x00;
 		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		aux2 = McbspaRegs.DRR1.all;
+		dummy = McbspaRegs.DRR1.all;
 
 		// Reset and Clear Chip-Select signals
 		HRADC_CS_RESET(ID);
@@ -560,10 +560,9 @@ void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint
 		return;
 	}
 
-	static Uint16 auxH, auxL, n;
+	static Uint16 status, n;
 
-	auxH = 0;
-	auxL = 0;
+	status = 0;
 	n = 0;
 
 	// Set appropriate Chip-Select signals
@@ -572,16 +571,16 @@ void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint
 	// Transmit UFM opcode for READ command
 	McbspaRegs.DXR1.all = UFM_OPCODE_READ;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	status = McbspaRegs.DRR1.all;
 
 	// Transmit UFM data address (Extended Mode: Address size = 16 bits)
 	McbspaRegs.DXR1.all = (ufm_address >> 8) & 0x00FF;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	status = McbspaRegs.DRR1.all;
 
 	McbspaRegs.DXR1.all = ufm_address & 0x00FF;;
 	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	auxH = McbspaRegs.DRR1.all;
+	status = McbspaRegs.DRR1.all;
 
 	// Iterates to receive n_words
 	while(n++ < n_words)
@@ -608,11 +607,10 @@ void Write_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 data)
 		return;
 	}
 
-	static Uint16 auxH, auxL, n;
+	static Uint16 auxH, auxL;
 
 	auxH = 0;
 	auxL = 0;
-	n = 0;
 
 	// Set appropriate Chip-Select signals
 	HRADC_CS_SET(ID);

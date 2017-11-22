@@ -73,9 +73,7 @@ typedef volatile struct
 #define CLEAR_DEBUG_GPIO0		GpioDataRegs.GPBCLEAR.bit.GPIO46 = 1;
 #define CLEAR_DEBUG_GPIO1		GpioDataRegs.GPDCLEAR.bit.GPIO111 = 1;
 
-#define CHECK_SOFTINTERLOCK(itlk)	!(IPC_CtoM_Msg.PSModule.SoftInterlocks & itlk)
-#define CHECK_INTERLOCK(itlk)		!(IPC_CtoM_Msg.PSModule.HardInterlocks & itlk)
-#define CHECK_INTERLOCKS			!(IPC_CtoM_Msg.PSModule.HardInterlocks)
+
 
 #include <math.h>
 #include <float.h>
@@ -91,7 +89,6 @@ typedef volatile struct
 #include "PWM_modules.h"
 
 #include "ELP_DCL.h"
-#include "TI_DCL.h"
 #include "SigGen.h"
 #include "TimeSlicer.h"
 #include "DP_framework.h"

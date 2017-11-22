@@ -40,7 +40,7 @@ void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers, Uint16 spiCl
   //
   // Transfer two 16-bit words per burst
   // Increment the source by 1 between words
-  // Decrement the destination by 1 between words - começa no MSB e decrementa um para o LSB;
+  // Decrement the destination by 1 between words - comeï¿½a no MSB e decrementa um para o LSB;
   //
   DmaRegs.CH2.BURST_SIZE.all = 1;
   DmaRegs.CH2.SRC_BURST_STEP = 1;
