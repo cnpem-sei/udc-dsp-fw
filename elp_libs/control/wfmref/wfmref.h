@@ -47,6 +47,6 @@ typedef volatile struct
  * to be accessed by other modules.
  */
 
-
+extern void reset_wfmref(wfmref_t *p_wfmref);
 
 #endif /* WFMREF_H_ */

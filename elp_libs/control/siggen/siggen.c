@@ -19,7 +19,7 @@
  *				- Implementar Run para Square, Triangle, FreqSweep
  */
 
-#include siggen.h
+#include "siggen.h"
 
 #define _USE_MATH_DEFINES
 #define	PI	3.141592653589793

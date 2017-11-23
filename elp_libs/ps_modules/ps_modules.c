@@ -247,14 +247,10 @@ void lock_ps_module(ps_module_t *p_ps_module)
  * Unlock power supply. This enables access to locked parameters.
  *
  * @param p_ps_module pointer to the ps module struct
- * @param password
  */
-void unlock_ps_module(ps_module_t *p_ps_module, uint16_t password)
+void unlock_ps_module(ps_module_t *p_ps_module)
 {
-    if(password == PASSWORD)
-    {
-        p_ps_module->ps_status.bit.unlocked = UNLOCKED;
-    }
+    p_ps_module->ps_status.bit.unlocked = UNLOCKED;
 }
 
 /**

@@ -33,14 +33,16 @@
 #define CHECK_INTERLOCK(itlk)       !(IPC_CtoM_Msg.PSModule.HardInterlocks & itlk)
 #define CHECK_INTERLOCKS            !(IPC_CtoM_Msg.PSModule.HardInterlocks)
 
-#define tCLOSED_LOOP     0
-#define tOPEN_LOOP       1
+#define tCLOSED_LOOP        0
+#define tOPEN_LOOP          1
 
-#define INACTIVE        0
-#define ACTIVE          1
+#define INACTIVE            0
+#define ACTIVE              1
 
-#define LOCKED          0
-#define UNLOCKED        1
+#define LOCKED              0
+#define UNLOCKED            1
+
+#define NUM_MAX_PS_MODULES  4
 
 
 typedef enum
@@ -103,8 +105,16 @@ extern void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
                     void (*isr_softinterlock)(void),
                     void (*isr_hardinterlock)(void),
                     void (*reset_interlocks)(void));
-
 extern void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode);
+extern void open_loop(ps_module_t *p_ps_module);
+extern void close_loop(ps_module_t *p_ps_module);
+extern void cfg_ps_inteface(ps_module_t *p_ps_module, ps_interface_t interface);
+extern void activate_ps_module(ps_module_t *p_ps_module);
+extern void deactivate_ps_module(ps_module_t *p_ps_module);
+extern void lock_ps_module(ps_module_t *p_ps_module);
+extern void unlock_ps_module(ps_module_t *p_ps_module);
+extern ps_model_t get_ps_model(ps_module_t *p_ps_module);
+
 
 
 #endif /* PS_MODULES_H_ */
