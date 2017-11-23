@@ -73,13 +73,13 @@ typedef enum
 
 typedef struct
 {
-    uint16_t state      : 4;    // 3:0      Operation state
-    uint16_t openloop   : 1;    // 4        Control loop state
-    uint16_t interface  : 2;    // 6:5      Communication interface
-    uint16_t active     : 1;    // 7        Power supply active?
-    uint16_t model      : 5;    // 12:8     Power supply model
-    uint16_t unlocked   : 1;    // 13       Unlocked?
-    uint16_t reserved   : 2;    // 15:14    Reserved for future use
+    ps_state_t      state      : 4;    // 3:0      Operation state
+    uint16_t        openloop   : 1;    // 4        Control loop state
+    ps_interface_t  interface  : 2;    // 6:5      Communication interface
+    uint16_t        active     : 1;    // 7        Power supply active?
+    ps_model_t      model      : 5;    // 12:8     Power supply model
+    uint16_t        unlocked   : 1;    // 13       Unlocked?
+    uint16_t        reserved   : 2;    // 15:14    Reserved for future use
 } ps_status_bits_t;
 
 typedef union

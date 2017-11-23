@@ -51,9 +51,9 @@
 #define SCALE_SIGGEN            0x00200001 // IPC1 + IPC22
 #define ENABLE_SIGGEN           0x00400001 // IPC1 + IPC23
 #define DISABLE_SIGGEN          0x00800001 // IPC1 + IPC24
-#define IPC25                   0x01000001 // IPC1 + IPC25
-#define IPC26                   0x02000001 // IPC1 + IPC26
-#define IPC27                   0x04000001 // IPC1 + IPC27
+#define IPC_25                  0x01000001 // IPC1 + IPC25
+#define IPC_26                  0x02000001 // IPC1 + IPC26
+#define IPC_27                  0x04000001 // IPC1 + IPC27
 #define HRADC_SAMPLING_DISABLE  0x08000001 // IPC1 + IPC28
 #define HRADC_SAMPLING_ENABLE   0x10000001 // IPC1 + IPC29
 #define HRADC_OPMODE            0x20000001 // IPC1 + IPC30
@@ -79,13 +79,14 @@ typedef enum {No_Error_CtoM,
 
 typedef enum {No_Error_MtoC,
               Invalid_Argument,
+              Invalid_OpMode,
               IPC_LowPriority_Full,
               HRADC_Config_Error} error_mtoc;
 
 typedef volatile struct
 {
     uint16_t        msg_id;
-    error_ctom      error_ctom;
+    error_mtoc      error_mtoc;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
     siggen_t        siggen[NUM_MAX_PS_MODULES];
     wfmref_t        wfmref[NUM_MAX_PS_MODULES];
@@ -95,7 +96,7 @@ typedef volatile struct
 typedef volatile struct
 {
     uint16_t        msg_id;
-    error_mtoc      error_mtoc;
+    error_ctom      error_ctom;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
     siggen_t        siggen[NUM_MAX_PS_MODULES];
     wfmref_t        wfmref[NUM_MAX_PS_MODULES];

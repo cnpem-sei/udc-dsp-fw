@@ -97,10 +97,10 @@ void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode)
 
         case Interlock:
         {
-            p_ps_module->set_softinterlock();
+            /// TODO: check
+            //p_ps_module->isr_softinterlock();
             p_ps_module->ps_setpoint = 0.0;
             p_ps_module->ps_reference = 0.0;
-            /// TODO:
             break;
         }
 
@@ -131,26 +131,23 @@ void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode)
         case RmpWfm:
         {
             // TODO:
-            IPC_CtoM_Msg.WfmRef = IPC_MtoC_Msg.WfmRef;
-            IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
             break;
         }
 
         case MigWfm:
         {
             // TODO:
-            IPC_CtoM_Msg.WfmRef = IPC_MtoC_Msg.WfmRef;
-            IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
-
             break;
         }
 
         case Cycle:
-        {
+        {/**
+          * TODO:
             disable_siggen(&p_ps_module->siggen);
             cfg_siggen(&p_ps_module->siggen, IPC_MtoC_Msg.SigGen.Type,
                        IPC_MtoC_Msg.SigGen.Ncycles, IPC_MtoC_Msg.SigGen.Freq,
                        p_ps_module->siggen.aux_param);
+          */
             break;
         }
 

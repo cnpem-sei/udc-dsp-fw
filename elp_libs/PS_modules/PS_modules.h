@@ -15,8 +15,8 @@ typedef enum
 
 typedef enum
 {
-	CLOSED_LOOP,
-	OPEN_LOOP
+	Closed_Loop,
+	Open_Loop
 } ePSLoopState;
 
 typedef enum

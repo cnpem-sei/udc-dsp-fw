@@ -20,10 +20,11 @@
  *
  */
 
+#include "boards/udc_c28.h"
 #include "ipc.h"
 
-ipc_ctom_t ipc_ctom_msg;
-ipc_mtoc_t ipc_mtoc_msg;
+ipc_ctom_t ipc_ctom;
+ipc_mtoc_t ipc_mtoc;
 
 /**
  * Interrupt service routine for handling Low Priority MtoC IPC messages
@@ -40,10 +41,10 @@ interrupt void isr_ipc_sync_pulse(void);
  *
  * @param p_ipc_ctom CtoM IPC struct (C28 to ARM)
  */
-void init_ipc(ipc_ctom_t *p_ipc_ctom, ID)
+void init_ipc(ipc_ctom_t *p_ipc_ctom)
 {
-    p_ipc_ctom->msg_id = ID;
-    p_ipc_ctom->error_ctom = No_Error_CtoM;
+    p_ipc_ctom->msg_id = 0;
+    p_ipc_ctom->error_mtoc = No_Error_MtoC;
 
     EALLOW;
 
@@ -99,21 +100,25 @@ void init_ipc(ipc_ctom_t *p_ipc_ctom, ID)
      */
     GpioCtrlRegs.GPBMUX1.bit.GPIO33 = 2; // Configures GPIO33 for EPWMSYNCO
 
+    /**
+     * TODO: verify how to specify isr_interlocks
+     */
     /* Map IPC_MtoC interrupts */
     //PieVectTable.XINT3      = &isr_ipc_sync_pulse;
-    PieVectTable.MTOCIPC_INT1 = &isr_ipc_sync_pulse;
-    PieVectTable.MTOCIPC_INT2 = &isr_ipc_lowpriority_msg;
-    PieVectTable.MTOCIPC_INT3 = isr_SoftItlk;       // Soft interlock
-    PieVectTable.MTOCIPC_INT4 = isr_HardItlk;       // Hard interlock
+    PieVectTable.MTOCIPC_INT1 = &isr_ipc_lowpriority_msg;
+    PieVectTable.MTOCIPC_INT2 = &isr_ipc_sync_pulse;
+    //PieVectTable.MTOCIPC_INT3 = &isr_hard_interlock;
+    //PieVectTable.MTOCIPC_INT4 = &isr_soft_interlock;
 
-    /* Enable IPC_MtoC interrupts */
+    /* Enable interrupts */
+
+    PieCtrlRegs.PIEIER1.bit.INTx5  = 1;                 //    XINT2
+    //PieCtrlRegs.PIEIER12.bit.INTx1 = 1;               //    XINT3
 
     PieCtrlRegs.PIEIER11.bit.INTx1 = 1;                 // MTOCIPCINT1
-    PieCtrlRegs.PIEIER11.bit.INTx2 = 1;                 // MTOCIPCINT2  --- Enable only in
-    PieCtrlRegs.PIEIER1.bit.INTx5  = 1;                 //    XINT2     --- WfmRef OpMode
-    //PieCtrlRegs.PIEIER12.bit.INTx1 = 1;               //    XINT3     --- WfmRef OpMode
-    PieCtrlRegs.PIEIER11.bit.INTx3 = 1;                 // MTOCIPCINT3
-    PieCtrlRegs.PIEIER11.bit.INTx4 = 1;                 // MTOCIPCINT4
+    PieCtrlRegs.PIEIER11.bit.INTx2 = 1;                 // MTOCIPCINT2
+    PieCtrlRegs.PIEIER11.bit.INTx3 = 0;                 // MTOCIPCINT3
+    PieCtrlRegs.PIEIER11.bit.INTx4 = 0;                 // MTOCIPCINT4
 
     EDIS;
 }
@@ -124,12 +129,13 @@ void init_ipc(ipc_ctom_t *p_ipc_ctom, ID)
  */
 void send_ipc_msg(uint16_t msg_id, uint32_t flag)
 {
-    ipc_ctom_msg.msg_id = msg_id;
+    ipc_ctom.msg_id = msg_id;
     CtoMIpcRegs.CTOMIPCSET.all |= flag;
 }
 
 interrupt void isr_ipc_lowpriority_msg(void)
 {
+    static uint16_t i;
     static Uint32 aux;
 
     aux = (CtoMIpcRegs.MTOCIPCSTS.all & 0xFFFFFFF1);
@@ -178,19 +184,28 @@ interrupt void isr_ipc_lowpriority_msg(void)
         {
             CtoMIpcRegs.MTOCIPCACK.all = OPERATING_MODE;
 
+            /**
+             * TODO:
+             */
             switch(ipc_ctom.ps_module[ipc_mtoc.msg_id].ps_status.bit.state)
             {
                 case RmpWfm:
                 case MigWfm:
                 {
-                    reset_wfmref(&ipc_ctom.wfmref[ipc_mtoc.msg_id]);
+                    //reset_wfmref(&ipc_ctom.wfmref[ipc_mtoc.msg_id]);
                     break;
                 }
 
                 case Cycle:
                 {
-                    disable_siggen(&ipc_ctom.siggen[ipc_mtoc.msg_id]);
-                    reset_siggen(&ipc_ctom.siggen[ipc_mtoc.msg_id]);
+
+                    //disable_siggen(&ipc_ctom.siggen[ipc_mtoc.msg_id]);
+                    //reset_siggen(&ipc_ctom.siggen[ipc_mtoc.msg_id]);
+                    break;
+                }
+
+                default:
+                {
                     break;
                 }
             }
@@ -262,180 +277,63 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 ipc_mtoc.ps_module[ipc_mtoc.msg_id].ps_setpoint;
             }
 
-            else
+            else if(ipc_ctom.ps_module[ipc_mtoc.msg_id].ps_status.bit.state != SlowRefSync)
             {
-                IPC_CtoM_Msg.PSModule.ErrorMtoC = INVALID_OPMODE;
-                SendIpcFlag(MTOC_MESSAGE_ERROR);
+                ipc_ctom.error_mtoc = Invalid_OpMode;
+                send_ipc_msg(ipc_mtoc.msg_id, MTOC_MESSAGE_ERROR);
             }
 
             PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case SIGGEN_ENABLE: //IPC1 +IPC9
+        case SET_SLOWREF_ALL_PS: //IPC1 + IPC17
         {
-            CtoMIpcRegs.MTOCIPCACK.all = SIGGEN_ENABLE;
+            CtoMIpcRegs.MTOCIPCACK.all = SET_SLOWREF_ALL_PS;
 
-            if(IPC_MtoC_Msg.SigGen.Enable)
+            for(i = 0; i < NUM_MAX_PS_MODULES; i++)
             {
-                Enable_ELP_SigGen(&SignalGenerator);
-            }
-            else
-            {
-                Reset_ELP_SigGen(&SignalGenerator);
-                Disable_ELP_SigGen(&SignalGenerator);
-            }
-
-            PieCtrlRegs.PIEACK.all |= M_INT11;
-            break;
-        }
-
-        case SIGGEN_CONFIG: //IPC1 +IPC10
-        {
-            CtoMIpcRegs.MTOCIPCACK.all = SIGGEN_CONFIG;
-
-            Init_ELP_SigGen(&SignalGenerator, IPC_MtoC_Msg.SigGen.Type, IPC_MtoC_Msg.SigGen.PhaseStart, IPC_MtoC_Msg.SigGen.PhaseEnd, IPC_MtoC_Msg.SigGen.Ncycles,
-                            SignalGenerator.FreqSample, SignalGenerator.ptr_FreqSignal, SignalGenerator.ptr_Amp, SignalGenerator.ptr_Offset, SignalGenerator.ptr_Aux, DP_Framework.Ref);
-
-            PieCtrlRegs.PIEACK.all |= M_INT11;
-            break;
-        }
-
-        case DPMODULES_CONFIG: //IPC1 +IPC11
-        {
-            CtoMIpcRegs.MTOCIPCACK.all = DPMODULES_CONFIG;
-
-            if(!ConfigDP_Module(&DP_Framework, IPC_MtoC_Msg.DPModule.ID, IPC_MtoC_Msg.DPModule.DPclass, IPC_MtoC_Msg.DPModule.Coeffs))
-            {
-                IPC_CtoM_Msg.PSModule.ErrorMtoC = INVALID_DP_MODULE;
-                SendIpcFlag(MTOC_MESSAGE_ERROR);
-            }
-
-
-            PieCtrlRegs.PIEACK.all |= M_INT11;
-            break;
-        }
-
-        case SAMPLES_BUFFER_ON_OFF: //IPC1 + IPC12
-        {
-            CtoMIpcRegs.MTOCIPCACK.all = SAMPLES_BUFFER_ON_OFF;
-            IPC_CtoM_Msg.PSModule.BufferOnOff = IPC_MtoC_Msg.PSModule.BufferOnOff;
-            IPC_CtoM_Msg.SamplesBuffer.BufferBusy = (eBlockBusy) IPC_MtoC_Msg.PSModule.BufferOnOff;
-            PieCtrlRegs.PIEACK.all |= M_INT11;
-            break;
-        }
-
-        case RESET_WFMREF:  // IPC1 + IPC14
-        {
-            CtoMIpcRegs.MTOCIPCACK.all = RESET_WFMREF;
-            IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
-            DP_Framework.NetSignals[13] = 0.0;  // Use only on FBPx4
-            PieCtrlRegs.PIEACK.all |= M_INT11;
-            break;
-        }
-
-        case SLOWREFX4_UPDATE: //IPC1 +IPC15
-        {
-            CtoMIpcRegs.MTOCIPCACK.all = SLOWREFX4_UPDATE;
-
-            if(IPC_CtoM_Msg.PSModule.OpMode == SlowRef)
-            {
-                //IPC_CtoM_Msg.PSModule.IRef = IPC_MtoC_Msg.PSModule.ISlowRef;
-                DP_Framework.NetSignals[1] = IPC_MtoC_Msg.DPModule.Coeffs[0];
-                DP_Framework.NetSignals[2] = IPC_MtoC_Msg.DPModule.Coeffs[1];
-                DP_Framework.NetSignals[3] = IPC_MtoC_Msg.DPModule.Coeffs[2];
-                DP_Framework.NetSignals[4] = IPC_MtoC_Msg.DPModule.Coeffs[3];
-
-                DP_Framework.NetSignals[13]++;
-
-            }
-            else
-            {
-                IPC_CtoM_Msg.PSModule.ErrorMtoC = INVALID_OPMODE;
-                SendIpcFlag(MTOC_MESSAGE_ERROR);
-            }
-
-            PieCtrlRegs.PIEACK.all |= M_INT11;
-            break;
-        }
-
-        case HRADC_SAMPLING_DISABLE: //IPC1 +IPC28
-        {
-            CtoMIpcRegs.MTOCIPCACK.all = HRADC_SAMPLING_DISABLE;
-            Disable_HRADC_Sampling();
-            PieCtrlRegs.PIEACK.all |= M_INT11;
-            break;
-        }
-
-        case HRADC_SAMPLING_ENABLE: //IPC1 +IPC29
-        {
-            CtoMIpcRegs.MTOCIPCACK.all = HRADC_SAMPLING_ENABLE;
-            Enable_HRADC_Sampling();
-            PieCtrlRegs.PIEACK.all |= M_INT11;
-            break;
-        }
-
-        case HRADC_OPMODE: //IPC1 +IPC30
-        {
-            CtoMIpcRegs.MTOCIPCACK.all = HRADC_OPMODE;
-            switch(IPC_MtoC_Msg.HRADCConfig.OpMode)
-            {
-                case HRADC_Sampling:
+                if(ipc_ctom.ps_module[i].ps_status.bit.active)
                 {
-                    Config_HRADC_Sampling_OpMode(IPC_MtoC_Msg.HRADCConfig.ID);
-                    break;
-                }
-                case HRADC_UFM:
-                {
-                    Config_HRADC_UFM_OpMode(IPC_MtoC_Msg.HRADCConfig.ID);
-                    break;
-                }
-
-                default:
-                {
-                    IPC_CtoM_Msg.PSModule.ErrorMtoC = INVALID_OPMODE;
-                    SendIpcFlag(MTOC_MESSAGE_ERROR);
-                    break;
+                    if(ipc_ctom.ps_module[i].ps_status.bit.state == SlowRef)
+                    {
+                        ipc_ctom.ps_module[i].ps_setpoint =
+                        ipc_mtoc.ps_module[i].ps_setpoint;
+                    }
+                    else if(ipc_ctom.ps_module[i].ps_status.bit.state != SlowRefSync)
+                    {
+                        ipc_ctom.error_mtoc = Invalid_OpMode;
+                        send_ipc_msg(ipc_mtoc.msg_id, MTOC_MESSAGE_ERROR);
+                    }
                 }
             }
-            PieCtrlRegs.PIEACK.all |= M_INT11;
-            break;
-        }
-
-        case HRADC_CONFIG: //IPC1 +IPC31
-        {
-            CtoMIpcRegs.MTOCIPCACK.all = HRADC_CONFIG;
-
-            Config_HRADC_SoC(IPC_MtoC_Msg.HRADCConfig.FreqSampling);
-
-            if(Try_Config_HRADC_board(HRADCs_Info.HRADC_boards[IPC_MtoC_Msg.HRADCConfig.ID],
-               IPC_MtoC_Msg.HRADCConfig.InputType,
-               IPC_MtoC_Msg.HRADCConfig.EnableHeater,
-               IPC_MtoC_Msg.HRADCConfig.EnableMonitor))
-            {
-                IPC_CtoM_Msg.PSModule.ErrorMtoC = HRADC_CONFIG_ERROR;
-                SendIpcFlag(MTOC_MESSAGE_ERROR);
-            }
 
             PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
+
+        /**
+         * TODO: finish other IPC messages
+         */
 
         case CTOM_MESSAGE_ERROR: //IPC1 +IPC32
         {
             CtoMIpcRegs.MTOCIPCACK.all = CTOM_MESSAGE_ERROR;
-
+            /**
+             * TODO: take action when recieving error
+             */
             PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
         default:
         {
+            /**
+             * TODO: check
+             */
             CtoMIpcRegs.MTOCIPCACK.all = 0x000000001;
-
-            IPC_CtoM_Msg.PSModule.ErrorMtoC = IPC_LOW_PRIORITY_MSG_FULL;
-            SendIpcFlag(MTOC_MESSAGE_ERROR);
-
+            ipc_ctom.error_mtoc = IPC_LowPriority_Full;
+            send_ipc_msg(ipc_mtoc.msg_id, MTOC_MESSAGE_ERROR);
             PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }

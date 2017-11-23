@@ -56,7 +56,7 @@ void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftI
 {
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 	IPC_CtoM_Msg.PSModule.OpMode = SlowRef;
-	IPC_CtoM_Msg.PSModule.OpenLoop = OPEN_LOOP;
+	IPC_CtoM_Msg.PSModule.OpenLoop = Open_Loop;
 	IPC_CtoM_Msg.PSModule.SoftInterlocks = 0x00000000;
 	IPC_CtoM_Msg.PSModule.HardInterlocks = 0x00000000;
 	IPC_CtoM_Msg.PSModule.BufferOnOff = 0;
