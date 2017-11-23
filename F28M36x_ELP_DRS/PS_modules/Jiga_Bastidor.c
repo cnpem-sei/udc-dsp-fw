@@ -107,7 +107,9 @@ void main_Jiga_Bastidor(void)
 			{
 				if(CHECK_INTERLOCK(PS1_OVERTEMP))
 				{
-					Set_HardInterlock(PS1_OVERTEMP,PS1_ID);
+					//Set_HardInterlock(PS1_OVERTEMP,PS1_ID);
+				    DP_Framework.NetSignals[20] = PS1_TEMPERATURE;
+				    DP_Framework.NetSignals[21] = 1.0;
 				}
 			}
 
@@ -159,7 +161,9 @@ void main_Jiga_Bastidor(void)
 				{
 					if(CHECK_INTERLOCK(PS2_OVERTEMP))
 					{
-						Set_HardInterlock(PS2_OVERTEMP,PS2_ID);
+						//Set_HardInterlock(PS2_OVERTEMP,PS2_ID);
+					    DP_Framework.NetSignals[20] = PS2_TEMPERATURE;
+					    DP_Framework.NetSignals[21] = 2.0;
 					}
 				}
 
@@ -211,7 +215,9 @@ void main_Jiga_Bastidor(void)
 					{
 						if(CHECK_INTERLOCK(PS3_OVERTEMP))
 						{
-							Set_HardInterlock(PS3_OVERTEMP,PS3_ID);
+							//Set_HardInterlock(PS3_OVERTEMP,PS3_ID);
+						    DP_Framework.NetSignals[20] = PS3_TEMPERATURE;
+						    DP_Framework.NetSignals[21] = 3.0;
 						}
 					}
 
@@ -263,7 +269,9 @@ void main_Jiga_Bastidor(void)
 						{
 							if(CHECK_INTERLOCK(PS4_OVERTEMP))
 							{
-								Set_HardInterlock(PS4_OVERTEMP,PS4_ID);
+								//Set_HardInterlock(PS4_OVERTEMP,PS4_ID);
+								DP_Framework.NetSignals[20] = PS4_TEMPERATURE;
+								DP_Framework.NetSignals[21] = 4.0;
 							}
 						}
 

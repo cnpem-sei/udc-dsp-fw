@@ -18,7 +18,7 @@
 #define MIN_REF					-10.0		// Valor mínimo da referência de corrente na carga [A]
 #define MAX_ILOAD				10.5		// Limite de corrente na carga para interlock [A]
 #define MAX_VLOAD				10.5			// Limite de tensão na carga para interlock [V]
-#define MIN_DCLINK				10.0		// Limite mínimo de tensão no DC-Link para interlock [V]
+#define MIN_DCLINK				3.0		// Limite mínimo de tensão no DC-Link para interlock [V]
 #define MAX_DCLINK				17.0		// Limite máximo de tensão no DC-Link para interlock [V]
 #define MAX_TEMP				80.0		// Limite de temperatura nos módulos de potência para interlock [ºC]
 
@@ -26,8 +26,8 @@
 #define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate máximo do offset do gerador senoidal (A/s)
 #define MAX_SR_SIGGEN_AMP		100.0		// Slew-rate máximo da amplitude do gerador senoidal (A/s)
 
-#define KP						0.0         // <= CARGA RESISTIVA WEG              //0.08976		//1.9			//2.8
-#define KI						280         // <= Ro ~ 1.3 Ohm, DC-Link ~ 14.5 V   //148.10		// 559.0		//470.0
+#define KP						0.0         // <= CARGA RESISTIVA WEG           //0.0  <= CARGA RESISTIVA WEG              //0.08976		//1.9			//2.8
+#define KI						680.0       // <= Ro ~ 1.3 Ohm, DC-Link ~ 6 V   //280  <= Ro ~ 1.3 Ohm, DC-Link ~ 14.5 V   //148.10		// 559.0		//470.0
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
