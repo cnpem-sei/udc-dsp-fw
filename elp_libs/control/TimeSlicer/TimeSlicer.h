@@ -21,7 +21,8 @@
 #define RUN_TIMESLICE(id)	if(TimeSlicer.Counter[id]++ == TimeSlicer.FreqRatio[id]){
 #define	END_TIMESLICE(id)	TimeSlicer.Counter[id] = 1;}
 
-#include "F28M36x_ELP_DRS.h"
+//#include "F28M36x_ELP_DRS.h"
+#include "boards/udc_c28.h"
 
 typedef volatile struct
 {

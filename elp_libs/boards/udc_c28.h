@@ -25,18 +25,16 @@
 #ifndef UDC_C28_H_
 #define UDC_C28_H_
 
-#include <math.h>
-#include <float.h>
 #include <stdint.h>
 
 #include "DSP28x_Project.h"
 
-#include "../common/structs.h"
+//#include "common/structs.h"
 //#include "PS_modules.h"
 //#include "HRADC_Boards.h"
 //#include "DMA_SPI_Interface.h"
 //#include "McBSP_SPI_Interface.h"
-#include "PWM_modules.h"
+//#include "PWM_modules.h"
 //#include "ELP_DCL.h"
 //#include "SigGen.h"
 //#include "TimeSlicer.h"

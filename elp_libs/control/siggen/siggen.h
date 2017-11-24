@@ -25,8 +25,6 @@
 #ifndef SIGGEN_H_
 #define SIGGEN_H_
 
-#include <math.h>
-#include <float.h>
 #include <stdint.h>
 
 #define NUM_SIGGEN_AUX_PARAM    4

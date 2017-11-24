@@ -13,8 +13,10 @@
  *		TODO: Create functions to access flash memory (UFM)
  */
 
-
 #include "HRADC_Boards.h"
+#include "McBSP_SPI_Interface.h"
+#include "DMA_SPI_Interface.h"
+#include "PWM_modules/PWM_modules.h"
 
 /**********************************************************************************************/
 //

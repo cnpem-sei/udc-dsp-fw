@@ -21,7 +21,6 @@
  */
 
 #include "ps_modules.h"
-#include "../IPC_modules/IPC_modules.h"
 
 /**
  * TODO: Put here your defines. Just what is local. If you don't
@@ -53,8 +52,8 @@
  */
 void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
                     void (*turn_on)(void), void (*turn_off)(void),
-                    void (*isr_softinterlock)(void),
-                    void (*isr_hardinterlock)(void),
+                    void (*isr_soft_interlock)(void),
+                    void (*isr_hard_interlock)(void),
                     void (*reset_interlocks)(void))
 {
     p_ps_module->ps_status.bit.state        = Off;
@@ -67,11 +66,13 @@ void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
 
     p_ps_module->ps_setpoint        = 0.0;
     p_ps_module->ps_reference       = 0.0;
+    p_ps_module->ps_hard_interlock  = 0;
+    p_ps_module->ps_soft_interlock  = 0;
 
     p_ps_module->turn_on            = turn_on;
     p_ps_module->turn_off           = turn_off;
-    p_ps_module->isr_softinterlock  = isr_softinterlock;
-    p_ps_module->isr_hardinterlock  = isr_hardinterlock;
+    p_ps_module->isr_soft_interlock  = isr_soft_interlock;
+    p_ps_module->isr_hard_interlock  = isr_hard_interlock;
     p_ps_module->reset_interlocks   = reset_interlocks;
 }
 

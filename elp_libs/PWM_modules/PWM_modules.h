@@ -33,7 +33,8 @@ typedef enum {
 
 #define N_MAX_PWM_MODULES	8
 
-#include "F28M36x_ELP_DRS.h"
+//#include "F28M36x_ELP_DRS.h"
+#include "boards/udc_c28.h"
 #include "SFO_V7.h"
 
 typedef volatile struct
@@ -47,7 +48,7 @@ extern int MEP_ScaleFactor;
 extern tPWMmodules PWM_Modules;
 
 //*****************************************************************************
-// Protótipo das funções 
+// Protï¿½tipo das funï¿½ï¿½es 
 //*****************************************************************************
 extern Uint16 SetPWMFreq(volatile struct EPWM_REGS *pwmPtr, double freq);
 extern void   SetPWMDeadTime(volatile struct EPWM_REGS *pwmPtr, Uint16 dt_ns);

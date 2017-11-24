@@ -65,10 +65,7 @@ typedef enum {
 		HRADC_UFM
 } eHRADCOpMode;
 
-//#include "DSP28x_Project.h"
-//#include "../C28 Project/config.h"
-//#include "../PWM_modules/PWM_modules.h"
-#include "F28M36x_ELP_DRS.h"
+#include "boards/udc_c28.h"
 
 /**********************************************************************************************/
 //

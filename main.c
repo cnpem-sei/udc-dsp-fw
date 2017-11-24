@@ -25,8 +25,10 @@
  */
 
 #include <string.h>
-#include "F28M36x_ELP_DRS.h"
-#include "udc_c28.h"
+#include "boards/udc_c28.h"
+#include "ipc/ipc.h"
+
+#include "ps_modules/fbp.h"
 
 /**
  * TODO: Put here your defines. Just what is local. If you don't
@@ -116,87 +118,12 @@ void main(void)
         /**
          * Select power supply module
          */
-        switch(IPC_MtoC_Msg.PSModule.Model)
+        switch(g_ipc_mtoc.ps_module[0].ps_status.bit.model)
         {
-            case FBP_100kHz:
+            case FBP:
             {
-                //main_FBP_100kHz();
-                //main_Test_BCB_Board();
+                main_fbp();
                 break;
-            }
-
-            case FBP_Parallel_100kHz:
-            {
-                //main_FBP_Parallel_100kHz();
-                break;
-            }
-
-            case FAC_ACDC_10kHz:
-            {
-                //main_FAC_ACDC_10kHz();
-                break;
-            }
-
-            case FAC_DCDC_20kHz:
-            {
-                //main_FAC_DCDC_20kHz();
-                break;
-            }
-
-            case FAC_Full_ACDC_10kHz:
-            {
-                //main_FAC_Full_ACDC_10kHz();
-                break;
-            }
-
-            case FAC_Full_DCDC_20kHz:
-            {
-                //main_FAC_Full_DCDC_20kHz();
-                break;
-            }
-
-            case FAP_ACDC:
-            {
-                //main_FAP_ACDC();
-                break;
-            }
-
-            case FAP_DCDC_20kHz:
-            {
-                //main_FAP_DCDC_20kHz();
-                break;
-            }
-
-            case TEST_HRPWM:
-            {
-                //main_Test_HRPWM();
-                break;
-            }
-
-            case TEST_HRADC:
-            {
-                //main_Test_HRADC();
-                break;
-            }
-
-            case JIGA_HRADC:
-            {
-                //main_Jiga_HRADC();
-            }
-
-            case FAP_DCDC_15kHz_225A:
-            {
-                //main_FAP_DCDC_15kHz_225A();
-            }
-
-            case FBPx4_100kHz:
-            {
-                //main_FBPx4_100kHz();
-            }
-
-            case FAP_6U_DCDC_20kHz:
-            {
-                //main_FAP_6U_DCDC_20kHz();
             }
 
             default:

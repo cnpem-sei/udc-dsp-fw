@@ -1,6 +1,6 @@
-//#include "DSP28x_Project.h"
+#include "DSP28x_Project.h"
 //#include "../C28 Project/config.h"
-#include "F28M36x_ELP_DRS.h"
+//#include "F28M36x_ELP_DRS.h"
 
 #ifndef DMA_SPI_INTERFACE_H
 #define DMA_SPI_INTERFACE_H

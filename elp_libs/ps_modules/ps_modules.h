@@ -24,7 +24,7 @@
 #define PS_MODULES_H_
 
 #include <stdint.h>
-#include <string.h>
+//#include <string.h>
 
 /**
  * TODO: update macros for interlock check
@@ -50,9 +50,9 @@ typedef enum
     Off,
     Interlock,
     Initializing,
-    //SlowRef,
+    SlowRef,
     SlowRefSync,
-    //FastRef,
+    FastRef,
     RmpWfm,
     MigWfm,
     Cycle
@@ -93,18 +93,20 @@ typedef struct
     ps_status_t     ps_status;
     float           ps_setpoint;
     float           ps_reference;
+    uint32_t        ps_hard_interlock;
+    uint32_t        ps_soft_interlock;
     void            (*turn_on)(void);
     void            (*turn_off)(void);
-    void            (*isr_softinterlock)(void);
-    void            (*isr_hardinterlock)(void);
+    void            (*isr_soft_interlock)(void);
+    void            (*isr_hard_interlock)(void);
     void            (*reset_interlocks)(void);
 } ps_module_t;
 
 extern void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
-                    void (*turn_on)(void), void (*turn_off)(void),
-                    void (*isr_softinterlock)(void),
-                    void (*isr_hardinterlock)(void),
-                    void (*reset_interlocks)(void));
+                           void (*turn_on)(void), void (*turn_off)(void),
+                           void (*isr_soft_interlock)(void),
+                           void (*isr_hard_interlock)(void),
+                           void (*reset_interlocks)(void));
 extern void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode);
 extern void open_loop(ps_module_t *p_ps_module);
 extern void close_loop(ps_module_t *p_ps_module);

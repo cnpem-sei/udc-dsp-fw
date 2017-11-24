@@ -24,9 +24,16 @@
 #define IPC_H_
 
 #include <stdint.h>
+#include "common/structs.h"
 #include "ps_modules/ps_modules.h"
 #include "control/siggen/siggen.h"
 #include "control/wfmref/wfmref.h"
+
+/**
+ * Shared resources defines
+ */
+
+#define SIZE_BUF_SAMPLES    4096
 
 /*
  * MtoC Message Defines
@@ -71,11 +78,11 @@
 #define SOFT_INTERLOCK          0x00000008 // IPC4
 
 
-typedef enum {No_Error_CtoM,
-              Error1,
-              Error2,
-              Error3,
-              Error4} error_ctom;
+typedef enum {No_Error_CtoM,     //!< No_Error_CtoM
+              Error1,            //!< Error1
+              Error2,            //!< Error2
+              Error3,            //!< Error3
+              Error4} error_ctom;//!< Error4
 
 typedef enum {No_Error_MtoC,
               Invalid_Argument,
@@ -103,10 +110,10 @@ typedef volatile struct
     buf_t           buf_samples[NUM_MAX_PS_MODULES];
 } ipc_mtoc_t;
 
-extern ipc_ctom_t ipc_ctom;
-extern ipc_mtoc_t ipc_mtoc;
+extern ipc_ctom_t g_ipc_ctom;
+extern ipc_mtoc_t g_ipc_mtoc;
 
-extern void init_ipc(ipc_ctom_t *p_ipc_ctom);
+extern void init_ipc(void);
 extern void send_ipc_msg(uint16_t msg_id, uint32_t flag);
 
 #endif /* IPC_H_ */

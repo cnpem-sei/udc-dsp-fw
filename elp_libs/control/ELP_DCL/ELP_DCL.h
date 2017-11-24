@@ -18,7 +18,7 @@
 
 #include <math.h>
 #include "DSP28x_Project.h"
-#include "../../common/structs.h"
+#include "common/structs.h"
 
 #define	PID_DEFAULTS { 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, -1.0f }
 

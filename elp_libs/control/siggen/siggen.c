@@ -19,6 +19,8 @@
  *				- Implementar Run para Square, Triangle, FreqSweep
  */
 
+#include <math.h>
+#include <float.h>
 #include "siggen.h"
 
 #define _USE_MATH_DEFINES
