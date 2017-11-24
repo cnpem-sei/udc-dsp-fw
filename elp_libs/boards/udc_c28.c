@@ -22,8 +22,8 @@
  *
  */
 
+#include "pwm/pwm.h"
 #include "udc_c28.h"
-#include "PWM_modules/PWM_modules.h"
 #include "control/ELP_DCL/ELP_DCL.h"
 
 /**
@@ -171,13 +171,15 @@ void init_buzzer(float volume)
 {
 #if UDC_V2_1
 
-    PWM_Modules.N_modules = 8;
+    pwm_modules.num_modules = 8;
 
-    DisablePWMOutputs();
-    DisablePWM_TBCLK();
+    disable_pwm_outputs();
+    disable_pwm_tbclk();
 
-    InitPWMModule(&EPwm9Regs, BUZZER_PITCH_FREQ, 0, MasterPWM, 0, NO_COMPLEMENTARY, 0);
-    InitPWMModule(&EPwm11Regs, 0.0, 0, MasterPWM, 0, NO_COMPLEMENTARY, 0);
+    init_pwm_module(&EPwm9Regs, BUZZER_PITCH_FREQ, 0, PWM_Sync_Master, 0,
+                  PWM_ChB_Complementary, 0);
+    init_pwm_module(&EPwm11Regs, 0.0, 0, PWM_Sync_Master, 0,
+                  PWM_ChB_Complementary, 0);
 
     EALLOW;
 
@@ -203,8 +205,8 @@ void init_buzzer(float volume)
     SATURATE(volume,0.0,100.0);
 
     /// Set duty cycle
-    SetPWMDutyCycle_ChA(&EPwm9Regs, volume/100.0);
-    SetPWMDutyCycle_ChA(&EPwm11Regs, 0.5);
+    set_pwm_duty_chA(&EPwm9Regs, volume/100.0);
+    set_pwm_duty_chA(&EPwm11Regs, 0.5);
 
     EDIS;
 

@@ -13,10 +13,10 @@
  *		TODO: Create functions to access flash memory (UFM)
  */
 
+#include "pwm/pwm.h"
 #include "HRADC_Boards.h"
 #include "McBSP_SPI_Interface.h"
 #include "DMA_SPI_Interface.h"
-#include "PWM_modules/PWM_modules.h"
 
 /**********************************************************************************************/
 //
@@ -367,7 +367,8 @@ void Config_HRADC_SoC(float freq)
 	 * 		ePWM10 is synchronized with CTR = ZERO event from ePWM1
 	 */
 
-	InitPWMModule(&EPwm10Regs, freq, 0, SlavePWM, 0, NO_COMPLEMENTARY, 0);
+	init_pwm_module(&EPwm10Regs, freq, 0, PWM_Sync_Slave, 0,
+	                PWM_ChB_Independent, 0);
 
 	HRADCs_Info.freq_Sampling = freq;
 
@@ -415,7 +416,7 @@ void Enable_HRADC_Sampling(void)
 	HRADCs_Info.enable_Sampling = 1;
 	start_DMA();
 	//EnablePWMOutputs();
-	EnablePWM_TBCLK();
+	enable_pwm_tbclk();
 }
 
 void Disable_HRADC_Sampling(void)
@@ -423,7 +424,7 @@ void Disable_HRADC_Sampling(void)
 	if(HRADCs_Info.enable_Sampling)
 	{
 		//DisablePWMOutputs();
-		DisablePWM_TBCLK();
+	    disable_pwm_tbclk();
 		DELAY_US(2);
 		stop_DMA();
 		HRADCs_Info.enable_Sampling = 0;

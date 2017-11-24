@@ -213,13 +213,11 @@ interrupt void isr_soft_interlock(void);
  */
 void main_fbp(void)
 {
-    uint16_t i;
-
-    i = 0;
     num_ps  = 0;
 
-    init_peripherals_drivers();
     init_controller();
+
+    init_peripherals_drivers();
     init_interruptions();
     enable_controller();
 
