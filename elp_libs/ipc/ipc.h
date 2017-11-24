@@ -26,8 +26,8 @@
 #include <stdint.h>
 #include "common/structs.h"
 #include "ps_modules/ps_modules.h"
-#include "control/siggen/siggen.h"
-#include "control/wfmref/wfmref.h"
+#include "siggen/siggen.h"
+#include "wfmref/wfmref.h"
 
 /**
  * Shared resources defines

@@ -23,7 +23,7 @@
 #define WFMREF_H_
 
 #include <stdint.h>
-#include "../../common/structs.h"
+#include "common/structs.h"
 
 typedef enum
 {

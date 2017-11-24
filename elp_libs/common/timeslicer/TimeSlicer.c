@@ -12,7 +12,7 @@
  *		TODO:
  */
 
-#include "TimeSlicer.h"
+#include <common/timeslicer/TimeSlicer.h>
 
 tTimeSlicer TimeSlicer;
 
