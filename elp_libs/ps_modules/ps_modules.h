@@ -84,7 +84,6 @@ typedef struct
 
 typedef union
 {
-    uint8_t             u8[2];
     uint16_t            all;
     ps_status_bits_t    bit;
 } ps_status_t;
@@ -92,18 +91,8 @@ typedef union
 typedef struct
 {
     ps_status_t     ps_status;
-
-    union {
-        volatile uint8_t    u8[4];
-        volatile float      f;
-    } ps_setpoint;
-
-    union {
-        volatile uint32_t   u32;
-        volatile uint8_t    u8[4];
-        volatile float      f;
-    } ps_reference;
-
+    float           ps_setpoint;
+    float           ps_reference;
     uint32_t        ps_hard_interlock;
     uint32_t        ps_soft_interlock;
     void            (*turn_on)(void);
