@@ -38,6 +38,7 @@
 /*
  * MtoC Message Defines
  */
+/*
 #define TURN_ON                 0x00000011 // IPC1 + IPC5
 #define TURN_OFF                0x00000021 // IPC1 + IPC6
 #define OPEN_LOOP               0x00000041 // IPC1 + IPC7
@@ -65,33 +66,67 @@
 #define HRADC_SAMPLING_ENABLE   0x10000001 // IPC1 + IPC29
 #define HRADC_OPMODE            0x20000001 // IPC1 + IPC30
 #define HRADC_CONFIG            0x40000001 // IPC1 + IPC31
-#define CTOM_MESSAGE_ERROR      0x80000001 // IPC1 + IPC32
+#define CTOM_MESSAGE_ERROR      0x80000001 // IPC1 + IPC32*/
 
-#define SYNC_PULSE              0x00000002 // IPC2
+#define IPC_MTOC_LOWPRIORITY_MSG    0x00000001  // IPC1
+#define IPC_CTOM_LOWPRIORITY_MSG    0x00000001  // IPC1
+#define SYNC_PULSE                  0x00000002  // IPC2
+#define HARD_INTERLOCK              0x00000004  // IPC3
+#define SOFT_INTERLOCK              0x00000008  // IPC4
 
-/*
- * CtoM Message Defines
- */
-#define MTOC_MESSAGE_ERROR      0x80000001 // IPC1+IPC32
+typedef enum
+{
+    Turn_On,
+    Turn_Off,
+    Open_Loop,
+    Close_Loop,
+    Operating_Mode,
+    Reset_Interlocks,
+    Unlock_UDC,
+    Lock_UDC,
+    Cfg_Buf_Samples,
+    Enable_Buf_Samples,
+    Disable_Buf_Samples,
+    Set_SlowRef,
+    Set_SlowRef_All_PS,
+    Cfg_WfmRef,
+    Select_WfmRef,
+    Reset_WfmRef,
+    Cfg_SigGen,
+    Scale_SigGen,
+    Enable_SigGen,
+    Disable_SigGen,
+    CtoM_Message_Error
+} ipc_mtoc_lowpriority_msg_t;
 
-#define HARD_INTERLOCK          0x00000004 // IPC3
-#define SOFT_INTERLOCK          0x00000008 // IPC4
+typedef enum
+{
+    MtoC_Message_Error
+} ipc_ctom_lowpriority_msg_t;
 
+#define GET_IPC_MTOC_LOWPRIORITY_MSG  (ipc_mtoc_lowpriority_msg_t) (g_ipc_ctom.msg_mtoc > 4 ) & 0x0000FFFF
 
-typedef enum {No_Error_CtoM,     //!< No_Error_CtoM
-              Error1,            //!< Error1
-              Error2,            //!< Error2
-              Error3,            //!< Error3
-              Error4} error_ctom;//!< Error4
+typedef enum
+{
+    No_Error_CtoM,
+    Error1,
+    Error2,
+    Error3,
+    Error4
+} error_ctom;
 
-typedef enum {No_Error_MtoC,
-              Invalid_Argument,
-              Invalid_OpMode,
-              IPC_LowPriority_Full,
-              HRADC_Config_Error} error_mtoc;
+typedef enum
+{
+    No_Error_MtoC,
+    Invalid_Argument,
+    Invalid_OpMode,
+    IPC_LowPriority_Full,
+    HRADC_Config_Error
+} error_mtoc;
 
 typedef volatile struct
 {
+    uint32_t        msg_mtoc;
     uint16_t        msg_id;
     error_mtoc      error_mtoc;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
@@ -102,6 +137,7 @@ typedef volatile struct
 
 typedef volatile struct
 {
+    uint32_t        msg_ctom;
     uint16_t        msg_id;
     error_ctom      error_ctom;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
@@ -114,6 +150,8 @@ extern ipc_ctom_t g_ipc_ctom;
 extern ipc_mtoc_t g_ipc_mtoc;
 
 extern void init_ipc(void);
-extern void send_ipc_msg(uint16_t msg_id, uint32_t flag);
+extern void send_ipc_msg(uint16_t msg_id, uint32_t msg);
+extern void send_ipc_lowpriority_msg(uint16_t msg_id,
+                                     ipc_ctom_lowpriority_msg_t msg);
 
 #endif /* IPC_H_ */

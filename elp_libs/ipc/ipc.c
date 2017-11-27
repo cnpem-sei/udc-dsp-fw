@@ -20,6 +20,7 @@
  *
  */
 
+#include <stdint.h>
 #include "boards/udc_c28.h"
 #include "ipc.h"
 
@@ -44,6 +45,7 @@ interrupt void isr_ipc_sync_pulse(void);
 void init_ipc(void)
 {
     g_ipc_ctom.msg_id = 0;
+    g_ipc_ctom.msg_mtoc = 0;
     g_ipc_ctom.error_mtoc = No_Error_MtoC;
 
     EALLOW;
@@ -124,66 +126,83 @@ void init_ipc(void)
 }
 
 /**
- * Send specified IPC message
- * @param flag indicates bitwise which IPC CtoM message should be sent
+ * Send IPC CtoM message. This function must be used with care, because it
+ * directly sets CTOMIPC register bits according to the argument `msg` when
+ * there's no pending messages.
+ *
+ * @param msg_id specified IPC module
+ * @param msg specified message
  */
-void send_ipc_msg(uint16_t msg_id, uint32_t flag)
+void send_ipc_msg(uint16_t msg_id, uint32_t msg)
 {
-    g_ipc_ctom.msg_id = msg_id;
-    CtoMIpcRegs.CTOMIPCSET.all |= flag;
+    if(CtoMIpcRegs.CTOMIPCFLG.all == 0x00000000)
+    {
+        g_ipc_ctom.msg_id = msg_id;
+        CtoMIpcRegs.CTOMIPCSET.all = msg;
+    }
 }
 
+/**
+ * Send IPC CtoM Low Priority message. It ignores attempts to set high priority
+ * bits or to subscribe pending low priority messages.
+ *
+ * @param msg_id specified IPC module
+ * @param msg specified message
+ */
+void send_ipc_lowpriority_msg(uint16_t msg_id, ipc_ctom_lowpriority_msg_t msg)
+{
+    if(CtoMIpcRegs.CTOMIPCFLG.all == 0x00000000)
+    {
+        g_ipc_ctom.msg_id = msg_id;
+        CtoMIpcRegs.CTOMIPCSET.all = (uint32_t) ( ( (uint16_t) msg < 4 ) &
+                                     0x000FFFF0 | IPC_CTOM_LOWPRIORITY_MSG);
+    }
+}
+
+/**
+ * Interrupt Service Routine for IPC MtoC Low Priority Messages.
+ */
 interrupt void isr_ipc_lowpriority_msg(void)
 {
     static uint16_t i;
-    static Uint32 aux;
 
-    aux = (CtoMIpcRegs.MTOCIPCSTS.all & 0xFFFFFFF1);
+    g_ipc_ctom.msg_mtoc = CtoMIpcRegs.MTOCIPCSTS.all;
+    CtoMIpcRegs.MTOCIPCACK.all = g_ipc_ctom.msg_mtoc;
 
-    switch(aux)
+    switch(GET_IPC_MTOC_LOWPRIORITY_MSG)
     {
-        case TURN_ON:   //IPC1 + IPC5
+        case Turn_On:
         {
             /**
              * TODO: where should disable siggen + reset wfmref be?
              */
-            CtoMIpcRegs.MTOCIPCACK.all = TURN_ON;
             g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_on();
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case TURN_OFF:  //IPC1 + IPC6
+        case Turn_Off:
         {
             /**
              * TODO: where should disable siggen + reset wfmref be?
              */
-            CtoMIpcRegs.MTOCIPCACK.all = TURN_OFF;
             g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_off();
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case OPEN_LOOP: //IPC1 + IPC7
+        case Open_Loop:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = OPEN_LOOP;
             open_loop(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case CLOSE_LOOP: //IPC1 + IPC8
+        case Close_Loop:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = CLOSE_LOOP;
             close_loop(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case OPERATING_MODE: //IPC1 + IPC9
+        case Operating_Mode:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = OPERATING_MODE;
-
             /**
              * TODO:
              */
@@ -212,65 +231,49 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
             cfg_ps_operation_mode( &g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id],
                                    g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state );
-
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case RESET_INTERLOCKS: // IPC1 + IPC10
+        case Reset_Interlocks:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = RESET_INTERLOCKS;
             g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].reset_interlocks();
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case UNLOCK_UDC: //IPC1 + IPC11
+        case Unlock_UDC:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = UNLOCK_UDC;
             unlock_ps_module(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case LOCK_UDC: //IPC1 + IPC12
+        case Lock_UDC:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = LOCK_UDC;
             lock_ps_module(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case CONFIG_BUF_SAMPLES: //IPC1 + IPC13
+        case Cfg_Buf_Samples:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = CONFIG_BUF_SAMPLES;
             /**
              * TODO: implement cfg_buf_samples
              */
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case ENABLE_BUF_SAMPLES: //IPC1 + IPC14
+        case Enable_Buf_Samples:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = CONFIG_BUF_SAMPLES;
             enable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case DISABLE_BUF_SAMPLES: //IPC1 + IPC15
+        case Disable_Buf_Samples:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = CONFIG_BUF_SAMPLES;
             disable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case SET_SLOWREF: //IPC1 + IPC16
+        case Set_SlowRef:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = SET_SLOWREF;
-
             if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state == SlowRef)
             {
                 g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_setpoint =
@@ -280,17 +283,14 @@ interrupt void isr_ipc_lowpriority_msg(void)
             else if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state != SlowRefSync)
             {
                 g_ipc_ctom.error_mtoc = Invalid_OpMode;
-                send_ipc_msg(g_ipc_mtoc.msg_id, MTOC_MESSAGE_ERROR);
+                send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
             }
 
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
-        case SET_SLOWREF_ALL_PS: //IPC1 + IPC17
+        case Set_SlowRef_All_PS:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = SET_SLOWREF_ALL_PS;
-
             for(i = 0; i < NUM_MAX_PS_MODULES; i++)
             {
                 if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
@@ -303,12 +303,11 @@ interrupt void isr_ipc_lowpriority_msg(void)
                     else if(g_ipc_ctom.ps_module[i].ps_status.bit.state != SlowRefSync)
                     {
                         g_ipc_ctom.error_mtoc = Invalid_OpMode;
-                        send_ipc_msg(g_ipc_mtoc.msg_id, MTOC_MESSAGE_ERROR);
+                        send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
                     }
                 }
             }
 
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
@@ -316,13 +315,11 @@ interrupt void isr_ipc_lowpriority_msg(void)
          * TODO: finish other IPC messages
          */
 
-        case CTOM_MESSAGE_ERROR: //IPC1 +IPC32
+        case CtoM_Message_Error:
         {
-            CtoMIpcRegs.MTOCIPCACK.all = CTOM_MESSAGE_ERROR;
             /**
-             * TODO: take action when recieving error
+             * TODO: take action when receiving error
              */
-            PieCtrlRegs.PIEACK.all |= M_INT11;
             break;
         }
 
@@ -331,13 +328,13 @@ interrupt void isr_ipc_lowpriority_msg(void)
             /**
              * TODO: check
              */
-            CtoMIpcRegs.MTOCIPCACK.all = 0x000000001;
             g_ipc_ctom.error_mtoc = IPC_LowPriority_Full;
-            send_ipc_msg(g_ipc_mtoc.msg_id, MTOC_MESSAGE_ERROR);
-            PieCtrlRegs.PIEACK.all |= M_INT11;
+            send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
             break;
         }
     }
+
+    PieCtrlRegs.PIEACK.all |= M_INT11;
 }
 
 interrupt void isr_ipc_sync_pulse(void)
