@@ -34,9 +34,9 @@
 
 typedef enum
 {
-    //Sine,
-    //DampedSine,
-    //Trapezoidal
+    Sine,
+    DampedSine,
+    Trapezoidal,
     PRBS
 } siggen_type_t;
 

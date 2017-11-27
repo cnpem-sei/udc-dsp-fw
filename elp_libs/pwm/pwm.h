@@ -51,13 +51,14 @@ typedef volatile struct
 
 /**
  * The following three declarations are required in order to use the SFO library
- * functions.
+ * functions. For this reason the naming convetion for global variables was
+ * ignored.
  */
 extern int16_t  MEP_ScaleFactor;
 extern uint16_t SFO_status;
 extern volatile struct EPWM_REGS *ePWM[9];
 
-extern pwm_modules_t pwm_modules;
+extern pwm_modules_t g_pwm_modules;
 
 extern uint16_t set_pwm_freq(volatile struct EPWM_REGS *p_pwm_module,
                              double freq);

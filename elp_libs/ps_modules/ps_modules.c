@@ -57,7 +57,7 @@ void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
                     void (*reset_interlocks)(void))
 {
     p_ps_module->ps_status.bit.state        = Off;
-    p_ps_module->ps_status.bit.openloop     = tOPEN_LOOP;
+    p_ps_module->ps_status.bit.openloop     = OPEN_LOOP;
     p_ps_module->ps_status.bit.interface    = Remote;
     p_ps_module->ps_status.bit.active       = ACTIVE;
     p_ps_module->ps_status.bit.model        = model;
@@ -172,7 +172,7 @@ void open_loop(ps_module_t *p_ps_module)
     if( (p_ps_module->ps_status.bit.state == Off) ||
         (p_ps_module->ps_status.bit.unlocked == UNLOCKED) )
     {
-        p_ps_module->ps_status.bit.openloop = tOPEN_LOOP;
+        p_ps_module->ps_status.bit.openloop = OPEN_LOOP;
     }
 }
 
@@ -187,7 +187,7 @@ void close_loop(ps_module_t *p_ps_module)
     if( (p_ps_module->ps_status.bit.state == Off) ||
         (p_ps_module->ps_status.bit.unlocked == UNLOCKED) )
     {
-        p_ps_module->ps_status.bit.openloop = tCLOSED_LOOP;
+        p_ps_module->ps_status.bit.openloop = CLOSED_LOOP;
     }
 }
 

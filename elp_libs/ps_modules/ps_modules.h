@@ -33,8 +33,8 @@
 #define CHECK_INTERLOCK(itlk)       !(IPC_CtoM_Msg.PSModule.HardInterlocks & itlk)
 #define CHECK_INTERLOCKS            !(IPC_CtoM_Msg.PSModule.HardInterlocks)
 
-#define tCLOSED_LOOP        0
-#define tOPEN_LOOP          1
+#define CLOSED_LOOP         0
+#define OPEN_LOOP           1
 
 #define INACTIVE            0
 #define ACTIVE              1

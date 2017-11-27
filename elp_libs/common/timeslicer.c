@@ -27,7 +27,7 @@
 
 #include "timeslicer.h"
 
-timeslicer_t timeslicers;
+timeslicer_t g_timeslicers;
 
 void reset_timeslicers(void)
 {
@@ -35,13 +35,13 @@ void reset_timeslicers(void)
 
     for(i = 0; i < NUM_MAX_TIMESLICERS; i++)
     {
-        timeslicers.counter[i] = timeslicers.freq_ratio[i];
+        g_timeslicers.counter[i] = g_timeslicers.freq_ratio[i];
     }
 }
 
 void cfg_timeslicer(uint16_t id, uint16_t ratio)
 {
-    timeslicers.freq_ratio[id]  = ratio;
-    timeslicers.counter[id]     = ratio;
+    g_timeslicers.freq_ratio[id]  = ratio;
+    g_timeslicers.counter[id]     = ratio;
 }
 

@@ -35,7 +35,7 @@ typedef volatile struct
     uint16_t  counter[NUM_MAX_TIMESLICERS];
 } timeslicer_t;
 
-extern timeslicer_t timeslicers;
+extern timeslicer_t g_timeslicers;
 
 extern void reset_timeslicers(void);
 extern void cfg_timeslicer(uint16_t id, uint16_t ratio);

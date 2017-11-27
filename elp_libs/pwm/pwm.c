@@ -60,7 +60,7 @@ volatile struct EPWM_REGS *ePWM[9] = {  &EPwm1Regs, &EPwm1Regs, &EPwm2Regs,
 /**
  * Struct to group all pwm modules information
  */
-pwm_modules_t pwm_modules;
+pwm_modules_t g_pwm_modules;
 
 /**
  * Set frequency for specified PWM module. Also, returns period in system
@@ -348,8 +348,8 @@ void enable_pwm_output(uint16_t pwm_module)
 {
     // Clear trip flag, enabling PWM outputs
     EALLOW;
-    pwm_modules.pwm_regs[pwm_module]->TZCLR.bit.OST = 1;
-    pwm_modules.pwm_state[pwm_module] = PWM_ENABLED;
+    g_pwm_modules.pwm_regs[pwm_module]->TZCLR.bit.OST = 1;
+    g_pwm_modules.pwm_state[pwm_module] = PWM_ENABLED;
     EDIS;
 }
 
@@ -362,8 +362,8 @@ void disable_pwm_output(uint16_t pwm_module)
 {
     // Force trip via software, disabling PWM outputs
     EALLOW;
-    pwm_modules.pwm_regs[pwm_module]->TZFRC.bit.OST = 1;
-    pwm_modules.pwm_state[pwm_module] = PWM_DISABLED;
+    g_pwm_modules.pwm_regs[pwm_module]->TZFRC.bit.OST = 1;
+    g_pwm_modules.pwm_state[pwm_module] = PWM_DISABLED;
     EDIS;
 }
 
@@ -377,10 +377,10 @@ void enable_pwm_outputs(void)
 
     // Clear trip flags, enabling PWM outputs
     EALLOW;
-    for(i = 0; i < pwm_modules.num_modules; i++)
+    for(i = 0; i < g_pwm_modules.num_modules; i++)
     {
-        pwm_modules.pwm_regs[i]->TZCLR.bit.OST = 1;
-        pwm_modules.pwm_state[i] = PWM_ENABLED;
+        g_pwm_modules.pwm_regs[i]->TZCLR.bit.OST = 1;
+        g_pwm_modules.pwm_state[i] = PWM_ENABLED;
     }
     EDIS;
 }
@@ -394,10 +394,10 @@ void disable_pwm_outputs(void)
 
     // Force trip via software, disabling PWM outputs
     EALLOW;
-    for(i = 0; i < pwm_modules.num_modules; i++)
+    for(i = 0; i < g_pwm_modules.num_modules; i++)
     {
-        pwm_modules.pwm_regs[i]->TZFRC.bit.OST = 1;
-        pwm_modules.pwm_state[i] = PWM_DISABLED;
+        g_pwm_modules.pwm_regs[i]->TZFRC.bit.OST = 1;
+        g_pwm_modules.pwm_state[i] = PWM_DISABLED;
     }
     EDIS;
 }
@@ -412,8 +412,8 @@ void enable_pwm_tbclk(void)
 
     for(i = 0; i < NUM_MAX_PWM_MODULES; i++)
     {
-        pwm_modules.pwm_regs[i]->TBCTR = pwm_modules.pwm_regs[i]->TBPHS.half.TBPHS;
-        pwm_modules.pwm_regs[i]->ETCLR.bit.INT = 1;
+        g_pwm_modules.pwm_regs[i]->TBCTR = g_pwm_modules.pwm_regs[i]->TBPHS.half.TBPHS;
+        g_pwm_modules.pwm_regs[i]->ETCLR.bit.INT = 1;
     }
 
     PieCtrlRegs.PIEIFR3.all = 0x0000;
@@ -439,8 +439,8 @@ void disable_pwm_tbclk(void)
     /* Adicionado 11/03/2016, vindo do FW da FAC/DCDC */
     for(i = 0; i < NUM_MAX_PWM_MODULES; i++)
     {
-        pwm_modules.pwm_regs[i]->TBCTR = pwm_modules.pwm_regs[i]->TBPHS.half.TBPHS;
-        pwm_modules.pwm_regs[i]->ETCLR.bit.INT = 1;
+        g_pwm_modules.pwm_regs[i]->TBCTR = g_pwm_modules.pwm_regs[i]->TBPHS.half.TBPHS;
+        g_pwm_modules.pwm_regs[i]->ETCLR.bit.INT = 1;
     }
 
     PieCtrlRegs.PIEIFR3.all = 0x0000;

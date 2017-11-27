@@ -171,7 +171,7 @@ void init_buzzer(float volume)
 {
 #if UDC_V2_1
 
-    pwm_modules.num_modules = 8;
+    g_pwm_modules.num_modules = 8;
 
     disable_pwm_outputs();
     disable_pwm_tbclk();

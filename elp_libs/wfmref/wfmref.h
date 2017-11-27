@@ -27,9 +27,9 @@
 
 typedef enum
 {
-    //SampleBySample,
+    SampleBySample,
     SampleBySample_OneCycle,
-    //OneShot
+    OneShot
 } sync_mode_t;
 
 typedef volatile struct
@@ -40,7 +40,6 @@ typedef volatile struct
     uint16_t        wfmref_selected;
     sync_mode_t     sync_mode;
 } wfmref_t;
-
 
 /**
  * TODO: Put here your functions prototypes. Just what need 
