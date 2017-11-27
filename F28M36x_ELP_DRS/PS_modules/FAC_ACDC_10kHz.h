@@ -30,9 +30,9 @@
 #define MIN_IIN_REF			0.0			// Limite da referência de corrente mínima na entrada do regulador da tensão no banco de capacitores [A]
 #define MAX_IIN				180.0		// Limite de corrente máxima na entrada para interlock [A]
 
-#define MAX_REF_SLEWRATE		30.0	//9.0		// Slew-rate máximo [V/s]
-#define MAX_SR_SIGGEN_OFFSET	30.0	//9.0		// Slew-rate máximo do offset do gerador senoidal [V/s]
-#define MAX_SR_SIGGEN_AMP		30.0	//9.0		// Slew-rate máximo da amplitude do gerador senoidal [V/s]
+#define MAX_REF_SLEWRATE		15.0	//9.0		// Slew-rate máximo [V/s]
+#define MAX_SR_SIGGEN_OFFSET	15.0	//9.0		// Slew-rate máximo do offset do gerador senoidal [V/s]
+#define MAX_SR_SIGGEN_AMP		15.0	//9.0		// Slew-rate máximo da amplitude do gerador senoidal [V/s]
 
 #define KP						1.908168	//5.0264 - FAC ACDC v2.0 vCap
 #define KI						0.717564	//3.154 - FAC ACDC v2.0 vCap
@@ -61,8 +61,8 @@
 #define HRADC_FREQ_SAMP					(float) CONTROL_FREQ*DECIMATION_FACTOR
 #define HRADC_SPI_CLK					SPI_15MHz
 
-#define TRANSDUCER_0_INPUT_RATED		500.0	//110.0				// Divisor de Tensão + Isolador Verivolt IsoBlock V-4:
-#define TRANSDUCER_0_OUTPUT_RATED		10.0				//   In_rated 	= +/- 500 V // 110 V
+#define TRANSDUCER_0_INPUT_RATED		300.0	            // Isolador Verivolt IsoBlock V-1:
+#define TRANSDUCER_0_OUTPUT_RATED		10.0				//   In_rated 	= +/- 300 V
 #define TRANSDUCER_0_OUTPUT_TYPE		Vin_bipolar			//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_0_GAIN				(TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED)
 #define HRADC_0_R_BURDEN				20.0				// Resistor Burden = 20 R

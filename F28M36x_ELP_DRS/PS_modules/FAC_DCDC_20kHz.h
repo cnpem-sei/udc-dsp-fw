@@ -41,9 +41,9 @@
 
 #define	BUFFER_DECIMATION		40
 
-#define TRANSDUCER_0_INPUT_RATED	600.0			// 		 HITEC Macc Plus:
-#define TRANSDUCER_0_OUTPUT_RATED	0.6				//   In_rated 	= +/- 600 A
-#define TRANSDUCER_0_OUTPUT_TYPE	Iin_bipolar		//   Out_rated 	= +/- 600 mA
+#define TRANSDUCER_0_INPUT_RATED	600.0			// 	DCCT LEM ITZ 600
+#define TRANSDUCER_0_OUTPUT_RATED	10.0			//   In_rated 	= +/- 600 A
+#define TRANSDUCER_0_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_0_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
 
 /*#define TRANSDUCER_0_INPUT_RATED	1200.0			// DCCT EU-Kontroll ZCT:

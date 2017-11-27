@@ -135,13 +135,13 @@ void main(void)
 
 			case FAC_ACDC_10kHz:
 			{
-				//main_FAC_ACDC_10kHz();
+				main_FAC_ACDC_10kHz();
 				break;
 			}
 
 			case FAC_DCDC_20kHz:
 			{
-				//main_FAC_DCDC_20kHz();
+				main_FAC_DCDC_20kHz();
 				break;
 			}
 
@@ -203,7 +203,7 @@ void main(void)
 
 			case FBP_FAC_UFJF:
 			{
-			    main_FBP_FAC_UFJF();
+			    //main_FBP_FAC_UFJF();
 			}
 
 			default:
