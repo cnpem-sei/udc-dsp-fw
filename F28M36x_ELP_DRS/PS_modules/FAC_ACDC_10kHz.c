@@ -78,7 +78,7 @@ void main_FAC_ACDC_10kHz(void)
 		{
 			if(CHECK_INTERLOCK(EXTERNAL_INTERLOCK))
 			{
-				Set_HardInterlock(EXTERNAL_INTERLOCK);
+				//Set_HardInterlock(EXTERNAL_INTERLOCK);
 			}
 		}
 
@@ -655,8 +655,8 @@ static interrupt void isr_HardInterlock(void)
 
 static void PS_turnOn(void)
 {
-	//if(CHECK_INTERLOCKS && CHECK_SOFTINTERLOCK(DCDC_FAULT))
-	if(CHECK_INTERLOCKS && !PIN_STATUS_EXT_INTERLOCK)
+	if(CHECK_INTERLOCKS && CHECK_SOFTINTERLOCK(DCDC_FAULT))
+	//if(CHECK_INTERLOCKS && !PIN_STATUS_EXT_INTERLOCK)
 	{
 		// Configure CPU Timer 1 for DC link contactor timeout monitor
 		ConfigCpuTimer(&CpuTimer1, C28_FREQ_MHZ, TIMEOUT_uS_AC_CONTACTOR);
