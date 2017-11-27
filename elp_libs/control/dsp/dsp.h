@@ -22,6 +22,8 @@
  * @author gabriel
  * @date 27/11/2017
  *
+ * TODO: insert comments
+ *
  */
 
 #ifndef DSP_H_
@@ -35,6 +37,19 @@
 #define USE_MODULE              0
 #define BYPASS_MODULE           1
 #define NUM_MAX_MATRIX_SIZE     16
+
+typedef enum
+{
+    DSP_Error,
+    DSP_SRLim,
+    DSP_LPF,
+    DSP_PI,
+    DSP_IIR_2P2Z,
+    DSP_IIR_3P3Z,
+    DSP_VdcLink_FeedForward,
+    DSP_Matrix,
+    DSP_Vect_Product
+} dsp_class_t;
 
 typedef volatile struct
 {

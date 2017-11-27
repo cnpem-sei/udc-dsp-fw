@@ -8,7 +8,7 @@ void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers, Uint16 spiCl
 void start_DMA(void);
 void stop_DMA(void);
 
-#pragma DATA_SECTION(buffers_HRADC, "SHARERAMS1_1")
+//#pragma DATA_SECTION(buffers_HRADC, "SHARERAMS1_1")
 
 volatile Uint16 DMATransferSize[5][4] = { {1, 15, 45, 60},
 										  {1, 15, 45, 60},
@@ -18,7 +18,8 @@ volatile Uint16 DMATransferSize[5][4] = { {1, 15, 45, 60},
 
 volatile Uint32 i_rdata;
 volatile Uint32 dummy_data = 0x00000000;
-volatile tbuffers_HRADC buffers_HRADC;
+//volatile tbuffers_HRADC buffers_HRADC;
+volatile Uint32 buffers_HRADC[4][HRADC_BUFFERS_SIZE];
 
 void Init_DMA_McBSP_nBuffers(Uint16 n_buffers, Uint16 size_buffers, Uint16 spiClk)
 {

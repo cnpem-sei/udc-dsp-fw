@@ -1,6 +1,5 @@
 #include "DSP28x_Project.h"
 //#include "../C28 Project/config.h"
-//#include "F28M36x_ELP_DRS.h"
 
 #ifndef DMA_SPI_INTERFACE_H
 #define DMA_SPI_INTERFACE_H
@@ -23,6 +22,7 @@ extern void stop_DMA(void);
 
 extern volatile Uint32 i_rdata;
 extern volatile Uint32 dummy_data;
-extern volatile tbuffers_HRADC buffers_HRADC;
+//extern volatile tbuffers_HRADC buffers_HRADC;
+extern volatile Uint32 buffers_HRADC[4][HRADC_BUFFERS_SIZE];
 
 #endif	/* DMA_SPI_INTERFACE_H */

@@ -154,7 +154,7 @@ void send_ipc_lowpriority_msg(uint16_t msg_id, ipc_ctom_lowpriority_msg_t msg)
     if(CtoMIpcRegs.CTOMIPCFLG.all == 0x00000000)
     {
         g_ipc_ctom.msg_id = msg_id;
-        CtoMIpcRegs.CTOMIPCSET.all = (uint32_t) ( ( (uint16_t) msg < 4 ) &
+        CtoMIpcRegs.CTOMIPCSET.all = (uint32_t) ( ( (uint16_t) msg << 4 ) &
                                      0x000FFFF0 | IPC_CTOM_LOWPRIORITY_MSG);
     }
 }

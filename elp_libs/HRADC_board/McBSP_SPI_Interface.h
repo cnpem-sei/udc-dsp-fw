@@ -1,9 +1,8 @@
 #ifndef MCBSP_SPI_INTERFACE_H
 #define MCBSP_SPI_INTERFACE_H
 
-//#include "F28M36x_ELP_DRS.h"
+#include "DSP28x_Project.h"
 #include "boards/udc_c28.h"
-
 
 #define SPI_25MHz			2
 #define SPI_18_75MHz		3

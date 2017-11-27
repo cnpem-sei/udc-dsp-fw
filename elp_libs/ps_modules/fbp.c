@@ -21,7 +21,11 @@
 
 #include "fbp.h"
 #include "boards/udc_c28.h"
+#include "control/control.h"
 #include "ipc/ipc.h"
+#include "common/timeslicer.h"
+#include "HRADC_board/HRADC_Boards.h"
+
 
 /**
  * Configuration parameters
@@ -47,8 +51,8 @@
 #define MAX_SR_SIGGEN_OFFSET    50.0        // Max SigGen offset slew-rate [A/s]
 #define MAX_SR_SIGGEN_AMP       100.0       // Max SigGen amplitude slew-rate [A/s]
 
-#define KP
-#define KI
+#define KP                      1.9
+#define KI                      559.0
 
 #define CONTROL_FREQ            (2.0*PWM_FREQ)
 #define CONTROL_PERIOD          (1.0/CONTROL_FREQ)
@@ -58,6 +62,7 @@
 #define HRADC_SPI_CLK           SPI_15MHz
 
 #define BUFFER_DECIMATION       1
+#define WFMREF_SAMPLING_FREQ    4096
 
 #define TRANSDUCER_INPUT_RATED      12.5            // ** DCCT LEM ITN 12-P **
 #define TRANSDUCER_OUTPUT_RATED     0.05            // In_rated   = +/- 12.5 A
@@ -99,13 +104,19 @@
 #define PIN_STATUS_PS1_DRIVER_ERROR     GET_GPDI5
 #define PIN_STATUS_PS1_FUSE             GET_GPDI14
 
-#define PS1_LOAD_CURRENT                DP_Framework.NetSignals[5]          // HRADC0
-#define PS1_LOAD_VOLTAGE                DP_Framework_MtoC.NetSignals[9]     // ANI6
-#define PS1_DCLINK_VOLTAGE              DP_Framework_MtoC.NetSignals[5]     // ANI2
-#define PS1_TEMPERATURE                 DP_Framework_MtoC.NetSignals[13]    // I2C Add 0x48
+#define PS1_LOAD_CURRENT                g_controller_ctom.net_signals[0]    // HRADC0
+#define PS1_LOAD_VOLTAGE                g_controller_mtoc.net_signals[9]    // ANI6
+#define PS1_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[5]    // ANI2
+#define PS1_TEMPERATURE                 g_controller_mtoc.net_signals[13]   // I2C Add 0x48
 
-#define ERROR_CALCULATOR_PS1            &DP_Framework.DPlibrary.ELP_Error[0]
-#define PI_DAWU_CONTROLLER_ILOAD_PS1    &DP_Framework.DPlibrary.ELP_PI_dawu[0]
+#define PS1_SETPOINT                    g_ipc_ctom.ps_module[0].ps_setpoint
+#define PS1_REFERENCE                   g_ipc_ctom.ps_module[0].ps_reference
+
+#define ERROR_CALCULATOR_PS1            &g_controller_ctom.dsp_modules.dsp_error[0]
+#define PI_DAWU_CONTROLLER_ILOAD_PS1    &g_controller_ctom.dsp_modules.dsp_pi[0]
+
+#define PS1_PWM_MODULATOR               g_pwm_modules.pwm_regs[6]
+#define PS1_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[7]
 
 /**
  * Power supply 2 defines
@@ -120,13 +131,19 @@
 #define PIN_STATUS_PS2_DRIVER_ERROR     GET_GPDI9
 #define PIN_STATUS_PS2_FUSE             GET_GPDI15
 
-#define PS2_LOAD_CURRENT                DP_Framework.NetSignals[7]          // HRADC1
-#define PS2_LOAD_VOLTAGE                DP_Framework_MtoC.NetSignals[10]    // ANI7
-#define PS2_DCLINK_VOLTAGE              DP_Framework_MtoC.NetSignals[6]     // ANI1
-#define PS2_TEMPERATURE                 DP_Framework_MtoC.NetSignals[14]    // I2C Add 0x49
+#define PS2_LOAD_CURRENT                g_controller_ctom.net_signals[2]    // HRADC1
+#define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[10]   // ANI7
+#define PS2_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[6]    // ANI1
+#define PS2_TEMPERATURE                 g_controller_mtoc.net_signals[14]   // I2C Add 0x49
 
-#define ERROR_CALCULATOR_PS2            &DP_Framework.DPlibrary.ELP_Error[1]
-#define PI_DAWU_CONTROLLER_ILOAD_PS2    &DP_Framework.DPlibrary.ELP_PI_dawu[1]
+#define PS2_SETPOINT                    g_ipc_ctom.ps_module[1].ps_setpoint
+#define PS2_REFERENCE                   g_ipc_ctom.ps_module[1].ps_reference
+
+#define ERROR_CALCULATOR_PS2            &g_controller_ctom.dsp_modules.dsp_error[1]
+#define PI_DAWU_CONTROLLER_ILOAD_PS2    &g_controller_ctom.dsp_modules.dsp_pi[1]
+
+#define PS2_PWM_MODULATOR               g_pwm_modules.pwm_regs[4]
+#define PS2_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[5]
 
 /**
  * Power supply 3 defines
@@ -141,13 +158,19 @@
 #define PIN_STATUS_PS3_DRIVER_ERROR     GET_GPDI1
 #define PIN_STATUS_PS3_FUSE             GET_GPDI13
 
-#define PS3_LOAD_CURRENT                DP_Framework.NetSignals[9]          // HRADC2
-#define PS3_LOAD_VOLTAGE                DP_Framework_MtoC.NetSignals[11]    // ANI3
-#define PS3_DCLINK_VOLTAGE              DP_Framework_MtoC.NetSignals[7]     // ANI4
-#define PS3_TEMPERATURE                 DP_Framework_MtoC.NetSignals[15]    // I2C Add 0x4A
+#define PS3_LOAD_CURRENT                g_controller_ctom.net_signals[4]    // HRADC2
+#define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[11]   // ANI3
+#define PS3_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[7]    // ANI4
+#define PS3_TEMPERATURE                 g_controller_mtoc.net_signals[15]   // I2C Add 0x4A
 
-#define ERROR_CALCULATOR_PS3            &DP_Framework.DPlibrary.ELP_Error[2]
-#define PI_DAWU_CONTROLLER_ILOAD_PS3    &DP_Framework.DPlibrary.ELP_PI_dawu[2]
+#define PS3_SETPOINT                    g_ipc_ctom.ps_module[2].ps_setpoint
+#define PS3_REFERENCE                   g_ipc_ctom.ps_module[2].ps_reference
+
+#define ERROR_CALCULATOR_PS3            &g_controller_ctom.dsp_modules.dsp_error[2]
+#define PI_DAWU_CONTROLLER_ILOAD_PS3    &g_controller_ctom.dsp_modules.dsp_pi[2]
+
+#define PS3_PWM_MODULATOR               g_pwm_modules.pwm_regs[2]
+#define PS3_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[3]
 
 /**
  * Power supply 4 defines
@@ -162,13 +185,19 @@
 #define PIN_STATUS_PS4_DRIVER_ERROR     GET_GPDI3
 #define PIN_STATUS_PS4_FUSE             GET_GPDI16
 
-#define PS4_LOAD_CURRENT                DP_Framework.NetSignals[11]         // HRADC3
-#define PS4_LOAD_VOLTAGE                DP_Framework_MtoC.NetSignals[12]    // ANI5
-#define PS4_DCLINK_VOLTAGE              DP_Framework_MtoC.NetSignals[8]     // ANI0
-#define PS4_TEMPERATURE                 DP_Framework_MtoC.NetSignals[16]    // I2C Add 0x4C
+#define PS4_LOAD_CURRENT                g_controller_ctom.net_signals[5]   // HRADC3
+#define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[12]   // ANI5
+#define PS4_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[8]    // ANI0
+#define PS4_TEMPERATURE                 g_controller_mtoc.net_signals[16]   // I2C Add 0x4C
 
-#define ERROR_CALCULATOR_PS4            &DP_Framework.DPlibrary.ELP_Error[3]
-#define PI_DAWU_CONTROLLER_ILOAD_PS4    &DP_Framework.DPlibrary.ELP_PI_dawu[3]
+#define PS4_SETPOINT                    g_ipc_ctom.ps_module[3].ps_setpoint
+#define PS4_REFERENCE                   g_ipc_ctom.ps_module[3].ps_reference
+
+#define ERROR_CALCULATOR_PS4            &g_controller_ctom.dsp_modules.dsp_error[3]
+#define PI_DAWU_CONTROLLER_ILOAD_PS4    &g_controller_ctom.dsp_modules.dsp_pi[3]
+
+#define PS4_PWM_MODULATOR               g_pwm_modules.pwm_regs[0]
+#define PS4_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[1]
 
 /**
  * TODO: Put here your constants and variables. Always use static for 
@@ -190,7 +219,8 @@ static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
 
 static void init_controller(void);
-static void reset_controller(void);
+static void reset_controller(uint16_t id);
+static void reset_controllers(void);
 static void enable_controller();
 static void disable_controller();
 interrupt void isr_init_controller(void);
@@ -216,7 +246,6 @@ void main_fbp(void)
     num_ps  = 0;
 
     init_controller();
-
     init_peripherals_drivers();
     init_interruptions();
     enable_controller();
@@ -230,13 +259,77 @@ void main_fbp(void)
     turn_off();
     disable_controller();
     term_interruptions();
-    reset_controller;
+    reset_controllers();
     term_peripherals_drivers();
 }
 
 static void init_peripherals_drivers(void)
 {
+    uint16_t i;
 
+    /* Initialization of HRADC boards */
+
+    stop_DMA();
+
+    Init_DMA_McBSP_nBuffers(num_ps, DECIMATION_FACTOR, HRADC_SPI_CLK);
+
+    Init_SPIMaster_McBSP(HRADC_SPI_CLK);
+    Init_SPIMaster_Gpio();
+    InitMcbspa20bit();
+
+    for(i = 0; i < num_ps; i++)
+    {
+        Init_HRADC_Info(&HRADCs_Info.HRADC_boards[i], i, DECIMATION_FACTOR,
+                        buffers_HRADC[i], TRANSDUCER_GAIN);
+        Config_HRADC_board(&HRADCs_Info.HRADC_boards[i], Iin_bipolar,
+                           HEATER_DISABLE, RAILS_DISABLE);
+    }
+
+    Config_HRADC_SoC(HRADC_FREQ_SAMP);
+
+    /* Initialization of PWM modules */
+    g_pwm_modules.num_modules = 8;
+    PS4_PWM_MODULATOR       = &EPwm1Regs;   // PS-4 Positive polarity switches
+    PS4_PWM_MODULATOR_NEG   = &EPwm2Regs;   // PS-4 Negative polarity switches
+    PS3_PWM_MODULATOR       = &EPwm3Regs;   // PS-3 Positive polarity switches
+    PS3_PWM_MODULATOR_NEG   = &EPwm4Regs;   // PS-3 Negative polarity switches
+    PS2_PWM_MODULATOR       = &EPwm5Regs;   // PS-2 Positive polarity switches
+    PS2_PWM_MODULATOR_NEG   = &EPwm6Regs;   // PS-2 Negative polarity switches
+    PS1_PWM_MODULATOR       = &EPwm7Regs;   // PS-1 Positive polarity switches
+    PS1_PWM_MODULATOR_NEG   = &EPwm8Regs;   // PS-1 Negative polarity switches
+
+    disable_pwm_outputs();
+    disable_pwm_tbclk();
+    init_pwm_mep_sfo();
+
+    // PS-4 PWM initialization
+    init_pwm_module(PS4_PWM_MODULATOR, PWM_FREQ, 0, PWM_Sync_Master, 0,
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+    init_pwm_module(PS4_PWM_MODULATOR_NEG, PWM_FREQ, 1, PWM_Sync_Slave, 180,
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+
+    // PS-3 PWM initialization
+    init_pwm_module(PS3_PWM_MODULATOR, PWM_FREQ, 0, PWM_Sync_Slave, 0,
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+    init_pwm_module(PS3_PWM_MODULATOR_NEG, PWM_FREQ, 3, PWM_Sync_Slave, 180,
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+
+    // PS-2 PWM initialization
+    init_pwm_module(PS2_PWM_MODULATOR, PWM_FREQ, 0, PWM_Sync_Slave, 0,
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+    init_pwm_module(PS2_PWM_MODULATOR_NEG, PWM_FREQ, 5, PWM_Sync_Slave, 180,
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+
+    // PS-1 PWM initialization
+    init_pwm_module(PS1_PWM_MODULATOR, PWM_FREQ, 0, PWM_Sync_Slave, 0,
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+    init_pwm_module(PS1_PWM_MODULATOR_NEG, PWM_FREQ, 7, PWM_Sync_Slave, 180,
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+
+    /* Initialization of timers */
+    InitCpuTimers();
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
+    CpuTimer0Regs.TCR.bit.TIE = 0;
 }
 
 static void term_peripherals_drivers(void)
@@ -261,15 +354,193 @@ static void init_controller(void)
     }
 
     init_ipc();
+    init_control_framework(&g_controller_ctom);
 
-    /**
-     * TODO: initialize control laws and time-slicers
+    /******************************************************************/
+    /* INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 1 */
+    /******************************************************************/
+
+    /*
+     *        name:     ERROR_CALCULATOR_PS1
+     * description:     Load current reference error
+     *    DP class:     DSP_Error
+     *          +:      ps_module[0].ps_reference
+     *          -:      net_signals[0]
+     *         out:     net_signals[1]
      */
+
+    init_dsp_error(ERROR_CALCULATOR_PS1, &PS1_REFERENCE,
+                   &g_controller_ctom.net_signals[0],
+                   &g_controller_ctom.net_signals[1]);
+
+    /*
+     *        name:     PI_DAWU_CONTROLLER_ILOAD_PS1
+     * description:     Load current PI controller
+     *    DP class:     DSP_PI
+     *          in:     net_signals[1]
+     *         out:     output_signals[0]
+     */
+
+    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS1, KP, KI, CONTROL_FREQ,
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[1],
+                &g_controller_ctom.output_signals[0]);
+
+    /******************************************************************/
+    /* INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 2 */
+    /******************************************************************/
+
+    /*
+     *        name:     ERROR_CALCULATOR_PS2
+     * description:     Load current reference error
+     *    DP class:     DSP_Error
+     *          +:      ps_module[1].ps_reference
+     *          -:      net_signals[2]
+     *         out:     net_signals[3]
+     */
+
+    init_dsp_error(ERROR_CALCULATOR_PS2, &PS2_REFERENCE,
+                   &g_controller_ctom.net_signals[2],
+                   &g_controller_ctom.net_signals[3]);
+
+    /*
+     *        name:     PI_DAWU_CONTROLLER_ILOAD_PS2
+     * description:     Load current PI controller
+     *    DP class:     DSP_PI
+     *          in:     net_signals[3]
+     *         out:     output_signals[10]
+     */
+
+    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS2, KP, KI, CONTROL_FREQ,
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[3],
+                &g_controller_ctom.output_signals[1]);
+
+    /******************************************************************/
+    /* INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 3 */
+    /******************************************************************/
+
+    /*
+     *        name:     ERROR_CALCULATOR_PS3
+     * description:     Load current reference error
+     *    DP class:     DSP_Error
+     *          +:      ps_module[2].ps_reference
+     *          -:      net_signals[4]
+     *         out:     net_signals[5]
+     */
+
+    init_dsp_error(ERROR_CALCULATOR_PS3, &PS3_REFERENCE,
+                   &g_controller_ctom.net_signals[4],
+                   &g_controller_ctom.net_signals[5]);
+
+    /*
+     *        name:     PI_DAWU_CONTROLLER_ILOAD_PS3
+     * description:     Load current PI controller
+     *    DP class:     DSP_PI
+     *          in:     net_signals[5]
+     *         out:     output_signals[2]
+     */
+
+    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS3, KP, KI, CONTROL_FREQ,
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[5],
+                &g_controller_ctom.output_signals[2]);
+
+    /******************************************************************/
+    /* INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 4 */
+    /******************************************************************/
+
+    /*
+     *        name:     ERROR_CALCULATOR_PS4
+     * description:     Load current reference error
+     *    DP class:     DSP_Error
+     *          +:      ps_module[3].ps_reference
+     *          -:      net_signals[6]
+     *         out:     net_signals[7]
+     */
+
+    init_dsp_error(ERROR_CALCULATOR_PS4, &PS4_REFERENCE,
+                   &g_controller_ctom.net_signals[6],
+                   &g_controller_ctom.net_signals[7]);
+
+    /*
+     *        name:     PI_DAWU_CONTROLLER_ILOAD_PS4
+     * description:     Load current PI controller
+     *    DP class:     DSP_PI
+     *          in:     net_signals[7]
+     *         out:     output_signals[3]
+     */
+    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS4, KP, KI, CONTROL_FREQ,
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7],
+                &g_controller_ctom.output_signals[3]);
+
+    /**********************************/
+    /* INITIALIZATION OF TIME SLICERS */
+    /**********************************/
+
+    // 0: Time-slicer for WfmRef sweep decimation
+    cfg_timeslicer(0, CONTROL_FREQ/WFMREF_SAMPLING_FREQ);
+
+    // 1: Time-slicer for SamplesBuffer
+    cfg_timeslicer(1, BUFFER_DECIMATION);
+
+    reset_controllers();
 }
 
-static void reset_controller(void)
+static void reset_controller(uint16_t id)
 {
+    switch(id)
+    {
+        case 0:
+        {
+            set_pwm_duty_hbridge(PS1_PWM_MODULATOR, 0.0);
+            reset_dsp_error(ERROR_CALCULATOR_PS1);
+            reset_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS1);
+            PS1_REFERENCE = 0.0;
+            break;
+        }
 
+        case 1:
+        {
+            set_pwm_duty_hbridge(PS2_PWM_MODULATOR, 0.0);
+            reset_dsp_error(ERROR_CALCULATOR_PS2);
+            reset_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS2);
+            PS2_REFERENCE = 0.0;
+            break;
+        }
+
+        case 2:
+        {
+            set_pwm_duty_hbridge(PS3_PWM_MODULATOR, 0.0);
+            reset_dsp_error(ERROR_CALCULATOR_PS3);
+            reset_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS3);
+            PS3_REFERENCE = 0.0;
+            break;
+        }
+
+        case 3:
+        {
+            set_pwm_duty_hbridge(PS4_PWM_MODULATOR, 0.0);
+            reset_dsp_error(ERROR_CALCULATOR_PS4);
+            reset_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS4);
+            PS4_REFERENCE = 0.0;
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
+
+    reset_timeslicers();
+}
+
+static void reset_controllers(void)
+{
+    uint16_t i;
+
+    for(i = 0; i < num_ps; i++)
+    {
+        reset_controller(i);
+    }
 }
 
 static void enable_controller()

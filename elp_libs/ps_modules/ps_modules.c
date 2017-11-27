@@ -71,8 +71,8 @@ void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
 
     p_ps_module->turn_on            = turn_on;
     p_ps_module->turn_off           = turn_off;
-    p_ps_module->isr_soft_interlock  = isr_soft_interlock;
-    p_ps_module->isr_hard_interlock  = isr_hard_interlock;
+    p_ps_module->isr_soft_interlock = isr_soft_interlock;
+    p_ps_module->isr_hard_interlock = isr_hard_interlock;
     p_ps_module->reset_interlocks   = reset_interlocks;
 }
 

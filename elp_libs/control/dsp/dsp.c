@@ -22,6 +22,8 @@
  * @author gabriel
  * @date 27/11/2017
  *
+ * TODO: insert comments
+ *
  */
 
 #include <stdint.h>

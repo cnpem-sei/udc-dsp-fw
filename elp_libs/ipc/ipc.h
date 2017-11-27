@@ -47,7 +47,7 @@
 
 typedef enum
 {
-    Turn_On,
+    Turn_On = 1,
     Turn_Off,
     Open_Loop,
     Close_Loop,
@@ -75,7 +75,7 @@ typedef enum
     MtoC_Message_Error
 } ipc_ctom_lowpriority_msg_t;
 
-#define GET_IPC_MTOC_LOWPRIORITY_MSG  (ipc_mtoc_lowpriority_msg_t) (g_ipc_ctom.msg_mtoc > 4 ) & 0x0000FFFF
+#define GET_IPC_MTOC_LOWPRIORITY_MSG  (ipc_mtoc_lowpriority_msg_t) (g_ipc_ctom.msg_mtoc >> 4 ) & 0x0000FFFF
 
 typedef enum
 {

@@ -22,9 +22,9 @@
  *
  */
 
-#include <control/ELP_DCL/ELP_DCL.h>
-#include "pwm/pwm.h"
 #include "udc_c28.h"
+#include "pwm/pwm.h"
+#include "control/control.h"
 
 /**
  * Buzzer defines
