@@ -113,7 +113,7 @@ typedef enum
     Error2,
     Error3,
     Error4
-} error_ctom;
+} error_ctom_t;
 
 typedef enum
 {
@@ -122,13 +122,13 @@ typedef enum
     Invalid_OpMode,
     IPC_LowPriority_Full,
     HRADC_Config_Error
-} error_mtoc;
+} error_mtoc_t;
 
 typedef volatile struct
 {
     uint32_t        msg_mtoc;
     uint16_t        msg_id;
-    error_mtoc      error_mtoc;
+    error_mtoc_t    error_mtoc;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
     siggen_t        siggen[NUM_MAX_PS_MODULES];
     wfmref_t        wfmref[NUM_MAX_PS_MODULES];
@@ -139,7 +139,7 @@ typedef volatile struct
 {
     uint32_t        msg_ctom;
     uint16_t        msg_id;
-    error_ctom      error_ctom;
+    error_ctom_t    error_ctom;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
     siggen_t        siggen[NUM_MAX_PS_MODULES];
     wfmref_t        wfmref[NUM_MAX_PS_MODULES];

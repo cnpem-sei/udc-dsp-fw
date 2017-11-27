@@ -44,8 +44,8 @@ interrupt void isr_ipc_sync_pulse(void);
  */
 void init_ipc(void)
 {
-    g_ipc_ctom.msg_id = 0;
     g_ipc_ctom.msg_mtoc = 0;
+    g_ipc_ctom.msg_id = 0;
     g_ipc_ctom.error_mtoc = No_Error_MtoC;
 
     EALLOW;
