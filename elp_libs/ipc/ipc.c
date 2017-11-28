@@ -176,7 +176,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
             /**
              * TODO: where should disable siggen + reset wfmref be?
              */
-            g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_on();
+            g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_on(g_ipc_mtoc.msg_id);
             break;
         }
 
@@ -185,7 +185,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
             /**
              * TODO: where should disable siggen + reset wfmref be?
              */
-            g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_off();
+            g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_off(g_ipc_mtoc.msg_id);
             break;
         }
 
@@ -206,31 +206,36 @@ interrupt void isr_ipc_lowpriority_msg(void)
             /**
              * TODO:
              */
-            switch(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state)
+            if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state
+               > Interlock)
             {
-                case RmpWfm:
-                case MigWfm:
+                switch(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state)
                 {
-                    //reset_wfmref(&g_ipc_ctom.wfmref[g_ipc_mtoc.msg_id]);
-                    break;
+                    case RmpWfm:
+                    case MigWfm:
+                    {
+                        //reset_wfmref(&g_ipc_ctom.wfmref[g_ipc_mtoc.msg_id]);
+                        break;
+                    }
+
+                    case Cycle:
+                    {
+
+                        //disable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
+                        //reset_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
+                        break;
+                    }
+
+                    default:
+                    {
+                        break;
+                    }
                 }
 
-                case Cycle:
-                {
-
-                    //disable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
-                    //reset_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
-                    break;
-                }
-
-                default:
-                {
-                    break;
-                }
+                cfg_ps_operation_mode( &g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id],
+                                       g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state );
             }
 
-            cfg_ps_operation_mode( &g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id],
-                                   g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state );
             break;
         }
 

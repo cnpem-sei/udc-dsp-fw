@@ -51,7 +51,7 @@
  * @param reset_interlocks address of ```reset_interlocks()``` function to that power supply
  */
 void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
-                    void (*turn_on)(void), void (*turn_off)(void),
+                    void (*turn_on)(uint16_t), void (*turn_off)(uint16_t),
                     void (*isr_soft_interlock)(void),
                     void (*isr_hard_interlock)(void),
                     void (*reset_interlocks)(void))
@@ -88,47 +88,30 @@ void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode)
 {
     switch(op_mode)
     {
-        case Off:
-        {
-            p_ps_module->ps_setpoint = 0.0;
-            p_ps_module->ps_reference = 0.0;
-            p_ps_module->turn_off();
-            break;
-        }
-
-        case Interlock:
-        {
-            /// TODO: check
-            //p_ps_module->isr_softinterlock();
-            p_ps_module->ps_setpoint = 0.0;
-            p_ps_module->ps_reference = 0.0;
-            break;
-        }
-
         case Initializing:
         {
             /// TODO:
             break;
 
         }
-#if 0
+
         case SlowRef:
         {
             /// TODO:
             break;
         }
-#endif
+
         case SlowRefSync:
         {
             /// TODO:
             break;
         }
-#if 0
+
         case FastRef:
         {
             break;
         }
-#endif
+
         case RmpWfm:
         {
             // TODO:

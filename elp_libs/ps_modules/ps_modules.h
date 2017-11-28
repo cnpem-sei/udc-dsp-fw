@@ -26,13 +26,6 @@
 #include <stdint.h>
 //#include <string.h>
 
-/**
- * TODO: update macros for interlock check
- */
-#define CHECK_SOFTINTERLOCK(itlk)   !(IPC_CtoM_Msg.PSModule.SoftInterlocks & itlk)
-#define CHECK_INTERLOCK(itlk)       !(IPC_CtoM_Msg.PSModule.HardInterlocks & itlk)
-#define CHECK_INTERLOCKS            !(IPC_CtoM_Msg.PSModule.HardInterlocks)
-
 #define CLOSED_LOOP         0
 #define OPEN_LOOP           1
 
@@ -95,15 +88,15 @@ typedef struct
     float           ps_reference;
     uint32_t        ps_hard_interlock;
     uint32_t        ps_soft_interlock;
-    void            (*turn_on)(void);
-    void            (*turn_off)(void);
+    void            (*turn_on)(uint16_t);
+    void            (*turn_off)(uint16_t);
     void            (*isr_soft_interlock)(void);
     void            (*isr_hard_interlock)(void);
     void            (*reset_interlocks)(void);
 } ps_module_t;
 
 extern void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
-                           void (*turn_on)(void), void (*turn_off)(void),
+                           void (*turn_on)(uint16_t), void (*turn_off)(uint16_t),
                            void (*isr_soft_interlock)(void),
                            void (*isr_hard_interlock)(void),
                            void (*reset_interlocks)(void));
