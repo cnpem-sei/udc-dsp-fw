@@ -24,6 +24,8 @@
 #include "boards/udc_c28.h"
 #include "ipc.h"
 
+#pragma DATA_SECTION(g_ipc_ctom,"CTOM_MSG_RAM");
+#pragma DATA_SECTION(g_ipc_mtoc,"MTOC_MSG_RAM");
 ipc_ctom_t g_ipc_ctom;
 ipc_mtoc_t g_ipc_mtoc;
 

@@ -35,8 +35,8 @@
 #define UDC_V2_0    0
 #define UDC_V2_1    1
 
-#define HRADC_v2_0  0
-#define HRADC_v2_1  1
+#define HRADC_v2_0  1
+#define HRADC_v2_1  0
 
 /**
  * C28 system defines
