@@ -48,7 +48,7 @@ void init_gpios(void)
     /// GPDO2 Digital Output 2 <=> UDC_GPIO65
     /// GPDO3 Digital Output 3 <=> UDC_GPIO66
     /// GPDO4 Digital Output 4 <=> UDC_GPIO64
-    GpioCtrlRegs.GPCMUX1.all    = 0x0000000F;
+    GpioCtrlRegs.GPCMUX1.all    = 0x00000000;
     GpioDataRegs.GPCCLEAR.all   = 0x0000000F;
     GpioCtrlRegs.GPCDIR.all     = 0x0000000F;
 

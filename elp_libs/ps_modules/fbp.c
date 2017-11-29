@@ -370,6 +370,8 @@ static uint16_t init_controller(void)
         }
     }
 
+    num_ps++;
+
     init_ipc();
     init_control_framework(&g_controller_ctom);
 
