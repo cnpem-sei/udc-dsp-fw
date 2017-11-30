@@ -627,7 +627,7 @@ interrupt void isr_controller(void)
     PS2_LOAD_CURRENT = temp[1];
     PS3_LOAD_CURRENT = temp[2];
     PS4_LOAD_CURRENT = temp[3];
-
+/*
     if(fabs(PS1_LOAD_CURRENT) > MAX_ILOAD)
     {
         set_hard_interlock(PS1_ID, LOAD_OVERCURRENT);
@@ -646,11 +646,13 @@ interrupt void isr_controller(void)
     if(fabs(PS4_LOAD_CURRENT) > MAX_ILOAD)
     {
         set_hard_interlock(PS4_ID, LOAD_OVERCURRENT);
-    }
+    }*/
     #endif
 
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
     {
+        //CLEAR_DEBUG_GPIO1;
+
         if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
         {
             /**
@@ -674,11 +676,7 @@ interrupt void isr_controller(void)
                     case SlowRef:
                     case SlowRefSync:
                     {
-                        //run_dsp_srlim(p_srlim, bypass);
-                        break;
-                    }
-                    case FastRef:
-                    {
+                        g_ipc_ctom.ps_module[i].ps_reference = g_ipc_ctom.ps_module[i].ps_setpoint;
                         break;
                     }
                     case RmpWfm:
@@ -721,12 +719,18 @@ interrupt void isr_controller(void)
                                      g_controller_ctom.output_signals[i]);
             }
         }
+
+        //SET_DEBUG_GPIO1;
     }
 
-    for(i = 0; i < g_pwm_modules.num_modules; i++)
-    {
-        g_pwm_modules.pwm_regs[i]->ETCLR.bit.INT = 1;
-    }
+    PS1_PWM_MODULATOR->ETCLR.bit.INT = 1;
+    PS1_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
+    PS2_PWM_MODULATOR->ETCLR.bit.INT = 1;
+    PS2_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
+    PS3_PWM_MODULATOR->ETCLR.bit.INT = 1;
+    PS3_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
+    PS4_PWM_MODULATOR->ETCLR.bit.INT = 1;
+    PS4_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
 
     CLEAR_DEBUG_GPIO1;
 

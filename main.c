@@ -110,7 +110,7 @@ void main(void)
      */
 
     init_gpios();
-    init_buzzer(1);     /// Volume: 1%
+    init_buzzer(0);     /// Volume: 1%
 
 
     while(1)

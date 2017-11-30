@@ -61,7 +61,7 @@ void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
     p_ps_module->ps_status.bit.interface    = Remote;
     p_ps_module->ps_status.bit.active       = ACTIVE;
     p_ps_module->ps_status.bit.model        = model;
-    p_ps_module->ps_status.bit.unlocked     = LOCKED;
+    p_ps_module->ps_status.bit.unlocked     = UNLOCKED;
     p_ps_module->ps_status.bit.reserved     = 0;
 
     p_ps_module->ps_setpoint        = 0.0;

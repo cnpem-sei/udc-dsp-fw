@@ -30,6 +30,15 @@
 #include <math.h>
 #include "dsp.h"
 
+#pragma CODE_SECTION(run_dsp_error, "ramfuncs");
+#pragma CODE_SECTION(run_dsp_srlim, "ramfuncs");
+#pragma CODE_SECTION(run_dsp_lpf, "ramfuncs");
+#pragma CODE_SECTION(run_dsp_pi, "ramfuncs");
+#pragma CODE_SECTION(run_dsp_iir_2p2z, "ramfuncs");
+#pragma CODE_SECTION(run_dsp_iir_3p3z, "ramfuncs");
+#pragma CODE_SECTION(run_dsp_vdclink_ff, "ramfuncs");
+#pragma CODE_SECTION(run_dsp_vect_product, "ramfuncs");
+
 /**
  * Initialization of error signal entity.
  *
