@@ -107,9 +107,9 @@
 #define PIN_STATUS_PS1_FUSE             GET_GPDI14
 
 #define PS1_LOAD_CURRENT                g_controller_ctom.net_signals[0]    // HRADC0
-#define PS1_LOAD_VOLTAGE                g_controller_mtoc.net_signals[9]    // ANI6
-#define PS1_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[5]    // ANI2
-#define PS1_TEMPERATURE                 g_controller_mtoc.net_signals[13]   // I2C Add 0x48
+#define PS1_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[0]    // ANI2
+#define PS1_LOAD_VOLTAGE                g_controller_mtoc.net_signals[4]    // ANI6
+#define PS1_TEMPERATURE                 g_controller_mtoc.net_signals[8]   // I2C Add 0x48
 
 #define PS1_SETPOINT                    g_ipc_ctom.ps_module[0].ps_setpoint
 #define PS1_REFERENCE                   g_ipc_ctom.ps_module[0].ps_reference
@@ -133,9 +133,9 @@
 #define PIN_STATUS_PS2_FUSE             GET_GPDI15
 
 #define PS2_LOAD_CURRENT                g_controller_ctom.net_signals[1]    // HRADC1
-#define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[10]   // ANI7
-#define PS2_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[6]    // ANI1
-#define PS2_TEMPERATURE                 g_controller_mtoc.net_signals[14]   // I2C Add 0x49
+#define PS2_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[1]    // ANI1
+#define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[5]   // ANI7
+#define PS2_TEMPERATURE                 g_controller_mtoc.net_signals[9]   // I2C Add 0x49
 
 #define PS2_SETPOINT                    g_ipc_ctom.ps_module[1].ps_setpoint
 #define PS2_REFERENCE                   g_ipc_ctom.ps_module[1].ps_reference
@@ -159,9 +159,9 @@
 #define PIN_STATUS_PS3_FUSE             GET_GPDI13
 
 #define PS3_LOAD_CURRENT                g_controller_ctom.net_signals[2]    // HRADC2
-#define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[11]   // ANI3
-#define PS3_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[7]    // ANI4
-#define PS3_TEMPERATURE                 g_controller_mtoc.net_signals[15]   // I2C Add 0x4A
+#define PS3_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[2]    // ANI4
+#define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[6]   // ANI3
+#define PS3_TEMPERATURE                 g_controller_mtoc.net_signals[10]   // I2C Add 0x4A
 
 #define PS3_SETPOINT                    g_ipc_ctom.ps_module[2].ps_setpoint
 #define PS3_REFERENCE                   g_ipc_ctom.ps_module[2].ps_reference
@@ -186,9 +186,9 @@
 #define PIN_STATUS_PS4_FUSE             GET_GPDI16
 
 #define PS4_LOAD_CURRENT                g_controller_ctom.net_signals[3]   // HRADC3
-#define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[12]   // ANI5
-#define PS4_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[8]    // ANI0
-#define PS4_TEMPERATURE                 g_controller_mtoc.net_signals[16]   // I2C Add 0x4C
+#define PS4_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[3]    // ANI0
+#define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[7]   // ANI5
+#define PS4_TEMPERATURE                 g_controller_mtoc.net_signals[11]   // I2C Add 0x4C
 
 #define PS4_SETPOINT                    g_ipc_ctom.ps_module[3].ps_setpoint
 #define PS4_REFERENCE                   g_ipc_ctom.ps_module[3].ps_reference
@@ -239,7 +239,7 @@ interrupt void isr_soft_interlock(void);
 static void open_relay(uint16_t id);
 static void close_relay(uint16_t id);
 static uint16_t get_relay_status(uint16_t id);
-
+static void check_interlocks_ps_module(uint16_t id);
 /**
  * Main function for this power supply module
  */
@@ -255,7 +255,13 @@ void main_fbp(void)
     /// TODO: include condition for re-initialization
     while(1)
     {
-
+        for(i = 0; i < NUM_MAX_PS_MODULES; i++)
+        {
+            if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
+            {
+                check_interlocks_ps_module(i);
+            }
+        }
     }
 
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
@@ -649,8 +655,10 @@ interrupt void isr_controller(void)
     }*/
     #endif
 
+
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
     {
+        #if 0
         //CLEAR_DEBUG_GPIO1;
 
         if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
@@ -671,6 +679,7 @@ interrupt void isr_controller(void)
 
             if(g_ipc_ctom.ps_module[i].ps_status.bit.state > Interlock)
             {
+        #endif
                 switch(g_ipc_ctom.ps_module[i].ps_status.bit.state)
                 {
                     case SlowRef:
@@ -717,10 +726,12 @@ interrupt void isr_controller(void)
 
                 set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[i],
                                      g_controller_ctom.output_signals[i]);
+
+        #if 0
             }
         }
-
         //SET_DEBUG_GPIO1;
+        #endif
     }
 
     PS1_PWM_MODULATOR->ETCLR.bit.INT = 1;
@@ -981,6 +992,116 @@ static uint16_t get_relay_status(uint16_t id)
         default:
         {
             return 0;
+        }
+    }
+}
+
+static void check_interlocks_ps_module(uint16_t id)
+{
+    if(fabs(g_controller_ctom.net_signals[id]) > MAX_ILOAD)
+    {
+        set_hard_interlock(id, LOAD_OVERCURRENT);
+    }
+
+    if(fabs(g_controller_mtoc.net_signals[id]) > MAX_DCLINK)
+    {
+        set_hard_interlock(id, DCLINK_OVERVOLTAGE);
+    }
+
+    if(fabs(g_controller_mtoc.net_signals[id]) > MIN_DCLINK)
+    {
+        set_hard_interlock(id, DCLINK_UNDERVOLTAGE);
+    }
+
+    if(fabs(g_controller_mtoc.net_signals[id+4]) > MAX_VLOAD)
+    {
+        set_hard_interlock(id, LOAD_OVERVOLTAGE);
+    }
+
+    if(fabs(g_controller_mtoc.net_signals[id+8]) > MAX_TEMP)
+    {
+        set_soft_interlock(id, OVERTEMP);
+    }
+
+    switch(id)
+    {
+        case 0:
+        {
+            if(!PIN_STATUS_PS1_FUSE)
+            {
+                set_hard_interlock(id, FUSE_FAIL);
+            }
+
+            if(!PIN_STATUS_PS1_DRIVER_ERROR)
+            {
+                set_hard_interlock(id, DRIVER_FAIL);
+            }
+
+            if(!PIN_STATUS_PS1_DCLINK_RELAY)
+            {
+                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+            }
+
+            break;
+        }
+
+        case 1:
+        {
+            if(!PIN_STATUS_PS2_FUSE)
+            {
+                set_hard_interlock(id, FUSE_FAIL);
+            }
+
+            if(!PIN_STATUS_PS2_DRIVER_ERROR)
+            {
+                set_hard_interlock(id, DRIVER_FAIL);
+            }
+
+            if(!PIN_STATUS_PS2_DCLINK_RELAY)
+            {
+                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+            }
+
+            break;
+        }
+
+        case 2:
+        {
+            if(!PIN_STATUS_PS3_FUSE)
+            {
+                set_hard_interlock(id, FUSE_FAIL);
+            }
+
+            if(!PIN_STATUS_PS3_DRIVER_ERROR)
+            {
+                set_hard_interlock(id, DRIVER_FAIL);
+            }
+
+            if(!PIN_STATUS_PS3_DCLINK_RELAY)
+            {
+                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+            }
+
+            break;
+        }
+
+        case 3:
+        {
+            if(!PIN_STATUS_PS4_FUSE)
+            {
+                set_hard_interlock(id, FUSE_FAIL);
+            }
+
+            if(!PIN_STATUS_PS4_DRIVER_ERROR)
+            {
+                set_hard_interlock(id, DRIVER_FAIL);
+            }
+
+            if(!PIN_STATUS_PS4_DCLINK_RELAY)
+            {
+                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+            }
+            break;
         }
     }
 }
