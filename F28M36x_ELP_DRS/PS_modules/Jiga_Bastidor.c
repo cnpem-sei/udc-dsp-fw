@@ -697,50 +697,67 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 		switch(IPC_CtoM_Msg.PSModule.OpMode)
 		{
 			case SlowRef:
-				DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
+			{
+				/*DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
 				DP_Framework.NetSignals[1] = DP_Framework.NetSignals[0];
 				DP_Framework.NetSignals[2] = DP_Framework.NetSignals[0];
 				DP_Framework.NetSignals[3] = DP_Framework.NetSignals[0];
-				DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];
+				DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];*/
 
 				break;
+			}
 
 			case WfmRef:
+			{
+			    switch(IPC_CtoM_Msg.WfmRef.SyncMode)
+                {
+                    case OneShot:
+                    {
+                        RUN_TIMESLICE(0); /************************************************************/
 
-				i = (Uint16) IPC_CtoM_Msg.WfmRef.Gain;
-				SATURATE(i,4,1);
+                            if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+                            {
+                                IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK++) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+                            }
 
-				IPC_CtoM_Msg.PSModule.IRef = IPC_CtoM_Msg.WfmRef.Offset;
-				DP_Framework.NetSignals[0] = IPC_CtoM_Msg.WfmRef.Offset;
-				DP_Framework.NetSignals[i] = IPC_CtoM_Msg.WfmRef.Offset;
+                        END_TIMESLICE(0); /************************************************************/
+                        break;
+                    }
 
+                    case SampleBySample:
+                    case SampleBySample_Continuous:
+                    {
+                        if(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK <= IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd)
+                        {
+                            IPC_CtoM_Msg.PSModule.IRef = *(IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK) * IPC_CtoM_Msg.WfmRef.Gain + IPC_CtoM_Msg.WfmRef.Offset;
+                        }
+                        break;
+                    }
+                }
+
+                DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
+                DP_Framework.NetSignals[1] = DP_Framework.NetSignals[0];
+                DP_Framework.NetSignals[2] = DP_Framework.NetSignals[0];
+                DP_Framework.NetSignals[3] = DP_Framework.NetSignals[0];
+			    DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];
 				break;
+			}
 
 			case SigGen:
-
-				DP_Framework.NetSignals[0] = IPC_MtoC_Msg.SigGen.Amplitude[0] + IPC_MtoC_Msg.SigGen.Offset;
-
-				if(1 != ((Uint16) IPC_MtoC_Msg.SigGen.Freq))
-				{
-					DP_Framework.NetSignals[i] = DP_Framework.NetSignals[0];
-				}
-				if(2 != ((Uint16) IPC_MtoC_Msg.SigGen.Freq))
-				{
-					DP_Framework.NetSignals[i] = DP_Framework.NetSignals[0];
-				}
-				if(3 != ((Uint16) IPC_MtoC_Msg.SigGen.Freq))
-				{
-					DP_Framework.NetSignals[i] = DP_Framework.NetSignals[0];
-				}
-				if(4 != ((Uint16) IPC_MtoC_Msg.SigGen.Freq))
-				{
-					DP_Framework.NetSignals[i] = DP_Framework.NetSignals[0];
-				}
-
+			{
+			    SignalGenerator.Run_ELP_SigGen(&SignalGenerator);
+                DP_Framework.NetSignals[0] = IPC_CtoM_Msg.PSModule.IRef;
+                DP_Framework.NetSignals[1] = DP_Framework.NetSignals[0];
+                DP_Framework.NetSignals[2] = DP_Framework.NetSignals[0];
+                DP_Framework.NetSignals[3] = DP_Framework.NetSignals[0];
+                DP_Framework.NetSignals[4] = DP_Framework.NetSignals[0];
 				break;
+			}
 
 			default:
+			{
 				break;
+			}
 		}
 
 		if(IPC_CtoM_Msg.PSModule.OpenLoop & PS1_ID)

@@ -11,9 +11,9 @@
  *
  *		TODO:
  *				- ReadDPModule
- *				- ConfigDPModules s� executa caso a fonte esteja desligada?
+ *				- ConfigDPModules so executa caso a fonte esteja desligada?
  *				- Ajustar WfmSync
- *				- Incluir flag no IPC_MtoC_Msg para ARM avisar C28 quando est� pronto
+ *				- Incluir flag no IPC_MtoC_Msg para ARM avisar C28 quando esta pronto
  */
 
 #include "IPC_modules.h"
@@ -291,6 +291,31 @@ interrupt void isr_IPC_Channel_1(void)
 			PieCtrlRegs.PIEACK.all |= M_INT11;
 			break;
 		}
+
+		case SLOWREFX4_UPDATE: //IPC1 +IPC16
+        {
+            CtoMIpcRegs.MTOCIPCACK.all = SLOWREFX4_UPDATE;
+
+            if(IPC_CtoM_Msg.PSModule.OpMode == SlowRef)
+            {
+                //IPC_CtoM_Msg.PSModule.IRef = IPC_MtoC_Msg.PSModule.ISlowRef;
+                DP_Framework.NetSignals[1] = IPC_MtoC_Msg.DPModule.Coeffs[0];
+                DP_Framework.NetSignals[2] = IPC_MtoC_Msg.DPModule.Coeffs[1];
+                DP_Framework.NetSignals[3] = IPC_MtoC_Msg.DPModule.Coeffs[2];
+                DP_Framework.NetSignals[4] = IPC_MtoC_Msg.DPModule.Coeffs[3];
+
+                DP_Framework.NetSignals[13]++;
+
+            }
+            else
+            {
+                IPC_CtoM_Msg.PSModule.ErrorMtoC = INVALID_OPMODE;
+                SendIpcFlag(MTOC_MESSAGE_ERROR);
+            }
+
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
 
 		case HRADC_UFM_READ:  // IPC1 + IPC22
         {
