@@ -825,9 +825,10 @@ static void turn_off(uint16_t id)
 
     open_relay(id);
 
-    g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
-    g_ipc_ctom.ps_module[id].ps_status.bit.state = Off;
-
+    if (g_ipc_ctom.ps_module[id].ps_status.bit.state != Interlock){
+        g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
+        g_ipc_ctom.ps_module[id].ps_status.bit.state = Off;
+    }
     reset_controller(id);
 }
 
