@@ -1009,7 +1009,7 @@ static void check_interlocks_ps_module(uint16_t id)
         set_hard_interlock(id, DCLINK_OVERVOLTAGE);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id]) > MIN_DCLINK)
+    if(fabs(g_controller_mtoc.net_signals[id]) < MIN_DCLINK)
     {
         set_hard_interlock(id, DCLINK_UNDERVOLTAGE);
     }
@@ -1038,8 +1038,13 @@ static void check_interlocks_ps_module(uint16_t id)
                 set_hard_interlock(id, DRIVER_FAIL);
             }
 
-            if(!PIN_STATUS_PS1_DCLINK_RELAY)
-            {
+            if ((g_ipc_ctom.ps_module[id].ps_status.bit.state == Off) &&
+                (PIN_STATUS_PS1_DCLINK_RELAY)) {
+                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+            }
+
+            if ((g_ipc_ctom.ps_module[id].ps_status.bit.state != Off) &&
+                (!PIN_STATUS_PS1_DCLINK_RELAY)) {
                 set_hard_interlock(id, DCLINK_RELAY_FAIL);
             }
 
@@ -1058,8 +1063,13 @@ static void check_interlocks_ps_module(uint16_t id)
                 set_hard_interlock(id, DRIVER_FAIL);
             }
 
-            if(!PIN_STATUS_PS2_DCLINK_RELAY)
-            {
+            if ((g_ipc_ctom.ps_module[id].ps_status.bit.state == Off) &&
+                (PIN_STATUS_PS2_DCLINK_RELAY)) {
+                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+            }
+
+            if ((g_ipc_ctom.ps_module[id].ps_status.bit.state != Off) &&
+                (!PIN_STATUS_PS2_DCLINK_RELAY)) {
                 set_hard_interlock(id, DCLINK_RELAY_FAIL);
             }
 
@@ -1078,8 +1088,13 @@ static void check_interlocks_ps_module(uint16_t id)
                 set_hard_interlock(id, DRIVER_FAIL);
             }
 
-            if(!PIN_STATUS_PS3_DCLINK_RELAY)
-            {
+            if ((g_ipc_ctom.ps_module[id].ps_status.bit.state == Off) &&
+                (PIN_STATUS_PS3_DCLINK_RELAY)) {
+                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+            }
+
+            if ((g_ipc_ctom.ps_module[id].ps_status.bit.state != Off) &&
+                (!PIN_STATUS_PS3_DCLINK_RELAY)) {
                 set_hard_interlock(id, DCLINK_RELAY_FAIL);
             }
 
@@ -1098,10 +1113,16 @@ static void check_interlocks_ps_module(uint16_t id)
                 set_hard_interlock(id, DRIVER_FAIL);
             }
 
-            if(!PIN_STATUS_PS4_DCLINK_RELAY)
-            {
+            if ((g_ipc_ctom.ps_module[id].ps_status.bit.state == Off) &&
+                (PIN_STATUS_PS4_DCLINK_RELAY)) {
                 set_hard_interlock(id, DCLINK_RELAY_FAIL);
             }
+
+            if ((g_ipc_ctom.ps_module[id].ps_status.bit.state != Off) &&
+                (!PIN_STATUS_PS4_DCLINK_RELAY)) {
+                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+            }
+
             break;
         }
     }
