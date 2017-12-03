@@ -62,6 +62,16 @@ volatile static Uint32 valorCounter;
 
 void main_Jiga_Bastidor(void)
 {
+    Init_SPIMaster_McBSP(HRADC_SPI_CLK);
+    Init_SPIMaster_Gpio();
+    InitMcbspa20bit();
+
+    DELAY_US(500000);
+
+    SendIpcFlag(ENABLE_HRADC_BOARDS);
+
+    DELAY_US(500000);
+
     while( (IPC_MtoC_Msg.HRADCConfig.nHRADC < 1) || (IPC_MtoC_Msg.HRADCConfig.nHRADC > 4) ){}
 
     nFBPs = IPC_MtoC_Msg.HRADCConfig.nHRADC;
@@ -317,34 +327,14 @@ static void InitPeripheralsDrivers(void)
 
 	/* Initialization of HRADC boards */
 
-	stop_DMA();
-
-	Init_DMA_McBSP_nBuffers(IPC_MtoC_Msg.HRADCConfig.nHRADC, DECIMATION_FACTOR, HRADC_SPI_CLK);
-
-    Init_SPIMaster_McBSP(HRADC_SPI_CLK);
-    Init_SPIMaster_Gpio();
-    InitMcbspa20bit();
-
-    /*HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
-	HRADCs_Info.HRADC_boards[1] = &HRADC1_board;
-	HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
-	HRADCs_Info.HRADC_boards[3] = &HRADC3_board;*/
+    stop_DMA();
+    Init_DMA_McBSP_nBuffers(IPC_MtoC_Msg.HRADCConfig.nHRADC, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
     for(i = 0; i < IPC_MtoC_Msg.HRADCConfig.nHRADC; i++)
     {
         Init_HRADC_Info(&HRADCs_Info.HRADC_boards[i], i, DECIMATION_FACTOR, buffers_HRADC[i], TRANSDUCER_GAIN);
         Config_HRADC_board(&HRADCs_Info.HRADC_boards[i], Iin_bipolar, HEATER_DISABLE, RAILS_DISABLE);
     }
-
-	/*Init_HRADC_Info(&HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN);
-	Init_HRADC_Info(&HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN);
-	Init_HRADC_Info(&HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN);
-	Init_HRADC_Info(&HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_3_GAIN);
-
-	Config_HRADC_board(&HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-	Config_HRADC_board(&HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-	Config_HRADC_board(&HRADCs_Info.HRADC_boards[2], TRANSDUCER_2_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
-	Config_HRADC_board(&HRADCs_Info.HRADC_boards[3], TRANSDUCER_3_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);*/
 
 	AverageFilter = 1.0/((float) DECIMATION_FACTOR);
 
