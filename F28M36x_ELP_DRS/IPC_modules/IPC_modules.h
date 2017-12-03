@@ -30,7 +30,7 @@
 /*
  * MtoC Message Defines
  */
-#define IPC_PS_ON_OFF			0x00000011 //IPC1+IPC5
+#define TURN_ON					0x00000011 //IPC1+IPC5
 #define OPERATING_MODE			0x00000021 //IPC1+IPC6
 #define OPEN_CLOSE_LOOP			0x00000041 //IPC1+IPC7
 #define SLOWREF_UPDATE			0x00000081 //IPC1+IPC8
@@ -40,6 +40,8 @@
 #define SAMPLES_BUFFER_ON_OFF	0x00000801 //IPC1+IPC12
 #define RESET_INTERLOCKS		0x00001001 //IPC1+IPC13
 #define RESET_WFMREF			0x00002001 //IPC1+IPC14
+#define TURN_OFF				0x00004001 //IPC1+IPC15
+#define SLOWREFX4_UPDATE        0x00008001 //IPC1+IPC16
 //...//
 #define HRADC_UFM_READ          0x00200001 //IPC1+IPC22
 #define HRADC_UFM_WRITE         0x00400001 //IPC1+IPC23
@@ -345,8 +347,8 @@ typedef volatile struct
 
 typedef volatile struct
 {
-	void (*PS_turnOn)(void);
-	void (*PS_turnOff)(void);
+	void (*PS_turnOn)(Uint16);
+	void (*PS_turnOff)(Uint16);
 } tIPC_PS_FUNCS;
 
 /****************/
@@ -359,7 +361,7 @@ extern tIPC_MTOC_MSG_RAM	IPC_MtoC_Msg;
 extern tIPC_MTOC_PARAM_RAM	IPC_MtoC_Param;
 extern tIPC_PS_FUNCS		IPC_PS_funcs;
 
-extern void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void));
+extern void InitIPC(void (*ps_turnOn)(Uint16), void (*ps_turnOff)(Uint16), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void));
 extern void SendIpcFlag(Uint32 flag);
 
 extern interrupt void isr_IPC_Channel_1(void);

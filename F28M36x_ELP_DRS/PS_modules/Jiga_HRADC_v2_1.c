@@ -94,10 +94,10 @@ static void InitPeripheralsDrivers(void)
     HRADCs_Info.HRADC_boards[2] = &HRADC2_board;
     HRADCs_Info.HRADC_boards[3] = &HRADC3_board;*/
 
-    Init_HRADC_Info(&HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_0_GAIN, HRADC_0_R_BURDEN);
-    Init_HRADC_Info(&HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_1_GAIN, HRADC_1_R_BURDEN);
-    Init_HRADC_Info(&HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_2_GAIN, HRADC_2_R_BURDEN);
-    Init_HRADC_Info(&HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_3_GAIN, HRADC_3_R_BURDEN);
+    Init_HRADC_Info(&HRADCs_Info.HRADC_boards[0], 0, DECIMATION_FACTOR, buffers_HRADC.buffer_0, TRANSDUCER_GAIN, HRADC_R_BURDEN);
+    Init_HRADC_Info(&HRADCs_Info.HRADC_boards[1], 1, DECIMATION_FACTOR, buffers_HRADC.buffer_1, TRANSDUCER_GAIN, HRADC_R_BURDEN);
+    Init_HRADC_Info(&HRADCs_Info.HRADC_boards[2], 2, DECIMATION_FACTOR, buffers_HRADC.buffer_2, TRANSDUCER_GAIN, HRADC_R_BURDEN);
+    Init_HRADC_Info(&HRADCs_Info.HRADC_boards[3], 3, DECIMATION_FACTOR, buffers_HRADC.buffer_3, TRANSDUCER_GAIN, HRADC_R_BURDEN);
 
     /*Config_HRADC_board(&HRADCs_Info.HRADC_boards[0], TRANSDUCER_0_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);
     Config_HRADC_board(&HRADCs_Info.HRADC_boards[1], TRANSDUCER_1_OUTPUT_TYPE, HEATER_DISABLE, RAILS_DISABLE);

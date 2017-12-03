@@ -31,7 +31,7 @@
 //#pragma CODE_SECTION(isr_IPC_Channel_4, "ramfuncs");
 #pragma CODE_SECTION(ConfigPSOpMode, "ramfuncs");
 
-void InitIPC(void (*ps_turnOn)(void),void (*ps_turnOff)(void), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void));
+void InitIPC(void (*ps_turnOn)(Uint16), void (*ps_turnOff)(Uint16), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void));
 void SendIpcFlag(Uint32 flag);
 
 interrupt void isr_IPC_Channel_1(void);
@@ -52,7 +52,7 @@ tIPC_MTOC_PARAM_RAM		IPC_MtoC_Param;
 tIPC_PS_FUNCS			IPC_PS_funcs;
 
 
-void InitIPC(void (*ps_turnOn)(void), void (*ps_turnOff)(void), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void))
+void InitIPC(void (*ps_turnOn)(Uint16), void (*ps_turnOff)(Uint16), void (*isr_SoftItlk)(void), void (*isr_HardItlk)(void))
 {
 	IPC_CtoM_Msg.PSModule.OnOff = 0;
 	IPC_CtoM_Msg.PSModule.OpMode = SlowRef;
@@ -162,22 +162,13 @@ interrupt void isr_IPC_Channel_1(void)
 
 	switch(aux)
 	{
-		case IPC_PS_ON_OFF: //IPC1 +IPC5
+		case TURN_ON: //IPC1 +IPC5
 		{
-			CtoMIpcRegs.MTOCIPCACK.all = IPC_PS_ON_OFF;
+			CtoMIpcRegs.MTOCIPCACK.all = TURN_ON;
 
-			if(IPC_MtoC_Msg.PSModule.OnOff)
-			{
-				Disable_ELP_SigGen(&SignalGenerator);
-				IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
-				IPC_PS_funcs.PS_turnOn();
-			}
-			else
-			{
-				IPC_PS_funcs.PS_turnOff();
-				Disable_ELP_SigGen(&SignalGenerator);
-				IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
-			}
+			Disable_ELP_SigGen(&SignalGenerator);
+			IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
+			IPC_PS_funcs.PS_turnOn(IPC_MtoC_Msg.PSModule.OnOff);
 
 			PieCtrlRegs.PIEACK.all |= M_INT11;
 			break;
@@ -288,6 +279,43 @@ interrupt void isr_IPC_Channel_1(void)
 			PieCtrlRegs.PIEACK.all |= M_INT11;
 			break;
 		}
+
+		case TURN_OFF: //IPC1 +IPC15
+		{
+			CtoMIpcRegs.MTOCIPCACK.all = TURN_OFF;
+
+			IPC_PS_funcs.PS_turnOff(IPC_MtoC_Msg.PSModule.OnOff);
+			Disable_ELP_SigGen(&SignalGenerator);
+			IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferK = IPC_CtoM_Msg.WfmRef.BufferInfo.PtrBufferEnd + 1;
+
+			PieCtrlRegs.PIEACK.all |= M_INT11;
+			break;
+		}
+
+		case SLOWREFX4_UPDATE: //IPC1 +IPC16
+        {
+            CtoMIpcRegs.MTOCIPCACK.all = SLOWREFX4_UPDATE;
+
+            if(IPC_CtoM_Msg.PSModule.OpMode == SlowRef)
+            {
+                //IPC_CtoM_Msg.PSModule.IRef = IPC_MtoC_Msg.PSModule.ISlowRef;
+                DP_Framework.NetSignals[1] = IPC_MtoC_Msg.DPModule.Coeffs[0];
+                DP_Framework.NetSignals[2] = IPC_MtoC_Msg.DPModule.Coeffs[1];
+                DP_Framework.NetSignals[3] = IPC_MtoC_Msg.DPModule.Coeffs[2];
+                DP_Framework.NetSignals[4] = IPC_MtoC_Msg.DPModule.Coeffs[3];
+
+                DP_Framework.NetSignals[13]++;
+
+            }
+            else
+            {
+                IPC_CtoM_Msg.PSModule.ErrorMtoC = INVALID_OPMODE;
+                SendIpcFlag(MTOC_MESSAGE_ERROR);
+            }
+
+            PieCtrlRegs.PIEACK.all |= M_INT11;
+            break;
+        }
 
 		case HRADC_UFM_READ:  // IPC1 + IPC22
         {

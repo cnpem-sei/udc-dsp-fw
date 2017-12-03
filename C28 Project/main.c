@@ -15,12 +15,13 @@
 
 #include <string.h>
 #include "F28M36x_ELP_DRS.h"
+#include "Jiga_HRADC_v2_1.h"
 
 /*extern Uint16 RamfuncsLoadStart_RAML3;
 extern Uint16 RamfuncsLoadSize_RAML3;
 extern Uint16 RamfuncsRunStart_RAML3;*/
 
-extern void main_Jiga_HRADC_v2_1(void);
+
 
 void main(void)
 {
