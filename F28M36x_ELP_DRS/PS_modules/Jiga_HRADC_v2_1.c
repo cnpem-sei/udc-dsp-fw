@@ -53,6 +53,16 @@ static Uint32 valorCounter;
 
 void main_Jiga_HRADC_v2_1(void)
 {
+    Init_SPIMaster_McBSP(HRADC_SPI_CLK);
+    Init_SPIMaster_Gpio();
+    InitMcbspa20bit();
+
+    DELAY_US(500000);
+
+    SendIpcFlag(ENABLE_HRADC_BOARDS);
+
+    DELAY_US(500000);
+
 	while( (IPC_MtoC_Msg.HRADCConfig.nHRADC < 1) || (IPC_MtoC_Msg.HRADCConfig.nHRADC > 4) ){}
 
 	InitPeripheralsDrivers();
@@ -84,10 +94,6 @@ static void InitPeripheralsDrivers(void)
 	HRADCs_Info.n_HRADC_boards = IPC_MtoC_Msg.HRADCConfig.nHRADC;
 
     Init_DMA_McBSP_nBuffers(HRADCs_Info.n_HRADC_boards, DECIMATION_FACTOR, HRADC_SPI_CLK);
-
-    Init_SPIMaster_McBSP(HRADC_SPI_CLK);
-    Init_SPIMaster_Gpio();
-    InitMcbspa20bit();
 
     /*HRADCs_Info.HRADC_boards[0] = &HRADC0_board;
     HRADCs_Info.HRADC_boards[1] = &HRADC1_board;

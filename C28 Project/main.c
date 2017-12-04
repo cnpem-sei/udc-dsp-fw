@@ -115,10 +115,6 @@ void main(void)
 
 	EDIS;
 
-	DELAY_US(1000000);
-
-	SendIpcFlag(ENABLE_HRADC_BOARDS);
-
 	main_Jiga_HRADC_v2_1();
 
 	while(1){}
