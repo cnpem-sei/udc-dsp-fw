@@ -177,9 +177,9 @@ void init_buzzer(float volume)
     disable_pwm_tbclk();
 
     init_pwm_module(&EPwm9Regs, BUZZER_PITCH_FREQ, 0, PWM_Sync_Master, 0,
-                  PWM_ChB_Complementary, 0);
+                  PWM_ChB_Independent, 0);
     init_pwm_module(&EPwm11Regs, 0.0, 0, PWM_Sync_Master, 0,
-                  PWM_ChB_Complementary, 0);
+                  PWM_ChB_Independent, 0);
 
     EALLOW;
 
