@@ -54,8 +54,11 @@
 #define MAX_SR_SIGGEN_OFFSET    50.0        // Max SigGen offset slew-rate [A/s]
 #define MAX_SR_SIGGEN_AMP       100.0       // Max SigGen amplitude slew-rate [A/s]
 
-#define KP                      1.9
-#define KI                      559.0
+//#define KP                      1.9
+//#define KI                      559.0
+
+#define KP                      0.08976   // <= Jiga Bastidor  //4.071   <= CARGA Lo = Corretora; Ro = 0.5R        //0.0 <= CARGA RESISTIVA WEG           //0.0  <= CARGA RESISTIVA WEG              //1.9          //2.8
+#define KI                      148.10
 
 #define CONTROL_FREQ            (2.0*PWM_FREQ)
 #define CONTROL_PERIOD          (1.0/CONTROL_FREQ)
@@ -342,6 +345,15 @@ static void init_peripherals_drivers(uint16_t num_ps)
     init_pwm_module(PS1_PWM_MODULATOR_NEG, PWM_FREQ, 7, PWM_Sync_Slave, 180,
                     PWM_ChB_Complementary, PWM_DEAD_TIME);
 
+    InitEPwm1Gpio();
+    InitEPwm2Gpio();
+    InitEPwm3Gpio();
+    InitEPwm4Gpio();
+    InitEPwm5Gpio();
+    InitEPwm6Gpio();
+    InitEPwm7Gpio();
+    InitEPwm8Gpio();
+
     /* Initialization of timers */
     InitCpuTimers();
     ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
@@ -558,7 +570,7 @@ static void reset_controller(uint16_t id)
         }
     }*/
 
-    set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[id], 0.0);
+    set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[id*2], 0.0);
     reset_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[id]);
     reset_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[id]);
     g_ipc_ctom.ps_module[id].ps_reference = 0.0;
@@ -708,14 +720,14 @@ interrupt void isr_controller(void)
                 if(g_ipc_ctom.ps_module[i].ps_status.bit.openloop)
                 {
                     g_controller_ctom.output_signals[i] =
-                            0.01 * g_controller_ctom.net_signals[i];
+                            0.01 * g_ipc_ctom.ps_module[i].ps_reference;
 
                     SATURATE(g_controller_ctom.output_signals[i],
                              PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
                 }
                 else
                 {
-                    SATURATE(g_controller_ctom.net_signals[i], MAX_REF, MIN_REF);
+                    SATURATE(g_ipc_ctom.ps_module[i].ps_reference, MAX_REF, MIN_REF);
 
                     run_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[i]);
                     run_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[i]);
@@ -724,7 +736,7 @@ interrupt void isr_controller(void)
                              PWM_MAX_DUTY, PWM_MIN_DUTY);
                 }
 
-                set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[i],
+                set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[i*2],
                                      g_controller_ctom.output_signals[i]);
 
         #if 0
@@ -825,8 +837,8 @@ static void turn_off(uint16_t id)
 
     open_relay(id);
 
+    g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
     if (g_ipc_ctom.ps_module[id].ps_status.bit.state != Interlock){
-        g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
         g_ipc_ctom.ps_module[id].ps_status.bit.state = Off;
     }
     reset_controller(id);
