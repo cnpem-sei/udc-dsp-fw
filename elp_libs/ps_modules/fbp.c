@@ -823,8 +823,8 @@ static void turn_on(uint16_t id)
                 g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
                 g_ipc_ctom.ps_module[id].ps_status.bit.state = SlowRef;
 
-                enable_pwm_output(id);
-                enable_pwm_output(id+1);
+                enable_pwm_output(2*id);
+                enable_pwm_output((2*id)+1);
             }
         }
     }
@@ -832,8 +832,8 @@ static void turn_on(uint16_t id)
 
 static void turn_off(uint16_t id)
 {
-    disable_pwm_output(id);
-    disable_pwm_output(id+1);
+    disable_pwm_output(2*id);
+    disable_pwm_output((2*id)+1);
 
     open_relay(id);
 
