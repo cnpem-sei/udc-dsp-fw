@@ -29,7 +29,7 @@ typedef volatile struct
 	volatile float		*PtrBufferStart;
 	volatile float		*PtrBufferEnd;
 	volatile float		*PtrBufferK;
-	eBlockBusy	BufferBusy;
+	eBlockBusy	        BufferBusy;
 } tBuffer;
 
 /*
@@ -38,8 +38,8 @@ typedef volatile struct
 #define UDC_V2_0	0
 #define UDC_V2_1	1
 
-#define HRADC_v2_0  0
-#define HRADC_v2_1  1
+#define HRADC_v2_0  1
+#define HRADC_v2_1  0
 
 /*
  * Especificacoes do core C28 do Concerto

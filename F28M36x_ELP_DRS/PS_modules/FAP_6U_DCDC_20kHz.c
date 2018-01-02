@@ -51,6 +51,21 @@ static void InitInterruptions(void);
 
 static Uint16 pinStatus_DCLink_Contactor;
 
+#define NUM_MAX_FAIL_COUNTERS   12
+
+#define DCLINK_FLAG             fail_flag[0]
+#define DCLINK_COUNTER          fail_counter[0]
+#define DCLINK_COUNTOUT         fail_countout[0]
+#define DCLINK_COUNTER_OVERFLOW fail_counter_overflow[0]
+
+#define DCLINK_FAIL_TIMEOUT_US      5000.0
+#define DCLINK_COUNTER_OVERFLOW_US  1000000.0
+
+static Uint16 fail_flag[NUM_MAX_FAIL_COUNTERS];
+static Uint32 fail_counter[NUM_MAX_FAIL_COUNTERS];
+static Uint32 fail_countout[NUM_MAX_FAIL_COUNTERS];
+static Uint32 fail_counter_overflow[NUM_MAX_FAIL_COUNTERS];
+
 
 void main_FAP_6U_DCDC_20kHz(void)
 {
@@ -208,6 +223,8 @@ static void ResetPeripheralsDrivers(void)
 
 static void InitControllers(void)
 {
+    static Uint16 i;
+
 
 	/* Initialization of IPC module */
 	InitIPC(&PS_turnOn, &PS_turnOff, &isr_SoftInterlock, &isr_HardInterlock);
@@ -361,6 +378,17 @@ static void InitControllers(void)
 	Set_TimeSlicer(2, CONTROL_FREQ/ISHARE_CONTROL_FREQ);
 
 	ResetControllers();
+
+    for(i = 0; i < NUM_MAX_FAIL_COUNTERS; i++)
+    {
+        fail_flag[i] = 0;
+        fail_counter[i] = 0;
+        fail_countout[i] = 0;
+        fail_counter_overflow[i] = 0;
+    }
+
+    DCLINK_COUNTOUT = (Uint32) ((DCLINK_FAIL_TIMEOUT_US*CONTROL_FREQ)*1e-6);
+    DCLINK_COUNTER_OVERFLOW = (Uint32) ((DCLINK_COUNTER_OVERFLOW_US*CONTROL_FREQ)*1e-6);
 }
 
 static void ResetControllers(void)
@@ -425,7 +453,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	static Uint16 i, bypass_SRLim;
 	static float temp0, temp1;
 
-	SET_DEBUG_GPIO1;
+	//SET_DEBUG_GPIO1;
 
 	temp0 = 0.0;
 	temp1 = 0.0;
@@ -472,17 +500,35 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 
 	if(fabs(temp1) > MAX_DCLINK)
 	{
-		if(CHECK_INTERLOCK(IN_OVERVOLTAGE))
-		{
-			Set_HardInterlock(IN_OVERVOLTAGE);
-		}
+	    DCLINK_FLAG = 1;
+
+	    if(DCLINK_COUNTER >= DCLINK_COUNTOUT)
+	    {
+            if(CHECK_INTERLOCK(IN_OVERVOLTAGE))
+            {
+                SET_DEBUG_GPIO1;
+                Set_HardInterlock(IN_OVERVOLTAGE);
+                DCLINK_COUNTER = 0;
+                DCLINK_FLAG = 0;
+            }
+	    }
+	}
+
+	if(DCLINK_FLAG)
+	{
+	    if(++DCLINK_COUNTER >= DCLINK_COUNTER_OVERFLOW)
+        {
+	        DCLINK_FLAG = 0;
+            DCLINK_COUNTER = 0;
+            CLEAR_DEBUG_GPIO1;
+        }
 	}
 
 	if(fabs(DP_Framework_MtoC.NetSignals[0]) > MAX_IMOD)
 	{
 		if(CHECK_INTERLOCK(ARM1_OVERCURRENT))
 		{
-			Set_HardInterlock(ARM1_OVERCURRENT);
+			//Set_HardInterlock(ARM1_OVERCURRENT);
 		}
 	}
 
@@ -490,7 +536,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 	{
 		if(CHECK_INTERLOCK(ARM2_OVERCURRENT))
 		{
-			Set_HardInterlock(ARM2_OVERCURRENT);
+			//Set_HardInterlock(ARM2_OVERCURRENT);
 		}
 	}
 
@@ -597,7 +643,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 		PWM_Modules.PWM_Regs[i]->ETCLR.bit.INT = 1;
 	}
 
-	CLEAR_DEBUG_GPIO1;
+	//CLEAR_DEBUG_GPIO1;
 
 	PieCtrlRegs.PIEACK.all |= M_INT3;
 }
