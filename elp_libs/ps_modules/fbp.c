@@ -621,7 +621,7 @@ interrupt void isr_controller(void)
     static uint16_t i;
     static float temp[4];
 
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     temp[0] = (float) *(HRADCs_Info.HRADC_boards[0].SamplesBuffer);
     temp[1] = (float) *(HRADCs_Info.HRADC_boards[1].SamplesBuffer);
@@ -848,7 +848,11 @@ static void reset_interlocks(void)
 {
     g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock = 0;
-    g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state = Off;
+
+    if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state < Initializing)
+    {
+        g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state = Off;
+    }
 }
 
 static void set_hard_interlock(uint16_t id, uint32_t itlk)
