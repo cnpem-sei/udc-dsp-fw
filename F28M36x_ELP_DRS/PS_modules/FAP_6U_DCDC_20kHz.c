@@ -58,7 +58,7 @@ static Uint16 pinStatus_DCLink_Contactor;
 #define DCLINK_COUNTOUT         fail_countout[0]
 #define DCLINK_COUNTER_OVERFLOW fail_counter_overflow[0]
 
-#define DCLINK_FAIL_TIMEOUT_US      5000.0
+#define DCLINK_FAIL_TIMEOUT_US      200000.0
 #define DCLINK_COUNTER_OVERFLOW_US  1000000.0
 
 static Uint16 fail_flag[NUM_MAX_FAIL_COUNTERS];
