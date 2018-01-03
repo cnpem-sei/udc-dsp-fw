@@ -71,7 +71,8 @@ typedef enum
 } ipc_mtoc_lowpriority_msg_t;
 
 typedef enum
-{
+{   Enable_HRADC_Boards,
+    Disable_HRADC_Boards,
     MtoC_Message_Error
 } ipc_ctom_lowpriority_msg_t;
 

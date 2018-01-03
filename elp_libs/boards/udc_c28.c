@@ -202,7 +202,7 @@ void init_buzzer(float volume)
     EPwm9Regs.TZCLR.bit.OST = 1;
     EPwm11Regs.TZCLR.bit.OST = 1;
 
-    SATURATE(volume,0.0,100.0);
+    SATURATE(volume,100.0,0.0);
 
     /// Set duty cycle
     set_pwm_duty_chA(&EPwm9Regs, volume/100.0);

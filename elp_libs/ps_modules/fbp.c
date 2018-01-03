@@ -133,7 +133,7 @@
 
 #define PIN_STATUS_PS2_DCLINK_RELAY     GET_GPDI11
 #define PIN_STATUS_PS2_DRIVER_ERROR     GET_GPDI9
-#define PIN_STATUS_PS2_FUSE             GET_GPDI15
+#define PIN_STATUS_PS2_FUSE             GET_GPDI16
 
 #define PS2_LOAD_CURRENT                g_controller_ctom.net_signals[1]    // HRADC1
 #define PS2_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[1]    // ANI1
@@ -186,7 +186,7 @@
 
 #define PIN_STATUS_PS4_DCLINK_RELAY     GET_GPDI2
 #define PIN_STATUS_PS4_DRIVER_ERROR     GET_GPDI3
-#define PIN_STATUS_PS4_FUSE             GET_GPDI16
+#define PIN_STATUS_PS4_FUSE             GET_GPDI15
 
 #define PS4_LOAD_CURRENT                g_controller_ctom.net_signals[3]   // HRADC3
 #define PS4_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[3]    // ANI0
@@ -286,11 +286,17 @@ static void init_peripherals_drivers(uint16_t num_ps)
 
     stop_DMA();
 
+    HRADCs_Info.enable_Sampling = 0;
+
     Init_DMA_McBSP_nBuffers(num_ps, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
     Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
     InitMcbspa20bit();
+
+    DELAY_US(500000);
+    send_ipc_lowpriority_msg(0,Enable_HRADC_Boards);
+    DELAY_US(2000000);
 
     for(i = 0; i < num_ps; i++)
     {
@@ -299,6 +305,8 @@ static void init_peripherals_drivers(uint16_t num_ps)
         Config_HRADC_board(&HRADCs_Info.HRADC_boards[i], Iin_bipolar,
                            HEATER_DISABLE, RAILS_DISABLE);
     }
+
+    HRADCs_Info.n_HRADC_boards = num_ps;
 
     Config_HRADC_SoC(HRADC_FREQ_SAMP);
 
@@ -592,6 +600,7 @@ static void enable_controller()
     stop_DMA();
     DELAY_US(5);
     start_DMA();
+    HRADCs_Info.enable_Sampling = 1;
     enable_pwm_tbclk();
 }
 
