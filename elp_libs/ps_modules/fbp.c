@@ -57,8 +57,8 @@
 //#define KP                      1.9
 //#define KI                      559.0
 
-#define KP                      0.08976   // <= Jiga Bastidor  //4.071   <= CARGA Lo = Corretora; Ro = 0.5R        //0.0 <= CARGA RESISTIVA WEG           //0.0  <= CARGA RESISTIVA WEG              //1.9          //2.8
-#define KI                      148.10
+#define KP                      3.56    // <= Testes FAC BW 1 kHz   // 0.08976   // <= Jiga Bastidor  //4.071   <= CARGA Lo = Corretora; Ro = 0.5R        //0.0 <= CARGA RESISTIVA WEG           //0.0  <= CARGA RESISTIVA WEG              //1.9          //2.8
+#define KI                      73.304  //
 
 #define CONTROL_FREQ            (2.0*PWM_FREQ)
 #define CONTROL_PERIOD          (1.0/CONTROL_FREQ)
@@ -95,7 +95,8 @@
 #define DCLINK_RELAY_FAIL           0x00000010
 #define FUSE_FAIL                   0x00000020
 #define DRIVER_FAIL                 0x00000040
-#define OVERTEMP                    0x00000080
+
+#define OVERTEMP                    0x00000001
 
 /**
  * Power supply 1 defines
