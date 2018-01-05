@@ -9,10 +9,10 @@
 
 #define PWM_FREQ	   			50000.0		// Frequencia do sinal PWM gerado [Hz]
 #define PWM_DEAD_TIME			300			// Dead-time dos sinais PWM [ns]
-#define PWM_MAX_DUTY    		0.9         // Maximo ciclo de trabalho para o PWM (em p.u.)
-#define PWM_MIN_DUTY    		-0.9		// Minimo ciclo de trabalho para o PWM (em p.u.)
-#define PWM_MAX_DUTY_OL			0.9			// Maximo ciclo de trabalho para o PWM em malha aberta (em p.u.)
-#define PWM_MIN_DUTY_OL			-0.9		// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
+#define PWM_MAX_DUTY    		0.95        // Maximo ciclo de trabalho para o PWM (em p.u.)
+#define PWM_MIN_DUTY    		-0.95		// Minimo ciclo de trabalho para o PWM (em p.u.)
+#define PWM_MAX_DUTY_OL			0.95		// Maximo ciclo de trabalho para o PWM em malha aberta (em p.u.)
+#define PWM_MIN_DUTY_OL			-0.95		// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
 
 #define MAX_REF					10.0		// Valor máximo da referência de corrente na carga [A]
 #define MIN_REF					-10.0		// Valor mínimo da referência de corrente na carga [A]
@@ -26,8 +26,8 @@
 #define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate máximo do offset do gerador senoidal (A/s)
 #define MAX_SR_SIGGEN_AMP		100.0		// Slew-rate máximo da amplitude do gerador senoidal (A/s)
 
-#define KP                      0.08976   // <= Jiga Bastidor  //4.071   <= CARGA Lo = Corretora; Ro = 0.5R        //0.0 <= CARGA RESISTIVA WEG           //0.0  <= CARGA RESISTIVA WEG              //1.9			//2.8
-#define KI						148.10    //                   //598.928    DC-Link = 7 V                         //680.0 <= Ro ~ 1.3 Ohm, DC-Link ~ 6 V   //280  <= Ro ~ 1.3 Ohm, DC-Link ~ 14.5 V   // 559.0		//470.0
+#define KP                      4.071       //<= CARGA Lo = Corretora; Ro = 0.5R    // 0.08976   // <= Jiga Bastidor  //        //0.0 <= CARGA RESISTIVA WEG           //0.0  <= CARGA RESISTIVA WEG              //1.9			//2.8
+#define KI						598.928     //DC-Link = 7 V                         // 148.10    //                   //        //680.0 <= Ro ~ 1.3 Ohm, DC-Link ~ 6 V   //280  <= Ro ~ 1.3 Ohm, DC-Link ~ 14.5 V   // 559.0		//470.0
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
