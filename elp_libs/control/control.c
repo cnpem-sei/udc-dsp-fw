@@ -31,11 +31,6 @@ void init_control_framework(volatile control_framework_t *p_controller)
 {
     uint16_t i;
 
-    for(i = 0; i < NUM_MAX_INT_SIGNALS; i++)
-    {
-        p_controller->int_signals[i] = 0;
-    }
-
     for(i = 0; i < NUM_MAX_NET_SIGNALS; i++)
     {
         p_controller->net_signals[i] = 0.0;

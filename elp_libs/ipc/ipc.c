@@ -25,13 +25,10 @@
 #include "control/control.h"
 #include "ipc.h"
 
-#define COUNTER_SET_SLOWREF     0
-#define COUNTER_SYNC_PULSE      1
-
 #pragma DATA_SECTION(g_ipc_ctom,"CTOM_MSG_RAM");
 #pragma DATA_SECTION(g_ipc_mtoc,"MTOC_MSG_RAM");
-ipc_ctom_t g_ipc_ctom;
-ipc_mtoc_t g_ipc_mtoc;
+volatile ipc_ctom_t g_ipc_ctom;
+volatile ipc_mtoc_t g_ipc_mtoc;
 
 /**
  * Interrupt service routine for handling Low Priority MtoC IPC messages
@@ -233,9 +230,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
                     case Cycle:
                     {
-
-                        //disable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
-                        //reset_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
+                        disable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
                         break;
                     }
 
@@ -245,8 +240,8 @@ interrupt void isr_ipc_lowpriority_msg(void)
                     }
                 }
 
-                cfg_ps_operation_mode( &g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id],
-                                       g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state );
+                cfg_ps_operation_mode(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id],
+                                      g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state);
             }
 
             break;
@@ -254,7 +249,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
         case Reset_Interlocks:
         {
-            g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].reset_interlocks();
+            g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].reset_interlocks(g_ipc_mtoc.msg_id);
             break;
         }
 
@@ -298,8 +293,6 @@ interrupt void isr_ipc_lowpriority_msg(void)
             {
                 g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_setpoint =
                 g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_setpoint;
-
-                g_controller_ctom.int_signals[COUNTER_SET_SLOWREF]++;
             }
 
             else if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state != SlowRefSync)
@@ -323,8 +316,6 @@ interrupt void isr_ipc_lowpriority_msg(void)
                     {
                         g_ipc_ctom.ps_module[i].ps_setpoint =
                         g_ipc_mtoc.ps_module[i].ps_setpoint;
-
-                        g_controller_ctom.int_signals[COUNTER_SET_SLOWREF]++;
                     }
                     else if(g_ipc_ctom.ps_module[i].ps_status.bit.state != SlowRefSync)
                     {
@@ -337,12 +328,42 @@ interrupt void isr_ipc_lowpriority_msg(void)
             break;
         }
 
-        /**
-         * TODO: finish other IPC messages
-         */
+        case Cfg_SigGen:
+        {
+            cfg_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id],
+                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].type,
+                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].num_cycles,
+                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].freq,
+                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].amplitude,
+                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].offset,
+                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].aux_param);
+            break;
+        }
 
-        case Reset_Counters:
+        case Set_SigGen:
+        {
+            set_siggen_freq(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id],
+                            g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].freq);
+            break;
+        }
 
+        case Enable_SigGen:
+        {
+            enable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
+            break;
+        }
+
+        case Disable_SigGen:
+        {
+            disable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
+            break;
+        }
+
+        case Reset_Counter:
+        {
+            /// TODO:
+            break;
+        }
 
         case CtoM_Message_Error:
         {
@@ -397,6 +418,7 @@ interrupt void isr_ipc_sync_pulse(void)
 
                 case Cycle:
                 {
+                    enable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
                     break;
                 }
 
@@ -407,8 +429,6 @@ interrupt void isr_ipc_sync_pulse(void)
             }
         }
     }
-
-    g_controller_ctom.int_signals[COUNTER_SYNC_PULSE]++;
 
     CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;
     PieCtrlRegs.PIEACK.all |= M_INT1;

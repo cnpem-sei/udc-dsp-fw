@@ -38,20 +38,9 @@ const static float default_aux_param[NUM_SIGGEN_AUX_PARAM] = {0};
 #pragma CODE_SECTION(run_siggen_sine, "ramfuncs");
 #pragma CODE_SECTION(run_siggen_dampedsine, "ramfuncs");
 #pragma CODE_SECTION(run_siggen_trapezoidal, "ramfuncs");
+#pragma CODE_SECTION(update_siggen_freq, "ramfuncs");
 
-void init_siggen(siggen_t *p_siggen, float freq_sampling, volatile float *p_out);
-void cfg_siggen(siggen_t *p_siggen, siggen_type_t sig_type, uint16_t num_cycles,
-                float freq, float amplitude, float offset, float *p_aux_param);
-void scale_siggen(siggen_t *p_siggen, float amplitude, float offset);
-void set_siggen_freq(siggen_t *p_siggen);
-
-void enable_siggen(siggen_t *p_siggen);
-void disable_siggen(siggen_t *p_siggen);
-void reset_siggen(siggen_t *p_siggen);
-
-void run_siggen_sine(siggen_t *p_siggen);
-void run_siggen_dampedsine(siggen_t *p_siggen);
-void run_siggen_trapezoidal(siggen_t *p_siggen);
+static void update_siggen_freq(siggen_t *p_siggen);
 
 /**
  * Initialization of Signal Generator module. SigGen must be disabled.
@@ -92,14 +81,6 @@ void cfg_siggen(siggen_t *p_siggen, siggen_type_t sig_type, uint16_t num_cycles,
 
     if(p_siggen->enable == 0)
     {
-        p_siggen->type = sig_type;
-        p_siggen->num_cycles = num_cycles;
-        p_siggen->n = 0.0;
-        p_siggen->freq = freq;
-
-        scale_siggen(p_siggen, amplitude, offset);
-        set_siggen_freq(p_siggen);
-
         for(i = 0; i < NUM_SIGGEN_AUX_PARAM; i++)
         {
             p_siggen->aux_param[i] = p_aux_param[i];
@@ -109,6 +90,14 @@ void cfg_siggen(siggen_t *p_siggen, siggen_type_t sig_type, uint16_t num_cycles,
         {
             p_siggen->aux_var[i] = 0.0;
         }
+
+        p_siggen->type = sig_type;
+        p_siggen->num_cycles = num_cycles;
+        p_siggen->n = 0.0;
+
+        scale_siggen(p_siggen, amplitude, offset);
+        set_siggen_freq(p_siggen,freq);
+        update_siggen_freq(p_siggen);
 
         switch(sig_type)
         {
@@ -200,7 +189,7 @@ void scale_siggen(siggen_t *p_siggen, float amplitude, float offset)
  *
  * @param p_siggen  Pointer to specified siggen controller
  */
-void set_siggen_freq(siggen_t *p_siggen)
+void set_siggen_freq(siggen_t *p_siggen, float freq)
 {
     switch(p_siggen->type)
     {
@@ -212,11 +201,12 @@ void set_siggen_freq(siggen_t *p_siggen)
             /// use a high value for "num_cycles" parameter
             if(p_siggen->num_cycles == 0)
             {
-                p_siggen->freq = fabs(roundf(p_siggen->freq));
+                p_siggen->freq = fabs(roundf(freq));
             }
-
-            p_siggen->aux_var[0] = 2.0 * PI * (p_siggen->freq) /
-                                   p_siggen->freq_sampling;
+            else
+            {
+                p_siggen->freq = fabs(freq);
+            }
             break;
         }
 
@@ -237,12 +227,12 @@ void enable_siggen(siggen_t *p_siggen)
 {
     if(p_siggen->enable == 0)
     {
-        reset_siggen(p_siggen);
+        p_siggen->n = 0.0;
         switch(p_siggen->type)
         {
             case Sine:
             case DampedSine:
-                set_siggen_freq(p_siggen);
+                update_siggen_freq(p_siggen);
                 break;
 
             default:
@@ -260,17 +250,7 @@ void enable_siggen(siggen_t *p_siggen)
 void disable_siggen(siggen_t *p_siggen)
 {
     p_siggen->enable = 0;
-}
-
-/**
- * Reset Signal Generator.
- *
- * @param p_siggen  Pointer to specified siggen controller
- */
-void reset_siggen(siggen_t *p_siggen)
-{
     p_siggen->n = 0.0;
-    //*(p_siggen->p_out) = 0.0;
 }
 
 /**
@@ -306,7 +286,7 @@ void run_siggen_sine(siggen_t *p_siggen)
 			 *  creating a smooth transition from one frequency to other.
 			 *
 			 */
-			set_siggen_freq(p_siggen);
+		    update_siggen_freq(p_siggen);
 			p_siggen->n = 0.0;
 		}
 	}
@@ -374,7 +354,32 @@ void run_siggen_trapezoidal(siggen_t *p_siggen)
 		else
 		{
 			disable_siggen(p_siggen);
-			p_siggen->aux_var[5]= 0;
+			p_siggen->aux_var[5]= 0.0;
 		}
 	}
+}
+
+
+/**
+ * Update frequency of signal.
+ *
+ * @param p_siggen  Pointer to specified siggen controller
+ */
+void update_siggen_freq(siggen_t *p_siggen)
+{
+    switch(p_siggen->type)
+    {
+        case Sine:
+        case DampedSine:
+        {
+            p_siggen->aux_var[0] = 2.0 * PI * (p_siggen->freq) /
+                                   p_siggen->freq_sampling;
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
 }

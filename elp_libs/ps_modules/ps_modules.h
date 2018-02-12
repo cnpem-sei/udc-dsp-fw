@@ -37,7 +37,6 @@
 
 #define NUM_MAX_PS_MODULES  4
 
-
 typedef enum
 {
     Off,
@@ -50,7 +49,6 @@ typedef enum
     MigWfm,
     Cycle
 } ps_state_t;
-
 
 typedef enum
 {
@@ -92,14 +90,14 @@ typedef struct
     void            (*turn_off)(uint16_t);
     void            (*isr_soft_interlock)(void);
     void            (*isr_hard_interlock)(void);
-    void            (*reset_interlocks)(void);
+    void            (*reset_interlocks)(uint16_t id);
 } ps_module_t;
 
 extern void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
                            void (*turn_on)(uint16_t), void (*turn_off)(uint16_t),
                            void (*isr_soft_interlock)(void),
                            void (*isr_hard_interlock)(void),
-                           void (*reset_interlocks)(void));
+                           void (*reset_interlocks)(uint16_t id));
 extern void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode);
 extern void open_loop(ps_module_t *p_ps_module);
 extern void close_loop(ps_module_t *p_ps_module);
@@ -109,7 +107,5 @@ extern void deactivate_ps_module(ps_module_t *p_ps_module);
 extern void lock_ps_module(ps_module_t *p_ps_module);
 extern void unlock_ps_module(ps_module_t *p_ps_module);
 extern ps_model_t get_ps_model(ps_module_t *p_ps_module);
-
-
 
 #endif /* PS_MODULES_H_ */

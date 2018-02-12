@@ -65,7 +65,7 @@ typedef enum
     Select_WfmRef,
     Reset_WfmRef,
     Cfg_SigGen,
-    Scale_SigGen,
+    Set_SigGen,
     Enable_SigGen,
     Disable_SigGen,
     Set_Param,
@@ -106,7 +106,7 @@ typedef enum
 /**
  * IPC structures definitions
  */
-typedef volatile struct
+typedef struct
 {
     char            udc_c28_version[SIZE_VERSION]; // C28 char = 2 bytes
     uint32_t        msg_mtoc;
@@ -118,7 +118,7 @@ typedef volatile struct
     buf_t           buf_samples[NUM_MAX_PS_MODULES];
 } ipc_ctom_t;
 
-typedef volatile struct
+typedef struct
 {
     uint32_t        msg_ctom;
     uint16_t        msg_id;
@@ -129,8 +129,8 @@ typedef volatile struct
     buf_t           buf_samples[NUM_MAX_PS_MODULES];
 } ipc_mtoc_t;
 
-extern ipc_ctom_t g_ipc_ctom;
-extern ipc_mtoc_t g_ipc_mtoc;
+extern volatile ipc_ctom_t g_ipc_ctom;
+extern volatile ipc_mtoc_t g_ipc_mtoc;
 
 extern void init_ipc(void);
 extern void send_ipc_msg(uint16_t msg_id, uint32_t msg);

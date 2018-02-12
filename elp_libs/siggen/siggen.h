@@ -30,9 +30,6 @@
 #define NUM_SIGGEN_AUX_PARAM    4
 #define NUM_SIGGEN_AUX_VAR      8
 
-#define PARAM_DEFAULT_SINE      {}
-
-
 /**
  * TODO: Implement square, triangular and prbs
  */
@@ -69,17 +66,13 @@ extern void cfg_siggen(siggen_t *p_siggen, siggen_type_t sig_type,
                        uint16_t num_cycles, float freq, float amplitude,
                        float offset, float *p_aux_param);
 extern void scale_siggen(siggen_t *p_siggen, float amplitude, float offset);
-extern void set_siggen_freq(siggen_t *p_siggen);
+extern void set_siggen_freq(siggen_t *p_siggen, float freq);
 
 extern void enable_siggen(siggen_t *p_siggen);
 extern void disable_siggen(siggen_t *p_siggen);
-extern void reset_siggen(siggen_t *p_siggen);
 
 extern void run_siggen_sine(siggen_t *p_siggen);
-extern void run_siggen_square(siggen_t *p_siggen);
-extern void run_siggen_triangle(siggen_t *p_siggen);
-extern void run_siggen_freqsweep(siggen_t *p_siggen);
-extern void run_siggen_dampedSine(siggen_t *p_siggen);
+extern void run_siggen_dampedsine(siggen_t *p_siggen);
 extern void run_siggen_trapezoidal(siggen_t *p_siggen);
 
 #endif

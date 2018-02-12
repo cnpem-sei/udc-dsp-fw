@@ -54,7 +54,7 @@ void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
                     void (*turn_on)(uint16_t), void (*turn_off)(uint16_t),
                     void (*isr_soft_interlock)(void),
                     void (*isr_hard_interlock)(void),
-                    void (*reset_interlocks)(void))
+                    void (*reset_interlocks)(uint16_t id))
 {
     p_ps_module->ps_status.bit.state        = Off;
     p_ps_module->ps_status.bit.openloop     = OPEN_LOOP;
@@ -125,13 +125,8 @@ void cfg_ps_operation_mode(ps_module_t *p_ps_module, ps_state_t op_mode)
         }
 
         case Cycle:
-        {/**
-          * TODO:
-            disable_siggen(&p_ps_module->siggen);
-            cfg_siggen(&p_ps_module->siggen, IPC_MtoC_Msg.SigGen.Type,
-                       IPC_MtoC_Msg.SigGen.Ncycles, IPC_MtoC_Msg.SigGen.Freq,
-                       p_ps_module->siggen.aux_param);
-          */
+        {
+            // TODO:
             break;
         }
 
