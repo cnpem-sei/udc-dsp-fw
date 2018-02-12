@@ -28,7 +28,7 @@
 
 /* Library-wide limits */
 
-#define NUM_MAX_INPUT_SIGNALS       12
+#define NUM_MAX_INT_SIGNALS         8
 #define NUM_MAX_NET_SIGNALS         32
 #define NUM_MAX_OUTPUT_SIGNALS      16
 
@@ -68,6 +68,7 @@ typedef volatile struct
  */
 typedef volatile struct
 {
+    int16_t         int_signals[NUM_MAX_INT_SIGNALS];
     float           net_signals[NUM_MAX_NET_SIGNALS];
     float           output_signals[NUM_MAX_OUTPUT_SIGNALS];
     dsp_modules_t   dsp_modules;

@@ -22,7 +22,11 @@
 
 #include <stdint.h>
 #include "boards/udc_c28.h"
+#include "control/control.h"
 #include "ipc.h"
+
+#define COUNTER_SET_SLOWREF     0
+#define COUNTER_SYNC_PULSE      1
 
 #pragma DATA_SECTION(g_ipc_ctom,"CTOM_MSG_RAM");
 #pragma DATA_SECTION(g_ipc_mtoc,"MTOC_MSG_RAM");
@@ -46,6 +50,13 @@ interrupt void isr_ipc_sync_pulse(void);
  */
 void init_ipc(void)
 {
+    uint16_t i;
+
+    for(i = 0; i < SIZE_VERSION; i++)
+    {
+        g_ipc_ctom.udc_c28_version[i] = udc_c28_version[i];
+    }
+
     g_ipc_ctom.msg_mtoc = 0;
     g_ipc_ctom.msg_id = 0;
     g_ipc_ctom.error_mtoc = No_Error_MtoC;
@@ -287,6 +298,8 @@ interrupt void isr_ipc_lowpriority_msg(void)
             {
                 g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_setpoint =
                 g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_setpoint;
+
+                g_controller_ctom.int_signals[COUNTER_SET_SLOWREF]++;
             }
 
             else if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state != SlowRefSync)
@@ -310,6 +323,8 @@ interrupt void isr_ipc_lowpriority_msg(void)
                     {
                         g_ipc_ctom.ps_module[i].ps_setpoint =
                         g_ipc_mtoc.ps_module[i].ps_setpoint;
+
+                        g_controller_ctom.int_signals[COUNTER_SET_SLOWREF]++;
                     }
                     else if(g_ipc_ctom.ps_module[i].ps_status.bit.state != SlowRefSync)
                     {
@@ -325,6 +340,9 @@ interrupt void isr_ipc_lowpriority_msg(void)
         /**
          * TODO: finish other IPC messages
          */
+
+        case Reset_Counters:
+
 
         case CtoM_Message_Error:
         {
@@ -389,6 +407,8 @@ interrupt void isr_ipc_sync_pulse(void)
             }
         }
     }
+
+    g_controller_ctom.int_signals[COUNTER_SYNC_PULSE]++;
 
     CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;
     PieCtrlRegs.PIEACK.all |= M_INT1;

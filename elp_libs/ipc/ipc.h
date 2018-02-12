@@ -24,6 +24,7 @@
 #define IPC_H_
 
 #include <stdint.h>
+#include "boards/version.h"
 #include "common/structs.h"
 #include "ps_modules/ps_modules.h"
 #include "siggen/siggen.h"
@@ -67,6 +68,12 @@ typedef enum
     Scale_SigGen,
     Enable_SigGen,
     Disable_SigGen,
+    Set_Param,
+    Get_Param,
+    Set_Param_Bank,
+    Get_Param_Bank,
+    Reset_Param_Bank,
+    Reset_Counter,
     CtoM_Message_Error
 } ipc_mtoc_lowpriority_msg_t;
 
@@ -101,6 +108,7 @@ typedef enum
  */
 typedef volatile struct
 {
+    char            udc_c28_version[SIZE_VERSION]; // C28 char = 2 bytes
     uint32_t        msg_mtoc;
     uint16_t        msg_id;
     error_mtoc_t    error_mtoc;
