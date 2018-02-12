@@ -68,7 +68,8 @@
 #define HRADC_SPI_CLK           SPI_15MHz
 
 #define BUFFER_DECIMATION       1
-#define WFMREF_SAMPLING_FREQ    4096
+#define WFMREF_SAMPLING_FREQ    8000.0
+#define SIGGEN                  g_ipc_ctom.siggen[0]
 
 #define TRANSDUCER_INPUT_RATED      12.5            // ** DCCT LEM ITN 12-P **
 #define TRANSDUCER_OUTPUT_RATED     0.05            // In_rated   = +/- 12.5 A
@@ -517,6 +518,23 @@ static uint16_t init_controller(void)
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7],
                 &g_controller_ctom.output_signals[3]);
 
+    /*********************************************/
+    /* INITIALIZATION OF SIGNAL GENERATOR MODULE */
+    /*********************************************/
+
+    /*
+     *        name:     SIGGEN
+     * description:     Signal generator module
+     *         out:     g_ipc_ctom.ps_module[0].ps_reference
+     */
+
+    disable_siggen(&SIGGEN);
+    init_siggen(&SIGGEN, CONTROL_FREQ, &g_ipc_ctom.ps_module[0].ps_reference);
+    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen[0].type,
+               g_ipc_mtoc.siggen[0].num_cycles, g_ipc_mtoc.siggen[0].freq,
+               g_ipc_mtoc.siggen[0].amplitude, g_ipc_mtoc.siggen[0].offset,
+               g_ipc_mtoc.siggen[0].aux_param);
+
     /**********************************/
     /* INITIALIZATION OF TIME SLICERS */
     /**********************************/
@@ -534,55 +552,11 @@ static uint16_t init_controller(void)
 
 static void reset_controller(uint16_t id)
 {
-
-    /*switch(id)
-    {
-        case 0:
-        {
-            set_pwm_duty_hbridge(PS1_PWM_MODULATOR, 0.0);
-            reset_dsp_error(ERROR_CALCULATOR_PS1);
-            reset_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS1);
-            PS1_REFERENCE = 0.0;
-            break;
-        }
-
-        case 1:
-        {
-            set_pwm_duty_hbridge(PS2_PWM_MODULATOR, 0.0);
-            reset_dsp_error(ERROR_CALCULATOR_PS2);
-            reset_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS2);
-            PS2_REFERENCE = 0.0;
-            break;
-        }
-
-        case 2:
-        {
-            set_pwm_duty_hbridge(PS3_PWM_MODULATOR, 0.0);
-            reset_dsp_error(ERROR_CALCULATOR_PS3);
-            reset_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS3);
-            PS3_REFERENCE = 0.0;
-            break;
-        }
-
-        case 3:
-        {
-            set_pwm_duty_hbridge(PS4_PWM_MODULATOR, 0.0);
-            reset_dsp_error(ERROR_CALCULATOR_PS4);
-            reset_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS4);
-            PS4_REFERENCE = 0.0;
-            break;
-        }
-
-        default:
-        {
-            break;
-        }
-    }*/
-
     set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[id*2], 0.0);
     reset_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[id]);
     reset_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[id]);
     g_ipc_ctom.ps_module[id].ps_reference = 0.0;
+    reset_siggen(&SIGGEN);
     reset_timeslicers();
 }
 
@@ -607,6 +581,11 @@ static void enable_controller()
 
 static void disable_controller()
 {
+    disable_pwm_tbclk();
+    HRADCs_Info.enable_Sampling = 0;
+    stop_DMA();
+
+    reset_controllers(num_active_ps_modules);
 }
 
 interrupt void isr_init_controller(void)
@@ -655,26 +634,7 @@ interrupt void isr_controller(void)
     PS2_LOAD_CURRENT = temp[1];
     PS3_LOAD_CURRENT = temp[2];
     PS4_LOAD_CURRENT = temp[3];
-/*
-    if(fabs(PS1_LOAD_CURRENT) > MAX_ILOAD)
-    {
-        set_hard_interlock(PS1_ID, LOAD_OVERCURRENT);
-    }
 
-    if(fabs(PS2_LOAD_CURRENT) > MAX_ILOAD)
-    {
-        set_hard_interlock(PS2_ID, LOAD_OVERCURRENT);
-    }
-
-    if(fabs(PS3_LOAD_CURRENT) > MAX_ILOAD)
-    {
-        set_hard_interlock(PS3_ID, LOAD_OVERCURRENT);
-    }
-
-    if(fabs(PS4_LOAD_CURRENT) > MAX_ILOAD)
-    {
-        set_hard_interlock(PS4_ID, LOAD_OVERCURRENT);
-    }*/
     #endif
 
 
@@ -720,6 +680,12 @@ interrupt void isr_controller(void)
                     }
                     case Cycle:
                     {
+                        SIGGEN.amplitude = g_ipc_mtoc.siggen[0].amplitude;
+                        SIGGEN.offset = g_ipc_mtoc.siggen[0].offset;
+                        SIGGEN.p_run_siggen(&SIGGEN);
+                        g_ipc_ctom.ps_module[i].ps_reference =
+                        g_ipc_ctom.ps_module[0].ps_reference;
+
                         break;
                     }
                     default:
