@@ -57,6 +57,8 @@ void init_ipc(void)
     g_ipc_ctom.msg_mtoc = 0;
     g_ipc_ctom.msg_id = 0;
     g_ipc_ctom.error_mtoc = No_Error_MtoC;
+    g_ipc_ctom.counter_set_slowref =  0;
+    g_ipc_ctom.counter_sync_pulse =  0;
 
     EALLOW;
 
@@ -131,6 +133,10 @@ void init_ipc(void)
     PieCtrlRegs.PIEIER11.bit.INTx2 = 1;                 // MTOCIPCINT2
     PieCtrlRegs.PIEIER11.bit.INTx3 = 0;                 // MTOCIPCINT3
     PieCtrlRegs.PIEIER11.bit.INTx4 = 0;                 // MTOCIPCINT4
+
+    CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;
+    PieCtrlRegs.PIEACK.all |= M_INT1;
+    PieCtrlRegs.PIEACK.all |= M_INT11;
 
     EDIS;
 }
@@ -301,6 +307,8 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
             }
 
+            g_ipc_ctom.counter_set_slowref++;
+
             break;
         }
 
@@ -324,6 +332,8 @@ interrupt void isr_ipc_lowpriority_msg(void)
                     }
                 }
             }
+
+            g_ipc_ctom.counter_set_slowref++;
 
             break;
         }
@@ -359,9 +369,10 @@ interrupt void isr_ipc_lowpriority_msg(void)
             break;
         }
 
-        case Reset_Counter:
+        case Reset_Counters:
         {
-            /// TODO:
+            g_ipc_ctom.counter_set_slowref =  0;
+            g_ipc_ctom.counter_sync_pulse =  0;
             break;
         }
 
@@ -429,6 +440,8 @@ interrupt void isr_ipc_sync_pulse(void)
             }
         }
     }
+
+    g_ipc_ctom.counter_sync_pulse++;
 
     CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;
     PieCtrlRegs.PIEACK.all |= M_INT1;

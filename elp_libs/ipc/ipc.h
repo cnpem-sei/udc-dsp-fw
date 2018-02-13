@@ -73,7 +73,7 @@ typedef enum
     Set_Param_Bank,
     Get_Param_Bank,
     Reset_Param_Bank,
-    Reset_Counter,
+    Reset_Counters,
     CtoM_Message_Error
 } ipc_mtoc_lowpriority_msg_t;
 
@@ -112,6 +112,8 @@ typedef struct
     uint32_t        msg_mtoc;
     uint16_t        msg_id;
     error_mtoc_t    error_mtoc;
+    uint32_t        counter_set_slowref;
+    uint32_t        counter_sync_pulse;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
     siggen_t        siggen[NUM_MAX_PS_MODULES];
     wfmref_t        wfmref[NUM_MAX_PS_MODULES];

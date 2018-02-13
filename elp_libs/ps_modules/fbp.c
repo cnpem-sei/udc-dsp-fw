@@ -32,7 +32,7 @@
  *
  * TODO: transfer this to param bank
  */
-//#define USE_ITLK
+#define USE_ITLK
 #define TIMEOUT_DCLINK_RELAY    100000
 
 #define PWM_FREQ                50000.0     /// PWM frequency [Hz]
@@ -256,6 +256,9 @@ void main_fbp(void)
     init_peripherals_drivers(num_active_ps_modules);
     init_interruptions();
     enable_controller();
+
+    /// TODO: check why first sync_pulse occurs
+    g_ipc_ctom.counter_sync_pulse = 0;
 
     /// TODO: include condition for re-initialization
     while(1)
@@ -805,7 +808,7 @@ static void turn_on(uint16_t id)
     if(g_ipc_ctom.ps_module[id].ps_status.bit.active)
     {
         #ifdef USE_ITLK
-        if(g_ipc_ctom.ps_module[id].ps_status.bit.state = Off)
+        if(g_ipc_ctom.ps_module[id].ps_status.bit.state == Off)
         #else
         if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
         #endif
