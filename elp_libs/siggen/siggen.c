@@ -28,9 +28,11 @@
 #include "siggen.h"
 
 #define _USE_MATH_DEFINES
-#define PI  3.14159265358979323846
+#define PI                  3.14159265358979323846
+#define NUM_ITE_EXP_APPROX  12
 
-const static float default_aux_param[NUM_SIGGEN_AUX_PARAM] = {0};
+const static float default_aux_param[NUM_SIGGEN_AUX_PARAM] = {0.0};
+static float coeff_exp_approx;
 
 #pragma CODE_SECTION(set_siggen_freq, "ramfuncs");
 #pragma CODE_SECTION(enable_siggen, "ramfuncs");
@@ -41,6 +43,7 @@ const static float default_aux_param[NUM_SIGGEN_AUX_PARAM] = {0};
 #pragma CODE_SECTION(update_siggen_freq, "ramfuncs");
 
 static void update_siggen_freq(siggen_t *p_siggen);
+inline float exp_approx(float x);
 
 /**
  * Initialization of Signal Generator module. SigGen must be disabled.
@@ -51,6 +54,8 @@ static void update_siggen_freq(siggen_t *p_siggen);
  */
 void init_siggen(siggen_t *p_siggen, float freq_sampling, volatile float *p_out)
 {
+    coeff_exp_approx = 1.0 / powf(2.0, (float) NUM_ITE_EXP_APPROX);
+
 	if(p_siggen->enable == 0)
 	{
 	    p_siggen->freq_sampling = freq_sampling;
@@ -304,7 +309,7 @@ void run_siggen_dampedsine(siggen_t *p_siggen)
 		if(p_siggen->n < p_siggen->aux_var[2])
 		{
 			*(p_siggen->p_out) = p_siggen->amplitude *
-			                     exp(p_siggen->aux_var[3] * p_siggen->n) *
+			                     exp_approx(p_siggen->aux_var[3] * p_siggen->n) *
 			                     sin( p_siggen->aux_var[0] * p_siggen->n +
 			                     p_siggen->aux_var[1] ) + p_siggen->offset;
 
@@ -382,4 +387,30 @@ void update_siggen_freq(siggen_t *p_siggen)
             break;
         }
     }
+}
+
+/**
+ * Faster exponencial approximation.
+ *
+ * This function implements alternative code for exp() function from math.h to
+ * speed-up controller execution.
+ *
+ * Ref.: https://codingforspeed.com/using-faster-exponential-approximation/
+ *
+ * @param x argument from exp(x)
+ * @return approximation of exp(x)
+ */
+inline float exp_approx(float x)
+{
+    uint16_t i;
+    float y;
+
+    y = 1 + x*coeff_exp_approx;
+
+    for(i = 0; i < NUM_ITE_EXP_APPROX; i++)
+    {
+        y *= y;
+    }
+
+    return y;
 }

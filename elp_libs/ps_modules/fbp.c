@@ -70,6 +70,7 @@
 #define BUFFER_DECIMATION       1
 #define WFMREF_SAMPLING_FREQ    8000.0
 #define SIGGEN                  g_ipc_ctom.siggen[0]
+#define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12]
 
 #define TRANSDUCER_INPUT_RATED      12.5            /// ** DCCT LEM ITN 12-P **
 #define TRANSDUCER_OUTPUT_RATED     0.05            /// In_rated   = +/- 12.5 A
@@ -517,7 +518,7 @@ static uint16_t init_controller(void)
      */
 
     disable_siggen(&SIGGEN);
-    init_siggen(&SIGGEN, CONTROL_FREQ, &g_ipc_ctom.ps_module[0].ps_reference);
+    init_siggen(&SIGGEN, CONTROL_FREQ, &SIGGEN_OUTPUT);
     cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen[0].type,
                g_ipc_mtoc.siggen[0].num_cycles, g_ipc_mtoc.siggen[0].freq,
                g_ipc_mtoc.siggen[0].amplitude, g_ipc_mtoc.siggen[0].offset,
@@ -620,10 +621,10 @@ interrupt void isr_init_controller(void)
  */
 interrupt void isr_controller(void)
 {
-    static uint16_t i;
+    static uint16_t i, flag_siggen = 0;
     static float temp[4];
 
-    //SET_DEBUG_GPIO1;
+    SET_DEBUG_GPIO1;
 
     /// Get HRADC samples
     temp[0] = (float) *(HRADCs_Info.HRADC_boards[0].SamplesBuffer);
@@ -631,7 +632,6 @@ interrupt void isr_controller(void)
     temp[2] = (float) *(HRADCs_Info.HRADC_boards[2].SamplesBuffer);
     temp[3] = (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer);
 
-    #if 1
     temp[0] *= HRADCs_Info.HRADC_boards[0].gain;
     temp[0] += HRADCs_Info.HRADC_boards[0].offset;
 
@@ -648,7 +648,6 @@ interrupt void isr_controller(void)
     PS2_LOAD_CURRENT = temp[1];
     PS3_LOAD_CURRENT = temp[2];
     PS4_LOAD_CURRENT = temp[3];
-    #endif
 
     /// Loop through active power supplies
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
@@ -656,15 +655,6 @@ interrupt void isr_controller(void)
         /// Check whether power supply is active
         if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
         {
-            #if 0
-            /**
-            * TODO: test this iterative implementation
-            */
-            temp[i] *= HRADCs_Info.HRADC_boards[i].gain;
-            temp[i] += HRADCs_Info.HRADC_boards[i].offset;
-            g_controller_ctom.net_signals[i] = temp[i];
-            #endif
-
             /// Check whether power supply is ON
             if(g_ipc_ctom.ps_module[i].ps_status.bit.state > Interlock)
             {
@@ -688,11 +678,17 @@ interrupt void isr_controller(void)
                     }
                     case Cycle:
                     {
-                        SIGGEN.amplitude = g_ipc_mtoc.siggen[0].amplitude;
-                        SIGGEN.offset = g_ipc_mtoc.siggen[0].offset;
-                        SIGGEN.p_run_siggen(&SIGGEN);
-                        g_ipc_ctom.ps_module[i].ps_reference =
-                        g_ipc_ctom.ps_module[0].ps_reference;
+                        if(!flag_siggen)
+                        {
+                            SIGGEN.amplitude = g_ipc_mtoc.siggen[0].amplitude;
+                            SIGGEN.offset = g_ipc_mtoc.siggen[0].offset;
+                            //SET_DEBUG_GPIO1;
+                            SIGGEN.p_run_siggen(&SIGGEN);
+                            //CLEAR_DEBUG_GPIO1;
+                            flag_siggen = 1;
+                        }
+
+                        g_ipc_ctom.ps_module[i].ps_reference = SIGGEN_OUTPUT;
 
                         break;
                     }
@@ -716,11 +712,16 @@ interrupt void isr_controller(void)
                 {
                     SATURATE(g_ipc_ctom.ps_module[i].ps_reference, MAX_REF, MIN_REF);
 
-                    run_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[i]);
+                    //run_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[i]);
+
+                    *g_controller_ctom.dsp_modules.dsp_error[i].error =
+                            *g_controller_ctom.dsp_modules.dsp_error[i].pos -
+                            *g_controller_ctom.dsp_modules.dsp_error[i].neg;
+
                     run_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[i]);
 
-                    SATURATE(g_controller_ctom.output_signals[i],
-                             PWM_MAX_DUTY, PWM_MIN_DUTY);
+                    //SATURATE(g_controller_ctom.output_signals[i],
+                    //         PWM_MAX_DUTY, PWM_MIN_DUTY);
                 }
 
                 set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[i*2],
@@ -739,6 +740,8 @@ interrupt void isr_controller(void)
     PS3_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
     PS4_PWM_MODULATOR->ETCLR.bit.INT = 1;
     PS4_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
+
+    flag_siggen = 0;
 
     CLEAR_DEBUG_GPIO1;
 

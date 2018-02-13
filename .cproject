@@ -23,7 +23,7 @@
 								<listOptionValue builtIn="false" value="LINKER_COMMAND_FILE=F28M36x_Headers_nonBIOS.cmd"/>
 								<listOptionValue builtIn="false" value="RUNTIME_SUPPORT_LIBRARY=rts2800_fpu32.lib"/>
 								<listOptionValue builtIn="false" value="OUTPUT_TYPE=executable"/>
-								<listOptionValue builtIn="false" value="LINK_ORDER=F28M36x_ELP_DRS/F28M36x_ELP_DRS.c;F28M36x_ELP_DRS/PS_modules/PS_modules.c;-lrts2800_fpu32_fast_supplement.lib;-lrts2800_fpu32.lib;"/>
+								<listOptionValue builtIn="false" value="LINK_ORDER=-lrts2800_fpu32_fast_supplement.lib;-lrts2800_fpu32.lib;"/>
 							</option>
 							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.892957538" name="Compiler version" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION" value="6.2.11" valueType="string"/>
 							<targetPlatform id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.targetPlatformDebug.1500299893" name="Platform" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.targetPlatformDebug"/>
@@ -76,7 +76,7 @@
 								<inputType id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__GEN_CMDS.760980432" name="Generated Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exeLinker.inputType__GEN_CMDS"/>
 							</tool>
 							<tool id="com.ti.ccstudio.buildDefinitions.C2000_6.2.hex.2110895692" name="C2000 Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.hex">
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.hex.TOOL_ENABLE.1506599581" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.hex.TOOL_ENABLE" value="true" valueType="boolean"/>
+								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.hex.TOOL_ENABLE.1506599581" name="Enable tool" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.hex.TOOL_ENABLE" value="true" valueType="boolean"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
