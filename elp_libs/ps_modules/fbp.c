@@ -55,7 +55,7 @@
 #define MAX_SR_SIGGEN_OFFSET    50.0        /// Max SigGen offset slew-rate [A/s]
 #define MAX_SR_SIGGEN_AMP       100.0       /// Max SigGen amplitude slew-rate [A/s]
 
-#define APPLICATION             WEG_PILOT_BATCH_CHARACTERIZATION
+#define APPLICATION             UVX_LINAC_RACK1
 
 #define UVX_LINAC_RACK1     0
 #define UVX_LINAC_RACK2     1
