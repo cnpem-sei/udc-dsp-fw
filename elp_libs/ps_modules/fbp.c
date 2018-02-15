@@ -32,6 +32,7 @@
  *
  * TODO: transfer this to param bank
  */
+
 #define USE_ITLK
 #define TIMEOUT_DCLINK_RELAY    100000
 
@@ -54,11 +55,99 @@
 #define MAX_SR_SIGGEN_OFFSET    50.0        /// Max SigGen offset slew-rate [A/s]
 #define MAX_SR_SIGGEN_AMP       100.0       /// Max SigGen amplitude slew-rate [A/s]
 
-//#define KP                      1.9
-//#define KI                      559.0
+#define APPLICATION             WEG_PILOT_BATCH_CHARACTERIZATION
 
-#define KP                      3.56        /// Test for group FAC, fbw =  1 kHz
-#define KI                      73.304      ///
+#define UVX_LINAC_RACK1     0
+#define UVX_LINAC_RACK2     1
+#define WEG_PILOT_BATCH_CHARACTERIZATION    2
+#define ELP_FAC_CON_TESTS   3
+
+/**
+ * UVX Linac FBP Rack 1:
+ *      LCH01A / LCV01A / LCH01B / LCV01B
+ */
+#if APPLICATION == UVX_LINAC_RACK1
+
+    // PS1: LCH01A
+    #define PS1_KP      0.022347
+    #define PS1_KI      88.29314
+
+    // PS2: LCV01A
+    #define PS2_KP      0.0231
+    #define PS2_KI      92.84433
+
+    // PS3: LCH01B
+    #define PS3_KP      0.3374
+    #define PS3_KI      205.25
+
+    // PS3: LCV01B
+    #define PS4_KP      0.323731
+    #define PS4_KI      209.4395
+
+/**
+ * UVX Linac FBP Rack 2:
+ *      LCH03 / LCV03 / LCH04 / LCV04
+ */
+#elif APPLICATION == UVX_LINAC_RACK2
+
+    // PS1: LCH03
+    #define PS1_KP      0.0
+    #define PS1_KI      0.0
+
+    // PS2: LCV03
+    #define PS2_KP      0.0
+    #define PS2_KI      0.0
+
+    // PS3: LCH04
+    #define PS3_KP      0.0
+    #define PS3_KI      0.0
+
+    // PS3: LCV04
+    #define PS4_KP      0.0
+    #define PS4_KI      0.0
+
+/**
+ *  WEG pilot batch characterization
+ *
+ *  Lload = 3.4 mH
+ *  Rload = 0.5 Ohm
+ *  Vdc-link = 7 V
+ *  fbw = 1.33 kHz
+ */
+#elif APPLICATION == WEG_PILOT_BATCH_CHARACTERIZATION
+
+    #define PS1_KP      4.071
+    #define PS1_KI      598.928
+
+    #define PS2_KP      PS1_KP
+    #define PS2_KI      PS1_KI
+
+    #define PS3_KP      PS1_KP
+    #define PS3_KI      PS1_KI
+
+    #define PS4_KP      PS1_KP
+    #define PS4_KI      PS1_KI
+
+/**
+ *  Synchronization tests with ELP, CON and FAC groups
+ *
+ *  fbw = 1 kHz
+ */
+#elif APPLICATION == ELP_FAC_CON_TESTS
+
+    #define PS1_KP      3.56
+    #define PS1_KI      73.304
+
+    #define PS2_KP      PS1_KP
+    #define PS2_KI      PS1_KI
+
+    #define PS3_KP      PS1_KP
+    #define PS3_KI      PS1_KI
+
+    #define PS4_KP      PS1_KP
+    #define PS4_KI      PS1_KI
+
+#endif
 
 #define CONTROL_FREQ            (2.0*PWM_FREQ)
 #define CONTROL_PERIOD          (1.0/CONTROL_FREQ)
@@ -428,7 +517,7 @@ static uint16_t init_controller(void)
      *         out:     output_signals[0]
      */
 
-    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS1, KP, KI, CONTROL_FREQ,
+    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS1, PS1_KP, PS1_KI, CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[4],
                 &g_controller_ctom.output_signals[0]);
 
@@ -455,7 +544,7 @@ static uint16_t init_controller(void)
      *         out:     output_signals[1]
      */
 
-    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS2, KP, KI, CONTROL_FREQ,
+    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS2, PS2_KP, PS2_KI, CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[5],
                 &g_controller_ctom.output_signals[1]);
 
@@ -482,7 +571,7 @@ static uint16_t init_controller(void)
      *         out:     output_signals[2]
      */
 
-    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS3, KP, KI, CONTROL_FREQ,
+    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS3, PS3_KP, PS3_KI, CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[6],
                 &g_controller_ctom.output_signals[2]);
 
@@ -508,7 +597,7 @@ static uint16_t init_controller(void)
      *          in:     net_signals[7]
      *         out:     output_signals[3]
      */
-    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS4, KP, KI, CONTROL_FREQ,
+    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS4, PS4_KP, PS4_KI, CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7],
                 &g_controller_ctom.output_signals[3]);
 
