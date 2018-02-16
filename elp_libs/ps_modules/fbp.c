@@ -34,7 +34,7 @@
  */
 
 #define USE_ITLK
-#define TIMEOUT_DCLINK_RELAY    100000
+#define TIMEOUT_DCLINK_RELAY    200000
 
 #define PWM_FREQ                50000.0     /// PWM frequency [Hz]
 #define PWM_DEAD_TIME           300         /// PWM dead-time [ns]
@@ -46,8 +46,9 @@
 #define MAX_REF                 10.0        /// Reference over-saturation level [A]
 #define MIN_REF                 -10.0       /// Reference under-saturation level [A]
 #define MAX_ILOAD               10.5        /// Reference limit for interlock [A]
-#define MAX_VLOAD               10.5        /// Load voltage limit for interlock [V]
+#define MAX_VLOAD               13.5        /// Load voltage limit for interlock [V]
 #define MIN_DCLINK              3.0         /// DC Link under limit for interlock [V]
+#define NOM_VDCLINK             15.0        /// Nominal DC Link
 #define MAX_DCLINK              17.0        /// DC Link over limit for interlock [V]
 #define MAX_TEMP                80.0        /// Temperature limit for interlock [ºC]
 
@@ -481,8 +482,16 @@ static uint16_t init_controller(void)
                            &turn_on, &turn_off, &isr_soft_interlock,
                            &isr_hard_interlock, &reset_interlocks);
 
+            disable_siggen(&g_ipc_ctom.siggen[i]);
+            init_siggen(&g_ipc_ctom.siggen[i], CONTROL_FREQ, &SIGGEN_OUTPUT);
+            cfg_siggen(&g_ipc_ctom.siggen[i], g_ipc_mtoc.siggen[0].type,
+                       g_ipc_mtoc.siggen[0].num_cycles, g_ipc_mtoc.siggen[0].freq,
+                       g_ipc_mtoc.siggen[0].amplitude, g_ipc_mtoc.siggen[0].offset,
+                       g_ipc_mtoc.siggen[0].aux_param);
+
+
             /**
-             * TODO: initialize SigGen, WfmRef and Samples Buffer
+             * TODO: initialize WfmRef and Samples Buffer
              */
 
             num_ps = i;
@@ -600,21 +609,6 @@ static uint16_t init_controller(void)
     init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS4, PS4_KP, PS4_KI, CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7],
                 &g_controller_ctom.output_signals[3]);
-
-    /// INITIALIZATION OF SIGNAL GENERATOR MODULE
-
-    /**
-     *        name:     SIGGEN
-     * description:     Signal generator module
-     *         out:     g_ipc_ctom.ps_module[0].ps_reference
-     */
-
-    disable_siggen(&SIGGEN);
-    init_siggen(&SIGGEN, CONTROL_FREQ, &SIGGEN_OUTPUT);
-    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen[0].type,
-               g_ipc_mtoc.siggen[0].num_cycles, g_ipc_mtoc.siggen[0].freq,
-               g_ipc_mtoc.siggen[0].amplitude, g_ipc_mtoc.siggen[0].offset,
-               g_ipc_mtoc.siggen[0].aux_param);
 
     /// INITIALIZATION OF TIME SLICERS
 
@@ -934,6 +928,7 @@ static void turn_off(uint16_t id)
     disable_pwm_output((2*id)+1);
 
     open_relay(id);
+    DELAY_US(TIMEOUT_DCLINK_RELAY);
 
     g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
     if (g_ipc_ctom.ps_module[id].ps_status.bit.state != Interlock){
