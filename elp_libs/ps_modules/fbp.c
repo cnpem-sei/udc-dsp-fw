@@ -46,7 +46,7 @@
 #define MAX_REF                 10.0        /// Reference over-saturation level [A]
 #define MIN_REF                 -10.0       /// Reference under-saturation level [A]
 #define MAX_ILOAD               10.5        /// Reference limit for interlock [A]
-#define MAX_VLOAD               13.5        /// Load voltage limit for interlock [V]
+#define MAX_VLOAD               20.0        /// Load voltage limit for interlock [V]
 #define MIN_DCLINK              3.0         /// DC Link under limit for interlock [V]
 #define NOM_VDCLINK             15.0        /// Nominal DC Link
 #define MAX_DCLINK              17.0        /// DC Link over limit for interlock [V]
@@ -92,20 +92,20 @@
 #elif APPLICATION == UVX_LINAC_RACK2
 
     // PS1: LCH03
-    #define PS1_KP      0.0
-    #define PS1_KI      0.0
+    #define PS1_KP      1.5
+    #define PS1_KI      125.0
 
     // PS2: LCV03
-    #define PS2_KP      0.0
-    #define PS2_KI      0.0
+    #define PS2_KP      1.5
+    #define PS2_KI      125.0
 
     // PS3: LCH04
-    #define PS3_KP      0.0
-    #define PS3_KI      0.0
+    #define PS3_KP      1.5
+    #define PS3_KI      125.0
 
     // PS3: LCV04
-    #define PS4_KP      0.0
-    #define PS4_KI      0.0
+    #define PS4_KP      1.5
+    #define PS4_KI      125.0
 
 /**
  *  WEG pilot batch characterization
