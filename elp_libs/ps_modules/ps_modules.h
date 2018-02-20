@@ -59,7 +59,8 @@ typedef enum
 
 typedef enum
 {
-    FBP
+    FBP,
+    FBP_DCLink,
 } ps_model_t;
 
 typedef struct

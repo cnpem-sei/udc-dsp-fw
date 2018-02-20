@@ -29,6 +29,7 @@
 #include "ipc/ipc.h"
 
 #include "ps_modules/fbp.h"
+#include "ps_modules/fbp_dclink.h"
 
 /**
  * TODO: Put here your defines. Just what is local. If you don't
@@ -123,6 +124,12 @@ void main(void)
             case FBP:
             {
                 main_fbp();
+                break;
+            }
+
+            case FBP_DCLink:
+            {
+                main_fbp_dclink();
                 break;
             }
 
