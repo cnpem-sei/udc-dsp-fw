@@ -160,7 +160,7 @@
 #define BUFFER_DECIMATION       1
 #define WFMREF_SAMPLING_FREQ    8000.0
 #define SIGGEN                  g_ipc_ctom.siggen[0]
-#define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12]
+#define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
 
 #define TRANSDUCER_INPUT_RATED      12.5            /// ** DCCT LEM ITN 12-P **
 #define TRANSDUCER_OUTPUT_RATED     0.05            /// In_rated   = +/- 12.5 A
@@ -201,10 +201,10 @@
 #define PIN_STATUS_PS1_DRIVER_ERROR     GET_GPDI5
 #define PIN_STATUS_PS1_FUSE             GET_GPDI14
 
-#define PS1_LOAD_CURRENT                g_controller_ctom.net_signals[0]    // HRADC0
-#define PS1_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[0]    // ANI2
-#define PS1_LOAD_VOLTAGE                g_controller_mtoc.net_signals[4]    // ANI6
-#define PS1_TEMPERATURE                 g_controller_mtoc.net_signals[8]   // I2C Add 0x48
+#define PS1_LOAD_CURRENT                g_controller_ctom.net_signals[0].f  // HRADC0
+#define PS1_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[0].f  // ANI2
+#define PS1_LOAD_VOLTAGE                g_controller_mtoc.net_signals[4].f  // ANI6
+#define PS1_TEMPERATURE                 g_controller_mtoc.net_signals[8].f  // I2C Add 0x48
 
 #define PS1_SETPOINT                    g_ipc_ctom.ps_module[0].ps_setpoint
 #define PS1_REFERENCE                   g_ipc_ctom.ps_module[0].ps_reference
@@ -227,10 +227,10 @@
 #define PIN_STATUS_PS2_DRIVER_ERROR     GET_GPDI9
 #define PIN_STATUS_PS2_FUSE             GET_GPDI16
 
-#define PS2_LOAD_CURRENT                g_controller_ctom.net_signals[1]    // HRADC1
-#define PS2_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[1]    // ANI1
-#define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[5]   // ANI7
-#define PS2_TEMPERATURE                 g_controller_mtoc.net_signals[9]   // I2C Add 0x49
+#define PS2_LOAD_CURRENT                g_controller_ctom.net_signals[1].f  // HRADC1
+#define PS2_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[1].f  // ANI1
+#define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[5].f  // ANI7
+#define PS2_TEMPERATURE                 g_controller_mtoc.net_signals[9].f  // I2C Add 0x49
 
 #define PS2_SETPOINT                    g_ipc_ctom.ps_module[1].ps_setpoint
 #define PS2_REFERENCE                   g_ipc_ctom.ps_module[1].ps_reference
@@ -253,10 +253,10 @@
 #define PIN_STATUS_PS3_DRIVER_ERROR     GET_GPDI1
 #define PIN_STATUS_PS3_FUSE             GET_GPDI13
 
-#define PS3_LOAD_CURRENT                g_controller_ctom.net_signals[2]    // HRADC2
-#define PS3_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[2]    // ANI4
-#define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[6]   // ANI3
-#define PS3_TEMPERATURE                 g_controller_mtoc.net_signals[10]   // I2C Add 0x4A
+#define PS3_LOAD_CURRENT                g_controller_ctom.net_signals[2].f  // HRADC2
+#define PS3_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[2].f  // ANI4
+#define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[6].f  // ANI3
+#define PS3_TEMPERATURE                 g_controller_mtoc.net_signals[10].f // I2C Add 0x4A
 
 #define PS3_SETPOINT                    g_ipc_ctom.ps_module[2].ps_setpoint
 #define PS3_REFERENCE                   g_ipc_ctom.ps_module[2].ps_reference
@@ -279,10 +279,10 @@
 #define PIN_STATUS_PS4_DRIVER_ERROR     GET_GPDI3
 #define PIN_STATUS_PS4_FUSE             GET_GPDI15
 
-#define PS4_LOAD_CURRENT                g_controller_ctom.net_signals[3]   // HRADC3
-#define PS4_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[3]    // ANI0
-#define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[7]   // ANI5
-#define PS4_TEMPERATURE                 g_controller_mtoc.net_signals[11]   // I2C Add 0x4C
+#define PS4_LOAD_CURRENT                g_controller_ctom.net_signals[3].f  // HRADC3
+#define PS4_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[3].f  // ANI0
+#define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[7].f  // ANI5
+#define PS4_TEMPERATURE                 g_controller_mtoc.net_signals[11].f // I2C Add 0x4C
 
 #define PS4_SETPOINT                    g_ipc_ctom.ps_module[3].ps_setpoint
 #define PS4_REFERENCE                   g_ipc_ctom.ps_module[3].ps_reference
@@ -514,9 +514,8 @@ static uint16_t init_controller(void)
      *         out:     net_signals[4]
      */
 
-    init_dsp_error(ERROR_CALCULATOR_PS1, &PS1_REFERENCE,
-                   &g_controller_ctom.net_signals[0],
-                   &g_controller_ctom.net_signals[4]);
+    init_dsp_error(ERROR_CALCULATOR_PS1, &PS1_REFERENCE, &PS1_LOAD_CURRENT,
+                   &g_controller_ctom.net_signals[4].f);
 
     /**
      *        name:     PI_DAWU_CONTROLLER_ILOAD_PS1
@@ -527,8 +526,8 @@ static uint16_t init_controller(void)
      */
 
     init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS1, PS1_KP, PS1_KI, CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[4],
-                &g_controller_ctom.output_signals[0]);
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[4].f,
+                &g_controller_ctom.output_signals[0].f);
 
     /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 2
 
@@ -541,9 +540,8 @@ static uint16_t init_controller(void)
      *         out:     net_signals[5]
      */
 
-    init_dsp_error(ERROR_CALCULATOR_PS2, &PS2_REFERENCE,
-                   &g_controller_ctom.net_signals[1],
-                   &g_controller_ctom.net_signals[5]);
+    init_dsp_error(ERROR_CALCULATOR_PS2, &PS2_REFERENCE, &PS2_LOAD_CURRENT,
+                   &g_controller_ctom.net_signals[5].f);
 
     /**
      *        name:     PI_DAWU_CONTROLLER_ILOAD_PS2
@@ -554,8 +552,8 @@ static uint16_t init_controller(void)
      */
 
     init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS2, PS2_KP, PS2_KI, CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[5],
-                &g_controller_ctom.output_signals[1]);
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[5].f,
+                &g_controller_ctom.output_signals[1].f);
 
     /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 3
 
@@ -568,9 +566,8 @@ static uint16_t init_controller(void)
      *         out:     net_signals[6]
      */
 
-    init_dsp_error(ERROR_CALCULATOR_PS3, &PS3_REFERENCE,
-                   &g_controller_ctom.net_signals[2],
-                   &g_controller_ctom.net_signals[6]);
+    init_dsp_error(ERROR_CALCULATOR_PS3, &PS3_REFERENCE, &PS3_LOAD_CURRENT,
+                   &g_controller_ctom.net_signals[6].f);
 
     /**
      *        name:     PI_DAWU_CONTROLLER_ILOAD_PS3
@@ -581,8 +578,8 @@ static uint16_t init_controller(void)
      */
 
     init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS3, PS3_KP, PS3_KI, CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[6],
-                &g_controller_ctom.output_signals[2]);
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[6].f,
+                &g_controller_ctom.output_signals[2].f);
 
     /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 4
 
@@ -595,9 +592,8 @@ static uint16_t init_controller(void)
      *         out:     net_signals[7]
      */
 
-    init_dsp_error(ERROR_CALCULATOR_PS4, &PS4_REFERENCE,
-                   &g_controller_ctom.net_signals[3],
-                   &g_controller_ctom.net_signals[7]);
+    init_dsp_error(ERROR_CALCULATOR_PS4, &PS4_REFERENCE, &PS4_LOAD_CURRENT,
+                   &g_controller_ctom.net_signals[7].f);
 
     /**
      *        name:     PI_DAWU_CONTROLLER_ILOAD_PS4
@@ -607,8 +603,8 @@ static uint16_t init_controller(void)
      *         out:     output_signals[3]
      */
     init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS4, PS4_KP, PS4_KI, CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7],
-                &g_controller_ctom.output_signals[3]);
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7].f,
+                &g_controller_ctom.output_signals[3].f);
 
     /// INITIALIZATION OF TIME SLICERS
 
@@ -787,10 +783,10 @@ interrupt void isr_controller(void)
                 /// Open-loop
                 if(g_ipc_ctom.ps_module[i].ps_status.bit.openloop)
                 {
-                    g_controller_ctom.output_signals[i] =
+                    g_controller_ctom.output_signals[i].f =
                             0.01 * g_ipc_ctom.ps_module[i].ps_reference;
 
-                    SATURATE(g_controller_ctom.output_signals[i],
+                    SATURATE(g_controller_ctom.output_signals[i].f,
                              PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
                 }
                 /// Closed-loop
@@ -806,12 +802,12 @@ interrupt void isr_controller(void)
 
                     run_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[i]);
 
-                    //SATURATE(g_controller_ctom.output_signals[i],
+                    //SATURATE(g_controller_ctom.output_signals[i].f,
                     //         PWM_MAX_DUTY, PWM_MIN_DUTY);
                 }
 
                 set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[i*2],
-                                     g_controller_ctom.output_signals[i]);
+                                     g_controller_ctom.output_signals[i].f);
             }
         }
 
@@ -1150,27 +1146,27 @@ static uint16_t get_relay_status(uint16_t id)
  */
 static void check_interlocks_ps_module(uint16_t id)
 {
-    if(fabs(g_controller_ctom.net_signals[id]) > MAX_ILOAD)
+    if(fabs(g_controller_ctom.net_signals[id].f) > MAX_ILOAD)
     {
         set_hard_interlock(id, LOAD_OVERCURRENT);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id]) > MAX_DCLINK)
+    if(fabs(g_controller_mtoc.net_signals[id].f) > MAX_DCLINK)
     {
         set_hard_interlock(id, DCLINK_OVERVOLTAGE);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id]) < MIN_DCLINK)
+    if(fabs(g_controller_mtoc.net_signals[id].f) < MIN_DCLINK)
     {
         set_hard_interlock(id, DCLINK_UNDERVOLTAGE);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id+4]) > MAX_VLOAD)
+    if(fabs(g_controller_mtoc.net_signals[id+4].f) > MAX_VLOAD)
     {
         set_hard_interlock(id, LOAD_OVERVOLTAGE);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id+8]) > MAX_TEMP)
+    if(fabs(g_controller_mtoc.net_signals[id+8].f) > MAX_TEMP)
     {
         set_soft_interlock(id, OVERTEMP);
     }

@@ -67,8 +67,18 @@ typedef volatile struct
  */
 typedef struct
 {
-    float           net_signals[NUM_MAX_NET_SIGNALS];
-    float           output_signals[NUM_MAX_OUTPUT_SIGNALS];
+    union
+    {
+        volatile uint32_t   u32;
+        volatile float      f;
+    } net_signals[NUM_MAX_NET_SIGNALS];
+
+    union
+    {
+        volatile uint32_t   u32;
+        volatile float      f;
+    } output_signals[NUM_MAX_OUTPUT_SIGNALS];
+
     dsp_modules_t   dsp_modules;
 } control_framework_t;
 

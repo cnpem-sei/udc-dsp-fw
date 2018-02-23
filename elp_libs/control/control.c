@@ -33,11 +33,11 @@ void init_control_framework(volatile control_framework_t *p_controller)
 
     for(i = 0; i < NUM_MAX_NET_SIGNALS; i++)
     {
-        p_controller->net_signals[i] = 0.0;
+        p_controller->net_signals[i].f = 0.0;
     }
 
     for(i = 0; i < NUM_MAX_OUTPUT_SIGNALS; i++)
     {
-        p_controller->output_signals[i] = 0.0;
+        p_controller->output_signals[i].f = 0.0;
     }
 }
