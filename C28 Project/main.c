@@ -153,7 +153,7 @@ void main(void)
 
 			case FAC_Full_DCDC_20kHz:
 			{
-				//main_FAC_Full_DCDC_20kHz();
+				main_FAC_Full_DCDC_20kHz();
 				break;
 			}
 

@@ -16,9 +16,9 @@
 #define PWM_MIN_DUTY_OL			-0.4		// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
 #define PWM_MAX_SHARE_DUTY		0.01
 
-#define MAX_REF					200.0// 1000.0		// Valor m�ximo da refer�ncia de corrente na carga [A]
-#define MIN_REF					-200.0//-1000.0		// Valor m�nimo da refer�ncia de corrente na carga [A]
-#define MAX_ILOAD_MEASURED		210.0//1050.0		// Limite de corrente na carga para interlock [A]
+#define MAX_REF					990.0//200.0		// Valor m�ximo da refer�ncia de corrente na carga [A]
+#define MIN_REF					-990.0//-200.0		// Valor m�nimo da refer�ncia de corrente na carga [A]
+#define MAX_ILOAD_MEASURED		1000.0//210.0		// Limite de corrente na carga para interlock [A]
 
 #define MAX_DCLINK				105.0		// Valor maximo de tensao no DC-Link para interlock [V]
 #define MIN_DCLINK				1.0			// Valor minimo de tensao no DC-Link para feed-forward operar [V]
@@ -28,8 +28,11 @@
 #define MAX_SR_SIGGEN_OFFSET	50.0		// Slew-rate maximo do offset do gerador senoidal [A/s]
 #define MAX_SR_SIGGEN_AMP		100.0		// Slew-rate maximo da amplitude do gerador senoidal [A/s]
 
-#define KP_ILOAD				0.466		// Teste com quadrupolo Ro  = 35 mR /			//0.01//0.04//0.1606//0.080			// iLoad Kp coeff
-#define KI_ILOAD				1.832 		//  Lo = 8.9 mH / Vdc = 12 V / fbw = 100 Hz		//0.025//0.1//0.4294//0.200			// iLoad Ki coeff
+//#define KP_ILOAD				0.466		// Teste com quadrupolo Ro  = 35 mR
+//#define KI_ILOAD				1.832 		//  Lo = 8.9 mH / Vdc = 12 V / fbw = 100 Hz
+
+#define KP_ILOAD                0.01//0.04//0.1606//0.080   // iLoad Kp coeff
+#define KI_ILOAD                0.025//0.1//0.4294//0.200   // iLoad Ki coeff
 
 #define KP_ISHARE				0.00001		// iShare Kp coeff
 #define KI_ISHARE				0.0001024	// iShare Ki coeff

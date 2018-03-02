@@ -543,10 +543,11 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 				break;
 		}
 
-		Run_ELP_SRLim(SRLIM_ILOAD_REFERENCE, bypass_SRLim);
+
 
 		if(IPC_CtoM_Msg.PSModule.OpenLoop)
 		{
+		    Run_ELP_SRLim(SRLIM_ILOAD_REFERENCE, BYPASS_MODULE);
 			DP_Framework.DutySignals[0] = 0.01*DP_Framework.NetSignals[0];				// For open loop, Iref value represents duty-cycle
 			DP_Framework.DutySignals[1] = 0.01*DP_Framework.NetSignals[0];
 			SATURATE(DP_Framework.DutySignals[0], PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);	// in percentage (0 - 100 A => 0 - 100 %)
@@ -554,6 +555,7 @@ static interrupt void isr_ePWM_CTR_ZERO(void)
 		}
 		else
 		{
+		    Run_ELP_SRLim(SRLIM_ILOAD_REFERENCE, bypass_SRLim);
 			SATURATE(DP_Framework.NetSignals[0], MAX_REF, MIN_REF);
 			Run_ELP_Error(ERROR_CALCULATOR);
 			Run_ELP_PI_dawu(PI_DAWU_CONTROLLER_ILOAD);
