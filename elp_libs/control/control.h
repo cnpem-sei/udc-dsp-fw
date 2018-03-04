@@ -24,7 +24,6 @@
 
 #include <stdint.h>
 #include "dsp/dsp.h"
-#include "pwm/pwm.h"
 
 /* Library-wide limits */
 
@@ -32,11 +31,11 @@
 #define NUM_MAX_OUTPUT_SIGNALS      16
 
 #define NUM_MAX_DSP_ERROR           4
-#define NUM_MAX_DSP_SRLIM           3
+#define NUM_MAX_DSP_SRLIM           4
 #define NUM_MAX_DSP_LPF             4
 #define NUM_MAX_DSP_PI              6
 #define NUM_MAX_DSP_IIR_2P2Z        6
-#define NUM_MAX_DSP_IIR_3P3Z        3
+#define NUM_MAX_DSP_IIR_3P3Z        4
 #define NUM_MAX_DSP_VDCLINK_FF      2
 #define NUM_MAX_DSP_VECT_PRODUCT    2
 
@@ -65,7 +64,7 @@ typedef volatile struct
  *      - Set of output signals for duty cycles, for example.
  *      - Set of DSP modules
  */
-typedef struct
+typedef volatile struct
 {
     union
     {
@@ -80,6 +79,7 @@ typedef struct
     } output_signals[NUM_MAX_OUTPUT_SIGNALS];
 
     dsp_modules_t   dsp_modules;
+
 } control_framework_t;
 
 
@@ -87,5 +87,8 @@ extern volatile control_framework_t g_controller_ctom;
 extern volatile control_framework_t g_controller_mtoc;
 
 extern void init_control_framework(volatile control_framework_t *p_controller);
+
+extern void set_dsp_coeffs(dsp_class_t dsp_class, uint16_t id);
+
 
 #endif /* CONTROL_H_ */

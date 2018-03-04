@@ -29,6 +29,7 @@
 #include "ps_modules/ps_modules.h"
 #include "siggen/siggen.h"
 #include "wfmref/wfmref.h"
+#include "control/control.h"
 
 /**
  * Shared resources defines
@@ -68,12 +69,9 @@ typedef enum
     Set_SigGen,
     Enable_SigGen,
     Disable_SigGen,
-    Set_Param,
-    Get_Param,
-    Set_Param_Bank,
-    Get_Param_Bank,
-    Reset_Param_Bank,
     Reset_Counters,
+    Set_Param,
+    Set_DSP_Coeffs,
     CtoM_Message_Error
 } ipc_mtoc_lowpriority_msg_t;
 
@@ -115,8 +113,8 @@ typedef struct
     uint32_t        counter_set_slowref;
     uint32_t        counter_sync_pulse;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
-    siggen_t        siggen[NUM_MAX_PS_MODULES];
-    wfmref_t        wfmref[NUM_MAX_PS_MODULES];
+    siggen_t        siggen;
+    wfmref_t        wfmref;
     buf_t           buf_samples[NUM_MAX_PS_MODULES];
 } ipc_ctom_t;
 
@@ -126,9 +124,10 @@ typedef struct
     uint16_t        msg_id;
     error_ctom_t    error_ctom;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
-    siggen_t        siggen[NUM_MAX_PS_MODULES];
-    wfmref_t        wfmref[NUM_MAX_PS_MODULES];
+    siggen_t        siggen;
+    wfmref_t        wfmref;
     buf_t           buf_samples[NUM_MAX_PS_MODULES];
+    dsp_module_t    dsp_module;
 } ipc_mtoc_t;
 
 extern volatile ipc_ctom_t g_ipc_ctom;

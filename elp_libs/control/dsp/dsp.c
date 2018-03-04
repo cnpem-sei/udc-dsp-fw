@@ -92,10 +92,18 @@ void init_dsp_srlim(dsp_srlim_t *p_srlim, float max_slewrate, float freq_samplin
                     volatile float *in, volatile float *out)
 {
     p_srlim->bypass = USE_MODULE;
-    p_srlim->delta_max = max_slewrate / freq_sampling;
+    p_srlim->freq_sampling = freq_sampling;
     p_srlim->in = in;
     p_srlim->out = out;
     *(p_srlim->out) = 0.0;
+
+    cfg_dsp_srlim(p_srlim, max_slewrate);
+}
+
+void cfg_dsp_srlim(dsp_srlim_t *p_srlim, float max_slewrate)
+{
+    p_srlim->coeffs.s.max_slewrate = max_slewrate;
+    p_srlim->delta_max = max_slewrate / p_srlim->freq_sampling;
 }
 
 /**
@@ -156,19 +164,28 @@ void run_dsp_srlim(dsp_srlim_t *p_srlim, uint16_t bypass)
 void init_dsp_lpf(dsp_lpf_t *p_lpf, float freq_cut, float freq_sampling,
                   volatile float *in, volatile float *out)
 {
-    float wt, k, a;
-
-    wt = (2.0 * 3.141592653589793 * freq_cut) / freq_sampling;
-    k = wt / (2.0 + wt);
-    a = (2 - wt)/(2 + wt);
-
-    p_lpf->k = k;
-    p_lpf->a = a;
+    p_lpf->freq_sampling = freq_sampling;
     p_lpf->in_old = 0.0;
     p_lpf->in = in;
     p_lpf->out = out;
     *(p_lpf->out) = 0.0;
+
+    cfg_dsp_lpf(p_lpf, freq_cut);
 }
+
+void cfg_dsp_lpf(dsp_lpf_t *p_lpf, float freq_cut)
+{
+    float wt, k, a;
+
+    wt = (2.0 * 3.141592653589793 * freq_cut) / p_lpf->freq_sampling;
+    k = wt / (2.0 + wt);
+    a = (2 - wt)/(2 + wt);
+
+    p_lpf->coeffs.s.freq_cut = freq_cut;
+    p_lpf->k = k;
+    p_lpf->a = a;
+}
+
 
 /**
  * Reset 1st-order digital low-pass filter.
@@ -214,16 +231,22 @@ void init_dsp_pi(dsp_pi_t *p_pi, float kp, float ki, float freq_sampling,
                  float u_max, float u_min, volatile float *in,
                  volatile float *out)
 {
-    p_pi->kp = kp;
-    p_pi->ki = ki / freq_sampling;
     p_pi->freq_sampling = freq_sampling;
-    p_pi->u_max = u_max;
-    p_pi->u_min = u_min;
     p_pi->u_prop = 0.0;
     p_pi->u_int = 0.0;
     p_pi->in = in;
     p_pi->out = out;
     *(p_pi->out) = 0.0;
+
+    cfg_dsp_pi(p_pi, kp, ki, u_max, u_min);
+}
+
+void cfg_dsp_pi(dsp_pi_t *p_pi, float kp, float ki, float u_max, float u_min)
+{
+    p_pi->coeffs.s.kp = kp;
+    p_pi->coeffs.s.ki = ki / p_pi->freq_sampling;
+    p_pi->coeffs.s.u_max = u_max;
+    p_pi->coeffs.s.u_min = u_min;
 }
 
 /**
@@ -249,14 +272,14 @@ void run_dsp_pi(dsp_pi_t *p_pi)
     float dyn_min;
     float temp;
 
-    temp = *(p_pi->in) * p_pi->kp;
-    SATURATE(temp, p_pi->u_max, p_pi->u_min);
+    temp = *(p_pi->in) * p_pi->coeffs.s.kp;
+    SATURATE(temp, p_pi->coeffs.s.u_max, p_pi->coeffs.s.u_min);
     p_pi->u_prop = temp;
 
-    dyn_max = (p_pi->u_max - temp);
-    dyn_min = (p_pi->u_min - temp);
+    dyn_max = (p_pi->coeffs.s.u_max - temp);
+    dyn_min = (p_pi->coeffs.s.u_min - temp);
 
-    temp = p_pi->u_int + *(p_pi->in) * p_pi->ki;
+    temp = p_pi->u_int + *(p_pi->in) * p_pi->coeffs.s.ki;
     SATURATE(temp, dyn_max, dyn_min);
     p_pi->u_int = temp;
 
@@ -282,18 +305,25 @@ void init_dsp_iir_2p2z(dsp_iir_2p2z_t *p_iir, float b0, float b1, float b2,
                        float a1, float a2, float u_max, float u_min,
                        volatile float *in, volatile float *out)
 {
-    p_iir->u_max = u_max;
-    p_iir->u_min = u_min;
-    p_iir->b0 = b0;
-    p_iir->b1 = b1;
-    p_iir->b2 = b2;
-    p_iir->a1 = a1;
-    p_iir->a2 = a2;
     p_iir->w1 = 0.0;
     p_iir->w2 = 0.0;
     p_iir->in = in;
     p_iir->out = out;
     *(p_iir->out) = 0.0;
+
+    cfg_dsp_iir_2p2z(p_iir, b0, b1, b2, a1, a2, u_max, u_min);
+}
+
+void cfg_dsp_iir_2p2z(dsp_iir_2p2z_t *p_iir, float b0, float b1, float b2,
+                      float a1, float a2, float u_max, float u_min)
+{
+    p_iir->coeffs.s.b0 = b0;
+    p_iir->coeffs.s.b1 = b1;
+    p_iir->coeffs.s.b2 = b2;
+    p_iir->coeffs.s.a1 = a1;
+    p_iir->coeffs.s.a2 = a2;
+    p_iir->coeffs.s.u_max = u_max;
+    p_iir->coeffs.s.u_min = u_min;
 }
 
 /**
@@ -319,13 +349,13 @@ void init_dsp_notch_2p2z(dsp_iir_2p2z_t *p_iir, float alpha, float freq_cut,
 
     SATURATE(alpha, 0.99999, 0.0);
 
-    p_iir->u_max = u_max;
-    p_iir->u_min = u_min;
-    p_iir->b0 = (1.0 + alpha)/2.0;
-    p_iir->b1 = -beta*(1.0 + alpha);
-    p_iir->b2 = p_iir->b0;
-    p_iir->a1 = p_iir->b1;
-    p_iir->a2 = alpha;
+    p_iir->coeffs.s.b0 = (1.0 + alpha)/2.0;
+    p_iir->coeffs.s.b1 = -beta*(1.0 + alpha);
+    p_iir->coeffs.s.b2 = p_iir->coeffs.s.b0;
+    p_iir->coeffs.s.a1 = p_iir->coeffs.s.b1;
+    p_iir->coeffs.s.a2 = alpha;
+    p_iir->coeffs.s.u_max = u_max;
+    p_iir->coeffs.s.u_min = u_min;
     p_iir->w1 = 0.0;
     p_iir->w2 = 0.0;
     p_iir->in = in;
@@ -354,18 +384,18 @@ void run_dsp_iir_2p2z(dsp_iir_2p2z_t *p_iir)
 {
     float w0, yacc;
 
-    yacc = *(p_iir->in) * p_iir->b0;
+    yacc = *(p_iir->in) * p_iir->coeffs.s.b0;
     yacc += p_iir->w1;
 
-    SATURATE(yacc, p_iir->u_max, p_iir->u_min);
+    SATURATE(yacc, p_iir->coeffs.s.u_max, p_iir->coeffs.s.u_min);
 
-    w0 = *(p_iir->in) * p_iir->b1;
+    w0 = *(p_iir->in) * p_iir->coeffs.s.b1;
     w0 += p_iir->w2;
-    w0 -= yacc * p_iir->a1;
+    w0 -= yacc * p_iir->coeffs.s.a1;
     p_iir->w1 = w0;
 
-    w0 = *(p_iir->in) * p_iir->b2;
-    w0 -= yacc * p_iir->a2;
+    w0 = *(p_iir->in) * p_iir->coeffs.s.b2;
+    w0 -= yacc * p_iir->coeffs.s.a2;
     p_iir->w2 = w0;
 
     *(p_iir->out) = yacc;
@@ -392,21 +422,29 @@ void init_dsp_iir_3p3z(dsp_iir_3p3z_t *p_iir, float b0, float b1, float b2,
                        float b3, float a1, float a2, float a3, float u_max,
                        float u_min, volatile float *in, volatile float *out)
 {
-    p_iir->u_max = u_max;
-    p_iir->u_min = u_min;
-    p_iir->b0 = b0;
-    p_iir->b1 = b1;
-    p_iir->b2 = b2;
-    p_iir->b3 = b3;
-    p_iir->a1 = a1;
-    p_iir->a2 = a2;
-    p_iir->a3 = a3;
     p_iir->w1 = 0.0;
     p_iir->w2 = 0.0;
     p_iir->w3 = 0.0;
     p_iir->in = in;
     p_iir->out = out;
     *(p_iir->out) = 0.0;
+
+    cfg_dsp_iir_3p3z(p_iir, b0, b1, b2, b3, a1, a2, a3, u_max, u_min);
+}
+
+void cfg_dsp_iir_3p3z(dsp_iir_3p3z_t *p_iir, float b0, float b1, float b2,
+                      float b3, float a1, float a2, float a3, float u_max,
+                      float u_min)
+{
+    p_iir->coeffs.s.b0 = b0;
+    p_iir->coeffs.s.b1 = b1;
+    p_iir->coeffs.s.b2 = b2;
+    p_iir->coeffs.s.b3 = b3;
+    p_iir->coeffs.s.a1 = a1;
+    p_iir->coeffs.s.a2 = a2;
+    p_iir->coeffs.s.a3 = a3;
+    p_iir->coeffs.s.u_max = u_max;
+    p_iir->coeffs.s.u_min = u_min;
 }
 
 /**
@@ -431,23 +469,23 @@ void run_dsp_iir_3p3z(dsp_iir_3p3z_t *p_iir)
 {
     float w0, yacc;
 
-    yacc = *(p_iir->in) * p_iir->b0;
+    yacc = *(p_iir->in) * p_iir->coeffs.s.b0;
     yacc += p_iir->w1;
 
-    SATURATE(yacc, p_iir->u_max, p_iir->u_min);
+    SATURATE(yacc, p_iir->coeffs.s.u_max, p_iir->coeffs.s.u_min);
 
-    w0 = *(p_iir->in) * p_iir->b1;
+    w0 = *(p_iir->in) * p_iir->coeffs.s.b1;
     w0 += p_iir->w2;
-    w0 -= yacc * p_iir->a1;
+    w0 -= yacc * p_iir->coeffs.s.a1;
     p_iir->w1 = w0;
 
-    w0 = *(p_iir->in) * p_iir->b2;
+    w0 = *(p_iir->in) * p_iir->coeffs.s.b2;
     w0 += p_iir->w3;
-    w0 -= yacc * p_iir->a2;
+    w0 -= yacc * p_iir->coeffs.s.a2;
     p_iir->w2 = w0;
 
-    w0 = *(p_iir->in) * p_iir->b3;
-    w0 -= yacc * p_iir->a3;
+    w0 = *(p_iir->in) * p_iir->coeffs.s.b3;
+    w0 -= yacc * p_iir->coeffs.s.a3;
     p_iir->w3 = w0;
 
     *(p_iir->out) = yacc;
@@ -466,11 +504,17 @@ void init_dsp_vdclink_ff(dsp_vdclink_ff_t *p_ff, float vdc_nom, float vdc_min,
                          volatile float *vdc_meas, volatile float *in,
                          volatile float *out)
 {
-    p_ff->vdc_nom = vdc_nom;
-    p_ff->vdc_min = vdc_min;
     p_ff->vdc_meas = vdc_meas;
     p_ff->in = in;
     p_ff->out = out;
+
+    cfg_dsp_vdclink_ff(p_ff, vdc_nom, vdc_min);
+}
+
+void cfg_dsp_vdclink_ff(dsp_vdclink_ff_t *p_ff, float vdc_nom, float vdc_min)
+{
+    p_ff->coeffs.s.vdc_nom = vdc_nom;
+    p_ff->coeffs.s.vdc_min = vdc_min;
 }
 
 /**
@@ -488,13 +532,13 @@ void reset_dsp_vdclink_ff(dsp_vdclink_ff_t *p_ff)
  */
 void run_dsp_vdclink_ff(dsp_vdclink_ff_t *p_ff)
 {
-    if( *(p_ff->vdc_meas) < p_ff->vdc_min )
+    if( *(p_ff->vdc_meas) < p_ff->coeffs.s.vdc_min )
     {
         *(p_ff->out) = *(p_ff->in);
     }
     else
     {
-        *(p_ff->out) = *(p_ff->in) * p_ff->vdc_nom / *(p_ff->vdc_meas);
+        *(p_ff->out) = *(p_ff->in) * p_ff->coeffs.s.vdc_nom / *(p_ff->vdc_meas);
     }
 }
 
@@ -514,17 +558,17 @@ void init_dsp_vect_product(dsp_vect_product_t *p_vect_product, uint16_t num_rows
 {
     uint16_t r,c;
 
-    p_vect_product->matrix.num_rows = num_rows;
-    p_vect_product->matrix.num_cols = num_cols;
+    p_vect_product->matrix.coeffs.s.num_rows = num_rows;
+    p_vect_product->matrix.coeffs.s.num_cols = num_cols;
     p_vect_product->in = in;
     p_vect_product->out = out;
 
 
-    for(r = 0; r < p_vect_product->matrix.num_rows; r++)
+    for(r = 0; r < p_vect_product->matrix.coeffs.s.num_rows; r++)
         {
-            for(c = 0; c < p_vect_product->matrix.num_cols; c++)
+            for(c = 0; c < p_vect_product->matrix.coeffs.s.num_cols; c++)
             {
-                p_vect_product->matrix.data[r][c] = matrix[num_rows][num_cols];
+                p_vect_product->matrix.coeffs.s.data[r][c] = matrix[num_rows][num_cols];
 
             }
         }
@@ -538,7 +582,7 @@ void reset_dsp_vect_product(dsp_vect_product_t *p_vect_product)
 {
     uint16_t r;
 
-    for(r = 0; r < p_vect_product->matrix.num_rows; r++)
+    for(r = 0; r < p_vect_product->matrix.coeffs.s.num_rows; r++)
     {
         p_vect_product->out[r] = 0.0;
     }
@@ -552,13 +596,13 @@ void run_dsp_vect_product(dsp_vect_product_t *p_vect_product)
 {
     uint16_t r, c;
 
-    for(r = 0; r < p_vect_product->matrix.num_rows; r++)
+    for(r = 0; r < p_vect_product->matrix.coeffs.s.num_rows; r++)
     {
         p_vect_product->out[r] = 0.0;
 
-        for(c = 0; c < p_vect_product->matrix.num_cols; c++)
+        for(c = 0; c < p_vect_product->matrix.coeffs.s.num_cols; c++)
         {
-            p_vect_product->out[r] += p_vect_product->matrix.data[r][c]*
+            p_vect_product->out[r] += p_vect_product->matrix.coeffs.s.data[r][c]*
                                       p_vect_product->in[c];
         }
     }

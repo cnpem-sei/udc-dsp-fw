@@ -31,8 +31,6 @@ typedef enum
     Postmortem
 } buf_status_t;
 
-#define NUM_MAX_MATRIX_SIZE 16
-
 typedef struct
 {
     buf_status_t    status;
@@ -40,13 +38,6 @@ typedef struct
     volatile float  *p_buf_end;
     volatile float  *p_buf_idx;
 } buf_t;
-
-typedef volatile struct
-{
-    uint16_t        num_rows;
-    uint16_t        num_columns;
-    volatile float  data[NUM_MAX_MATRIX_SIZE][NUM_MAX_MATRIX_SIZE];
-} matrix_t;
 
 /**
  * Initialization for an instance of ```buf_t```. It requires a pre-defined

@@ -159,7 +159,7 @@
 
 #define BUFFER_DECIMATION       1
 #define WFMREF_SAMPLING_FREQ    8000.0
-#define SIGGEN                  g_ipc_ctom.siggen[0]
+#define SIGGEN                  g_ipc_ctom.siggen
 #define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
 
 #define TRANSDUCER_INPUT_RATED      12.5            /// ** DCCT LEM ITN 12-P **
@@ -482,12 +482,12 @@ static uint16_t init_controller(void)
                            &turn_on, &turn_off, &isr_soft_interlock,
                            &isr_hard_interlock, &reset_interlocks);
 
-            disable_siggen(&g_ipc_ctom.siggen[i]);
-            init_siggen(&g_ipc_ctom.siggen[i], CONTROL_FREQ, &SIGGEN_OUTPUT);
-            cfg_siggen(&g_ipc_ctom.siggen[i], g_ipc_mtoc.siggen[0].type,
-                       g_ipc_mtoc.siggen[0].num_cycles, g_ipc_mtoc.siggen[0].freq,
-                       g_ipc_mtoc.siggen[0].amplitude, g_ipc_mtoc.siggen[0].offset,
-                       g_ipc_mtoc.siggen[0].aux_param);
+            disable_siggen(&g_ipc_ctom.siggen);
+            init_siggen(&g_ipc_ctom.siggen, CONTROL_FREQ, &SIGGEN_OUTPUT);
+            cfg_siggen(&g_ipc_ctom.siggen, g_ipc_mtoc.siggen.type,
+                       g_ipc_mtoc.siggen.num_cycles, g_ipc_mtoc.siggen.freq,
+                       g_ipc_mtoc.siggen.amplitude, g_ipc_mtoc.siggen.offset,
+                       g_ipc_mtoc.siggen.aux_param);
 
 
             /**
@@ -762,8 +762,8 @@ interrupt void isr_controller(void)
                     {
                         if(!flag_siggen)
                         {
-                            SIGGEN.amplitude = g_ipc_mtoc.siggen[0].amplitude;
-                            SIGGEN.offset = g_ipc_mtoc.siggen[0].offset;
+                            SIGGEN.amplitude = g_ipc_mtoc.siggen.amplitude;
+                            SIGGEN.offset = g_ipc_mtoc.siggen.offset;
                             //SET_DEBUG_GPIO1;
                             SIGGEN.p_run_siggen(&SIGGEN);
                             //CLEAR_DEBUG_GPIO1;
