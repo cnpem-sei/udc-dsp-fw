@@ -122,7 +122,7 @@ void main_Jiga_Bastidor(void)
 			{
 				if(CHECK_INTERLOCK(PS1_OVERTEMP))
 				{
-					Set_HardInterlock(PS1_OVERTEMP,PS1_ID);
+					//Set_HardInterlock(PS1_OVERTEMP,PS1_ID);
 				}
 			}
 
@@ -174,7 +174,7 @@ void main_Jiga_Bastidor(void)
 				{
 					if(CHECK_INTERLOCK(PS2_OVERTEMP))
 					{
-						Set_HardInterlock(PS2_OVERTEMP,PS2_ID);
+						//Set_HardInterlock(PS2_OVERTEMP,PS2_ID);
 					}
 				}
 
@@ -226,7 +226,7 @@ void main_Jiga_Bastidor(void)
 					{
 						if(CHECK_INTERLOCK(PS3_OVERTEMP))
 						{
-							Set_HardInterlock(PS3_OVERTEMP,PS3_ID);
+							//Set_HardInterlock(PS3_OVERTEMP,PS3_ID);
 						}
 					}
 
@@ -278,7 +278,7 @@ void main_Jiga_Bastidor(void)
 						{
 							if(CHECK_INTERLOCK(PS4_OVERTEMP))
 							{
-								Set_HardInterlock(PS4_OVERTEMP,PS4_ID);
+								//Set_HardInterlock(PS4_OVERTEMP,PS4_ID);
 							}
 						}
 
