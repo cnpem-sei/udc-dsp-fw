@@ -30,6 +30,7 @@
 #include "siggen/siggen.h"
 #include "wfmref/wfmref.h"
 #include "control/control.h"
+#include "parameters/parameters.h"
 
 /**
  * Shared resources defines
@@ -120,14 +121,18 @@ typedef struct
 
 typedef struct
 {
-    uint32_t        msg_ctom;
-    uint16_t        msg_id;
-    error_ctom_t    error_ctom;
-    ps_module_t     ps_module[NUM_MAX_PS_MODULES];
-    siggen_t        siggen;
-    wfmref_t        wfmref;
-    buf_t           buf_samples[NUM_MAX_PS_MODULES];
-    dsp_module_t    dsp_module;
+    uint32_t                msg_ctom;
+    uint16_t                msg_id;
+    error_ctom_t            error_ctom;
+    ps_module_t             ps_module[NUM_MAX_PS_MODULES];
+    siggen_t                siggen;
+    wfmref_t                wfmref;
+    buf_t                   buf_samples[NUM_MAX_PS_MODULES];
+    dsp_module_t            dsp_module;
+    param_control_t         control;
+    param_pwm_t             pwm;
+    param_hradc_t           hradc;
+    param_analog_vars_t     analog_vars;
 } ipc_mtoc_t;
 
 extern volatile ipc_ctom_t g_ipc_ctom;

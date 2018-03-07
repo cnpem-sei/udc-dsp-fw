@@ -28,7 +28,8 @@
 #include "boards/udc_c28.h"
 #include "ipc/ipc.h"
 
-#include "ps_modules/fbp.h"
+//#include "ps_modules/fbp.h"
+#include "ps_modules/fbp2.h"
 
 /**
  * TODO: Put here your defines. Just what is local. If you don't

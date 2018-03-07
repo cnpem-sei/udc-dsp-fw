@@ -19,12 +19,13 @@
  *
  */
 
-#include "fbp.h"
+#include "fbp2.h"
 #include "boards/udc_c28.h"
 #include "control/control.h"
 #include "ipc/ipc.h"
 #include "common/timeslicer.h"
 #include "HRADC_board/HRADC_Boards.h"
+#include "parameters/parameters.h"
 
 
 /**
@@ -33,144 +34,48 @@
  * TODO: transfer this to param bank
  */
 
-#define USE_ITLK
+//#define USE_ITLK
 #define TIMEOUT_DCLINK_RELAY    200000
 
-#define PWM_FREQ                50000.0     /// PWM frequency [Hz]
-#define PWM_DEAD_TIME           300         /// PWM dead-time [ns]
-#define PWM_MAX_DUTY            0.9         /// Max duty cycle [p.u.]
-#define PWM_MIN_DUTY            -0.9        /// Min duty cycle [p.u.]
-#define PWM_MAX_DUTY_OL         0.9         /// Max open loop duty cycle [p.u.]
-#define PWM_MIN_DUTY_OL         -0.9        /// Min open loop duty cycle [p.u.]
+#define PWM_FREQ                g_ipc_mtoc.pwm.freq_pwm
+#define PWM_DEAD_TIME           g_ipc_mtoc.pwm.dead_time
+#define PWM_MAX_DUTY            g_ipc_mtoc.pwm.max_duty
+#define PWM_MIN_DUTY            g_ipc_mtoc.pwm.min_duty
+#define PWM_MAX_DUTY_OL         g_ipc_mtoc.pwm.max_duty_openloop
+#define PWM_MIN_DUTY_OL         g_ipc_mtoc.pwm.min_duty_openloop
 
-#define MAX_REF                 10.0        /// Reference over-saturation level [A]
-#define MIN_REF                 -10.0       /// Reference under-saturation level [A]
-#define MAX_ILOAD               10.5        /// Reference limit for interlock [A]
-#define MAX_VLOAD               20.0        /// Load voltage limit for interlock [V]
-#define MIN_DCLINK              3.0         /// DC Link under limit for interlock [V]
-#define NOM_VDCLINK             15.0        /// Nominal DC Link
-#define MAX_DCLINK              17.0        /// DC Link over limit for interlock [V]
-#define MAX_TEMP                80.0        /// Temperature limit for interlock [ºC]
-
-#define MAX_REF_SLEWRATE        1000000.0   /// Max reference slew-rate [A/s]
-#define MAX_SR_SIGGEN_OFFSET    50.0        /// Max SigGen offset slew-rate [A/s]
-#define MAX_SR_SIGGEN_AMP       100.0       /// Max SigGen amplitude slew-rate [A/s]
-
-#define APPLICATION             UVX_LINAC_RACK1
-
-#define UVX_LINAC_RACK1     0
-#define UVX_LINAC_RACK2     1
-#define WEG_PILOT_BATCH_CHARACTERIZATION    2
-#define ELP_FAC_CON_TESTS   3
-
-/**
- * UVX Linac FBP Rack 1:
- *      LCH01A / LCV01A / LCH01B / LCV01B
- */
-#if APPLICATION == UVX_LINAC_RACK1
-
-    // PS1: LCH01A
-    #define PS1_KP      0.022347
-    #define PS1_KI      88.29314
-
-    // PS2: LCV01A
-    #define PS2_KP      0.0231
-    #define PS2_KI      92.84433
-
-    // PS3: LCH01B
-    #define PS3_KP      0.3374
-    #define PS3_KI      205.25
-
-    // PS3: LCV01B
-    #define PS4_KP      0.323731
-    #define PS4_KI      209.4395
-
-/**
- * UVX Linac FBP Rack 2:
- *      LCH03 / LCV03 / LCH04 / LCV04
- */
-#elif APPLICATION == UVX_LINAC_RACK2
-
-    // PS1: LCH03
-    #define PS1_KP      1.5
-    #define PS1_KI      125.0
-
-    // PS2: LCV03
-    #define PS2_KP      1.5
-    #define PS2_KI      125.0
-
-    // PS3: LCH04
-    #define PS3_KP      1.5
-    #define PS3_KI      125.0
-
-    // PS3: LCV04
-    #define PS4_KP      1.5
-    #define PS4_KI      125.0
-
-/**
- *  WEG pilot batch characterization
- *
- *  Lload = 3.4 mH
- *  Rload = 0.5 Ohm
- *  Vdc-link = 7 V
- *  fbw = 1.33 kHz
- */
-#elif APPLICATION == WEG_PILOT_BATCH_CHARACTERIZATION
-
-    #define PS1_KP      4.071
-    #define PS1_KI      598.928
-
-    #define PS2_KP      PS1_KP
-    #define PS2_KI      PS1_KI
-
-    #define PS3_KP      PS1_KP
-    #define PS3_KI      PS1_KI
-
-    #define PS4_KP      PS1_KP
-    #define PS4_KI      PS1_KI
-
-/**
- *  Synchronization tests with ELP, CON and FAC groups
- *
- *  fbw = 1 kHz
- */
-#elif APPLICATION == ELP_FAC_CON_TESTS
-
-    #define PS1_KP      3.56
-    #define PS1_KI      73.304
-
-    #define PS2_KP      PS1_KP
-    #define PS2_KI      PS1_KI
-
-    #define PS3_KP      PS1_KP
-    #define PS3_KI      PS1_KI
-
-    #define PS4_KP      PS1_KP
-    #define PS4_KI      PS1_KI
-
-#endif
-
-#define CONTROL_FREQ            (2.0*PWM_FREQ)
+#define MAX_REF                 g_ipc_mtoc.control.max_ref
+#define MIN_REF                 g_ipc_mtoc.control.min_ref
+#define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
+#define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
+#define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
+#define CONTROL_FREQ            g_ipc_mtoc.control.freq_isr_control
 #define CONTROL_PERIOD          (1.0/CONTROL_FREQ)
-#define DECIMATION_FACTOR       1
-#define TRANSFER_BUFFER_SIZE    DECIMATION_FACTOR
-#define HRADC_FREQ_SAMP         (float) CONTROL_FREQ*DECIMATION_FACTOR
-#define HRADC_SPI_CLK           SPI_15MHz
+#define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
+#define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
+#define DECIMATION_FACTOR       (HRADC_FREQ_SAMP/CONTROL_FREQ)
 
-#define BUFFER_DECIMATION       1
-#define WFMREF_SAMPLING_FREQ    8000.0
+#define TIMESLICER_BUFFER       1
+#define BUFFER_DECIMATION       (1.0 / g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER])
+
+#define TIMESLICER_WFMREF       0
+#define WFMREF_DECIMATION       (1.0 / g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF])
+
+#define MAX_ILOAD               g_ipc_mtoc.analog_vars.max[0]
+#define MAX_VLOAD               g_ipc_mtoc.analog_vars.max[1]
+#define MIN_DCLINK              g_ipc_mtoc.analog_vars.min[2]
+#define MAX_DCLINK              g_ipc_mtoc.analog_vars.max[2]
+#define MAX_TEMP                g_ipc_mtoc.analog_vars.max[3]
+
 #define SIGGEN                  g_ipc_ctom.siggen
 #define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
 
-#define TRANSDUCER_INPUT_RATED      12.5            /// ** DCCT LEM ITN 12-P **
-#define TRANSDUCER_OUTPUT_RATED     0.05            /// In_rated   = +/- 12.5 A
-#define TRANSDUCER_OUTPUT_TYPE      Iin_bipolar     /// Out_rated  = +/- 50 mA
-#define HRADC_R_BURDEN              20.0            /// Burden resistor = 20 R
+#define TRANSDUCER_OUTPUT_TYPE  g_ipc_mtoc.hradc.type_transducer_output[0]
 #if (HRADC_v2_0)
-    #define TRANSDUCER_GAIN         -(TRANSDUCER_INPUT_RATED/TRANSDUCER_OUTPUT_RATED)
+    #define TRANSDUCER_GAIN     -g_ipc_mtoc.hradc.gain_transducer[0]
 #endif
 #if (HRADC_v2_1)
-    #define TRANSDUCER_GAIN         (TRANSDUCER_INPUT_RATED/TRANSDUCER_OUTPUT_RATED)
+    #define TRANSDUCER_GAIN     g_ipc_mtoc.hradc.gain_transducer[0]
 #endif
 
 /**
@@ -210,7 +115,11 @@
 #define PS1_REFERENCE                   g_ipc_ctom.ps_module[0].ps_reference
 
 #define ERROR_CALCULATOR_PS1            &g_controller_ctom.dsp_modules.dsp_error[0]
-#define PI_DAWU_CONTROLLER_ILOAD_PS1    &g_controller_ctom.dsp_modules.dsp_pi[0]
+#define PI_CONTROLLER_ILOAD_PS1         &g_controller_ctom.dsp_modules.dsp_pi[0]
+#define PI_CONTROLLER_ILOAD_PS1_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
+
+#define PS1_KP                          PI_CONTROLLER_ILOAD_PS1_COEFFS.kp
+#define PS1_KI                          PI_CONTROLLER_ILOAD_PS1_COEFFS.ki
 
 #define PS1_PWM_MODULATOR               g_pwm_modules.pwm_regs[0]
 #define PS1_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[1]
@@ -236,7 +145,11 @@
 #define PS2_REFERENCE                   g_ipc_ctom.ps_module[1].ps_reference
 
 #define ERROR_CALCULATOR_PS2            &g_controller_ctom.dsp_modules.dsp_error[1]
-#define PI_DAWU_CONTROLLER_ILOAD_PS2    &g_controller_ctom.dsp_modules.dsp_pi[1]
+#define PI_CONTROLLER_ILOAD_PS2         &g_controller_ctom.dsp_modules.dsp_pi[1]
+#define PI_CONTROLLER_ILOAD_PS2_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[1].coeffs.s
+
+#define PS2_KP                          PI_CONTROLLER_ILOAD_PS2_COEFFS.kp
+#define PS2_KI                          PI_CONTROLLER_ILOAD_PS2_COEFFS.ki
 
 #define PS2_PWM_MODULATOR               g_pwm_modules.pwm_regs[2]
 #define PS2_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[3]
@@ -262,7 +175,11 @@
 #define PS3_REFERENCE                   g_ipc_ctom.ps_module[2].ps_reference
 
 #define ERROR_CALCULATOR_PS3            &g_controller_ctom.dsp_modules.dsp_error[2]
-#define PI_DAWU_CONTROLLER_ILOAD_PS3    &g_controller_ctom.dsp_modules.dsp_pi[2]
+#define PI_CONTROLLER_ILOAD_PS3         &g_controller_ctom.dsp_modules.dsp_pi[2]
+#define PI_CONTROLLER_ILOAD_PS3_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[2].coeffs.s
+
+#define PS3_KP                          PI_CONTROLLER_ILOAD_PS3_COEFFS.kp
+#define PS3_KI                          PI_CONTROLLER_ILOAD_PS3_COEFFS.ki
 
 #define PS3_PWM_MODULATOR               g_pwm_modules.pwm_regs[4]
 #define PS3_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[5]
@@ -288,7 +205,12 @@
 #define PS4_REFERENCE                   g_ipc_ctom.ps_module[3].ps_reference
 
 #define ERROR_CALCULATOR_PS4            &g_controller_ctom.dsp_modules.dsp_error[3]
-#define PI_DAWU_CONTROLLER_ILOAD_PS4    &g_controller_ctom.dsp_modules.dsp_pi[3]
+#define PI_CONTROLLER_ILOAD_PS4         &g_controller_ctom.dsp_modules.dsp_pi[3]
+#define PI_CONTROLLER_ILOAD_PS4_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[3].coeffs.s
+
+#define PS4_KP                          PI_CONTROLLER_ILOAD_PS4_COEFFS.kp
+#define PS4_KI                          PI_CONTROLLER_ILOAD_PS4_COEFFS.ki
+
 
 #define PS4_PWM_MODULATOR               g_pwm_modules.pwm_regs[6]
 #define PS4_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[7]
@@ -518,14 +440,14 @@ static uint16_t init_controller(void)
                    &g_controller_ctom.net_signals[4].f);
 
     /**
-     *        name:     PI_DAWU_CONTROLLER_ILOAD_PS1
+     *        name:     PI_CONTROLLER_ILOAD_PS1
      * description:     Load current PI controller
      *  dsp module:     DSP_PI
      *          in:     net_signals[4]
      *         out:     output_signals[0]
      */
 
-    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS1, PS1_KP, PS1_KI, CONTROL_FREQ,
+    init_dsp_pi(PI_CONTROLLER_ILOAD_PS1, PS1_KP, PS1_KI, CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[4].f,
                 &g_controller_ctom.output_signals[0].f);
 
@@ -544,14 +466,14 @@ static uint16_t init_controller(void)
                    &g_controller_ctom.net_signals[5].f);
 
     /**
-     *        name:     PI_DAWU_CONTROLLER_ILOAD_PS2
+     *        name:     PI_CONTROLLER_ILOAD_PS2
      * description:     Load current PI controller
      *  dsp module:     DSP_PI
      *          in:     net_signals[5]
      *         out:     output_signals[1]
      */
 
-    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS2, PS2_KP, PS2_KI, CONTROL_FREQ,
+    init_dsp_pi(PI_CONTROLLER_ILOAD_PS2, PS2_KP, PS2_KI, CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[5].f,
                 &g_controller_ctom.output_signals[1].f);
 
@@ -570,14 +492,14 @@ static uint16_t init_controller(void)
                    &g_controller_ctom.net_signals[6].f);
 
     /**
-     *        name:     PI_DAWU_CONTROLLER_ILOAD_PS3
+     *        name:     PI_CONTROLLER_ILOAD_PS3
      * description:     Load current PI controller
      *  dsp module:     DSP_PI
      *          in:     net_signals[6]
      *         out:     output_signals[2]
      */
 
-    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS3, PS3_KP, PS3_KI, CONTROL_FREQ,
+    init_dsp_pi(PI_CONTROLLER_ILOAD_PS3, PS3_KP, PS3_KI, CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[6].f,
                 &g_controller_ctom.output_signals[2].f);
 
@@ -596,23 +518,24 @@ static uint16_t init_controller(void)
                    &g_controller_ctom.net_signals[7].f);
 
     /**
-     *        name:     PI_DAWU_CONTROLLER_ILOAD_PS4
+     *        name:     PI_CONTROLLER_ILOAD_PS4
      * description:     Load current PI controller
      *  dsp module:     DSP_PI
      *          in:     net_signals[7]
      *         out:     output_signals[3]
      */
-    init_dsp_pi(PI_DAWU_CONTROLLER_ILOAD_PS4, PS4_KP, PS4_KI, CONTROL_FREQ,
+    init_dsp_pi(PI_CONTROLLER_ILOAD_PS4, PS4_KP, PS4_KI, CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7].f,
                 &g_controller_ctom.output_signals[3].f);
 
     /// INITIALIZATION OF TIME SLICERS
 
     /// 0: Time-slicer for WfmRef sweep decimation
-    cfg_timeslicer(0, CONTROL_FREQ/WFMREF_SAMPLING_FREQ);
+
+    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
 
     /// 1: Time-slicer for SamplesBuffer
-    cfg_timeslicer(1, BUFFER_DECIMATION);
+    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
 
     /// Reset all internal variables
     reset_controllers(num_ps);

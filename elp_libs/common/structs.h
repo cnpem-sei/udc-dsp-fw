@@ -39,6 +39,18 @@ typedef struct
     volatile float  *p_buf_idx;
 } buf_t;
 
+typedef union
+{
+    uint16_t    u16[2];
+    uint32_t    u32;
+}  u_uint32_t;
+
+typedef union
+{
+    uint16_t    u16[2];
+    float       f;
+}  u_float_t;
+
 /**
  * Initialization for an instance of ```buf_t```. It requires a pre-defined
  * ```float``` array, addressed by ```p_buf_start```
