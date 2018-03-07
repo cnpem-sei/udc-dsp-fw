@@ -118,7 +118,7 @@
 
 #define PIN_STATUS_PS2_DCLINK_RELAY		GpioDataRegs.GPDDAT.bit.GPIO113				// GPDI11
 #define PIN_STATUS_PS2_DRIVER_ERROR		GpioDataRegs.GPDDAT.bit.GPIO109				// GPDI9
-#define PIN_STATUS_PS2_FUSE				GpioG2DataRegs.GPGDAT.bit.GPIO198			// GPDI15
+#define PIN_STATUS_PS2_FUSE				GpioG2DataRegs.GPGDAT.bit.GPIO199           // GPDI16
 
 #define PS2_LOAD_CURRENT				DP_Framework.NetSignals[7]					// HRADC1
 #define PS2_LOAD_VOLTAGE				DP_Framework_MtoC.NetSignals[10]			// ANI7
@@ -170,7 +170,7 @@
 
 #define PIN_STATUS_PS4_DCLINK_RELAY		GpioDataRegs.GPDDAT.bit.GPIO127				// GPDI2
 #define PIN_STATUS_PS4_DRIVER_ERROR		GpioDataRegs.GPDDAT.bit.GPIO124				// GPDI3
-#define PIN_STATUS_PS4_FUSE				GpioG2DataRegs.GPGDAT.bit.GPIO199			// GPDI16
+#define PIN_STATUS_PS4_FUSE				GpioG2DataRegs.GPGDAT.bit.GPIO198           // GPDI15
 
 #define PS4_LOAD_CURRENT				DP_Framework.NetSignals[11]					// HRADC3
 #define PS4_LOAD_VOLTAGE				DP_Framework_MtoC.NetSignals[12]			// ANI5
