@@ -74,6 +74,7 @@ void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_s
 	hradcPtr->ID = ID;
 	hradcPtr->index_SamplesBuffer = 0;
 	hradcPtr->size_SamplesBuffer = buffer_size;
+	SATURATE(hradcPtr->size_SamplesBuffer, HRADC_BUFFERS_SIZE, 0);
 	hradcPtr->SamplesBuffer = buffer;
 
 	while(hradcPtr->SamplesBuffer < &buffer[buffer_size])

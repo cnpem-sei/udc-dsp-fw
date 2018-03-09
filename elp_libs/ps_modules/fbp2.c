@@ -53,7 +53,7 @@
 #define CONTROL_PERIOD          (1.0/CONTROL_FREQ)
 #define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
-#define DECIMATION_FACTOR       (HRADC_FREQ_SAMP/CONTROL_FREQ)
+#define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/CONTROL_FREQ)
 
 #define TIMESLICER_BUFFER       1
 #define BUFFER_DECIMATION       (1.0 / g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER])

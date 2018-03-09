@@ -124,6 +124,8 @@ typedef struct
     uint32_t                msg_ctom;
     uint16_t                msg_id;
     error_ctom_t            error_ctom;
+    ps_model_t              ps_model;
+    uint16_t                num_ps_modules;
     ps_module_t             ps_module[NUM_MAX_PS_MODULES];
     siggen_t                siggen;
     wfmref_t                wfmref;
