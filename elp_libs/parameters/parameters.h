@@ -161,7 +161,5 @@ extern void init_param(param_id_t id, param_type_t type, uint16_t num_elements,
                        uint16_t *p_param);
 extern uint16_t set_param(param_id_t id, uint16_t n, float val);
 extern float get_param(param_id_t id, uint16_t n);
-extern void init_parameters_bank(void);
-
 
 #endif /* PARAMETERS_H_ */

@@ -110,28 +110,3 @@ float get_param(param_id_t id, uint16_t n)
         return NAN;
     }
 }
-
-void init_parameters_bank(void)
-{
-    init_param(SigGen_Type, is_uint16_t, 1,
-               (uint16_t *) &g_ipc_mtoc.siggen.type);
-    init_param(SigGen_Num_Cycles, is_uint16_t, 1,
-               (uint16_t *) &g_ipc_mtoc.siggen.num_cycles);
-    init_param(SigGen_Freq, is_float, 1,
-               (uint16_t *) &g_ipc_mtoc.siggen.freq);
-    init_param(SigGen_Amplitude, is_float, 1,
-               (uint16_t *)  &g_ipc_mtoc.siggen.amplitude);
-    init_param(SigGen_Offset, is_float, 1,
-               (uint16_t *) &g_ipc_mtoc.siggen.offset);
-    init_param(SigGen_Aux_Param, is_float, NUM_SIGGEN_AUX_PARAM,
-               (uint16_t *) &g_ipc_mtoc.siggen.aux_param[0]);
-
-    init_param(WfmRef_ID_WfmRef, is_uint16_t, 1,
-               (uint16_t *) &g_ipc_mtoc.wfmref.wfmref_selected);
-    init_param(WfmRef_SyncMode, is_uint16_t, 1,
-               (uint16_t *) &g_ipc_mtoc.wfmref.sync_mode);
-    init_param(WfmRef_Gain, is_float, 1,
-               (uint16_t *) &g_ipc_mtoc.wfmref.gain);
-    init_param(WfmRef_Offset, is_float, 1,
-               (uint16_t *) &g_ipc_mtoc.wfmref.offset);
-}

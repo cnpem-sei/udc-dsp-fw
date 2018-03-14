@@ -24,32 +24,12 @@
  *
  */
 
+#include <ps_modules/fbp.h>
 #include <string.h>
 #include "boards/udc_c28.h"
 #include "ipc/ipc.h"
 
-//#include "ps_modules/fbp.h"
-#include "ps_modules/fbp2.h"
-
-/**
- * TODO: Put here your defines. Just what is local. If you don't
- * need to access it from other module, consider use a constant (const)
- */
-
-/**
- * TODO: Put here your constants and variables. Always use static for 
- * private members.
- */
-
-/**
- * TODO: Put here your function prototypes for private functions. Use
- * static in declaration.
- */
-
-
-/**
- * TODO: Put here the implementation for your public functions.
- */
+#include "ps_modules/fbp.h"
 
 /**
  * @brief Main function
@@ -109,10 +89,8 @@ void main(void)
     /**
      *  TODO: Make sure ARM is already initialized to continue from here
      */
-
     init_gpios();
     init_buzzer(50);     /// Volume: 1%
-
 
     while(1)
     {

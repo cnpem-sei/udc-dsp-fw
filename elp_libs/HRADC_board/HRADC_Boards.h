@@ -74,8 +74,7 @@ typedef enum {
 	HRADC_FAx
 } eHRADCVar;
 
-#include "DSP28x_Project.h"
-#include "pwm/pwm.h"
+#include "DSP28x_Project.h""
 #include "McBSP_SPI_Interface.h"
 #include "DMA_SPI_Interface.h"
 
