@@ -1,1 +1,0 @@
--l"rts2800_fpu32.lib" -l"rts2800_fpu32_fast_supplement.lib" "./CodeStartBranch.obj" "./fastRTS_sample.obj" "C:/Users/ricieri.ohashi/Desktop/FAC_Imas/C28_new/FPUfastRTS/V100/examples_ccsv4/cmd/28335_fastRTS_lnk.cmd" 
