@@ -39,7 +39,11 @@
 
 typedef enum
 {
-    RS485_Baudrate = 1,
+    PS_Model,
+    Num_PS_Modules,
+
+    Command_Interface,
+    RS485_Baudrate,
     RS485_Address,
     RS485_Termination,
     UDCNet_Address,
