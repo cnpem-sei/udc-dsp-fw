@@ -389,33 +389,35 @@ static void term_peripherals_drivers(void)
 
 static void init_controller(void)
 {
-    uint16_t i;
+    static uint16_t i;
 
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
     {
-        if(g_ipc_mtoc.ps_module[i].ps_status.bit.active)
+        init_ps_module(&g_ipc_ctom.ps_module[i],
+                       g_ipc_mtoc.ps_module[i].ps_status.bit.model,
+                       &turn_on, &turn_off, &isr_soft_interlock,
+                       &isr_hard_interlock, &reset_interlocks);
+
+        if(!g_ipc_mtoc.ps_module[i].ps_status.bit.active)
         {
-            init_ps_module(&g_ipc_ctom.ps_module[i],
-                           g_ipc_mtoc.ps_module[i].ps_status.bit.model,
-                           &turn_on, &turn_off, &isr_soft_interlock,
-                           &isr_hard_interlock, &reset_interlocks);
-
-            disable_siggen(&g_ipc_ctom.siggen);
-            init_siggen(&g_ipc_ctom.siggen, CONTROL_FREQ, &SIGGEN_OUTPUT);
-            cfg_siggen(&g_ipc_ctom.siggen, g_ipc_mtoc.siggen.type,
-                       g_ipc_mtoc.siggen.num_cycles, g_ipc_mtoc.siggen.freq,
-                       g_ipc_mtoc.siggen.amplitude, g_ipc_mtoc.siggen.offset,
-                       g_ipc_mtoc.siggen.aux_param);
-
-
-            /**
-             * TODO: initialize WfmRef and Samples Buffer
-             */
+            g_ipc_ctom.ps_module[i].ps_status.bit.active = 0;
         }
     }
 
     init_ipc();
     init_control_framework(&g_controller_ctom);
+
+    /// Initialization of signal generator module
+    disable_siggen(&g_ipc_ctom.siggen);
+    init_siggen(&g_ipc_ctom.siggen, CONTROL_FREQ, &SIGGEN_OUTPUT);
+    cfg_siggen(&g_ipc_ctom.siggen, g_ipc_mtoc.siggen.type,
+               g_ipc_mtoc.siggen.num_cycles, g_ipc_mtoc.siggen.freq,
+               g_ipc_mtoc.siggen.amplitude, g_ipc_mtoc.siggen.offset,
+               g_ipc_mtoc.siggen.aux_param);
+
+    /**
+     * TODO: initialize WfmRef and Samples Buffer
+     */
 
     /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY
 
@@ -831,17 +833,21 @@ static void turn_on(uint16_t id)
  */
 static void turn_off(uint16_t id)
 {
-    disable_pwm_output(2*id);
-    disable_pwm_output((2*id)+1);
+    if(g_ipc_ctom.ps_module[id].ps_status.bit.active)
+    {
+        disable_pwm_output(2*id);
+        disable_pwm_output((2*id)+1);
 
-    open_relay(id);
-    DELAY_US(TIMEOUT_DCLINK_RELAY);
+        open_relay(id);
+        DELAY_US(TIMEOUT_DCLINK_RELAY);
 
-    g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
-    if (g_ipc_ctom.ps_module[id].ps_status.bit.state != Interlock){
-        g_ipc_ctom.ps_module[id].ps_status.bit.state = Off;
+        g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
+        if (g_ipc_ctom.ps_module[id].ps_status.bit.state != Interlock)
+        {
+            g_ipc_ctom.ps_module[id].ps_status.bit.state = Off;
+        }
+        reset_controller(id);
     }
-    reset_controller(id);
 }
 
 /**

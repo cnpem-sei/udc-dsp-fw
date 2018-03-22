@@ -185,223 +185,226 @@ interrupt void isr_ipc_lowpriority_msg(void)
     g_ipc_ctom.msg_mtoc = CtoMIpcRegs.MTOCIPCSTS.all;
     CtoMIpcRegs.MTOCIPCACK.all = g_ipc_ctom.msg_mtoc;
 
-    switch(GET_IPC_MTOC_LOWPRIORITY_MSG)
+    if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.active)
     {
-        case Turn_On:
+        switch(GET_IPC_MTOC_LOWPRIORITY_MSG)
         {
-            /**
-             * TODO: where should disable siggen + reset wfmref be?
-             */
-            g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_on(g_ipc_mtoc.msg_id);
-            break;
-        }
-
-        case Turn_Off:
-        {
-            /**
-             * TODO: where should disable siggen + reset wfmref be?
-             */
-            g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_off(g_ipc_mtoc.msg_id);
-            break;
-        }
-
-        case Open_Loop:
-        {
-            open_loop(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
-            break;
-        }
-
-        case Close_Loop:
-        {
-            close_loop(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
-            break;
-        }
-
-        case Operating_Mode:
-        {
-            /**
-             * TODO:
-             */
-            if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state
-               > Interlock)
+            case Turn_On:
             {
-                switch(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state)
+                /**
+                 * TODO: where should disable siggen + reset wfmref be?
+                 */
+                g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_on(g_ipc_mtoc.msg_id);
+                break;
+            }
+
+            case Turn_Off:
+            {
+                /**
+                 * TODO: where should disable siggen + reset wfmref be?
+                 */
+                g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_off(g_ipc_mtoc.msg_id);
+                break;
+            }
+
+            case Open_Loop:
+            {
+                open_loop(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
+                break;
+            }
+
+            case Close_Loop:
+            {
+                close_loop(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
+                break;
+            }
+
+            case Operating_Mode:
+            {
+                /**
+                 * TODO:
+                 */
+                if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state
+                   > Interlock)
                 {
-                    case RmpWfm:
-                    case MigWfm:
+                    switch(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state)
                     {
-                        //reset_wfmref(&g_ipc_ctom.wfmref[g_ipc_mtoc.msg_id]);
-                        break;
+                        case RmpWfm:
+                        case MigWfm:
+                        {
+                            //reset_wfmref(&g_ipc_ctom.wfmref[g_ipc_mtoc.msg_id]);
+                            break;
+                        }
+
+                        case Cycle:
+                        {
+                            disable_siggen(&g_ipc_ctom.siggen);
+                            break;
+                        }
+
+                        default:
+                        {
+                            break;
+                        }
                     }
 
-                    case Cycle:
-                    {
-                        disable_siggen(&g_ipc_ctom.siggen);
-                        break;
-                    }
+                    cfg_ps_operation_mode(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id],
+                                          g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state);
+                }
 
-                    default:
+                break;
+            }
+
+            case Reset_Interlocks:
+            {
+                g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].reset_interlocks(g_ipc_mtoc.msg_id);
+                break;
+            }
+
+            case Unlock_UDC:
+            {
+                unlock_ps_module(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
+                break;
+            }
+
+            case Lock_UDC:
+            {
+                lock_ps_module(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
+                break;
+            }
+
+            case Cfg_Buf_Samples:
+            {
+                /**
+                 * TODO: implement cfg_buf_samples
+                 */
+                break;
+            }
+
+            case Enable_Buf_Samples:
+            {
+                enable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
+                break;
+            }
+
+            case Disable_Buf_Samples:
+            {
+                disable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
+                break;
+            }
+
+            case Set_SlowRef:
+            {
+                SET_DEBUG_GPIO1;
+
+                if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state == SlowRef)
+                {
+                    g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_setpoint =
+                    g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_setpoint;
+                }
+
+                else if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state != SlowRefSync)
+                {
+                    g_ipc_ctom.error_mtoc = Invalid_OpMode;
+                    send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
+                }
+
+                g_ipc_ctom.counter_set_slowref++;
+
+                break;
+            }
+
+            case Set_SlowRef_All_PS:
+            {
+                SET_DEBUG_GPIO1;
+
+                for(i = 0; i < NUM_MAX_PS_MODULES; i++)
+                {
+                    if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
                     {
-                        break;
+                        if(g_ipc_ctom.ps_module[i].ps_status.bit.state == SlowRef)
+                        {
+                            g_ipc_ctom.ps_module[i].ps_setpoint =
+                            g_ipc_mtoc.ps_module[i].ps_setpoint;
+                        }
+                        else if(g_ipc_ctom.ps_module[i].ps_status.bit.state != SlowRefSync)
+                        {
+                            g_ipc_ctom.error_mtoc = Invalid_OpMode;
+                            send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
+                        }
                     }
                 }
 
-                cfg_ps_operation_mode(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id],
-                                      g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state);
+                g_ipc_ctom.counter_set_slowref++;
+
+                break;
             }
 
-            break;
-        }
-
-        case Reset_Interlocks:
-        {
-            g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].reset_interlocks(g_ipc_mtoc.msg_id);
-            break;
-        }
-
-        case Unlock_UDC:
-        {
-            unlock_ps_module(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
-            break;
-        }
-
-        case Lock_UDC:
-        {
-            lock_ps_module(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
-            break;
-        }
-
-        case Cfg_Buf_Samples:
-        {
-            /**
-             * TODO: implement cfg_buf_samples
-             */
-            break;
-        }
-
-        case Enable_Buf_Samples:
-        {
-            enable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
-            break;
-        }
-
-        case Disable_Buf_Samples:
-        {
-            disable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
-            break;
-        }
-
-        case Set_SlowRef:
-        {
-            SET_DEBUG_GPIO1;
-
-            if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state == SlowRef)
+            case Cfg_SigGen:
             {
-                g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_setpoint =
-                g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_setpoint;
+                cfg_siggen(&g_ipc_ctom.siggen,g_ipc_mtoc.siggen.type,
+                           g_ipc_mtoc.siggen.num_cycles,
+                           g_ipc_mtoc.siggen.freq,
+                           g_ipc_mtoc.siggen.amplitude,
+                           g_ipc_mtoc.siggen.offset,
+                           g_ipc_mtoc.siggen.aux_param);
+                break;
             }
 
-            else if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state != SlowRefSync)
+            case Set_SigGen:
             {
-                g_ipc_ctom.error_mtoc = Invalid_OpMode;
+                set_siggen_freq(&g_ipc_ctom.siggen, g_ipc_mtoc.siggen.freq);
+                break;
+            }
+
+            case Enable_SigGen:
+            {
+                enable_siggen(&g_ipc_ctom.siggen);
+                break;
+            }
+
+            case Disable_SigGen:
+            {
+                disable_siggen(&g_ipc_ctom.siggen);
+                break;
+            }
+
+            case Set_Param:
+            {
+                break;
+            }
+
+            case Set_DSP_Coeffs:
+            {
+                set_dsp_coeffs(g_ipc_mtoc.dsp_module.dsp_class,
+                               g_ipc_mtoc.dsp_module.id);
+                break;
+            }
+
+            case Reset_Counters:
+            {
+                g_ipc_ctom.counter_set_slowref =  0;
+                g_ipc_ctom.counter_sync_pulse =  0;
+                break;
+            }
+
+            case CtoM_Message_Error:
+            {
+                /**
+                 * TODO: take action when receiving error
+                 */
+                break;
+            }
+
+            default:
+            {
+                /**
+                 * TODO: check
+                 */
+                g_ipc_ctom.error_mtoc = IPC_LowPriority_Full;
                 send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
+                break;
             }
-
-            g_ipc_ctom.counter_set_slowref++;
-
-            break;
-        }
-
-        case Set_SlowRef_All_PS:
-        {
-            SET_DEBUG_GPIO1;
-
-            for(i = 0; i < NUM_MAX_PS_MODULES; i++)
-            {
-                if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
-                {
-                    if(g_ipc_ctom.ps_module[i].ps_status.bit.state == SlowRef)
-                    {
-                        g_ipc_ctom.ps_module[i].ps_setpoint =
-                        g_ipc_mtoc.ps_module[i].ps_setpoint;
-                    }
-                    else if(g_ipc_ctom.ps_module[i].ps_status.bit.state != SlowRefSync)
-                    {
-                        g_ipc_ctom.error_mtoc = Invalid_OpMode;
-                        send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
-                    }
-                }
-            }
-
-            g_ipc_ctom.counter_set_slowref++;
-
-            break;
-        }
-
-        case Cfg_SigGen:
-        {
-            cfg_siggen(&g_ipc_ctom.siggen,g_ipc_mtoc.siggen.type,
-                       g_ipc_mtoc.siggen.num_cycles,
-                       g_ipc_mtoc.siggen.freq,
-                       g_ipc_mtoc.siggen.amplitude,
-                       g_ipc_mtoc.siggen.offset,
-                       g_ipc_mtoc.siggen.aux_param);
-            break;
-        }
-
-        case Set_SigGen:
-        {
-            set_siggen_freq(&g_ipc_ctom.siggen, g_ipc_mtoc.siggen.freq);
-            break;
-        }
-
-        case Enable_SigGen:
-        {
-            enable_siggen(&g_ipc_ctom.siggen);
-            break;
-        }
-
-        case Disable_SigGen:
-        {
-            disable_siggen(&g_ipc_ctom.siggen);
-            break;
-        }
-
-        case Set_Param:
-        {
-            break;
-        }
-
-        case Set_DSP_Coeffs:
-        {
-            set_dsp_coeffs(g_ipc_mtoc.dsp_module.dsp_class,
-                           g_ipc_mtoc.dsp_module.id);
-            break;
-        }
-
-        case Reset_Counters:
-        {
-            g_ipc_ctom.counter_set_slowref =  0;
-            g_ipc_ctom.counter_sync_pulse =  0;
-            break;
-        }
-
-        case CtoM_Message_Error:
-        {
-            /**
-             * TODO: take action when receiving error
-             */
-            break;
-        }
-
-        default:
-        {
-            /**
-             * TODO: check
-             */
-            g_ipc_ctom.error_mtoc = IPC_LowPriority_Full;
-            send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
-            break;
         }
     }
 
