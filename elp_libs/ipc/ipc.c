@@ -236,7 +236,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
                     case Cycle:
                     {
-                        disable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
+                        disable_siggen(&g_ipc_ctom.siggen);
                         break;
                     }
 
@@ -340,32 +340,32 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
         case Cfg_SigGen:
         {
-            cfg_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id],
-                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].type,
-                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].num_cycles,
-                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].freq,
-                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].amplitude,
-                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].offset,
-                       g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].aux_param);
+            cfg_siggen(&g_ipc_ctom.siggen,
+                       g_ipc_mtoc.siggen.type,
+                       g_ipc_mtoc.siggen.num_cycles,
+                       g_ipc_mtoc.siggen.freq,
+                       g_ipc_mtoc.siggen.amplitude,
+                       g_ipc_mtoc.siggen.offset,
+                       g_ipc_mtoc.siggen.aux_param);
             break;
         }
 
         case Set_SigGen:
         {
-            set_siggen_freq(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id],
-                            g_ipc_mtoc.siggen[g_ipc_mtoc.msg_id].freq);
+            set_siggen_freq(&g_ipc_ctom.siggen,
+                            g_ipc_mtoc.siggen.freq);
             break;
         }
 
         case Enable_SigGen:
         {
-            enable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
+            enable_siggen(&g_ipc_ctom.siggen);
             break;
         }
 
         case Disable_SigGen:
         {
-            disable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
+            disable_siggen(&g_ipc_ctom.siggen);
             break;
         }
 
@@ -429,7 +429,7 @@ interrupt void isr_ipc_sync_pulse(void)
 
                 case Cycle:
                 {
-                    enable_siggen(&g_ipc_ctom.siggen[g_ipc_mtoc.msg_id]);
+                    enable_siggen(&g_ipc_ctom.siggen);
                     break;
                 }
 

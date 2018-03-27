@@ -109,7 +109,6 @@ void main(void)
     /**
      *  TODO: Make sure ARM is already initialized to continue from here
      */
-
     init_gpios();
     init_buzzer(50);     /// Volume: 1%
 

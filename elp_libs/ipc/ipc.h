@@ -115,8 +115,8 @@ typedef struct
     uint32_t        counter_set_slowref;
     uint32_t        counter_sync_pulse;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
-    siggen_t        siggen[NUM_MAX_PS_MODULES];
-    wfmref_t        wfmref[NUM_MAX_PS_MODULES];
+    siggen_t        siggen;
+    wfmref_t        wfmref;
     buf_t           buf_samples[NUM_MAX_PS_MODULES];
 } ipc_ctom_t;
 
@@ -126,8 +126,8 @@ typedef struct
     uint16_t        msg_id;
     error_ctom_t    error_ctom;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
-    siggen_t        siggen[NUM_MAX_PS_MODULES];
-    wfmref_t        wfmref[NUM_MAX_PS_MODULES];
+    siggen_t        siggen;
+    wfmref_t        wfmref;
     buf_t           buf_samples[NUM_MAX_PS_MODULES];
 } ipc_mtoc_t;
 
