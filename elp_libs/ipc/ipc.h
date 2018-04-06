@@ -38,6 +38,8 @@
 
 #define SIZE_BUF_SAMPLES    4096
 
+#define SIZE_PS_NAME        16
+
 /**
  * IPC Message Defines
  */
@@ -124,6 +126,7 @@ typedef struct
     uint32_t                msg_ctom;
     uint16_t                msg_id;
     error_ctom_t            error_ctom;
+    uint32_t                ps_name[SIZE_PS_NAME];
     ps_model_t              ps_model;
     uint16_t                num_ps_modules;
     ps_module_t             ps_module[NUM_MAX_PS_MODULES];
