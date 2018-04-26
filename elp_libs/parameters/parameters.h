@@ -145,12 +145,12 @@ typedef struct
 {
     uint16_t    num_hradc;
     uint16_t    freq_spiclk;
-    float   freq_hradc_sampling;
+    float       freq_hradc_sampling;
     uint16_t    enable_heater[NUM_MAX_HRADC];
     uint16_t    enable_monitor[NUM_MAX_HRADC];
     uint16_t    type_transducer_output[NUM_MAX_HRADC];
-    float   gain_transducer[NUM_MAX_HRADC];
-    float   offset_transducer[NUM_MAX_HRADC];
+    float       gain_transducer[NUM_MAX_HRADC];
+    float       offset_transducer[NUM_MAX_HRADC];
 } param_hradc_t;
 
 typedef struct

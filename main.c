@@ -30,6 +30,7 @@
 #include "ipc/ipc.h"
 
 #include "ps_modules/fbp.h"
+#include "ps_modules/fac_acdc.h"
 
 /**
  * @brief Main function
@@ -105,6 +106,11 @@ void main(void)
                 break;
             }
 
+            case FAC_ACDC:
+            {
+                main_fac_acdc();
+                break;
+            }
             default:
             {
                 break;

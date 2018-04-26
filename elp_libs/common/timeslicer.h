@@ -26,8 +26,8 @@
 #include <stdint.h>
 
 #define NUM_MAX_TIMESLICERS     4
-#define RUN_TIMESLICER(id)      if(timeslicers.counter[id]++ == timeslicers.freq_ratio[id]){
-#define END_TIMESLICER(id)      timeslicers.counter[id] = 1;}
+#define RUN_TIMESLICER(id)      if(g_timeslicers.counter[id]++ == g_timeslicers.freq_ratio[id]){
+#define END_TIMESLICER(id)      g_timeslicers.counter[id] = 1;}
 
 typedef volatile struct
 {

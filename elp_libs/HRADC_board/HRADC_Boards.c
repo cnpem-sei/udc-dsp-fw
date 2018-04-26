@@ -32,7 +32,7 @@ void Config_HRADC_SoC(float freq);
 void Enable_HRADC_Sampling(void);
 void Disable_HRADC_Sampling(void);
 
-void Config_HRADC_Sampling_OpMode(Uint16 ID);
+void Config_HRADC_Sampling_OpMode(Uint16 ID, Uint16 spiClk);
 void Config_HRADC_UFM_OpMode(Uint16 ID);
 
 void Erase_HRADC_UFM(Uint16 ID);
@@ -72,6 +72,10 @@ volatile Uint32 HRADC_BoardSelector[4] = GPE_PORT_BITS_HRADC_CS;
 
 void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_size, volatile Uint32 *buffer, float transducer_gain )
 {
+    static Uint16 spiClk;
+
+    spiClk = McbspaRegs.SRGR1.bit.CLKGDV;
+
 	hradcPtr->ID = ID;
 	hradcPtr->index_SamplesBuffer = 0;
 	hradcPtr->size_SamplesBuffer = buffer_size;
@@ -88,7 +92,7 @@ void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_s
 
 	Read_HRADC_BoardData(hradcPtr);
 
-	Config_HRADC_Sampling_OpMode(ID);
+	Config_HRADC_Sampling_OpMode(ID, spiClk);
 
 	if( isinf(hradcPtr->BoardData.t.GND_bipolar) || isnan(hradcPtr->BoardData.t.GND_bipolar)  )
 	{
@@ -396,7 +400,7 @@ void Disable_HRADC_Sampling(void)
 	}
 }
 
-void Config_HRADC_Sampling_OpMode(Uint16 ID)
+void Config_HRADC_Sampling_OpMode(Uint16 ID, Uint16 spiClk)
 {
 	Uint32 auxH, auxL;
 
@@ -409,7 +413,7 @@ void Config_HRADC_Sampling_OpMode(Uint16 ID)
 	// during configuration
 	stop_DMA();
 
-	Init_SPIMaster_McBSP(SPI_15MHz);
+	Init_SPIMaster_McBSP(spiClk);
     InitMcbspa20bit();
 
 	// Set appropriate Chip-Select and CONFIG signals

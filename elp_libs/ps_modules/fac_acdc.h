@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2018 by LNLS - Brazilian Synchrotron Light Laboratory
+ * Copyright (C) 2017 by LNLS - Brazilian Synchrotron Light Laboratory
  *
  * Redistribution, modification or use of this software in source or binary
  * forms is permitted as long as the files maintain this copyright. LNLS and
@@ -9,16 +9,20 @@
  *****************************************************************************/
 
 /**
- * @file version.c
- * @brief Firmware version module
+ * @file fac_acdc.c
+ * @brief FAC AC/DC Stage module
  * 
- * This module contains information about current build version of UDC C28 core.
+ * Module for control of AC/DC module of FAC power supplies. It implements the
+ * controller for input current and capacitor bank voltage.
  *
  * @author gabriel.brunheira
- * @date 08/02/2018
+ * @date 10/04/2018
  *
  */
 
-#include "version.h"
+#ifndef FAC_ACDC_H_
+#define FAC_ACDC_H_
 
-const char * udc_c28_version = "V0.11 2018-04-25";
+extern void main_fac_acdc(void);
+
+#endif /* FAC_ACDC_H_ */
