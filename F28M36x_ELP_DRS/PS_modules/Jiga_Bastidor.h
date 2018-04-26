@@ -14,8 +14,8 @@
 
 #define MAX_REF					10.0		// Valor máximo da referência de corrente na carga [A]
 #define MIN_REF					-10.0		// Valor mínimo da referência de corrente na carga [A]
-#define MAX_ILOAD				10.5		// Limite de corrente na carga para interlock [A]
-#define MAX_VLOAD				10.5			// Limite de tensão na carga para interlock [V]
+#define MAX_ILOAD				11.0		// Limite de corrente na carga para interlock [A]
+#define MAX_VLOAD				11.0			// Limite de tensão na carga para interlock [V]
 #define MIN_DCLINK				12.0		// Limite mínimo de tensão no DC-Link para interlock [V]
 #define MAX_DCLINK				17.0		// Limite máximo de tensão no DC-Link para interlock [V]
 #define MAX_TEMP				80.0		// Limite de temperatura nos módulos de potência para interlock [ºC]
