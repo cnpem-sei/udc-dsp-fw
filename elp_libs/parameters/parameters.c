@@ -29,8 +29,6 @@ volatile param_t g_parameters[NUM_MAX_PARAMETERS];
 void init_param(param_id_t id, param_type_t type, uint16_t num_elements,
                 uint16_t *p_param)
 {
-    uint16_t n;
-
     if(num_elements > 0)
     {
         g_parameters[id].id = id;

@@ -25,6 +25,9 @@
 #include "control/control.h"
 #include "ipc.h"
 
+#pragma DATA_SECTION(samplesBuffer,"SHARERAMS45")
+volatile float samplesBuffer[SIZE_BUF_SAMPLES];
+
 #pragma DATA_SECTION(g_ipc_ctom,"CTOM_MSG_RAM");
 #pragma DATA_SECTION(g_ipc_mtoc,"MTOC_MSG_RAM");
 volatile ipc_ctom_t g_ipc_ctom;

@@ -31,6 +31,7 @@
 
 #include "ps_modules/fbp.h"
 #include "ps_modules/fac_acdc.h"
+#include "ps_modules/fac_dcdc.h"
 
 /**
  * @brief Main function
@@ -91,7 +92,7 @@ void main(void)
      *  TODO: Make sure ARM is already initialized to continue from here
      */
     init_gpios();
-    init_buzzer(50);     /// Volume: 1%
+    init_buzzer(0.2);     /// Volume: 1%
 
     while(1)
     {
@@ -111,6 +112,13 @@ void main(void)
                 main_fac_acdc();
                 break;
             }
+
+            case FAC_DCDC:
+            {
+                main_fac_dcdc();
+                break;
+            }
+
             default:
             {
                 break;

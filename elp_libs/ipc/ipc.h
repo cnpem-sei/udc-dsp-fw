@@ -37,7 +37,6 @@
  */
 
 #define SIZE_BUF_SAMPLES    4096
-
 #define SIZE_PS_NAME        16
 
 /**
@@ -139,6 +138,8 @@ typedef struct
     param_hradc_t           hradc;
     param_analog_vars_t     analog_vars;
 } ipc_mtoc_t;
+
+extern volatile float samplesBuffer[SIZE_BUF_SAMPLES];
 
 extern volatile ipc_ctom_t g_ipc_ctom;
 extern volatile ipc_mtoc_t g_ipc_mtoc;

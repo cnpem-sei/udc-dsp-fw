@@ -218,14 +218,12 @@
 
 #pragma CODE_SECTION(isr_init_controller, "ramfuncs");
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
-#pragma CODE_SECTION(turn_on, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
 #pragma CODE_SECTION(set_hard_interlock, "ramfuncs");
 #pragma CODE_SECTION(set_soft_interlock, "ramfuncs");
 #pragma CODE_SECTION(isr_hard_interlock, "ramfuncs");
 #pragma CODE_SECTION(isr_soft_interlock, "ramfuncs");
 #pragma CODE_SECTION(open_relay, "ramfuncs");
-#pragma CODE_SECTION(close_relay, "ramfuncs");
 #pragma CODE_SECTION(get_relay_status, "ramfuncs");
 
 static void init_peripherals_drivers(void);
