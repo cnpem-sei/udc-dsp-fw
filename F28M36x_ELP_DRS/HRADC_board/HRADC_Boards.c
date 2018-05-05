@@ -501,93 +501,109 @@ void Config_HRADC_UFM_OpMode(Uint16 ID)
 
 void Erase_HRADC_UFM(Uint16 ID)
 {
-if(HRADCs_Info.enable_Sampling)
-	{
-		return;
-	}
+    if(HRADCs_Info.enable_Sampling)
+    {
+        return;
+    }
 
-	static Uint16 aux, aux2;
+    static Uint16 aux, aux2, status, dummy;
 
-	// Set appropriate Chip-Select signals
-	HRADC_CS_SET(ID);
+    // Set appropriate Chip-Select signals
+    HRADC_CS_SET(ID);
 
-	// Transmit UFM opcode for UFM-ERASE command
-	McbspaRegs.DXR1.all = UFM_OPCODE_SECTOR_ERASE;
-	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	aux = McbspaRegs.DRR1.all;
+    // Transmit UFM opcode for Write Enable command
+    McbspaRegs.DXR1.all = UFM_OPCODE_WREN;
+    while(!McbspaRegs.SPCR1.bit.RRDY){}
+    dummy = McbspaRegs.DRR1.all;
+    HRADC_CS_RESET(ID);
 
-	McbspaRegs.DXR1.all = 0x0000;
-	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	aux = McbspaRegs.DRR1.all;
+    status = 0;
 
-	McbspaRegs.DXR1.all = 0x0000;
-	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	aux = McbspaRegs.DRR1.all;
+    while(status != 0x0002)
+    {
+        // Transmit UFM opcode for Read Status Register command
+        McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
+        while(!McbspaRegs.SPCR1.bit.RRDY){}
+        status = McbspaRegs.DRR1.all;
 
-	// Reset and Clear Chip-Select signals
-	HRADC_CS_RESET(ID);
+        McbspaRegs.DXR1.all = 0x00;
+        while(!McbspaRegs.SPCR1.bit.RRDY){}
+        status = (McbspaRegs.DRR1.all) & 0x000F;
 
-	aux = 1;
+        McbspaRegs.DXR1.all = 0x00;
+        while(!McbspaRegs.SPCR1.bit.RRDY){}
+        dummy = McbspaRegs.DRR1.all;
 
-	while(aux)
-	{
-		// Transmit UFM opcode for Read Status Register command
-		McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
-		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		aux = McbspaRegs.DRR1.all;
+        // Reset Chip-Select signals
+        HRADC_CS_RESET(ID);
+    }
 
-		McbspaRegs.DXR1.all = 0x00;
-		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		aux = (McbspaRegs.DRR1.all) & 0x01;
+    // Transmit UFM opcode for UFM-ERASE command
+    McbspaRegs.DXR1.all = UFM_OPCODE_UFM_ERASE;
+    while(!McbspaRegs.SPCR1.bit.RRDY){}
+    aux = McbspaRegs.DRR1.all;
 
-		McbspaRegs.DXR1.all = 0x00;
-		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		aux2 = McbspaRegs.DRR1.all;
+    McbspaRegs.DXR1.all = 0x0000;
+    while(!McbspaRegs.SPCR1.bit.RRDY){}
+    aux = McbspaRegs.DRR1.all;
 
-		// Reset and Clear Chip-Select signals
-		HRADC_CS_RESET(ID);
-	}
+    McbspaRegs.DXR1.all = 0x0000;
+    while(!McbspaRegs.SPCR1.bit.RRDY){}
+    aux = McbspaRegs.DRR1.all;
 
-	// Transmit UFM opcode for UFM-ERASE command
-	McbspaRegs.DXR1.all = UFM_OPCODE_SECTOR_ERASE;
-	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	aux = McbspaRegs.DRR1.all;
+    // Reset and Clear Chip-Select signals
+    HRADC_CS_RESET(ID);
 
-	McbspaRegs.DXR1.all = 0x0001;
-	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	aux = McbspaRegs.DRR1.all;
+    aux = 1;
 
-	McbspaRegs.DXR1.all = 0x0000;
-	while(!McbspaRegs.SPCR1.bit.RRDY){}
-	aux = McbspaRegs.DRR1.all;
+    while(aux)
+    {
+        // Transmit UFM opcode for Read Status Register command
+        McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
+        while(!McbspaRegs.SPCR1.bit.RRDY){}
+        aux = McbspaRegs.DRR1.all;
 
-	// Reset and Clear Chip-Select signals
-	HRADC_CS_RESET(ID);
+        McbspaRegs.DXR1.all = 0x00;
+        while(!McbspaRegs.SPCR1.bit.RRDY){}
+        aux = (McbspaRegs.DRR1.all) & 0x01;
 
-	aux = 1;
+        McbspaRegs.DXR1.all = 0x00;
+        while(!McbspaRegs.SPCR1.bit.RRDY){}
+        aux2 = McbspaRegs.DRR1.all;
 
-	while(aux)
-	{
-		// Transmit UFM opcode for Read Status Register command
-		McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
-		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		aux = McbspaRegs.DRR1.all;
+        // Reset and Clear Chip-Select signals
+        HRADC_CS_RESET(ID);
+    }
 
-		McbspaRegs.DXR1.all = 0x00;
-		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		aux = (McbspaRegs.DRR1.all) & 0x01;
+    // Transmit UFM opcode for Write Disable command
+    McbspaRegs.DXR1.all = UFM_OPCODE_WRDI;
+    while(!McbspaRegs.SPCR1.bit.RRDY){}
+    dummy = McbspaRegs.DRR1.all;
+    HRADC_CS_RESET(ID);
 
-		McbspaRegs.DXR1.all = 0x00;
-		while(!McbspaRegs.SPCR1.bit.RRDY){}
-		aux2 = McbspaRegs.DRR1.all;
+    status = 0x0002;
 
-		// Reset and Clear Chip-Select signals
-		HRADC_CS_RESET(ID);
-	}
+    while(status == 0x0002)
+    {
+        // Transmit UFM opcode for Read Status Register command
+        McbspaRegs.DXR1.all = UFM_OPCODE_RDSR;
+        while(!McbspaRegs.SPCR1.bit.RRDY){}
+        status = McbspaRegs.DRR1.all;
 
+        McbspaRegs.DXR1.all = 0x00;
+        while(!McbspaRegs.SPCR1.bit.RRDY){}
+        status = (McbspaRegs.DRR1.all) & 0x000F;
 
-	// Clear Chip-Select signals
-	HRADC_CS_CLEAR;
+        McbspaRegs.DXR1.all = 0x00;
+        while(!McbspaRegs.SPCR1.bit.RRDY){}
+        dummy = McbspaRegs.DRR1.all;
+
+        // Reset Chip-Select signals
+        HRADC_CS_RESET(ID);
+    }
+
+    // Clear Chip-Select signals
+    HRADC_CS_CLEAR;
 }
 
 void Read_HRADC_UFM(Uint16 ID, Uint16 ufm_address, Uint16 n_words, volatile Uint16 *ufm_buffer)
