@@ -658,19 +658,14 @@ static interrupt void isr_controller(void)
                 {
                     case SlowRef:
                     case SlowRefSync:
+                    case RmpWfm:
+                    case MigWfm:
                     {
                         g_ipc_ctom.ps_module[i].ps_reference =
                         g_ipc_ctom.ps_module[i].ps_setpoint;
                         break;
                     }
-                    case RmpWfm:
-                    {
-                        break;
-                    }
-                    case MigWfm:
-                    {
-                        break;
-                    }
+
                     case Cycle:
                     {
                         if(!flag_siggen)
