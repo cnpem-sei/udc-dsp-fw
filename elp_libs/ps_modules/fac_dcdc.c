@@ -96,6 +96,9 @@
 
 #define MAX_DCCTS_DIFF          g_ipc_mtoc.analog_vars.max[5]
 
+#define MAX_I_IDLE_DCCT         g_ipc_mtoc.analog_vars.max[6]
+#define MIN_I_ACTIVE_DCCT       g_ipc_mtoc.analog_vars.min[6]
+
 /**
  * Controller defines
  */
@@ -126,8 +129,8 @@
 #define IIR_2P2Z_CONTROLLER_I_LOAD           &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
 #define IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
-#define PWM_MODULATOR                   g_pwm_modules.pwm_regs[0]
-#define PWM_MODULATOR_NEG               g_pwm_modules.pwm_regs[1]
+#define PWM_MODULATOR_Q1                g_pwm_modules.pwm_regs[0]
+#define PWM_MODULATOR_Q2                g_pwm_modules.pwm_regs[1]
 
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
@@ -137,10 +140,10 @@
 /**
  * Digital I/O's status
  */
-#define PIN_STATUS_DCCT_1_FAULT     GET_GPDI1
-#define PIN_STATUS_DCCT_1_FAULT2    GET_GPDI2
-#define PIN_STATUS_DCCT_2_FAULT     GET_GPDI3
-#define PIN_STATUS_DCCT_2_FAULT2    GET_GPDI4
+#define PIN_STATUS_DCCT_1_STATUS    GET_GPDI9
+#define PIN_STATUS_DCCT_1_ACTIVE    GET_GPDI10
+#define PIN_STATUS_DCCT_2_STATUS    GET_GPDI11
+#define PIN_STATUS_DCCT_2_ACTIVE    GET_GPDI12
 
 /**
  * Interlock defines
@@ -156,8 +159,10 @@
 #define DCCT_1_FAULT            0x00000004
 #define DCCT_2_FAULT            0x00000008
 #define DCCTS_HIGH_DIFFERENCE   0x00000010
+#define I_LOAD_1_FEEDBACK_FAULT 0x00000020
+#define I_LOAD_2_FEEDBACK_FAULT 0x00000040
 
-static float decimation_factor;
+static uint16_t decimation_factor;
 static float decimation_coeff;
 
 /**
@@ -229,8 +234,8 @@ static void init_peripherals_drivers(void)
     /// Initialization of HRADC boards
     stop_DMA();
 
-    decimation_factor = HRADC_FREQ_SAMP / CONTROL_FREQ;
-    decimation_coeff = 1.0 / decimation_factor;
+    decimation_factor = (uint16_t) roundf(HRADC_FREQ_SAMP / CONTROL_FREQ);
+    decimation_coeff = 1.0 / (float) decimation_factor;
 
 
     HRADCs_Info.enable_Sampling = 0;
@@ -259,18 +264,18 @@ static void init_peripherals_drivers(void)
     /// Initialization of PWM modules
     g_pwm_modules.num_modules = 2;
 
-    PWM_MODULATOR       = &EPwm1Regs;
-    PWM_MODULATOR_NEG   = &EPwm2Regs;
+    PWM_MODULATOR_Q1 = &EPwm1Regs;
+    PWM_MODULATOR_Q2 = &EPwm2Regs;
 
     disable_pwm_outputs();
     disable_pwm_tbclk();
     init_pwm_mep_sfo();
 
     /// PWM initialization
-    init_pwm_module(PWM_MODULATOR, PWM_FREQ, 0, PWM_Sync_Master, 0,
+    init_pwm_module(PWM_MODULATOR_Q1, PWM_FREQ, 0, PWM_Sync_Master, 0,
                     PWM_ChB_Complementary, PWM_DEAD_TIME);
-    init_pwm_module(PWM_MODULATOR_NEG, PWM_FREQ, 1, PWM_Sync_Slave, 180,
-                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+    init_pwm_module(PWM_MODULATOR_Q2, PWM_FREQ, 1, PWM_Sync_Slave, 180,
+                    PWM_ChB_Complementary_Swapped, PWM_DEAD_TIME);
 
     InitEPwm1Gpio();
     InitEPwm2Gpio();
@@ -424,7 +429,7 @@ static void init_controller(void)
  */
 static void reset_controller(void)
 {
-    set_pwm_duty_hbridge(PWM_MODULATOR, 0.0);
+    set_pwm_duty_hbridge(PWM_MODULATOR_Q1, 0.0);
 
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
@@ -474,11 +479,11 @@ static interrupt void isr_init_controller(void)
     PieVectTable.EPWM1_INT = &isr_controller;
     EDIS;
 
-    PWM_MODULATOR->ETSEL.bit.INTSEL = ET_CTR_ZERO;
-    PWM_MODULATOR->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q1->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q1->ETCLR.bit.INT = 1;
 
-    PWM_MODULATOR_NEG->ETSEL.bit.INTSEL = ET_CTR_ZERO;
-    PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q2->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q2->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
@@ -507,7 +512,7 @@ static interrupt void isr_controller(void)
         temp[3] += (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer++);
     }
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 
     HRADCs_Info.HRADC_boards[0].SamplesBuffer = buffers_HRADC[0];
     HRADCs_Info.HRADC_boards[1].SamplesBuffer = buffers_HRADC[1];
@@ -584,7 +589,7 @@ static interrupt void isr_controller(void)
             SATURATE(DUTY_CYCLE, PWM_MAX_DUTY, PWM_MIN_DUTY);
         }
 
-        set_pwm_duty_hbridge(PWM_MODULATOR, DUTY_CYCLE);
+        set_pwm_duty_hbridge(PWM_MODULATOR_Q1, DUTY_CYCLE);
     }
 
     /*********************************************/
@@ -599,8 +604,8 @@ static interrupt void isr_controller(void)
 
     CLEAR_DEBUG_GPIO1;
 
-    PWM_MODULATOR->ETCLR.bit.INT = 1;
-    PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q1->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q2->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
@@ -616,9 +621,9 @@ static void init_interruptions(void)
     EDIS;
 
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 2;
-    enable_pwm_interrupt(PWM_MODULATOR);
-    enable_pwm_interrupt(PWM_MODULATOR_NEG);
+    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
+    enable_pwm_interrupt(PWM_MODULATOR_Q1);
+    enable_pwm_interrupt(PWM_MODULATOR_Q2);
 
     IER |= M_INT1;
     IER |= M_INT3;
@@ -642,8 +647,8 @@ static void term_interruptions(void)
     IER = 0;
     PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
     PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
-    disable_pwm_interrupt(PWM_MODULATOR);
-    disable_pwm_interrupt(PWM_MODULATOR_NEG);
+    disable_pwm_interrupt(PWM_MODULATOR_Q1);
+    disable_pwm_interrupt(PWM_MODULATOR_Q2);
 
     /// Clear flags
     PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
@@ -801,7 +806,7 @@ static inline void check_interlocks(void)
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
     {
-        set_hard_interlock(DCCTS_HIGH_DIFFERENCE);
+        set_soft_interlock(DCCTS_HIGH_DIFFERENCE);
     }
 
     if(V_CAPBANK > MAX_V_CAPBANK)
@@ -809,14 +814,44 @@ static inline void check_interlocks(void)
         set_hard_interlock(CAPBANK_OVERVOLTAGE);
     }
 
-    if( (!PIN_STATUS_DCCT_1_FAULT) || (!PIN_STATUS_DCCT_1_FAULT2) )
+    if(!PIN_STATUS_DCCT_1_STATUS)
     {
-        set_hard_interlock(DCCT_1_FAULT);
+        set_soft_interlock(DCCT_1_FAULT);
     }
 
-    if( (!PIN_STATUS_DCCT_2_FAULT) || (!PIN_STATUS_DCCT_2_FAULT2) )
+    if(!PIN_STATUS_DCCT_2_STATUS)
     {
-        set_hard_interlock(DCCT_2_FAULT);
+        set_soft_interlock(DCCT_2_FAULT);
+    }
+
+    if(PIN_STATUS_DCCT_1_ACTIVE)
+    {
+        if(fabs(I_LOAD_1) < MIN_I_ACTIVE_DCCT)
+        {
+            set_soft_interlock(I_LOAD_1_FEEDBACK_FAULT);
+        }
+    }
+    else
+    {
+        if(fabs(I_LOAD_1) > MAX_I_IDLE_DCCT)
+        {
+            set_soft_interlock(I_LOAD_1_FEEDBACK_FAULT);
+        }
+    }
+
+    if(PIN_STATUS_DCCT_2_ACTIVE)
+    {
+        if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
+        {
+            set_soft_interlock(I_LOAD_2_FEEDBACK_FAULT);
+        }
+    }
+    else
+    {
+        if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
+        {
+            set_soft_interlock(I_LOAD_2_FEEDBACK_FAULT);
+        }
     }
 
     if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)

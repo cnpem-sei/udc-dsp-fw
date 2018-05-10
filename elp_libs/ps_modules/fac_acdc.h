@@ -9,7 +9,7 @@
  *****************************************************************************/
 
 /**
- * @file fac_acdc.c
+ * @file fac_acdc.h
  * @brief FAC AC/DC Stage module
  * 
  * Module for control of AC/DC module of FAC power supplies. It implements the

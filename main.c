@@ -92,7 +92,7 @@ void main(void)
      *  TODO: Make sure ARM is already initialized to continue from here
      */
     init_gpios();
-    init_buzzer(0.2);     /// Volume: 1%
+    init_buzzer(0.01);     /// Volume: 1%
 
     while(1)
     {

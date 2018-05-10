@@ -71,7 +71,10 @@ typedef enum {
 
 typedef enum {
 	HRADC_FBP,
-	HRADC_FAx
+	HRADC_FAx_A,
+	HRADC_FAx_B,
+	HRADC_FAx_C,
+	HRADC_FAx_D,
 } eHRADCVar;
 
 #include "DSP28x_Project.h"

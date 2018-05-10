@@ -149,6 +149,7 @@ void cfg_pwm_channel_b(volatile struct EPWM_REGS *p_pwm_module,
             p_pwm_module->DBCTL.bit.IN_MODE   = DBA_RED_DBB_FED;
             p_pwm_module->DBCTL.bit.POLSEL    = DB_ACTV_HI;
             p_pwm_module->DBCTL.bit.OUT_MODE  = DB_DISABLE;
+            p_pwm_module->DBCTL.bit.OUTSWAP   = 0;
             break;
         }
 
@@ -157,8 +158,19 @@ void cfg_pwm_channel_b(volatile struct EPWM_REGS *p_pwm_module,
             p_pwm_module->DBCTL.bit.IN_MODE   = DBA_ALL;
             p_pwm_module->DBCTL.bit.POLSEL    = DB_ACTV_HIC;
             p_pwm_module->DBCTL.bit.OUT_MODE  = DB_FULL_ENABLE;
+            p_pwm_module->DBCTL.bit.OUTSWAP   = 0;
             break;
         }
+
+        case PWM_ChB_Complementary_Swapped:
+        {
+            p_pwm_module->DBCTL.bit.IN_MODE   = DBA_ALL;
+            p_pwm_module->DBCTL.bit.POLSEL    = DB_ACTV_HIC;
+            p_pwm_module->DBCTL.bit.OUT_MODE  = DB_FULL_ENABLE;
+            p_pwm_module->DBCTL.bit.OUTSWAP   = 3;
+            break;
+        }
+
     }
 }
 

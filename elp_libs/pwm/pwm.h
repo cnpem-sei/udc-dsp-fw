@@ -39,7 +39,8 @@ typedef enum {
 
 typedef enum {
         PWM_ChB_Independent,
-        PWM_ChB_Complementary
+        PWM_ChB_Complementary,
+        PWM_ChB_Complementary_Swapped,
 } cfg_pwm_channel_b_t;
 
 typedef volatile struct
