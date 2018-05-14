@@ -94,15 +94,16 @@ void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_s
 
 	Config_HRADC_Sampling_OpMode(ID, spiClk);
 
-	if( isinf(hradcPtr->BoardData.t.GND_bipolar) || isnan(hradcPtr->BoardData.t.GND_bipolar)  )
+	if( isinf(hradcPtr->BoardData.t.gain_Vin_bipolar) ||
+	    isnan(hradcPtr->BoardData.t.gain_Vin_bipolar) )
 	{
 	    hradcPtr->BoardData.t.gain_Vin_bipolar =    1.0;
         hradcPtr->BoardData.t.offset_Vin_bipolar =  0.0;
 
-        hradcPtr->BoardData.t.gain_Iin_bipolar =    1.0;
+        hradcPtr->BoardData.t.gain_Iin_bipolar =    0.0;
         hradcPtr->BoardData.t.offset_Iin_bipolar =  0.0;
 
-        hradcPtr->BoardData.t.Rburden =             1.0;
+        hradcPtr->BoardData.t.Rburden =             0.0;
 	}
 
     hradcPtr->BoardData.t.gain_Vin_bipolar *= 		transducer_gain * HRADC_VIN_BI_P_GAIN;
