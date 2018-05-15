@@ -23,9 +23,9 @@
  * Controller specs
  */
 
-#define MAX_REF				280.0 // 90.0		// Valor máximo da referência de tensão no banco de capacitores [V]
+#define MAX_REF				250.0 // 90.0		// Valor máximo da referência de tensão no banco de capacitores [V]
 #define MIN_REF				0.0			// Valor máximo da referência de tensão no banco de capacitores [V]
-#define MAX_LOAD			300.0 // 101.0		// Limite de tensão no banco de capacitores para interlock [V]
+#define MAX_LOAD			280.0 // 101.0		// Limite de tensão no banco de capacitores para interlock [V]
 #define MAX_IIN_REF			150.0	//170.0		// Limite da referência de corrente máxima na entrada do regulador da tensão no banco de capacitores [A]
 #define MIN_IIN_REF			0.0			// Limite da referência de corrente mínima na entrada do regulador da tensão no banco de capacitores [A]
 #define MAX_IIN				180.0		// Limite de corrente máxima na entrada para interlock [A]
