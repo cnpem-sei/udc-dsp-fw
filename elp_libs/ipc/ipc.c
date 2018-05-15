@@ -298,6 +298,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 SET_DEBUG_GPIO1;
 
                 if( (g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state == SlowRef) ||
+                    (g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state == SlowRefSync) ||
                     (g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state == RmpWfm) ||
                     (g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state == MigWfm) )
                 {
@@ -325,6 +326,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
                     if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
                     {
                         if( (g_ipc_ctom.ps_module[i].ps_status.bit.state == SlowRef) ||
+                            (g_ipc_ctom.ps_module[i].ps_status.bit.state == SlowRefSync) ||
                             (g_ipc_ctom.ps_module[i].ps_status.bit.state == RmpWfm) ||
                             (g_ipc_ctom.ps_module[i].ps_status.bit.state == MigWfm) )
 
