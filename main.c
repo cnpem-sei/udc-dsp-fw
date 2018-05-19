@@ -24,7 +24,6 @@
  *
  */
 
-#include <ps_modules/fbp.h>
 #include <string.h>
 #include "boards/udc_c28.h"
 #include "ipc/ipc.h"

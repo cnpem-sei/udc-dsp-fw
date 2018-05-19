@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2017 by LNLS - Brazilian Synchrotron Light Laboratory
+ * Copyright (C) 2018 by LNLS - Brazilian Synchrotron Light Laboratory
  *
  * Redistribution, modification or use of this software in source or binary
  * forms is permitted as long as the files maintain this copyright. LNLS and
@@ -23,7 +23,6 @@
 #include <float.h>
 
 #include "boards/udc_c28.h"
-#include "fac_dcdc.h"
 #include "common/structs.h"
 #include "common/timeslicer.h"
 #include "control/control.h"
@@ -32,6 +31,7 @@
 #include "parameters/parameters.h"
 #include "pwm/pwm.h"
 
+#include "fac_dcdc.h"
 
 #define USE_ITLK
 

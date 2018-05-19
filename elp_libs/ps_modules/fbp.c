@@ -19,16 +19,17 @@
  *
  */
 
+#include <float.h>
+
 #include "boards/udc_c28.h"
-
-#include "fbp.h"
-
 #include "common/timeslicer.h"
 #include "control/control.h"
 #include "HRADC_board/HRADC_Boards.h"
 #include "ipc/ipc.h"
 #include "parameters/parameters.h"
 #include "pwm/pwm.h"
+
+#include "fbp.h"
 
 /**
  * Configuration parameters

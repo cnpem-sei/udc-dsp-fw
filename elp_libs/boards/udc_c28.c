@@ -158,6 +158,12 @@ void init_gpios(void)
     GpioDataRegs.GPDCLEAR.bit.GPIO111 = 1;
     GpioCtrlRegs.GPDDIR.bit.GPIO111 = 1;
 
+    /// Initialize all PWM signals as digital outputs at low level, to prevent
+    /// spurious signals. Then each PS module initialize its corresponding
+    /// PWM signals according to the application.
+    GpioDataRegs.GPACLEAR.all = 0x0000FFFF;
+    GpioCtrlRegs.GPADIR.all  |= 0x0000FFFF;
+    GpioCtrlRegs.GPAMUX1.all  = 0;
     EDIS;
 }
 
