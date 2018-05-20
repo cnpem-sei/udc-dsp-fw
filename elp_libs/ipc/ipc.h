@@ -36,8 +36,11 @@
  * Shared resources defines
  */
 
-#define SIZE_BUF_SAMPLES    4096
-#define SIZE_PS_NAME        16
+#define SIZE_WFMREF             4096
+#define SIZE_BUF_SAMPLES_CTOM   4096
+#define SIZE_BUF_SAMPLES_MTOC   4096
+
+#define SIZE_PS_NAME            16
 
 /**
  * IPC Message Defines
@@ -139,7 +142,9 @@ typedef struct
     param_analog_vars_t     analog_vars;
 } ipc_mtoc_t;
 
-extern volatile float samplesBuffer[SIZE_BUF_SAMPLES];
+extern volatile float g_wfmref[SIZE_WFMREF];
+extern volatile float g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM];
+extern volatile float g_buf_samples_mtoc[SIZE_BUF_SAMPLES_MTOC];
 
 extern volatile ipc_ctom_t g_ipc_ctom;
 extern volatile ipc_mtoc_t g_ipc_mtoc;

@@ -415,7 +415,7 @@ static void init_controller(void)
     /**
      * Samples buffer initialization
      */
-    init_buffer(BUF_SAMPLES, &samplesBuffer, SIZE_BUF_SAMPLES);
+    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
     enable_buffer(BUF_SAMPLES);
 
     /**
@@ -491,7 +491,7 @@ static interrupt void isr_init_controller(void)
 /**
  * Control ISR
  */
-static interrupt void isr_controller(void)
+interrupt void isr_controller(void)
 {
     static float temp[4];
     static uint16_t i;

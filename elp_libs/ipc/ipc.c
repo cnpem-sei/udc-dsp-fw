@@ -25,8 +25,14 @@
 #include "control/control.h"
 #include "ipc.h"
 
-#pragma DATA_SECTION(samplesBuffer,"SHARERAMS45")
-volatile float samplesBuffer[SIZE_BUF_SAMPLES];
+#pragma DATA_SECTION(g_wfmref,"SHARERAMS23")
+volatile float g_wfmref[SIZE_WFMREF];
+
+#pragma DATA_SECTION(g_buf_samples_ctom,"SHARERAMS45")
+volatile float g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM];
+
+#pragma DATA_SECTION(g_buf_samples_mtoc,"SHARERAMS67")
+volatile float g_buf_samples_mtoc[SIZE_BUF_SAMPLES_MTOC];
 
 #pragma DATA_SECTION(g_ipc_ctom,"CTOM_MSG_RAM");
 #pragma DATA_SECTION(g_ipc_mtoc,"MTOC_MSG_RAM");

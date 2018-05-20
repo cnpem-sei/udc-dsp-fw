@@ -521,7 +521,7 @@ static void init_controller(void)
     cfg_timeslicer(TIMESLICER_V_CAPBANK_CONTROLLER,
                    V_CAPBANK_CONTROLLER_DECIMATION);
 
-    init_buffer(BUF_SAMPLES, &samplesBuffer, SIZE_BUF_SAMPLES);
+    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
     enable_buffer(BUF_SAMPLES);
 
     /**
