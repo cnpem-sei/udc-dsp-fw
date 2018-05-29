@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include "boards/udc_c28.h"
+#include "common/timeslicer.h"
 #include "control/control.h"
 #include "ipc.h"
 
@@ -68,6 +69,9 @@ void init_ipc(void)
     g_ipc_ctom.error_mtoc = No_Error_MtoC;
     g_ipc_ctom.counter_set_slowref =  0;
     g_ipc_ctom.counter_sync_pulse =  0;
+
+    WFMREF = g_ipc_mtoc.wfmref;
+    WFMREF.wfmref_data.p_buf_idx = WFMREF.wfmref_data.p_buf_end + 1;
 
     EALLOW;
 
@@ -236,23 +240,30 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state
                    > Interlock)
                 {
-                    switch(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state)
+                    switch(g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state)
                     {
                         case RmpWfm:
                         case MigWfm:
                         {
+                            WFMREF = g_ipc_mtoc.wfmref;
+                            WFMREF.wfmref_data.p_buf_idx =
+                                    WFMREF.wfmref_data.p_buf_end + 1;
+                            WFMREF.wfmref_data.status = Buffering;
+
                             //reset_wfmref(&g_ipc_ctom.wfmref[g_ipc_mtoc.msg_id]);
                             break;
                         }
 
                         case Cycle:
                         {
+                            WFMREF.wfmref_data.status = Idle;
                             disable_siggen(&g_ipc_ctom.siggen);
                             break;
                         }
 
                         default:
                         {
+                            WFMREF.wfmref_data.status = Idle;
                             break;
                         }
                     }
@@ -298,7 +309,12 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
             case Disable_Buf_Samples:
             {
-                disable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
+                /**
+                 * TODO: It sets as Postmortem to wait buffer complete. Maybe
+                 * it's better to create a postmortem BSMP function
+                 */
+                postmortem_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
+                //disable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
                 break;
             }
 
@@ -441,6 +457,52 @@ interrupt void isr_ipc_sync_pulse(void)
 
                 case RmpWfm:
                 {
+                    switch(WFMREF.sync_mode)
+                    {
+                        case SampleBySample:
+                        {
+                            if(WFMREF.wfmref_data.p_buf_idx++ >=
+                               WFMREF.wfmref_data.p_buf_end)
+                            {
+                                WFMREF.wfmref_data.p_buf_idx =
+                                        WFMREF.wfmref_data.p_buf_start;
+                                WFMREF.gain = g_ipc_mtoc.wfmref.gain;
+                                WFMREF.offset = g_ipc_mtoc.wfmref.offset;
+                            }
+
+                            break;
+                        }
+
+                        case SampleBySample_OneCycle:
+                        {
+                            if(WFMREF.wfmref_data.p_buf_idx++ ==
+                               WFMREF.wfmref_data.p_buf_end)
+                            {
+                                WFMREF.wfmref_data.p_buf_idx =
+                                        WFMREF.wfmref_data.p_buf_end;
+                            }
+                            else if(WFMREF.wfmref_data.p_buf_idx++ >
+                                    WFMREF.wfmref_data.p_buf_end)
+                            {
+                                WFMREF.wfmref_data.p_buf_idx =
+                                        WFMREF.wfmref_data.p_buf_start;
+                                WFMREF.gain = g_ipc_mtoc.wfmref.gain;
+                                WFMREF.offset = g_ipc_mtoc.wfmref.offset;
+                            }
+
+                            break;
+                        }
+
+                        case OneShot:
+                        {
+                            WFMREF = g_ipc_mtoc.wfmref;
+                            g_timeslicers.counter[TIMESLICER_WFMREF] =
+                                    g_timeslicers.freq_ratio[TIMESLICER_WFMREF];
+
+                            break;
+                        }
+                    }
+
                     break;
                 }
 

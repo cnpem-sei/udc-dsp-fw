@@ -60,9 +60,9 @@
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
 
-#define TIMESLICER_WFMREF       0
+/*#define TIMESLICER_WFMREF       0
 #define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
-#define WFMREF_DECIMATION       (uint16_t) roundf(CONTROL_FREQ / WFMREF_FREQ)
+#define WFMREF_DECIMATION       (uint16_t) roundf(CONTROL_FREQ / WFMREF_FREQ)*/
 
 #define TIMESLICER_BUFFER       1
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
@@ -496,7 +496,7 @@ interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -560,6 +560,34 @@ interrupt void isr_controller(void)
             }
             case RmpWfm:
             {
+                switch(WFMREF.sync_mode)
+                {
+                    case OneShot:
+                    {   /*********************************************/
+                        RUN_TIMESLICER(TIMESLICER_WFMREF)
+                            if( WFMREF.wfmref_data.p_buf_idx <=
+                                WFMREF.wfmref_data.p_buf_end)
+                            {
+                                I_LOAD_REFERENCE =
+                                        *(WFMREF.wfmref_data.p_buf_idx++) *
+                                        (WFMREF.gain) + WFMREF.offset;
+                            }
+                        END_TIMESLICER(TIMESLICER_WFMREF)
+                        /*********************************************/
+                        break;
+                    }
+
+                    case SampleBySample:
+                    case SampleBySample_OneCycle:
+                    {
+                        if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
+                        {
+                            I_LOAD_REFERENCE =  *(WFMREF.wfmref_data.p_buf_idx) *
+                                                 (WFMREF.gain) + WFMREF.offset;
+                        }
+                        break;
+                    }
+                }
                 break;
             }
             case MigWfm:
@@ -575,6 +603,7 @@ interrupt void isr_controller(void)
         /// Open-loop
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
+            SATURATE(I_LOAD_REFERENCE, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
             DUTY_CYCLE = 0.01 * I_LOAD_REFERENCE;
             SATURATE(DUTY_CYCLE, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
         }
@@ -596,7 +625,7 @@ interrupt void isr_controller(void)
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
         insert_buffer(BUF_SAMPLES, I_LOAD_1);
-        insert_buffer(BUF_SAMPLES, I_LOAD_2);
+        //insert_buffer(BUF_SAMPLES, I_LOAD_2);
         //insert_buffer(BUF_SAMPLES, g_controller_ctom.net_signals[10].f);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)

@@ -42,6 +42,8 @@
 
 #define SIZE_PS_NAME            16
 
+#define WFMREF                  g_ipc_ctom.wfmref
+
 /**
  * IPC Message Defines
  */

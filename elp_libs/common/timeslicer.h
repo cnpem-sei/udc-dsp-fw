@@ -29,6 +29,13 @@
 #define RUN_TIMESLICER(id)      if(g_timeslicers.counter[id]++ == g_timeslicers.freq_ratio[id]){
 #define END_TIMESLICER(id)      g_timeslicers.counter[id] = 1;}
 
+/**
+ * Fixed timeslicers
+ */
+#define TIMESLICER_WFMREF       0
+#define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
+#define WFMREF_DECIMATION       (uint16_t) roundf(CONTROL_FREQ / WFMREF_FREQ)
+
 typedef volatile struct
 {
     uint16_t  freq_ratio[NUM_MAX_TIMESLICERS];
