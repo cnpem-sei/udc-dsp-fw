@@ -60,9 +60,6 @@
 #define TIMESLICER_BUFFER       1
 #define BUFFER_DECIMATION       (1.0 / g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER])
 
-#define TIMESLICER_WFMREF       0
-#define WFMREF_DECIMATION       (1.0 / g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF])
-
 #define MAX_ILOAD               g_ipc_mtoc.analog_vars.max[0]
 #define MAX_VLOAD               g_ipc_mtoc.analog_vars.max[1]
 #define MIN_DCLINK              g_ipc_mtoc.analog_vars.min[2]

@@ -36,13 +36,10 @@
  * Shared resources defines
  */
 
-#define SIZE_WFMREF             4096
 #define SIZE_BUF_SAMPLES_CTOM   4096
 #define SIZE_BUF_SAMPLES_MTOC   4096
 
 #define SIZE_PS_NAME            16
-
-#define WFMREF                  g_ipc_ctom.wfmref
 
 /**
  * IPC Message Defines

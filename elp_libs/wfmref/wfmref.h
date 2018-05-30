@@ -25,6 +25,9 @@
 #include <stdint.h>
 #include "common/structs.h"
 
+#define SIZE_WFMREF     4096
+#define WFMREF          g_ipc_ctom.wfmref
+
 typedef enum
 {
     SampleBySample,

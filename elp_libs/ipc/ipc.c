@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include "boards/udc_c28.h"
+#include "common/structs.h"
 #include "common/timeslicer.h"
 #include "control/control.h"
 #include "ipc.h"
@@ -71,7 +72,6 @@ void init_ipc(void)
     g_ipc_ctom.counter_sync_pulse =  0;
 
     WFMREF = g_ipc_mtoc.wfmref;
-    WFMREF.wfmref_data.p_buf_idx = WFMREF.wfmref_data.p_buf_end + 1;
 
     EALLOW;
 
@@ -246,11 +246,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
                         case MigWfm:
                         {
                             WFMREF = g_ipc_mtoc.wfmref;
-                            WFMREF.wfmref_data.p_buf_idx =
-                                    WFMREF.wfmref_data.p_buf_end + 1;
                             WFMREF.wfmref_data.status = Buffering;
-
-                            //reset_wfmref(&g_ipc_ctom.wfmref[g_ipc_mtoc.msg_id]);
                             break;
                         }
 
@@ -363,6 +359,12 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 g_ipc_ctom.counter_set_slowref++;
 
                 break;
+            }
+
+            case Reset_WfmRef:
+            {
+                WFMREF = g_ipc_mtoc.wfmref;
+                WFMREF.wfmref_data.status = Buffering;
             }
 
             case Cfg_SigGen:
@@ -496,6 +498,7 @@ interrupt void isr_ipc_sync_pulse(void)
                         case OneShot:
                         {
                             WFMREF = g_ipc_mtoc.wfmref;
+                            WFMREF.wfmref_data.status = Buffering;
                             g_timeslicers.counter[TIMESLICER_WFMREF] =
                                     g_timeslicers.freq_ratio[TIMESLICER_WFMREF];
 
