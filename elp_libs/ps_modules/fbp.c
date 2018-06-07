@@ -1084,6 +1084,8 @@ static void check_interlocks_ps_module(uint16_t id)
         set_soft_interlock(id, OVERTEMP);
     }
 
+    DINT;
+
     switch(id)
     {
         case 0:
@@ -1192,4 +1194,6 @@ static void check_interlocks_ps_module(uint16_t id)
             break;
         }
     }
+
+    EINT;
 }

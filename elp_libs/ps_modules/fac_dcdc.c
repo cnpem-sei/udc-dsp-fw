@@ -883,9 +883,13 @@ static inline void check_interlocks(void)
         }
     }
 
+    DINT;
+
     if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
               && (V_CAPBANK < MIN_V_CAPBANK) )
     {
         set_hard_interlock(CAPBANK_UNDERVOLTAGE);
     }
+
+    EINT;
 }

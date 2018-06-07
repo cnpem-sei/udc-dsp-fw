@@ -29,6 +29,7 @@
 #include "ipc/ipc.h"
 
 #include "ps_modules/fbp.h"
+#include "ps_modules/fbp_dclink.h"
 #include "ps_modules/fac_acdc.h"
 #include "ps_modules/fac_dcdc.h"
 
@@ -91,7 +92,7 @@ void main(void)
      *  TODO: Make sure ARM is already initialized to continue from here
      */
     init_gpios();
-    init_buzzer(0.01);     /// Volume: 1%
+    init_buzzer(50);     /// Volume: 1%
 
     while(1)
     {
@@ -103,6 +104,12 @@ void main(void)
             case FBP:
             {
                 main_fbp();
+                break;
+            }
+
+            case FBP_DCLink:
+            {
+                main_fbp_dclink();
                 break;
             }
 

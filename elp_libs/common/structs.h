@@ -83,6 +83,13 @@ extern void enable_buffer(buf_t *p_buf);
 extern void disable_buffer(buf_t *p_buf);
 
 /**
+ * Trigger postmortem for specified buffer
+ *
+ * @param p_buf pointer to buffer structure
+ */
+extern void postmortem_buffer(buf_t *p_buf);
+
+/**
  * Return number of elements of specified buffer
  *
  * @param p_buf pointer to buffer structure

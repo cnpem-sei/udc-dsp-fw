@@ -9,16 +9,19 @@
  *****************************************************************************/
 
 /**
- * @file version.c
- * @brief Firmware version module
- * 
- * This module contains information about current build version of UDC C28 core.
+ * @file fbp_dclink.h
+ * @brief FBP DC-Link controller module
+ *
+ * Module for control of DC-Link crate from FBP FAC power supplies.
  *
  * @author gabriel.brunheira
- * @date 08/02/2018
+ * @date 05/06/2018
  *
  */
 
-#include "version.h"
+#ifndef FBP_DCLINK_H_
+#define FBP_DCLINK_H_
 
-const char * udc_c28_version = "V0.13 2018-06-07";
+extern void main_fbp_dclink(void);
+
+#endif /* FBP_DCLINK_H_ */

@@ -932,6 +932,8 @@ static inline void check_interlocks(void)
         set_hard_interlock(RECTIFIER_OVERCURRENT);
     }
 
+    DINT;
+
     if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
          (PIN_STATUS_AC_MAINS_CONTACTOR) )
     {
@@ -944,4 +946,5 @@ static inline void check_interlocks(void)
         set_hard_interlock(AC_MAINS_CONTACTOR_FAIL);
     }
 
+    EINT;
 }
