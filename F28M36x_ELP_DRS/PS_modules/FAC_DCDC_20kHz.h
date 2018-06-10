@@ -9,7 +9,7 @@
 #define	n_PS			1
 
 #define PWM_FREQ	   			10240//6144		// Frequencia do sinal PWM gerado [Hz]
-#define PWM_DEAD_TIME			2000		// Dead-time dos sinais PWM [ns]
+#define PWM_DEAD_TIME			0//2000		// Dead-time dos sinais PWM [ns]
 #define PWM_MAX_DUTY    		0.9         // Maximo ciclo de trabalho para o PWM (em p.u.)
 #define PWM_MIN_DUTY    		-0.9		// Minimo ciclo de trabalho para o PWM (em p.u.)
 #define PWM_MAX_DUTY_OL			0.45			// Maximo ciclo de trabalho para o PWM em malha aberta (em p.u.)
