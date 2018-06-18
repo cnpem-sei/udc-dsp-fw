@@ -128,6 +128,9 @@ void main_fbp_dclink(void)
     /// TODO: check why first sync_pulse occurs
     g_ipc_ctom.counter_sync_pulse = 0;
 
+    /// Enable TBCLK for buzzer and interlock LED PWM signals
+    enable_pwm_tbclk();
+
     /// TODO: include condition for re-initialization
     while(1)
     {

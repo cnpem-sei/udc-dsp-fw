@@ -721,8 +721,10 @@ static interrupt void isr_controller(void)
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
+        insert_buffer(BUF_SAMPLES, g_controller_ctom.net_signals[3].f);
         //insert_buffer(BUF_SAMPLES, V_CAPBANK);
-        insert_buffer(BUF_SAMPLES, g_controller_ctom.net_signals[10].f);
+        //insert_buffer(BUF_SAMPLES, IOUT_RECT);
+
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
