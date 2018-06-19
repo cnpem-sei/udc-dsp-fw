@@ -62,7 +62,7 @@
 #define V_PS2_OUTPUT                    g_controller_mtoc.net_signals[2].f   // ANI3
 #define V_PS3_OUTPUT                    g_controller_mtoc.net_signals[3].f   // ANI2
 
-#define DIGITAL_POT_VOLTAGE             g_controller_mtoc.net_signals[4]
+#define DIGITAL_POT_VOLTAGE             g_controller_mtoc.net_signals[4].u32
 
 /**
  * Analog variables parameters
@@ -152,7 +152,10 @@ void main_fbp_dclink(void)
         }
         else
         {
-            SATURATE(g_ipc_ctom.ps_module[0].ps_setpoint, MAX_REF, MIN_REF);
+            /// TODO: After implementation of closed loop, remove first line
+            /// below and un-comment second line
+            open_loop(&g_ipc_ctom.ps_module[0]);
+            ///SATURATE(g_ipc_ctom.ps_module[0].ps_setpoint, MAX_REF, MIN_REF);
         }
 
         g_ipc_ctom.ps_module[0].ps_reference = g_ipc_ctom.ps_module[0].ps_setpoint;
@@ -172,7 +175,12 @@ static void init_controller(void)
     init_ipc();
     init_control_framework(&g_controller_ctom);
 
+    /// TODO: This line avoids this PS model to open/close loop. After
+    /// implementation of control law, remove this line.
+    g_ipc_ctom.ps_module[0].ps_status.bit.unlocked = LOCKED;
+
     g_ipc_ctom.ps_module[0].ps_setpoint = g_ipc_mtoc.ps_module[0].ps_setpoint;
+
 }
 
 static void init_interruptions(void)

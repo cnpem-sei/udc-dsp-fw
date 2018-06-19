@@ -87,7 +87,6 @@ void main(void)
      */
     InitPieVectTable();
 
-
     /**
      *  TODO: Make sure ARM is already initialized to continue from here
      */
