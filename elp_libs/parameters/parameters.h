@@ -49,6 +49,7 @@ typedef enum
     UDCNet_Address,
     Ethernet_IP,
     Ethernet_Subnet_Mask,
+    Buzzer_Volume,
 
     Freq_ISR_Controller,
     Freq_TimeSlicer,
@@ -115,6 +116,18 @@ typedef struct
     uint16_t        num_elements;
     p_param_t       p_val;
 } param_t;
+
+typedef struct
+{
+    float           rs485_baud;
+    uint16_t        rs485_address[NUM_MAX_PS_MODULES];
+    uint16_t        rs485_termination;
+    uint16_t        udcnet_address;
+    uint32_t        ethernet_ip;
+    uint32_t        ethernet_mask;
+    uint16_t        buzzer_volume;
+    uint16_t        command_interface;
+} param_communication_t;
 
 typedef struct
 {

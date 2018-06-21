@@ -91,7 +91,7 @@ void main(void)
      *  TODO: Make sure ARM is already initialized to continue from here
      */
     init_gpios();
-    init_buzzer(50);     /// Volume: 1%
+    init_buzzer(g_ipc_mtoc.communication.buzzer_volume);
 
     while(1)
     {
