@@ -50,6 +50,8 @@
  */
 #define MAX_REF                 g_ipc_mtoc.control.max_ref
 #define MIN_REF                 g_ipc_mtoc.control.min_ref
+#define MAX_REF_OL              g_ipc_mtoc.control.max_ref_openloop
+#define MIN_REF_OL              g_ipc_mtoc.control.min_ref_openloop
 #define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
 #define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
 #define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
@@ -96,14 +98,16 @@
 #define MAX_TEMP_HEATSINK       g_ipc_mtoc.analog_vars.max[4]
 #define MAX_TEMP_INDUCTORS      g_ipc_mtoc.analog_vars.max[5]
 
+#define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS   g_ipc_mtoc.analog_vars.max[6]
+#define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS   g_ipc_mtoc.analog_vars.max[7]
+
 /**
  * Power supply defines
  */
 #define PIN_OPEN_AC_MAINS_CONTACTOR     CLEAR_GPDO1;
 #define PIN_CLOSE_AC_MAINS_CONTACTOR    SET_GPDO1;
-#define TIMEOUT_AC_MAINS_CONTACTOR      200000
 
-#define PIN_STATUS_AC_MAINS_CONTACTOR   GET_GPDI1
+#define PIN_STATUS_AC_MAINS_CONTACTOR   GET_GPDI5
 
 #define V_CAPBANK                       g_controller_ctom.net_signals[0].f  // HRADC0
 #define IOUT_RECT                       g_controller_ctom.net_signals[1].f  // HRADC1
@@ -684,7 +688,8 @@ static interrupt void isr_controller(void)
             /// Open-loop
             if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
             {
-                DUTY_CYCLE = 0.01 * g_ipc_ctom.ps_module[0].ps_reference;
+                SATURATE(V_CAPBANK_REFERENCE, MAX_REF_OL, MIN_REF_OL);
+                DUTY_CYCLE = 0.01 * V_CAPBANK_REFERENCE;
                 SATURATE(DUTY_CYCLE, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
             }
             /// Closed-loop
@@ -791,8 +796,10 @@ static void turn_on(uint16_t dummy)
     {
         reset_controller();
 
+        g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
+
         PIN_CLOSE_AC_MAINS_CONTACTOR;
-        DELAY_US(TIMEOUT_AC_MAINS_CONTACTOR);
+        DELAY_US(TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS*1000);
 
         if(!PIN_STATUS_AC_MAINS_CONTACTOR)
         {
@@ -821,7 +828,7 @@ static void turn_off(uint16_t dummy)
     disable_pwm_output(0);
 
     PIN_OPEN_AC_MAINS_CONTACTOR;
-    DELAY_US(TIMEOUT_AC_MAINS_CONTACTOR);
+    DELAY_US(TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS*1000);
 
     reset_controller();
 

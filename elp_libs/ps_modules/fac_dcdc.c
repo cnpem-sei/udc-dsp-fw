@@ -50,6 +50,9 @@
  */
 #define MAX_REF                 g_ipc_mtoc.control.max_ref
 #define MIN_REF                 g_ipc_mtoc.control.min_ref
+#define MAX_REF                 g_ipc_mtoc.control.max_ref
+#define MAX_REF_OL              g_ipc_mtoc.control.max_ref_openloop
+#define MIN_REF_OL              g_ipc_mtoc.control.min_ref_openloop
 #define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
 #define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
 #define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
@@ -603,7 +606,7 @@ interrupt void isr_controller(void)
         /// Open-loop
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
-            SATURATE(I_LOAD_REFERENCE, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
+            SATURATE(I_LOAD_REFERENCE, MAX_REF_OL, MIN_REF_OL);
             DUTY_CYCLE = 0.01 * I_LOAD_REFERENCE;
             SATURATE(DUTY_CYCLE, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
         }
