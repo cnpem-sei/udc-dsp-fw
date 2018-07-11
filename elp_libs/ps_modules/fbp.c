@@ -52,10 +52,10 @@
 #define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
 #define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
 #define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
-#define CONTROL_FREQ            g_ipc_mtoc.control.freq_isr_control
+#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
 #define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
-#define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/CONTROL_FREQ)
+#define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/ISR_CONTROL_FREQ)
 
 #define TIMESLICER_BUFFER       1
 #define BUFFER_DECIMATION       (1.0 / g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER])
@@ -404,12 +404,11 @@ static void init_controller(void)
     init_control_framework(&g_controller_ctom);
 
     /// Initialization of signal generator module
-    disable_siggen(&g_ipc_ctom.siggen);
-    init_siggen(&g_ipc_ctom.siggen, CONTROL_FREQ, &SIGGEN_OUTPUT);
-    cfg_siggen(&g_ipc_ctom.siggen, g_ipc_mtoc.siggen.type,
-               g_ipc_mtoc.siggen.num_cycles, g_ipc_mtoc.siggen.freq,
-               g_ipc_mtoc.siggen.amplitude, g_ipc_mtoc.siggen.offset,
-               g_ipc_mtoc.siggen.aux_param);
+    disable_siggen(&SIGGEN);
+    init_siggen(&SIGGEN, ISR_CONTROL_FREQ, &SIGGEN_OUTPUT);
+    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen.type, g_ipc_mtoc.siggen.num_cycles,
+               g_ipc_mtoc.siggen.freq, g_ipc_mtoc.siggen.amplitude,
+               g_ipc_mtoc.siggen.offset, g_ipc_mtoc.siggen.aux_param);
 
     /**
      * TODO: initialize WfmRef and Samples Buffer
@@ -437,7 +436,7 @@ static void init_controller(void)
      *         out:     output_signals[0]
      */
 
-    init_dsp_pi(PI_CONTROLLER_ILOAD_PS1, PS1_KP, PS1_KI, CONTROL_FREQ,
+    init_dsp_pi(PI_CONTROLLER_ILOAD_PS1, PS1_KP, PS1_KI, ISR_CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[4].f,
                 &g_controller_ctom.output_signals[0].f);
 
@@ -463,7 +462,7 @@ static void init_controller(void)
      *         out:     output_signals[1]
      */
 
-    init_dsp_pi(PI_CONTROLLER_ILOAD_PS2, PS2_KP, PS2_KI, CONTROL_FREQ,
+    init_dsp_pi(PI_CONTROLLER_ILOAD_PS2, PS2_KP, PS2_KI, ISR_CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[5].f,
                 &g_controller_ctom.output_signals[1].f);
 
@@ -489,7 +488,7 @@ static void init_controller(void)
      *         out:     output_signals[2]
      */
 
-    init_dsp_pi(PI_CONTROLLER_ILOAD_PS3, PS3_KP, PS3_KI, CONTROL_FREQ,
+    init_dsp_pi(PI_CONTROLLER_ILOAD_PS3, PS3_KP, PS3_KI, ISR_CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[6].f,
                 &g_controller_ctom.output_signals[2].f);
 
@@ -514,7 +513,7 @@ static void init_controller(void)
      *          in:     net_signals[7]
      *         out:     output_signals[3]
      */
-    init_dsp_pi(PI_CONTROLLER_ILOAD_PS4, PS4_KP, PS4_KI, CONTROL_FREQ,
+    init_dsp_pi(PI_CONTROLLER_ILOAD_PS4, PS4_KP, PS4_KI, ISR_CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7].f,
                 &g_controller_ctom.output_signals[3].f);
 

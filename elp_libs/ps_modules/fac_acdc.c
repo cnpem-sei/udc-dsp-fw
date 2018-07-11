@@ -56,7 +56,7 @@
 #define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
 #define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
 
-#define CONTROL_FREQ            g_ipc_mtoc.control.freq_isr_control
+#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
 
 #define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
@@ -64,11 +64,11 @@
 
 #define TIMESLICER_BUFFER       1
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
-#define BUFFER_DECIMATION       (uint16_t) roundf(CONTROL_FREQ / BUFFER_FREQ)
+#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
 
-#define TIMESLICER_V_CAPBANK_CONTROLLER     2
-#define V_CAPBANK_CONTROLLER_FREQ           g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_V_CAPBANK_CONTROLLER]
-#define V_CAPBANK_CONTROLLER_DECIMATION     (uint16_t) roundf(CONTROL_FREQ / V_CAPBANK_CONTROLLER_FREQ)
+#define TIMESLICER_CONTROLLER   2
+#define CONTROLLER_FREQ_SAMP    g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_CONTROLLER]
+#define CONTROLLER_DECIMATION   (uint16_t) roundf(ISR_CONTROL_FREQ / CONTROLLER_FREQ_SAMP)
 
 #define SIGGEN                  g_ipc_ctom.siggen
 
@@ -144,8 +144,11 @@
 #define KP_IOUT_RECT                    PI_CONTROLLER_IOUT_RECT_COEFFS.kp
 #define KI_IOUT_RECT                    PI_CONTROLLER_IOUT_RECT_COEFFS.ki
 
-#define IIR_2P2Z_CONTROLLER_IOUT_RECT           &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
-#define IIR_2P2Z_CONTROLLER_IOUT_RECT_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
+#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+
+#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT           &g_controller_ctom.dsp_modules.dsp_iir_2p2z[4]
+#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[4].coeffs.s
 
 #define PWM_MODULATOR                   g_pwm_modules.pwm_regs[0]
 
@@ -239,7 +242,7 @@ static void init_peripherals_drivers(void)
     /// Initialization of HRADC boards
     stop_DMA();
 
-    decimation_factor = HRADC_FREQ_SAMP / CONTROL_FREQ;
+    decimation_factor = HRADC_FREQ_SAMP / ISR_CONTROL_FREQ;
     decimation_coeff = 1.0 / decimation_factor;
 
 
@@ -313,15 +316,14 @@ static void init_controller(void)
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
     /***********************************************/
 
-    disable_siggen(&g_ipc_ctom.siggen);
+    disable_siggen(&SIGGEN);
 
-    init_siggen(&g_ipc_ctom.siggen, V_CAPBANK_CONTROLLER_FREQ,
+    init_siggen(&SIGGEN, CONTROLLER_FREQ_SAMP,
                 &g_ipc_ctom.ps_module[0].ps_reference);
 
-    cfg_siggen(&g_ipc_ctom.siggen, g_ipc_mtoc.siggen.type,
-               g_ipc_mtoc.siggen.num_cycles, g_ipc_mtoc.siggen.freq,
-               g_ipc_mtoc.siggen.amplitude, g_ipc_mtoc.siggen.offset,
-               g_ipc_mtoc.siggen.aux_param);
+    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen.type, g_ipc_mtoc.siggen.num_cycles,
+               g_ipc_mtoc.siggen.freq, g_ipc_mtoc.siggen.amplitude,
+               g_ipc_mtoc.siggen.offset, g_ipc_mtoc.siggen.aux_param);
 
     /**
      *        name:     SRLIM_SIGGEN_AMP
@@ -332,7 +334,7 @@ static void init_controller(void)
      */
 
     init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SR_SIGGEN_AMP,
-                   V_CAPBANK_CONTROLLER_FREQ, &g_ipc_mtoc.siggen.amplitude,
+                   CONTROLLER_FREQ_SAMP, &g_ipc_mtoc.siggen.amplitude,
                    &g_ipc_ctom.siggen.amplitude);
 
     /**
@@ -344,7 +346,7 @@ static void init_controller(void)
      */
 
     init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SR_SIGGEN_OFFSET,
-                   V_CAPBANK_CONTROLLER_FREQ, &g_ipc_mtoc.siggen.offset,
+                   CONTROLLER_FREQ_SAMP, &g_ipc_mtoc.siggen.offset,
                    &g_ipc_ctom.siggen.offset);
 
     /***********************************************************/
@@ -360,7 +362,7 @@ static void init_controller(void)
      */
 
     init_dsp_srlim(SRLIM_V_CAPBANK_REFERENCE, MAX_REF_SLEWRATE,
-                   V_CAPBANK_CONTROLLER_FREQ, &V_CAPBANK_SETPOINT,
+                   CONTROLLER_FREQ_SAMP, &V_CAPBANK_SETPOINT,
                    &V_CAPBANK_REFERENCE);
 
     /**
@@ -372,7 +374,8 @@ static void init_controller(void)
      *         out:     net_signals[4]
      */
 
-    init_dsp_error(ERROR_V_CAPBANK, &V_CAPBANK_REFERENCE, &V_CAPBANK,
+    init_dsp_error(ERROR_V_CAPBANK, &V_CAPBANK_REFERENCE,
+                   &g_controller_ctom.net_signals[3].f,
                    &g_controller_ctom.net_signals[4].f);
 
     /**
@@ -384,7 +387,7 @@ static void init_controller(void)
      */
 
     init_dsp_pi(PI_CONTROLLER_V_CAPBANK, KP_V_CAPBANK, KI_V_CAPBANK,
-                V_CAPBANK_CONTROLLER_FREQ, MAX_IOUT_RECT_REF, MIN_IOUT_RECT_REF,
+                CONTROLLER_FREQ_SAMP, MAX_IOUT_RECT_REF, MIN_IOUT_RECT_REF,
                 &g_controller_ctom.net_signals[4].f,
                 &g_controller_ctom.net_signals[5].f);
 
@@ -415,7 +418,7 @@ static void init_controller(void)
      */
 
     init_dsp_notch_2p2z(NOTCH_FILT_2HZ_V_CAPBANK, NF_ALPHA, 2.0,
-                        V_CAPBANK_CONTROLLER_FREQ, FLT_MAX, -FLT_MAX,
+                        CONTROLLER_FREQ_SAMP, FLT_MAX, -FLT_MAX,
                         &g_controller_ctom.net_signals[0].f,
                         &g_controller_ctom.net_signals[2].f);
 
@@ -438,7 +441,7 @@ static void init_controller(void)
      */
 
     init_dsp_notch_2p2z(NOTCH_FILT_4HZ_V_CAPBANK, NF_ALPHA, 4.0,
-                        V_CAPBANK_CONTROLLER_FREQ, FLT_MAX, -FLT_MAX,
+                        CONTROLLER_FREQ_SAMP, FLT_MAX, -FLT_MAX,
                         &g_controller_ctom.net_signals[2].f,
                         &g_controller_ctom.net_signals[3].f);
 
@@ -469,37 +472,55 @@ static void init_controller(void)
                    &IOUT_RECT, &g_controller_ctom.net_signals[6].f);
 
     /**
+     *        name:     RESSONANT_2HZ_CONTROLLER_IOUT_RECT
+     * description:     Rectifier output current 2 Hz ressonant controller
+     *    DP class:     ELP_IIR_2P2Z
+     *          in:     net_signals[6]
+     *         out:     net_signals[7]
+     */
+
+    init_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_IOUT_RECT,
+                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_COEFFS.b0,
+                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_COEFFS.b1,
+                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_COEFFS.b2,
+                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_COEFFS.a1,
+                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_COEFFS.a2,
+                      FLT_MAX, -FLT_MAX,
+                      &g_controller_ctom.net_signals[6].f,
+                      &g_controller_ctom.net_signals[7].f);
+
+    /**
+     *        name:     RESSONANT_4HZ_CONTROLLER_IOUT_RECT
+     * description:     Rectifier output current 4 Hz ressonant controller
+     *    DP class:     ELP_IIR_2P2Z
+     *          in:     net_signals[7]
+     *         out:     net_signals[8]
+     */
+
+    init_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_IOUT_RECT,
+                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_COEFFS.b0,
+                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_COEFFS.b1,
+                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_COEFFS.b2,
+                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_COEFFS.a1,
+                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_COEFFS.a2,
+                      FLT_MAX, -FLT_MAX,
+                      &g_controller_ctom.net_signals[7].f,
+                      &g_controller_ctom.net_signals[8].f);
+
+    /**
      *        name:     PI_CONTROLLER_IOUT_RECT
      * description:     Rectifier output current PI controller
      *    DP class:     ELP_PI_dawu
-     *          in:     net_signals[6]
+     *          in:     net_signals[8]
      *         out:     output_signals[0]
      */
     init_dsp_pi(PI_CONTROLLER_IOUT_RECT, KP_IOUT_RECT, KI_IOUT_RECT,
-                CONTROL_FREQ, PWM_MAX_DUTY, PWM_MIN_DUTY,
-                &g_controller_ctom.net_signals[6].f, &DUTY_CYCLE);
+                CONTROLLER_FREQ_SAMP, PWM_MAX_DUTY, PWM_MIN_DUTY,
+                &g_controller_ctom.net_signals[8].f, &DUTY_CYCLE);
 
     /*init_dsp_pi(PI_CONTROLLER_IOUT_RECT, KP_IOUT_RECT, KI_IOUT_RECT,
-                CONTROL_FREQ, PWM_MAX_DUTY, -PWM_MAX_DUTY,
+                ISR_CONTROL_FREQ, PWM_MAX_DUTY, -PWM_MAX_DUTY,
                 &g_controller_ctom.net_signals[6], &DUTY_CYCLE);*/
-
-    /**
-     *        name:     IIR_2P2Z_CONTROLLER_IOUT_RECT
-     * description:     Rectifier output current IIR 2P2Z controller
-     *    DP class:     ELP_IIR_2P2Z
-     *          in:     net_signals[6]
-     *         out:     output_signals[0]
-     */
-
-    init_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_IOUT_RECT,
-                      IIR_2P2Z_CONTROLLER_IOUT_RECT_COEFFS.b0,
-                      IIR_2P2Z_CONTROLLER_IOUT_RECT_COEFFS.b1,
-                      IIR_2P2Z_CONTROLLER_IOUT_RECT_COEFFS.b2,
-                      IIR_2P2Z_CONTROLLER_IOUT_RECT_COEFFS.a1,
-                      IIR_2P2Z_CONTROLLER_IOUT_RECT_COEFFS.a2,
-                      PWM_MAX_DUTY, PWM_MIN_DUTY,
-                      &g_controller_ctom.net_signals[0].f,
-                      &DUTY_CYCLE);
 
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
@@ -518,8 +539,8 @@ static void init_controller(void)
     /**
      * Time-slicer for Rectifier Output Current Controller
      */
-    cfg_timeslicer(TIMESLICER_V_CAPBANK_CONTROLLER,
-                   V_CAPBANK_CONTROLLER_DECIMATION);
+    cfg_timeslicer(TIMESLICER_CONTROLLER,
+                   CONTROLLER_DECIMATION);
 
     init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
     enable_buffer(BUF_SAMPLES);
@@ -540,6 +561,7 @@ static void reset_controller(void)
     g_ipc_ctom.ps_module[0].ps_setpoint = 0.0;
     g_ipc_ctom.ps_module[0].ps_reference = 0.0;
 
+    /// Reset capacitor bank voltage controller
     reset_dsp_srlim(SRLIM_V_CAPBANK_REFERENCE);
     reset_dsp_error(ERROR_V_CAPBANK);
     reset_dsp_pi(PI_CONTROLLER_V_CAPBANK);
@@ -547,9 +569,11 @@ static void reset_controller(void)
     reset_dsp_iir_2p2z(NOTCH_FILT_4HZ_V_CAPBANK);
     reset_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_V_CAPBANK);
 
+    /// Reset rectifier output current controller
     reset_dsp_error(ERROR_IOUT_RECT);
+    reset_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_IOUT_RECT);
+    reset_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_IOUT_RECT);
     reset_dsp_pi(PI_CONTROLLER_IOUT_RECT);
-    reset_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_IOUT_RECT);
 
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
@@ -621,7 +645,7 @@ static interrupt void isr_controller(void)
         temp[3] += (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer++);
     }
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 
     HRADCs_Info.HRADC_boards[0].SamplesBuffer = buffers_HRADC[0];
     HRADCs_Info.HRADC_boards[1].SamplesBuffer = buffers_HRADC[1];
@@ -645,10 +669,11 @@ static interrupt void isr_controller(void)
     g_controller_ctom.net_signals[10].f = temp[2];
     g_controller_ctom.net_signals[11].f = temp[3];
 
-    /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_V_CAPBANK_CONTROLLER)
+    /******** Timeslicer for controllers *********/
+    RUN_TIMESLICER(TIMESLICER_CONTROLLER)
     /*********************************************/
 
+        /// Run notch filters for capacitor bank voltage feedback
         run_dsp_iir_2p2z(NOTCH_FILT_2HZ_V_CAPBANK);
         run_dsp_iir_2p2z(NOTCH_FILT_4HZ_V_CAPBANK);
 
@@ -695,46 +720,42 @@ static interrupt void isr_controller(void)
             /// Closed-loop
             else
             {
+                /// Run capacitor bank voltage control law
                 SATURATE(g_ipc_ctom.ps_module[0].ps_reference, MAX_REF, MIN_REF);
                 run_dsp_error(ERROR_V_CAPBANK);
                 run_dsp_pi(PI_CONTROLLER_V_CAPBANK);
                 //run_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_V_CAPBANK);
 
+                /// Run rectifier output current control law
+                run_dsp_error(ERROR_IOUT_RECT);
+                run_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_IOUT_RECT);
+                run_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_IOUT_RECT);
+                run_dsp_pi(PI_CONTROLLER_IOUT_RECT);
+
                 SATURATE(DUTY_CYCLE, PWM_MAX_DUTY, PWM_MIN_DUTY);
             }
+
+            set_pwm_duty_chA(PWM_MODULATOR, DUTY_CYCLE);
         }
 
     /*********************************************/
-    END_TIMESLICER(TIMESLICER_V_CAPBANK_CONTROLLER)
+    END_TIMESLICER(TIMESLICER_CONTROLLER)
     /*********************************************/
 
-    /// Check whether power supply is ON
-    if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
-    {
-        /// Open-loop
-        if(!g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
-        {
-            run_dsp_error(ERROR_IOUT_RECT);
-            run_dsp_pi(PI_CONTROLLER_IOUT_RECT);
-            //run_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_IOUT_RECT);
-            SATURATE(DUTY_CYCLE, PWM_MAX_DUTY, PWM_MIN_DUTY);
-        }
-
-        set_pwm_duty_chA(PWM_MODULATOR, DUTY_CYCLE);
-    }
-
-    /*********************************************/
+    /******** Timeslicer for samples buffer ******/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, g_controller_ctom.net_signals[3].f);
         //insert_buffer(BUF_SAMPLES, V_CAPBANK);
-        //insert_buffer(BUF_SAMPLES, IOUT_RECT);
+
+        /// Output of 4Hz notch filter
+        insert_buffer(BUF_SAMPLES, g_controller_ctom.net_signals[3].f);
+        insert_buffer(BUF_SAMPLES, g_controller_ctom.net_signals[5].f);
+        insert_buffer(BUF_SAMPLES, IOUT_RECT);
+        insert_buffer(BUF_SAMPLES, DUTY_CYCLE);
 
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-
-    /// TODO: save on buffers
 
     CLEAR_DEBUG_GPIO1;
 

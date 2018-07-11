@@ -34,7 +34,7 @@
  */
 #define TIMESLICER_WFMREF       0
 #define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
-#define WFMREF_DECIMATION       (uint16_t) roundf(CONTROL_FREQ / WFMREF_FREQ)
+#define WFMREF_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / WFMREF_FREQ)
 
 typedef volatile struct
 {

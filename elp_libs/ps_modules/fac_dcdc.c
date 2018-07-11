@@ -57,7 +57,7 @@
 #define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
 #define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
 
-#define CONTROL_FREQ            g_ipc_mtoc.control.freq_isr_control
+#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
 
 #define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
@@ -65,11 +65,11 @@
 
 /*#define TIMESLICER_WFMREF       0
 #define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
-#define WFMREF_DECIMATION       (uint16_t) roundf(CONTROL_FREQ / WFMREF_FREQ)*/
+#define WFMREF_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / WFMREF_FREQ)*/
 
 #define TIMESLICER_BUFFER       1
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
-#define BUFFER_DECIMATION       (uint16_t) roundf(CONTROL_FREQ / BUFFER_FREQ)
+#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
 
 #define SIGGEN                  g_ipc_ctom.siggen
 
@@ -237,7 +237,7 @@ static void init_peripherals_drivers(void)
     /// Initialization of HRADC boards
     stop_DMA();
 
-    decimation_factor = (uint16_t) roundf(HRADC_FREQ_SAMP / CONTROL_FREQ);
+    decimation_factor = (uint16_t) roundf(HRADC_FREQ_SAMP / ISR_CONTROL_FREQ);
     decimation_coeff = 1.0 / (float) decimation_factor;
 
 
@@ -315,15 +315,14 @@ static void init_controller(void)
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
     /***********************************************/
 
-    disable_siggen(&g_ipc_ctom.siggen);
+    disable_siggen(&SIGGEN);
 
-    init_siggen(&g_ipc_ctom.siggen, CONTROL_FREQ,
+    init_siggen(&SIGGEN, ISR_CONTROL_FREQ,
                 &g_ipc_ctom.ps_module[0].ps_reference);
 
-    cfg_siggen(&g_ipc_ctom.siggen, g_ipc_mtoc.siggen.type,
-               g_ipc_mtoc.siggen.num_cycles, g_ipc_mtoc.siggen.freq,
-               g_ipc_mtoc.siggen.amplitude, g_ipc_mtoc.siggen.offset,
-               g_ipc_mtoc.siggen.aux_param);
+    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen.type, g_ipc_mtoc.siggen.num_cycles,
+               g_ipc_mtoc.siggen.freq, g_ipc_mtoc.siggen.amplitude,
+               g_ipc_mtoc.siggen.offset, g_ipc_mtoc.siggen.aux_param);
 
     /**
      *        name:     SRLIM_SIGGEN_AMP
@@ -333,7 +332,7 @@ static void init_controller(void)
      *         out:     g_ipc_ctom.siggen.amplitude
      */
 
-    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SR_SIGGEN_AMP, CONTROL_FREQ,
+    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SR_SIGGEN_AMP, ISR_CONTROL_FREQ,
                    &g_ipc_mtoc.siggen.amplitude, &g_ipc_ctom.siggen.amplitude);
 
     /**
@@ -345,7 +344,7 @@ static void init_controller(void)
      */
 
     init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SR_SIGGEN_OFFSET,
-                   CONTROL_FREQ, &g_ipc_mtoc.siggen.offset,
+                   ISR_CONTROL_FREQ, &g_ipc_mtoc.siggen.offset,
                    &g_ipc_ctom.siggen.offset);
 
     /*************************************************/
@@ -360,7 +359,7 @@ static void init_controller(void)
      *         out:     I_LOAD_REFERENCE
      */
 
-    init_dsp_srlim(SRLIM_I_LOAD_REFERENCE, MAX_REF_SLEWRATE, CONTROL_FREQ,
+    init_dsp_srlim(SRLIM_I_LOAD_REFERENCE, MAX_REF_SLEWRATE, ISR_CONTROL_FREQ,
                    &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
 
     /**
@@ -382,7 +381,7 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE
      */
 
-    init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, CONTROL_FREQ,
+    init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_CYCLE);
 
     /**
