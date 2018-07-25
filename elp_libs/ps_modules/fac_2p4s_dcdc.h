@@ -9,16 +9,20 @@
  *****************************************************************************/
 
 /**
- * @file version.c
- * @brief Firmware version module
+ * @file fac_dcdc.h
+ * @brief FAC-2P4S DC/DC Stage module
  * 
- * This module contains information about current build version of UDC C28 core.
+ * Module for control of DC/DC module of FAC power supplies. It implements the
+ * controller for load current.
  *
  * @author gabriel.brunheira
- * @date 08/02/2018
+ * @date 01/05/2018
  *
  */
 
-#include "version.h"
+#ifndef FAC_2P4S_DCDC_H_
+#define FAC_2P4S_DCDC_H_
 
-const char * udc_c28_version = "V0.15 2018-07-25";
+extern void main_fac_2p4s_dcdc(void);
+
+#endif /* FAC_2P4S_DCDC_H_ */

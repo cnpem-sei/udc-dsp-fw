@@ -32,6 +32,7 @@
 #include "ps_modules/fbp_dclink.h"
 #include "ps_modules/fac_acdc.h"
 #include "ps_modules/fac_dcdc.h"
+#include "ps_modules/fac_2p4s_acdc.h"
 
 /**
  * @brief Main function
@@ -121,6 +122,12 @@ void main(void)
             case FAC_DCDC:
             {
                 main_fac_dcdc();
+                break;
+            }
+
+            case FAC_2P4S_ACDC:
+            {
+                main_fac_2p4s_acdc();
                 break;
             }
 
