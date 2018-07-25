@@ -119,7 +119,7 @@ SECTIONS
    /* Allocate program areas: */
    .cinit              : > FLASHA,		PAGE = 0
    .pinit              : > FLASHA,		PAGE = 0
-   .text               : > FLASHCB,		PAGE = 0
+   .text               : > FLASHE,		PAGE = 0
    codestart           : > BEGIN       	PAGE = 0
    ramfuncs            : LOAD = FLASHD,
                          RUN = RAML0L1,

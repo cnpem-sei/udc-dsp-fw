@@ -33,6 +33,7 @@
 #include "ps_modules/fac_acdc.h"
 #include "ps_modules/fac_dcdc.h"
 #include "ps_modules/fac_2p4s_acdc.h"
+#include "ps_modules/fac_2p4s_dcdc.h"
 
 /**
  * @brief Main function
@@ -128,6 +129,12 @@ void main(void)
             case FAC_2P4S_ACDC:
             {
                 main_fac_2p4s_acdc();
+                break;
+            }
+
+            case FAC_2P4S_DCDC:
+            {
+                main_fac_2p4s_dcdc();
                 break;
             }
 

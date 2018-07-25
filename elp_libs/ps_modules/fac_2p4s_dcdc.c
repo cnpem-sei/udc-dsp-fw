@@ -54,7 +54,7 @@
 #include "parameters/parameters.h"
 #include "pwm/pwm.h"
 
-#include "fac_dcdc.h"
+#include "fac_2p4s_dcdc.h"
 
 #define USE_ITLK
 
@@ -138,19 +138,36 @@
 #define I_LOAD_ERROR                    g_controller_ctom.net_signals[4].f
 
 #define V_LOAD                          g_controller_mtoc.net_signals[0].f
-#define V_CAPBANK                       g_controller_mtoc.net_signals[1].f
-#define TEMP_INDUCTORS                  g_controller_mtoc.net_signals[2].f
-#define TEMP_IGBT                       g_controller_mtoc.net_signals[3].f
-#define V_OUT_MOD_1                     g_controller_mtoc.net_signals[4].f
-#define V_OUT_MOD_2                     g_controller_mtoc.net_signals[5].f
-#define V_OUT_MOD_3                     g_controller_mtoc.net_signals[6].f
-#define V_OUT_MOD_4                     g_controller_mtoc.net_signals[7].f
-#define V_OUT_MOD_5                     g_controller_mtoc.net_signals[8].f
-#define V_OUT_MOD_6                     g_controller_mtoc.net_signals[9].f
-#define V_OUT_MOD_7                     g_controller_mtoc.net_signals[10].f
-#define V_OUT_MOD_8                     g_controller_mtoc.net_signals[11].f
 
-#define DUTY_CYCLE                      g_controller_ctom.output_signals[0].f
+#define V_CAPBANK_MOD_1                 g_controller_mtoc.net_signals[1].f
+#define V_CAPBANK_MOD_2                 g_controller_mtoc.net_signals[2].f
+#define V_CAPBANK_MOD_3                 g_controller_mtoc.net_signals[3].f
+#define V_CAPBANK_MOD_4                 g_controller_mtoc.net_signals[4].f
+#define V_CAPBANK_MOD_5                 g_controller_mtoc.net_signals[5].f
+#define V_CAPBANK_MOD_6                 g_controller_mtoc.net_signals[6].f
+#define V_CAPBANK_MOD_7                 g_controller_mtoc.net_signals[7].f
+#define V_CAPBANK_MOD_8                 g_controller_mtoc.net_signals[8].f
+
+#define V_OUT_MOD_1                     g_controller_mtoc.net_signals[9].f
+#define V_OUT_MOD_2                     g_controller_mtoc.net_signals[10].f
+#define V_OUT_MOD_3                     g_controller_mtoc.net_signals[11].f
+#define V_OUT_MOD_4                     g_controller_mtoc.net_signals[12].f
+#define V_OUT_MOD_5                     g_controller_mtoc.net_signals[13].f
+#define V_OUT_MOD_6                     g_controller_mtoc.net_signals[14].f
+#define V_OUT_MOD_7                     g_controller_mtoc.net_signals[15].f
+#define V_OUT_MOD_8                     g_controller_mtoc.net_signals[16].f
+
+//#define TEMP_INDUCTORS                  g_controller_mtoc.net_signals[10].f
+//#define TEMP_IGBT                       g_controller_mtoc.net_signals[11].f
+
+#define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
+#define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
+#define DUTY_CYCLE_MOD_3                g_controller_ctom.output_signals[2].f
+#define DUTY_CYCLE_MOD_4                g_controller_ctom.output_signals[3].f
+#define DUTY_CYCLE_MOD_5                g_controller_ctom.output_signals[4].f
+#define DUTY_CYCLE_MOD_6                g_controller_ctom.output_signals[5].f
+#define DUTY_CYCLE_MOD_7                g_controller_ctom.output_signals[6].f
+#define DUTY_CYCLE_MOD_8                g_controller_ctom.output_signals[7].f
 
 #define I_LOAD_SETPOINT                 g_ipc_ctom.ps_module[0].ps_setpoint
 #define I_LOAD_REFERENCE                g_ipc_ctom.ps_module[0].ps_reference
@@ -487,7 +504,7 @@ static void init_controller(void)
      */
 
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_CYCLE);
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_CYCLE_MOD_1);
 
     /**
      *        name:     IIR_2P2Z_CONTROLLER_I_LOAD
@@ -503,7 +520,8 @@ static void init_controller(void)
                       IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.b2,
                       IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.a1,
                       IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.a2,
-                      PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_CYCLE);
+                      PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR,
+                      &DUTY_CYCLE_MOD_1);
 
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
@@ -536,29 +554,17 @@ static void init_controller(void)
  */
 static void reset_controller(void)
 {
-    set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_1_5, 0.0);
-    set_pwm_duty_chB(PWM_MODULATOR_Q1_MOD_1_5, 0.0);
+    set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_1_5, 50.0);
+    set_pwm_duty_chB(PWM_MODULATOR_Q1_MOD_1_5, 50.0);
 
-    set_pwm_duty_chA(PWM_MODULATOR_Q2_MOD_1_5, 0.0);
-    set_pwm_duty_chB(PWM_MODULATOR_Q2_MOD_1_5, 0.0);
+    set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_2_6, 50.0);
+    set_pwm_duty_chB(PWM_MODULATOR_Q1_MOD_2_6, 50.0);
 
-    set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_2_6, 0.0);
-    set_pwm_duty_chB(PWM_MODULATOR_Q1_MOD_2_6, 0.0);
+    set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_3_7, 50.0);
+    set_pwm_duty_chB(PWM_MODULATOR_Q1_MOD_3_7, 50.0);
 
-    set_pwm_duty_chA(PWM_MODULATOR_Q2_MOD_2_6, 0.0);
-    set_pwm_duty_chB(PWM_MODULATOR_Q2_MOD_2_6, 0.0);
-
-    set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_3_7, 0.0);
-    set_pwm_duty_chB(PWM_MODULATOR_Q1_MOD_3_7, 0.0);
-
-    set_pwm_duty_chA(PWM_MODULATOR_Q2_MOD_3_7, 0.0);
-    set_pwm_duty_chB(PWM_MODULATOR_Q2_MOD_3_7, 0.0);
-
-    set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_4_8, 0.0);
-    set_pwm_duty_chB(PWM_MODULATOR_Q1_MOD_4_8, 0.0);
-
-    set_pwm_duty_chA(PWM_MODULATOR_Q2_MOD_4_8, 0.0);
-    set_pwm_duty_chB(PWM_MODULATOR_Q2_MOD_4_8, 0.0);
+    set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_4_8, 50.0);
+    set_pwm_duty_chB(PWM_MODULATOR_Q1_MOD_4_8, 50.0);
 
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
@@ -608,11 +614,11 @@ static interrupt void isr_init_controller(void)
     PieVectTable.EPWM1_INT = &isr_controller;
     EDIS;
 
-    PWM_MODULATOR_Q1->ETSEL.bit.INTSEL = ET_CTR_ZERO;
-    PWM_MODULATOR_Q1->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q1_MOD_1_5->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q1_MOD_1_5->ETCLR.bit.INT = 1;
 
-    PWM_MODULATOR_Q2->ETSEL.bit.INTSEL = ET_CTR_ZERO;
-    PWM_MODULATOR_Q2->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q2_MOD_1_5->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q2_MOD_1_5->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
@@ -733,8 +739,8 @@ interrupt void isr_controller(void)
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
             SATURATE(I_LOAD_REFERENCE, MAX_REF_OL, MIN_REF_OL);
-            DUTY_CYCLE = 0.01 * I_LOAD_REFERENCE;
-            SATURATE(DUTY_CYCLE, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
+            DUTY_CYCLE_MOD_1 = 0.01 * I_LOAD_REFERENCE;
+            SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
         }
         /// Closed-loop
         else
@@ -744,10 +750,21 @@ interrupt void isr_controller(void)
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
             //run_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_I_LOAD);
 
-            SATURATE(DUTY_CYCLE, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
         }
 
-        set_pwm_duty_hbridge(PWM_MODULATOR_Q1, DUTY_CYCLE);
+        DUTY_CYCLE_MOD_2 = DUTY_CYCLE_MOD_1;
+        DUTY_CYCLE_MOD_3 = DUTY_CYCLE_MOD_1;
+        DUTY_CYCLE_MOD_4 = DUTY_CYCLE_MOD_1;
+
+        /**
+         * TODO: for 8 modules, create new function to set duty on channel B,
+         * used by modules 5, 6, 7 and 8.
+         */
+        set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_1_5, DUTY_CYCLE_MOD_1);
+        set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_2_6, DUTY_CYCLE_MOD_2);
+        set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_3_7, DUTY_CYCLE_MOD_3);
+        set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_4_8, DUTY_CYCLE_MOD_4);
     }
 
     /*********************************************/
@@ -762,8 +779,8 @@ interrupt void isr_controller(void)
 
     CLEAR_DEBUG_GPIO1;
 
-    PWM_MODULATOR_Q1->ETCLR.bit.INT = 1;
-    PWM_MODULATOR_Q2->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q1_MOD_1_5->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q2_MOD_1_5->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
@@ -780,8 +797,8 @@ static void init_interruptions(void)
 
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
     PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
-    enable_pwm_interrupt(PWM_MODULATOR_Q1);
-    enable_pwm_interrupt(PWM_MODULATOR_Q2);
+    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1_5);
+    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1_5);
 
     IER |= M_INT1;
     IER |= M_INT3;
@@ -805,8 +822,8 @@ static void term_interruptions(void)
     IER = 0;
     PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
     PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
-    disable_pwm_interrupt(PWM_MODULATOR_Q1);
-    disable_pwm_interrupt(PWM_MODULATOR_Q2);
+    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1_5);
+    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1_5);
 
     /// Clear flags
     PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
@@ -840,6 +857,13 @@ static void turn_on(uint16_t dummy)
             g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
             enable_pwm_output(0);
             enable_pwm_output(1);
+            enable_pwm_output(2);
+            enable_pwm_output(3);
+            enable_pwm_output(4);
+            enable_pwm_output(5);
+            enable_pwm_output(6);
+            enable_pwm_output(7);
+
         #ifdef USE_ITLK
         }
         #endif
@@ -855,6 +879,12 @@ static void turn_off(uint16_t dummy)
 {
     disable_pwm_output(0);
     disable_pwm_output(1);
+    disable_pwm_output(2);
+    disable_pwm_output(3);
+    disable_pwm_output(4);
+    disable_pwm_output(5);
+    disable_pwm_output(6);
+    disable_pwm_output(7);
 
     reset_controller();
 
