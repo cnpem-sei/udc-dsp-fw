@@ -42,8 +42,11 @@
 //#define KP                      0.1131          // PI  para carga de teste v3.0 (Lo = 36 mH/  Ro = 1.06 R)
 //#define KI                      3.3301          // fbw = 200 Hz / VDC-link = 400 V
 
-#define KP                      1.8849          // PI  para carga de teste v3.0 (Lo = 36 mH/  Ro = 70 mR)
-#define KI                      3.6652          // fbw = 200 Hz / VDC-link = 24 V
+//#define KP                      1.8849          // PI  para carga de teste v3.0 (Lo = 36 mH/  Ro = 70 mR)
+//#define KI                      3.6652          // fbw = 200 Hz / VDC-link = 24 V
+
+#define KP                      0.0628          // PI  para carga de teste v3.0 (Lo = 20 mH/  Ro = 1 mR)
+#define KI                      3.1415          // fbw = 200 Hz / VDC-link = 400 V
 
 #define KP2						0.000032117     // 0.00001
 #define KI2						0.0012          // 0.0027
