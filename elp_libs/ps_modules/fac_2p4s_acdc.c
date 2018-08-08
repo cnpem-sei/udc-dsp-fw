@@ -765,17 +765,13 @@ static void turn_on(uint16_t dummy)
             set_hard_interlock(MOD_B_ID, AC_MAINS_CONTACTOR_FAIL);
         }
 
-        #ifdef USE_ITLK
-        else
+        if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
         {
-        #endif
             g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
             g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
             enable_pwm_output(MOD_A_ID);
             enable_pwm_output(MOD_B_ID);
-        #ifdef USE_ITLK
         }
-        #endif
     }
 }
 

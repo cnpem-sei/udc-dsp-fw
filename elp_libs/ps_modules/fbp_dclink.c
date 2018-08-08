@@ -120,7 +120,7 @@ void main_fbp_dclink(void)
 {
     uint16_t i;
 
-    DELAY_US(1000000);
+    //DELAY_US(1000000);
 
     init_controller();
     init_interruptions();
