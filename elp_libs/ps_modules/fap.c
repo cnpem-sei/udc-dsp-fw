@@ -186,32 +186,35 @@
 #define PIN_STATUS_DCCT_2_ACTIVE        GET_GPDI12
 
 /**
- * Interlock defines
+ * Interlocks defines
  */
-#define LOAD_OVERCURRENT        0
-#define LOAD_OVERVOLTAGE        1
-#define V_DCLINK_OVERVOLTAGE    2
-#define V_DCLINK_UNDERVOLTAGE   3
-#define DCLINK_CONTACTOR_FAIL   4
-#define IGBT_1_OVERCURRENT      5
-#define IGBT_2_OVERCURRENT      6
+typedef enum
+{
+    Load_Overcurrent,
+    Load_Overvoltage,
+    DCLink_Overvoltage,
+    DCLink_Undervoltage,
+    DCLink_Contactor_Fault,
+    IGBT_1_Overcurrent,
+    IGBT_2_Overcurrent
+} hard_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS     IGBT_2_OVERCURRENT+1
+typedef enum
+{
+    DCCT_1_Fault,
+    DCCT_2_Fault,
+    DCCT_High_Difference,
+    Load_Feedback_1_Fault,
+    Load_Feedback_2_Fault,
+    IGBTs_Current_High_Difference
+} soft_interlocks_t;
 
-#define DCCT_1_FAULT            0
-#define DCCT_2_FAULT            1
-#define DCCTS_HIGH_DIFFERENCE   2
-#define I_LOAD_1_FEEDBACK_FAULT 3
-#define I_LOAD_2_FEEDBACK_FAULT 4
-#define IGBTS_HIGH_DIFFERENCE   5
+#define NUM_HARD_INTERLOCKS             IGBT_2_Overcurrent + 1
+#define NUM_SOFT_INTERLOCKS             IGBTs_Current_High_Difference + 1
 
-#define NUM_SOFT_INTERLOCKS     IGBTS_HIGH_DIFFERENCE+1
-
-static float hard_itlks_count[NUM_HARD_INTERLOCKS] = {200, 250, 3000000, 251, 1000, 500, 550};
-static float hard_itlks_overflow[NUM_HARD_INTERLOCKS] = {5000000, 0, 5000000, 0, 50000, 0, 0};
-static float soft_itlks_count[NUM_SOFT_INTERLOCKS] = {2000, 3000, 5000, 5000, 5000, 10000};
-static float soft_itlks_overflow[NUM_SOFT_INTERLOCKS] = {20000, 30000, 50000, 50000, 50000, 100000};
-
+/**
+ *  Private variables
+ */
 static uint16_t decimation_factor;
 static float decimation_coeff;
 
@@ -221,10 +224,6 @@ static float decimation_coeff;
 #pragma CODE_SECTION(isr_init_controller, "ramfuncs");
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
-#pragma CODE_SECTION(set_hard_interlock_2, "ramfuncs");
-#pragma CODE_SECTION(set_soft_interlock_2, "ramfuncs");
-#pragma CODE_SECTION(isr_hard_interlock, "ramfuncs");
-#pragma CODE_SECTION(isr_soft_interlock, "ramfuncs");
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -243,11 +242,6 @@ static void turn_on(uint16_t dummy);
 static void turn_off(uint16_t dummy);
 
 static void reset_interlocks(uint16_t dummy);
-//static void set_hard_interlock_2(0, uint32_t itlk);
-//static void set_soft_interlock_2(0, uint32_t itlk);
-static interrupt void isr_hard_interlock(void);
-static interrupt void isr_soft_interlock(void);
-
 static inline void check_interlocks(void);
 
 /**
@@ -355,10 +349,12 @@ static void init_controller(void)
     g_ipc_ctom.ps_module[2].ps_status.all = 0;
     g_ipc_ctom.ps_module[3].ps_status.all = 0;
 
-    init_event_manager(0, BUFFER_FREQ,
+    init_event_manager(0, ISR_CONTROL_FREQ,
                        NUM_HARD_INTERLOCKS, NUM_SOFT_INTERLOCKS,
-                       &hard_itlks_count, &hard_itlks_overflow,
-                       &soft_itlks_count, &soft_itlks_overflow);
+                       &HARD_INTERLOCKS_DEBOUNCE_TIME,
+                       &HARD_INTERLOCKS_RESET_TIME,
+                       &SOFT_INTERLOCKS_DEBOUNCE_TIME,
+                       &SOFT_INTERLOCKS_RESET_TIME);
 
     init_ipc();
     init_control_framework(&g_controller_ctom);
@@ -783,11 +779,11 @@ interrupt void isr_controller(void)
     /*********************************************/
         insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
         insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
-
-        g_event_manager[0].timebase_flag = 1;
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
+
+    g_event_manager[0].timebase_flag = 1;
 
     PWM_MODULATOR_IGBT_1->ETCLR.bit.INT = 1;
     PWM_MODULATOR_IGBT_2->ETCLR.bit.INT = 1;
@@ -856,7 +852,7 @@ static void turn_on(uint16_t dummy)
     {
         if(V_DCLINK < MIN_V_DCLINK)
         {
-            set_hard_interlock_2(0, V_DCLINK_UNDERVOLTAGE);
+            set_hard_interlock(0, DCLink_Undervoltage);
         }
 
         #ifdef USE_ITLK
@@ -869,7 +865,7 @@ static void turn_on(uint16_t dummy)
 
             if(!PIN_STATUS_DCLINK_CONTACTOR)
             {
-                set_hard_interlock_2(0, DCLINK_CONTACTOR_FAIL);
+                set_hard_interlock(0, DCLink_Contactor_Fault);
             }
 
             #ifdef USE_ITLK
@@ -929,42 +925,6 @@ static void reset_interlocks(uint16_t dummy)
 }
 
 /**
- * ISR for MtoC hard interlock request.
- */
-static interrupt void isr_hard_interlock(void)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_hard_interlock &
-         g_ipc_mtoc.ps_module[0].ps_hard_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_hard_interlock |=
-        g_ipc_mtoc.ps_module[0].ps_hard_interlock;
-    }
-}
-
-/**
- * ISR for MtoC soft interlock request.
- */
-static interrupt void isr_soft_interlock(void)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_soft_interlock &
-         g_ipc_mtoc.ps_module[0].ps_soft_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_soft_interlock |=
-        g_ipc_mtoc.ps_module[0].ps_soft_interlock;
-    }
-}
-
-/**
  * Check interlocks of this specific power supply topology
  */
 static inline void check_interlocks(void)
@@ -973,56 +933,56 @@ static inline void check_interlocks(void)
 
     if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
     {
-        set_hard_interlock_2(0, LOAD_OVERCURRENT);
+        set_hard_interlock(0, Load_Overcurrent);
     }
 
     if(fabs(I_IGBT_1) > MAX_I_IGBT)
     {
-        set_hard_interlock_2(0, IGBT_1_OVERCURRENT);
+        set_hard_interlock(0, IGBT_1_Overcurrent);
     }
 
     if(fabs(I_IGBT_2) > MAX_I_IGBT)
     {
-        set_hard_interlock_2(0, IGBT_2_OVERCURRENT);
+        set_hard_interlock(0, IGBT_2_Overcurrent);
     }
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
     {
-        set_soft_interlock_2(0, DCCTS_HIGH_DIFFERENCE);
+        set_soft_interlock(0, DCCT_High_Difference);
     }
 
     if(fabs(I_IGBTS_DIFF) > MAX_IGBT_DIFF)
     {
-        set_soft_interlock_2(0, IGBTS_HIGH_DIFFERENCE);
+        set_soft_interlock(0, IGBTs_Current_High_Difference);
     }
 
     if(fabs(V_DCLINK) > MAX_V_DCLINK)
     {
-        set_hard_interlock_2(0, V_DCLINK_OVERVOLTAGE);
+        set_hard_interlock(0, DCLink_Overvoltage);
     }
 
     if(!PIN_STATUS_DCCT_1_STATUS)
     {
-        set_soft_interlock_2(0, DCCT_1_FAULT);
+        set_soft_interlock(0, DCCT_1_Fault);
     }
 
     if(!PIN_STATUS_DCCT_2_STATUS)
     {
-        set_soft_interlock_2(0, DCCT_2_FAULT);
+        set_soft_interlock(0, DCCT_2_Fault);
     }
 
     if(PIN_STATUS_DCCT_1_ACTIVE)
     {
         if(fabs(I_LOAD_1) < MIN_I_ACTIVE_DCCT)
         {
-            set_soft_interlock_2(0, I_LOAD_1_FEEDBACK_FAULT);
+            set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
     else
     {
         if(fabs(I_LOAD_1) > MAX_I_IDLE_DCCT)
         {
-            set_soft_interlock_2(0, I_LOAD_1_FEEDBACK_FAULT);
+            set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
 
@@ -1030,14 +990,14 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
         {
-            set_soft_interlock_2(0, I_LOAD_2_FEEDBACK_FAULT);
+            set_soft_interlock(0, Load_Feedback_2_Fault);
         }
     }
     else
     {
         if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
         {
-            set_soft_interlock_2(0, I_LOAD_2_FEEDBACK_FAULT);
+            set_soft_interlock(0, Load_Feedback_2_Fault);
         }
     }
 
@@ -1047,19 +1007,19 @@ static inline void check_interlocks(void)
     {
         if(PIN_STATUS_DCLINK_CONTACTOR)
         {
-            set_hard_interlock_2(0, DCLINK_CONTACTOR_FAIL);
+            set_hard_interlock(0, DCLink_Contactor_Fault);
         }
     }
     else
     {
         if(!PIN_STATUS_DCLINK_CONTACTOR)
         {
-            set_hard_interlock_2(0, DCLINK_CONTACTOR_FAIL);
+            set_hard_interlock(0, DCLink_Contactor_Fault);
         }
 
         if(V_DCLINK < MIN_V_DCLINK)
         {
-            set_hard_interlock_2(0, V_DCLINK_UNDERVOLTAGE);
+            set_hard_interlock(0, DCLink_Undervoltage);
         }
     }
 

@@ -140,6 +140,7 @@ typedef struct
     param_hradc_t           hradc;
     param_analog_vars_t     analog_vars;
     param_communication_t   communication;
+    param_interlocks_t      interlocks;
 } ipc_mtoc_t;
 
 extern volatile float g_wfmref[SIZE_WFMREF];

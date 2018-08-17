@@ -100,8 +100,8 @@ PAGE 1 :   /* Data Memory */
    RAMS67      : origin = 0x012000, length = 0x002000     /* on-chip Shared RAM block S6-S7 */
    
 
-   CTOMRAM     : origin = 0x03F800, length = 0x000380     /* C28 to M3 Message RAM */
-   MTOCRAM     : origin = 0x03FC00, length = 0x000380     /* M3 to C28 Message RAM */
+   CTOMRAM     : origin = 0x03F800, length = 0x000400     /* C28 to M3 Message RAM */
+   MTOCRAM     : origin = 0x03FC00, length = 0x000400     /* M3 to C28 Message RAM */
    
 
 }

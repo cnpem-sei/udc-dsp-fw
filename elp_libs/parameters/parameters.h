@@ -26,9 +26,10 @@
 #include <stdint.h>
 #include <math.h>
 #include "common/structs.h"
+#include "common/timeslicer.h"
+#include "event_manager/event_manager.h"
 #include "ps_modules/ps_modules.h"
 #include "siggen/siggen.h"
-#include "common/timeslicer.h"
 
 #define NUM_MAX_ANALOG_VAR      64
 #define NUM_MAX_DIGITAL_VAR     12
@@ -171,6 +172,14 @@ typedef struct
     float   max[NUM_MAX_ANALOG_VAR];
     float   min[NUM_MAX_ANALOG_VAR];
 } param_analog_vars_t;
+
+typedef struct
+{
+    uint32_t    hard_itlks_debounce_time[NUM_MAX_HARD_INTERLOCKS];
+    uint32_t    hard_itlks_reset_time[NUM_MAX_HARD_INTERLOCKS];
+    uint32_t    soft_itlks_debounce_time[NUM_MAX_SOFT_INTERLOCKS];
+    uint32_t    soft_itlks_reset_time[NUM_MAX_SOFT_INTERLOCKS];
+} param_interlocks_t;
 
 extern volatile param_t g_parameters[NUM_MAX_PARAMETERS];
 
