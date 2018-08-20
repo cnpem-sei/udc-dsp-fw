@@ -21,11 +21,11 @@
 
 #include "boards/udc_c28.h"
 #include "control/control.h"
+#include "event_manager/event_manager.h"
 #include "ipc/ipc.h"
+#include "pwm/pwm.h"
 
 #include "fbp_dclink.h"
-
-#define USE_ITLK
 
 /**
  * Configuration parameters
@@ -39,6 +39,8 @@
 #define MIN_REF                 g_ipc_mtoc.control.min_ref
 #define MAX_REF_OL              g_ipc_mtoc.control.max_ref_openloop
 #define MIN_REF_OL              g_ipc_mtoc.control.min_ref_openloop
+#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
+
 /**
  * Digital I/O's operations and status
  */
@@ -48,9 +50,9 @@
 #define PIN_OPEN_EXTERNAL_RELAY         CLEAR_GPDO2
 #define PIN_CLOSE_EXTERNAL_RELAY        SET_GPDO2
 
-#define PIN_STATUS_PS1_FAIL             GET_GPDI1
-#define PIN_STATUS_PS2_FAIL             GET_GPDI2
-#define PIN_STATUS_PS3_FAIL             GET_GPDI3
+#define PIN_STATUS_POWER_MODULE_1_FAULT !GET_GPDI1
+#define PIN_STATUS_POWER_MODULE_2_FAULT !GET_GPDI2
+#define PIN_STATUS_POWER_MODULE_3_FAULT !GET_GPDI3
 
 #define PIN_STATUS_SMOKE_DETECTOR       GET_GPDI4
 #define PIN_STATUS_EXTERNAL_INTERLOCK   GET_GPDI5
@@ -80,26 +82,34 @@
 #define MIN_V_PS3                       g_ipc_mtoc.analog_vars.min[3]
 
 /**
- * Interlock defines
+ * Interlocks defines
  */
-#define PS1_FAIL                        0x00000001
-#define PS2_FAIL                        0x00000002
-#define PS3_FAIL                        0x00000004
-#define DCLINK_OVERVOLTAGE              0x00000008
-#define PS1_OVERVOLTAGE                 0x00000010
-#define PS2_OVERVOLTAGE                 0x00000020
-#define PS3_OVERVOLTAGE                 0x00000040
-#define DCLINK_UNDERVOLTAGE             0x00000080
-#define PS1_UNDERVOLTAGE                0x00000100
-#define PS2_UNDERVOLTAGE                0x00000200
-#define PS3_UNDERVOLTAGE                0x00000400
-#define SMOKE_DETECTOR                  0x00000800
-#define EXTERNAL_INTERLOCK              0x00001000
+typedef enum
+{
+    Power_Module_1_Fault,
+    Power_Module_2_Fault,
+    Power_Module_3_Fault,
+    Total_Output_Overvoltage,
+    Power_Module_1_Overvoltage,
+    Power_Module_2_Overvoltage,
+    Power_Module_3_Overvoltage,
+    Total_Output_Undervoltage,
+    Power_Module_1_Undervoltage,
+    Power_Module_2_Undervoltage,
+    Power_Module_3_Undervoltage,
+    Smoke_Detector,
+    External_Interlock
+} hard_interlocks_t;
+
+#define NUM_HARD_INTERLOCKS     External_Interlock + 1
+#define NUM_SOFT_INTERLOCKS     0
 
 /**
  * Private functions
  */
 static void init_controller(void);
+
+static void init_peripherals_drivers(void);
 
 static void init_interruptions(void);
 static void term_interruptions(void);
@@ -107,12 +117,7 @@ static void term_interruptions(void);
 static void turn_on(uint16_t id);
 static void turn_off(uint16_t id);
 
-static void set_hard_interlock(uint32_t itlk);
-static interrupt void isr_hard_interlock(void);
-static interrupt void isr_soft_interlock(void);
 static void reset_interlocks(uint16_t id);
-
-//static inline void check_interlocks_ps_module(void);
 static void check_interlocks_ps_module(uint16_t id);
 
 
@@ -123,6 +128,7 @@ void main_fbp_dclink(void)
     //DELAY_US(1000000);
 
     init_controller();
+    init_peripherals_drivers();
     init_interruptions();
 
     /// TODO: check why first sync_pulse occurs
@@ -131,13 +137,16 @@ void main_fbp_dclink(void)
     /// Enable TBCLK for buzzer and interlock LED PWM signals
     enable_pwm_tbclk();
 
+    /// Enable interlocks time-base timer
+    CpuTimer0Regs.TCR.all = 0x4000;
+
     /// TODO: include condition for re-initialization
     while(1)
     {
         /// Group all pin status
-        PIN_STATUS_ALL_PS_FAIL = ( PIN_STATUS_PS1_FAIL |
-                                  (PIN_STATUS_PS2_FAIL << 1) |
-                                  (PIN_STATUS_PS3_FAIL << 2) ) & 0x00000007;
+        PIN_STATUS_ALL_PS_FAIL = ( PIN_STATUS_POWER_MODULE_1_FAULT |
+                                  (PIN_STATUS_POWER_MODULE_2_FAULT << 1) |
+                                  (PIN_STATUS_POWER_MODULE_3_FAULT << 2) ) & 0x00000007;
 
         /// Check interlocks for specified power module
         for(i = 0; i < g_ipc_mtoc.num_ps_modules; i++)
@@ -172,6 +181,13 @@ static void init_controller(void)
                    &turn_on, &turn_off, &isr_soft_interlock,
                    &isr_hard_interlock, &reset_interlocks);
 
+    init_event_manager(0, ISR_CONTROL_FREQ,
+                       NUM_HARD_INTERLOCKS, NUM_SOFT_INTERLOCKS,
+                       &HARD_INTERLOCKS_DEBOUNCE_TIME,
+                       &HARD_INTERLOCKS_RESET_TIME,
+                       &SOFT_INTERLOCKS_DEBOUNCE_TIME,
+                       &SOFT_INTERLOCKS_RESET_TIME);
+
     init_ipc();
     init_control_framework(&g_controller_ctom);
 
@@ -183,114 +199,32 @@ static void init_controller(void)
 
 }
 
+static void init_peripherals_drivers(void)
+{
+    /// Initialization of timers
+    InitCpuTimers();
+
+    /// Timer for time-base of interlocks debouncing
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, (1000000.0/ISR_CONTROL_FREQ) );
+    CpuTimer0Regs.TCR.bit.TIE = 0;
+}
+
 static void init_interruptions(void)
 {
+    EALLOW;
+    PieVectTable.TINT0 = &isr_interlocks_timebase;
+    EDIS;
+
+    /// Enable TINT0 in the PIE: Group 1 interrupt 7
+    PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
+
+    IER |= M_INT1;
     IER |= M_INT11;
 
     /// Enable global interrupts (EINT)
     EINT;
     ERTM;
 }
-
-/**
- * Check variables from specified power supply for interlocks
- *
- * @param id specified power supply
- */
-/*static inline void check_interlocks_ps_module(void)
-{
-    if(PIN_STATUS_SMOKE_DETECTOR)
-    {
-        set_hard_interlock(SMOKE_DETECTOR);
-    }
-
-    if(PIN_STATUS_EXTERNAL_INTERLOCK)
-    {
-        set_hard_interlock(EXTERNAL_INTERLOCK);
-    }
-
-    /// Check overvoltage conditions
-    if(V_DCLINK_OUTPUT > MAX_V_ALL_PS)
-    {
-        set_hard_interlock(DCLINK_OVERVOLTAGE);
-    }
-
-    if(V_PS1_OUTPUT > MAX_V_PS1)
-    {
-        set_hard_interlock(PS1_OVERVOLTAGE);
-    }
-
-    if(V_PS2_OUTPUT > MAX_V_PS2)
-    {
-        set_hard_interlock(PS2_OVERVOLTAGE);
-    }
-
-    if(V_PS3_OUTPUT > MAX_V_PS3)
-    {
-        set_hard_interlock(PS3_OVERVOLTAGE);
-    }
-
-    DINT;
-
-    if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
-    {
-        /// Check digital status
-        if(PIN_STATUS_PS1_FAIL)
-        {
-            set_hard_interlock(PS1_FAIL);
-        }
-
-        if(PIN_STATUS_PS2_FAIL)
-        {
-            set_hard_interlock(PS2_FAIL);
-        }
-
-        if(PIN_STATUS_PS3_FAIL)
-        {
-            set_hard_interlock(PS3_FAIL);
-        }
-
-        /// Check undervoltage conditions
-        if(V_DCLINK_OUTPUT < MIN_V_ALL_PS)
-        {
-            set_hard_interlock(DCLINK_UNDERVOLTAGE);
-        }
-
-        if(V_PS1_OUTPUT < MIN_V_PS1)
-        {
-            set_hard_interlock(PS1_UNDERVOLTAGE);
-        }
-        if(V_PS2_OUTPUT < MIN_V_PS2)
-        {
-            set_hard_interlock(PS2_UNDERVOLTAGE);
-        }
-        if(V_PS3_OUTPUT < MIN_V_PS3)
-        {
-            set_hard_interlock(PS3_UNDERVOLTAGE);
-        }
-    }
-
-    else
-    {
-        /// Check digital status
-        if(!PIN_STATUS_PS1_FAIL)
-        {
-            set_hard_interlock(PS1_FAIL);
-        }
-
-        if(!PIN_STATUS_PS2_FAIL)
-        {
-            set_hard_interlock(PS2_FAIL);
-        }
-
-        if(!PIN_STATUS_PS3_FAIL)
-        {
-            set_hard_interlock(PS3_FAIL);
-        }
-    }
-
-    EINT;
-}*/
 
 /**
  * Turn on specified power supply.
@@ -349,61 +283,6 @@ static void term_interruptions(void)
 }
 
 /**
- * Set specified hard interlock for specified power supply.
- *
- * @param id specified power supply
- * @param itlk specified hard interlock
- */
-static void set_hard_interlock(uint32_t itlk)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_hard_interlock & itlk))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_hard_interlock |= itlk;
-    }
-}
-
-/**
- * ISR for MtoC hard interlock request.
- */
-static interrupt void isr_hard_interlock(void)
-{
-    if(! (g_ipc_ctom.ps_module[0].ps_hard_interlock &
-         g_ipc_mtoc.ps_module[0].ps_hard_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_hard_interlock |=
-        g_ipc_mtoc.ps_module[0].ps_hard_interlock;
-    }
-}
-
-/**
- * ISR for MtoC soft interlock request.
- */
-static interrupt void isr_soft_interlock(void)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_soft_interlock &
-         g_ipc_mtoc.ps_module[0].ps_soft_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_soft_interlock |=
-        g_ipc_mtoc.ps_module[0].ps_soft_interlock;
-    }
-}
-
-/**
  * Reset interlocks for specified power supply.
  *
  * @param id specified power supply
@@ -428,18 +307,18 @@ static void check_interlocks_ps_module(uint16_t id)
 {
     if(PIN_STATUS_SMOKE_DETECTOR)
     {
-        set_hard_interlock(SMOKE_DETECTOR);
+        set_hard_interlock(0, Smoke_Detector);
     }
 
     if(PIN_STATUS_EXTERNAL_INTERLOCK)
     {
-        set_hard_interlock(EXTERNAL_INTERLOCK);
+        set_hard_interlock(0, External_Interlock);
     }
 
     /// Check overvoltage conditions
     if(V_DCLINK_OUTPUT > MAX_V_ALL_PS)
     {
-        set_hard_interlock(DCLINK_OVERVOLTAGE);
+        set_hard_interlock(0, Total_Output_Overvoltage);
     }
 
     DINT;
@@ -450,32 +329,32 @@ static void check_interlocks_ps_module(uint16_t id)
         {
             if(V_PS1_OUTPUT > MAX_V_PS1)
             {
-                set_hard_interlock(PS1_OVERVOLTAGE);
+                set_hard_interlock(0, Power_Module_1_Overvoltage);
             }
 
             if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
             {
-                if(PIN_STATUS_PS1_FAIL)
+                if(PIN_STATUS_POWER_MODULE_1_FAULT)
                 {
-                    set_hard_interlock(PS1_FAIL);
+                    set_hard_interlock(0, Power_Module_1_Fault);
                 }
 
                 if(V_DCLINK_OUTPUT < MIN_V_ALL_PS)
                 {
-                    set_hard_interlock(DCLINK_UNDERVOLTAGE);
+                    set_hard_interlock(0, Total_Output_Undervoltage);
                 }
 
                 if(V_PS1_OUTPUT < MIN_V_PS1)
                 {
-                    set_hard_interlock(PS1_UNDERVOLTAGE);
+                    set_hard_interlock(0, Power_Module_1_Undervoltage);
                 }
             }
 
             else
             {
-                if(!PIN_STATUS_PS1_FAIL)
+                if(!PIN_STATUS_POWER_MODULE_1_FAULT)
                 {
-                    set_hard_interlock(PS1_FAIL);
+                    set_hard_interlock(0, Power_Module_1_Fault);
                 }
             }
 
@@ -486,32 +365,32 @@ static void check_interlocks_ps_module(uint16_t id)
         {
             if(V_PS2_OUTPUT > MAX_V_PS2)
             {
-                set_hard_interlock(PS2_OVERVOLTAGE);
+                set_hard_interlock(0, Power_Module_2_Overvoltage);
             }
 
             if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
             {
-                if(PIN_STATUS_PS2_FAIL)
+                if(PIN_STATUS_POWER_MODULE_2_FAULT)
                 {
-                    set_hard_interlock(PS2_FAIL);
+                    set_hard_interlock(0, Power_Module_2_Fault);
                 }
 
                 if(V_DCLINK_OUTPUT < MIN_V_ALL_PS)
                 {
-                    set_hard_interlock(DCLINK_UNDERVOLTAGE);
+                    set_hard_interlock(0, Total_Output_Undervoltage);
                 }
 
                 if(V_PS2_OUTPUT < MIN_V_PS2)
                 {
-                    set_hard_interlock(PS2_UNDERVOLTAGE);
+                    set_hard_interlock(0, Power_Module_2_Undervoltage);
                 }
             }
 
             else
             {
-                if(!PIN_STATUS_PS2_FAIL)
+                if(!PIN_STATUS_POWER_MODULE_2_FAULT)
                 {
-                    set_hard_interlock(PS2_FAIL);
+                    set_hard_interlock(0, Power_Module_2_Fault);
                 }
             }
 
@@ -522,32 +401,32 @@ static void check_interlocks_ps_module(uint16_t id)
         {
             if(V_PS3_OUTPUT > MAX_V_PS3)
             {
-                set_hard_interlock(PS3_OVERVOLTAGE);
+                set_hard_interlock(0, Power_Module_3_Overvoltage);
             }
 
             if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
             {
-                if(PIN_STATUS_PS3_FAIL)
+                if(PIN_STATUS_POWER_MODULE_3_FAULT)
                 {
-                    set_hard_interlock(PS3_FAIL);
+                    set_hard_interlock(0, Power_Module_3_Fault);
                 }
 
                 if(V_DCLINK_OUTPUT < MIN_V_ALL_PS)
                 {
-                    set_hard_interlock(DCLINK_UNDERVOLTAGE);
+                    set_hard_interlock(0, Total_Output_Undervoltage);
                 }
 
                 if(V_PS3_OUTPUT < MIN_V_PS3)
                 {
-                    set_hard_interlock(PS3_UNDERVOLTAGE);
+                    set_hard_interlock(0, Power_Module_3_Undervoltage);
                 }
             }
 
             else
             {
-                if(!PIN_STATUS_PS3_FAIL)
+                if(!PIN_STATUS_POWER_MODULE_3_FAULT)
                 {
-                    set_hard_interlock(PS3_FAIL);
+                    set_hard_interlock(0, Power_Module_3_Fault);
                 }
             }
 
@@ -556,4 +435,8 @@ static void check_interlocks_ps_module(uint16_t id)
     }
 
     EINT;
+
+    //SET_DEBUG_GPIO1;
+    run_interlocks_debouncing(0);
+    //CLEAR_DEBUG_GPIO1;
 }

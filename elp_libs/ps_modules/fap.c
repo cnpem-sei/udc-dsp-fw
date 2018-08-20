@@ -34,8 +34,6 @@
 
 #include "fap.h"
 
-//#define USE_ITLK
-
 /**
  * PWM parameters
  */
@@ -617,8 +615,8 @@ interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
-    //CLEAR_DEBUG_GPIO1;
-    //SET_DEBUG_GPIO1;
+    CLEAR_DEBUG_GPIO1;
+    SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -783,14 +781,14 @@ interrupt void isr_controller(void)
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
 
-    g_event_manager[0].timebase_flag = 1;
+    SET_INTERLOCKS_TIMEBASE_FLAG(0);
 
     PWM_MODULATOR_IGBT_1->ETCLR.bit.INT = 1;
     PWM_MODULATOR_IGBT_2->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    //CLEAR_DEBUG_GPIO1;
+    CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -1026,7 +1024,7 @@ static inline void check_interlocks(void)
     EINT;
 
     //CLEAR_DEBUG_GPIO1;
-    //SET_DEBUG_GPIO1;
-    check_events(0);
-    //CLEAR_DEBUG_GPIO1;
+    SET_DEBUG_GPIO1;
+    run_interlocks_debouncing(0);
+    CLEAR_DEBUG_GPIO1;
 }

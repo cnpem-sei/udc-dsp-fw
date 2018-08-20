@@ -49,14 +49,13 @@
 #include "common/structs.h"
 #include "common/timeslicer.h"
 #include "control/control.h"
+#include "event_manager/event_manager.h"
 #include "HRADC_board/HRADC_Boards.h"
 #include "ipc/ipc.h"
 #include "parameters/parameters.h"
 #include "pwm/pwm.h"
 
 #include "fac_2p4s_dcdc.h"
-
-#define USE_ITLK
 
 /**
  * PWM parameters
@@ -126,7 +125,6 @@
 #define MAX_I_IDLE_DCCT         g_ipc_mtoc.analog_vars.max[6]
 #define MIN_I_ACTIVE_DCCT       g_ipc_mtoc.analog_vars.min[6]
 #define MAX_VOUT_MODULE         g_ipc_mtoc.analog_vars.max[7]
-
 
 /**
  * Controller defines
@@ -206,44 +204,56 @@
 #define PIN_STATUS_DCCT_2_ACTIVE    GET_GPDI12
 
 /**
- * Interlock defines
+ * Interlocks defines
  */
-#define LOAD_OVERCURRENT            0x00000001
-#define LOAD_OVERVOLTAGE            0x00000002
-#define IGBT_DRIVER_FAIL            0x00000004
-#define MOD_1_CAPBANK_OVERVOLTAGE   0x00000008
-#define MOD_2_CAPBANK_OVERVOLTAGE   0x00000010
-#define MOD_3_CAPBANK_OVERVOLTAGE   0x00000020
-#define MOD_4_CAPBANK_OVERVOLTAGE   0x00000040
-#define MOD_5_CAPBANK_OVERVOLTAGE   0x00000080
-#define MOD_6_CAPBANK_OVERVOLTAGE   0x00000100
-#define MOD_7_CAPBANK_OVERVOLTAGE   0x00000200
-#define MOD_8_CAPBANK_OVERVOLTAGE   0x00000400
-#define MOD_1_CAPBANK_UNDERVOLTAGE  0x00000800
-#define MOD_2_CAPBANK_UNDERVOLTAGE  0x00001000
-#define MOD_3_CAPBANK_UNDERVOLTAGE  0x00002000
-#define MOD_4_CAPBANK_UNDERVOLTAGE  0x00004000
-#define MOD_5_CAPBANK_UNDERVOLTAGE  0x00008000
-#define MOD_6_CAPBANK_UNDERVOLTAGE  0x00010000
-#define MOD_7_CAPBANK_UNDERVOLTAGE  0x00020000
-#define MOD_8_CAPBANK_UNDERVOLTAGE  0x00040000
-#define MOD_1_OUTPUT_OVERVOLTAGE    0x00080000
-#define MOD_2_OUTPUT_OVERVOLTAGE    0x00100000
-#define MOD_3_OUTPUT_OVERVOLTAGE    0x00200000
-#define MOD_4_OUTPUT_OVERVOLTAGE    0x00400000
-#define MOD_5_OUTPUT_OVERVOLTAGE    0x00800000
-#define MOD_6_OUTPUT_OVERVOLTAGE    0x01000000
-#define MOD_7_OUTPUT_OVERVOLTAGE    0x02000000
-#define MOD_8_OUTPUT_OVERVOLTAGE    0x04000000
+typedef enum
+{
+    Load_Overcurrent,
+    Load_Overvoltage,
+    IGBT_Driver_Fault,
+    Module_1_CapBank_Overvoltage,
+    Module_2_CapBank_Overvoltage,
+    Module_3_CapBank_Overvoltage,
+    Module_4_CapBank_Overvoltage,
+    Module_5_CapBank_Overvoltage,
+    Module_6_CapBank_Overvoltage,
+    Module_7_CapBank_Overvoltage,
+    Module_8_CapBank_Overvoltage,
+    Module_1_CapBank_Undervoltage,
+    Module_2_CapBank_Undervoltage,
+    Module_3_CapBank_Undervoltage,
+    Module_4_CapBank_Undervoltage,
+    Module_5_CapBank_Undervoltage,
+    Module_6_CapBank_Undervoltage,
+    Module_7_CapBank_Undervoltage,
+    Module_8_CapBank_Undervoltage,
+    Module_1_Output_Overvoltage,
+    Module_2_Output_Overvoltage,
+    Module_3_Output_Overvoltage,
+    Module_4_Output_Overvoltage,
+    Module_5_Output_Overvoltage,
+    Module_6_Output_Overvoltage,
+    Module_7_Output_Overvoltage,
+    Module_8_Output_Overvoltage
+} hard_interlocks_t;
 
-#define INDUCTORS_OVERTEMP          0x00000001
-#define IGBT_OVERTEMP               0x00000002
-#define DCCT_1_FAULT                0x00000004
-#define DCCT_2_FAULT                0x00000008
-#define DCCTS_HIGH_DIFFERENCE       0x00000010
-#define I_LOAD_1_FEEDBACK_FAULT     0x00000020
-#define I_LOAD_2_FEEDBACK_FAULT     0x00000040
+typedef enum
+{
+    Inductors_Overtemperature,
+    IGBT_Overtemperature,
+    DCCT_1_Fault,
+    DCCT_2_Fault,
+    DCCT_High_Difference,
+    Load_Feedback_1_Fault,
+    Load_Feedback_2_Fault
+} soft_interlocks_t;
 
+#define NUM_HARD_INTERLOCKS     Module_8_Output_Overvoltage + 1
+#define NUM_SOFT_INTERLOCKS     Load_Feedback_2_Fault + 1
+
+/**
+ *  Private variables
+ */
 static uint16_t decimation_factor;
 static float decimation_coeff;
 
@@ -253,10 +263,6 @@ static float decimation_coeff;
 #pragma CODE_SECTION(isr_init_controller, "ramfuncs");
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
-#pragma CODE_SECTION(set_hard_interlock, "ramfuncs");
-#pragma CODE_SECTION(set_soft_interlock, "ramfuncs");
-#pragma CODE_SECTION(isr_hard_interlock, "ramfuncs");
-#pragma CODE_SECTION(isr_soft_interlock, "ramfuncs");
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -275,11 +281,6 @@ static void turn_on(uint16_t dummy);
 static void turn_off(uint16_t dummy);
 
 static void reset_interlocks(uint16_t dummy);
-static void set_hard_interlock(uint32_t itlk);
-static void set_soft_interlock(uint32_t itlk);
-static interrupt void isr_hard_interlock(void);
-static interrupt void isr_soft_interlock(void);
-
 static inline void check_interlocks(void);
 static inline void check_capbank_undervoltage(void);
 static inline void check_capbank_overvoltage(void);
@@ -446,6 +447,13 @@ static void init_controller(void)
     g_ipc_ctom.ps_module[1].ps_status.all = 0;
     g_ipc_ctom.ps_module[2].ps_status.all = 0;
     g_ipc_ctom.ps_module[3].ps_status.all = 0;
+
+    init_event_manager(0, ISR_CONTROL_FREQ,
+                       NUM_HARD_INTERLOCKS, NUM_SOFT_INTERLOCKS,
+                       &HARD_INTERLOCKS_DEBOUNCE_TIME,
+                       &HARD_INTERLOCKS_RESET_TIME,
+                       &SOFT_INTERLOCKS_DEBOUNCE_TIME,
+                       &SOFT_INTERLOCKS_RESET_TIME);
 
     init_ipc();
     init_control_framework(&g_controller_ctom);
@@ -648,6 +656,7 @@ interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
+    CLEAR_DEBUG_GPIO1;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -794,12 +803,14 @@ interrupt void isr_controller(void)
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
 
-    CLEAR_DEBUG_GPIO1;
+    SET_INTERLOCKS_TIMEBASE_FLAG(0);
 
     PWM_MODULATOR_Q1_MOD_1_5->ETCLR.bit.INT = 1;
     PWM_MODULATOR_Q2_MOD_1_5->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
+
+    CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -917,114 +928,42 @@ static void reset_interlocks(uint16_t dummy)
 }
 
 /**
- * Set specified hard interlock for specified power supply.
- *
- * @param itlk specified hard interlock
- */
-static void set_hard_interlock(uint32_t itlk)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_hard_interlock & itlk))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_hard_interlock |= itlk;
-    }
-}
-
-/**
- * Set specified soft interlock for specified power supply.
- *
- * @param itlk specified soft interlock
- */
-static void set_soft_interlock(uint32_t itlk)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_soft_interlock & itlk))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_soft_interlock |= itlk;
-    }
-}
-
-/**
- * ISR for MtoC hard interlock request.
- */
-static interrupt void isr_hard_interlock(void)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_hard_interlock &
-         g_ipc_mtoc.ps_module[0].ps_hard_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_hard_interlock |=
-        g_ipc_mtoc.ps_module[0].ps_hard_interlock;
-    }
-}
-
-/**
- * ISR for MtoC soft interlock request.
- */
-static interrupt void isr_soft_interlock(void)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_soft_interlock &
-         g_ipc_mtoc.ps_module[0].ps_soft_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_soft_interlock |=
-        g_ipc_mtoc.ps_module[0].ps_soft_interlock;
-    }
-}
-
-/**
  * Check interlocks of this specific power supply topology
  */
 static inline void check_interlocks(void)
 {
     if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
     {
-        set_hard_interlock(LOAD_OVERCURRENT);
+        set_hard_interlock(0, Load_Overcurrent);
     }
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
     {
-        set_soft_interlock(DCCTS_HIGH_DIFFERENCE);
+        set_soft_interlock(0, DCCT_High_Difference);
     }
 
     if(!PIN_STATUS_DCCT_1_STATUS)
     {
-        set_soft_interlock(DCCT_1_FAULT);
+        set_soft_interlock(0, DCCT_1_Fault);
     }
 
     if(!PIN_STATUS_DCCT_2_STATUS)
     {
-        set_soft_interlock(DCCT_2_FAULT);
+        set_soft_interlock(0, DCCT_2_Fault);
     }
 
     if(PIN_STATUS_DCCT_1_ACTIVE)
     {
         if(fabs(I_LOAD_1) < MIN_I_ACTIVE_DCCT)
         {
-            set_soft_interlock(I_LOAD_1_FEEDBACK_FAULT);
+            set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
     else
     {
         if(fabs(I_LOAD_1) > MAX_I_IDLE_DCCT)
         {
-            set_soft_interlock(I_LOAD_1_FEEDBACK_FAULT);
+            set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
 
@@ -1032,14 +971,14 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
         {
-            set_soft_interlock(I_LOAD_2_FEEDBACK_FAULT);
+            set_soft_interlock(0, Load_Feedback_2_Fault);
         }
     }
     else
     {
         if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
         {
-            set_soft_interlock(I_LOAD_2_FEEDBACK_FAULT);
+            set_soft_interlock(0, Load_Feedback_2_Fault);
         }
     }
 
@@ -1053,111 +992,95 @@ static inline void check_interlocks(void)
     }
 
     EINT;
+
+    SET_DEBUG_GPIO1;
+    run_interlocks_debouncing(0);
+    CLEAR_DEBUG_GPIO1;
 }
 
 static inline void check_capbank_undervoltage(void)
 {
-    /*uint16_t i;
-
-    for(i = 0; i < 8; i++)
-    {
-        if( *(&V_CAPBANK_MOD_1 + i) < MIN_V_CAPBANK )
-        {
-            set_hard_interlock( MOD_1_CAPBANK_UNDERVOLTAGE << i );
-        }
-    }*/
-
     if(V_CAPBANK_MOD_1 < MIN_V_CAPBANK)
     {
-        set_hard_interlock(MOD_1_CAPBANK_UNDERVOLTAGE);
+        set_hard_interlock(0, Module_1_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_2 < MIN_V_CAPBANK)
     {
-        set_hard_interlock(MOD_2_CAPBANK_UNDERVOLTAGE);
+        set_hard_interlock(0, Module_2_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_3 < MIN_V_CAPBANK)
     {
-        set_hard_interlock(MOD_3_CAPBANK_UNDERVOLTAGE);
+        set_hard_interlock(0, Module_3_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_4 < MIN_V_CAPBANK)
     {
-        set_hard_interlock(MOD_4_CAPBANK_UNDERVOLTAGE);
+        set_hard_interlock(0, Module_4_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_5 < MIN_V_CAPBANK)
     {
-        set_hard_interlock(MOD_5_CAPBANK_UNDERVOLTAGE);
+        set_hard_interlock(0, Module_5_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_6 < MIN_V_CAPBANK)
     {
-        set_hard_interlock(MOD_6_CAPBANK_UNDERVOLTAGE);
+        set_hard_interlock(0, Module_6_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_7 < MIN_V_CAPBANK)
     {
-        set_hard_interlock(MOD_7_CAPBANK_UNDERVOLTAGE);
+        set_hard_interlock(0, Module_7_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_8 < MIN_V_CAPBANK)
     {
-        set_hard_interlock(MOD_8_CAPBANK_UNDERVOLTAGE);
+        set_hard_interlock(0, Module_8_CapBank_Undervoltage);
     }
 }
 
 static inline void check_capbank_overvoltage(void)
 {
-    /*uint16_t i;
-
-    for(i = 0; i < 8; i++)
-    {
-        if( *(&V_CAPBANK_MOD_1 + i) > MAX_V_CAPBANK )
-        {
-            set_hard_interlock( MOD_1_CAPBANK_OVERVOLTAGE << i );
-        }
-    }*/
-
     if(V_CAPBANK_MOD_1 > MAX_V_CAPBANK)
     {
-        set_hard_interlock(MOD_1_CAPBANK_OVERVOLTAGE);
+        set_hard_interlock(0, Module_1_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_2 > MAX_V_CAPBANK)
     {
-        set_hard_interlock(MOD_2_CAPBANK_OVERVOLTAGE);
+        set_hard_interlock(0, Module_2_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_3 > MAX_V_CAPBANK)
     {
-        set_hard_interlock(MOD_3_CAPBANK_OVERVOLTAGE);
+        set_hard_interlock(0, Module_3_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_4 > MAX_V_CAPBANK)
     {
-        set_hard_interlock(MOD_4_CAPBANK_OVERVOLTAGE);
+        set_hard_interlock(0, Module_4_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_5 > MAX_V_CAPBANK)
     {
-        set_hard_interlock(MOD_5_CAPBANK_OVERVOLTAGE);
+        set_hard_interlock(0, Module_5_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_6 > MAX_V_CAPBANK)
     {
-        set_hard_interlock(MOD_6_CAPBANK_OVERVOLTAGE);
+        set_hard_interlock(0, Module_6_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_7 > MAX_V_CAPBANK)
     {
-        set_hard_interlock(MOD_7_CAPBANK_OVERVOLTAGE);
+        set_hard_interlock(0, Module_7_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_8 > MAX_V_CAPBANK)
     {
-        set_hard_interlock(MOD_8_CAPBANK_OVERVOLTAGE);
+        set_hard_interlock(0, Module_8_CapBank_Overvoltage);
     }
 }
 

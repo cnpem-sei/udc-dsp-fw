@@ -94,6 +94,11 @@ typedef enum
 
     Analog_Var_Max,
     Analog_Var_Min,
+
+    Hard_Interlocks_Debounce_Time,
+    Hard_Interlocks_Reset_Time,
+    Soft_Interlocks_Debounce_Time,
+    Soft_Interlocks_Reset_Time
 } param_id_t;
 
 typedef enum

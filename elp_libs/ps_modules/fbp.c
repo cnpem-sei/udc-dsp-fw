@@ -24,6 +24,7 @@
 #include "boards/udc_c28.h"
 #include "common/timeslicer.h"
 #include "control/control.h"
+#include "event_manager/event_manager.h"
 #include "HRADC_board/HRADC_Boards.h"
 #include "ipc/ipc.h"
 #include "parameters/parameters.h"
@@ -36,8 +37,6 @@
  *
  * TODO: transfer this to param bank
  */
-
-#define USE_ITLK
 #define TIMEOUT_DCLINK_RELAY    200000
 
 #define PWM_FREQ                g_ipc_mtoc.pwm.freq_pwm
@@ -82,16 +81,6 @@
  *
  */
 #define PS_ALL_ID   0x000F
-
-#define LOAD_OVERCURRENT            0x00000001
-#define LOAD_OVERVOLTAGE            0x00000002
-#define DCLINK_OVERVOLTAGE          0x00000004
-#define DCLINK_UNDERVOLTAGE         0x00000008
-#define DCLINK_RELAY_FAIL           0x00000010
-#define FUSE_FAIL                   0x00000020
-#define DRIVER_FAIL                 0x00000040
-
-#define OVERTEMP                    0x00000001
 
 /**
  * Power supply 1 defines
@@ -214,13 +203,34 @@
 #define PS4_PWM_MODULATOR               g_pwm_modules.pwm_regs[6]
 #define PS4_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[7]
 
+/**
+ * Interlocks defines
+ */
+typedef enum
+{
+    Load_Overcurrent,
+    Load_Overvoltage,
+    DCLink_Overvoltage,
+    DCLink_Undervoltage,
+    DCLink_Relay_Fault,
+    DCLink_Fuse_Fault,
+    MOSFETs_Driver_Fault
+} hard_interlocks_t;
+
+typedef enum
+{
+    Heatsink_Overtemperature
+} soft_interlocks_t;
+
+#define NUM_HARD_INTERLOCKS             MOSFETs_Driver_Fault + 1
+#define NUM_SOFT_INTERLOCKS             Heatsink_Overtemperature + 1
+
+/**
+ * Private functions
+ */
 #pragma CODE_SECTION(isr_init_controller, "ramfuncs");
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
-#pragma CODE_SECTION(set_hard_interlock, "ramfuncs");
-#pragma CODE_SECTION(set_soft_interlock, "ramfuncs");
-#pragma CODE_SECTION(isr_hard_interlock, "ramfuncs");
-#pragma CODE_SECTION(isr_soft_interlock, "ramfuncs");
 #pragma CODE_SECTION(open_relay, "ramfuncs");
 #pragma CODE_SECTION(get_relay_status, "ramfuncs");
 
@@ -241,15 +251,11 @@ static void term_interruptions(void);
 static void turn_on(uint16_t id);
 static void turn_off(uint16_t id);
 
-static void reset_interlocks(uint16_t id);
-static void set_hard_interlock(uint16_t id, uint32_t itlk);
-static void set_soft_interlock(uint16_t id, uint32_t itlk);
-static interrupt void isr_hard_interlock(void);
-static interrupt void isr_soft_interlock(void);
-
 static void open_relay(uint16_t id);
 static void close_relay(uint16_t id);
 static uint16_t get_relay_status(uint16_t id);
+
+static void reset_interlocks(uint16_t id);
 static void check_interlocks_ps_module(uint16_t id);
 
 /**
@@ -393,6 +399,13 @@ static void init_controller(void)
                        g_ipc_mtoc.ps_module[i].ps_status.bit.model,
                        &turn_on, &turn_off, &isr_soft_interlock,
                        &isr_hard_interlock, &reset_interlocks);
+
+        init_event_manager(i, ISR_CONTROL_FREQ,
+                           NUM_HARD_INTERLOCKS, NUM_SOFT_INTERLOCKS,
+                           &HARD_INTERLOCKS_DEBOUNCE_TIME,
+                           &HARD_INTERLOCKS_RESET_TIME,
+                           &SOFT_INTERLOCKS_DEBOUNCE_TIME,
+                           &SOFT_INTERLOCKS_RESET_TIME);
 
         if(!g_ipc_mtoc.ps_module[i].ps_status.bit.active)
         {
@@ -614,6 +627,7 @@ static interrupt void isr_controller(void)
     static uint16_t i, flag_siggen = 0;
     static float temp[4];
 
+    CLEAR_DEBUG_GPIO1;
     SET_DEBUG_GPIO1;
 
     /// Get HRADC samples
@@ -733,9 +747,9 @@ static interrupt void isr_controller(void)
 
     flag_siggen = 0;
 
-    CLEAR_DEBUG_GPIO1;
-
     PieCtrlRegs.PIEACK.all |= M_INT3;
+
+    CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -807,7 +821,7 @@ static void turn_on(uint16_t id)
 
             if(!get_relay_status(id))
             {
-                set_hard_interlock(id,DCLINK_RELAY_FAIL);
+                set_hard_interlock(id,DCLink_Relay_Fault);
             }
             else
             {
@@ -858,80 +872,6 @@ static void reset_interlocks(uint16_t id)
     if(g_ipc_ctom.ps_module[id].ps_status.bit.state < Initializing)
     {
         g_ipc_ctom.ps_module[id].ps_status.bit.state = Off;
-    }
-}
-
-/**
- * Set specified hard interlock for specified power supply.
- *
- * @param id specified power supply
- * @param itlk specified hard interlock
- */
-static void set_hard_interlock(uint16_t id, uint32_t itlk)
-{
-    if(!(g_ipc_ctom.ps_module[id].ps_hard_interlock & itlk))
-    {
-        #ifdef USE_ITLK
-        turn_off(id);
-        g_ipc_ctom.ps_module[id].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[id].ps_hard_interlock |= itlk;
-    }
-}
-
-/**
- * Set specified soft interlock for specified power supply.
- *
- * @param id specified power supply
- * @param itlk specified soft interlock
- */
-static void set_soft_interlock(uint16_t id, uint32_t itlk)
-{
-    if(!(g_ipc_ctom.ps_module[id].ps_soft_interlock & itlk))
-    {
-        #ifdef USE_ITLK
-        turn_off(id);
-        g_ipc_ctom.ps_module[id].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[id].ps_soft_interlock |= itlk;
-    }
-}
-
-/**
- * ISR for MtoC hard interlock request.
- */
-static interrupt void isr_hard_interlock(void)
-{
-    if(! (g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock &
-         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(g_ipc_mtoc.msg_id);
-        g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock |=
-        g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock;
-    }
-}
-
-/**
- * ISR for MtoC soft interlock request.
- */
-static interrupt void isr_soft_interlock(void)
-{
-    if(! (g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock &
-         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(g_ipc_mtoc.msg_id);
-        g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock |=
-        g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock;
     }
 }
 
@@ -1060,27 +1000,27 @@ static void check_interlocks_ps_module(uint16_t id)
 {
     if(fabs(g_controller_ctom.net_signals[id].f) > MAX_ILOAD)
     {
-        set_hard_interlock(id, LOAD_OVERCURRENT);
+        set_hard_interlock(id, Load_Overcurrent);
     }
 
     if(fabs(g_controller_mtoc.net_signals[id].f) > MAX_DCLINK)
     {
-        set_hard_interlock(id, DCLINK_OVERVOLTAGE);
+        set_hard_interlock(id, DCLink_Overvoltage);
     }
 
     if(fabs(g_controller_mtoc.net_signals[id].f) < MIN_DCLINK)
     {
-        set_hard_interlock(id, DCLINK_UNDERVOLTAGE);
+        set_hard_interlock(id, DCLink_Undervoltage);
     }
 
     if(fabs(g_controller_mtoc.net_signals[id+4].f) > MAX_VLOAD)
     {
-        set_hard_interlock(id, LOAD_OVERVOLTAGE);
+        set_hard_interlock(id, Load_Overvoltage);
     }
 
     if(fabs(g_controller_mtoc.net_signals[id+8].f) > MAX_TEMP)
     {
-        set_soft_interlock(id, OVERTEMP);
+        set_soft_interlock(id, Heatsink_Overtemperature);
     }
 
     DINT;
@@ -1091,24 +1031,24 @@ static void check_interlocks_ps_module(uint16_t id)
         {
             if(!PIN_STATUS_PS1_FUSE)
             {
-                set_hard_interlock(id, FUSE_FAIL);
+                set_hard_interlock(0, DCLink_Fuse_Fault);
             }
 
             if(!PIN_STATUS_PS1_DRIVER_ERROR)
             {
-                set_hard_interlock(id, DRIVER_FAIL);
+                set_hard_interlock(0, MOSFETs_Driver_Fault);
             }
 
-            if ( (g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock) &&
+            if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
                  (PIN_STATUS_PS1_DCLINK_RELAY) )
             {
-                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+                set_hard_interlock(0, DCLink_Relay_Fault);
             }
 
-            else if ( (g_ipc_ctom.ps_module[id].ps_status.bit.state > Interlock)
+            else if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
                       && (!PIN_STATUS_PS1_DCLINK_RELAY) )
             {
-                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+                set_hard_interlock(0, DCLink_Relay_Fault);
             }
 
             break;
@@ -1118,24 +1058,24 @@ static void check_interlocks_ps_module(uint16_t id)
         {
             if(!PIN_STATUS_PS2_FUSE)
             {
-                set_hard_interlock(id, FUSE_FAIL);
+                set_hard_interlock(1, DCLink_Fuse_Fault);
             }
 
             if(!PIN_STATUS_PS2_DRIVER_ERROR)
             {
-                set_hard_interlock(id, DRIVER_FAIL);
+                set_hard_interlock(1, MOSFETs_Driver_Fault);
             }
 
-            if ( (g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock) &&
+            if ( (g_ipc_ctom.ps_module[1].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS2_DCLINK_RELAY))
             {
-                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+                set_hard_interlock(1, DCLink_Relay_Fault);
             }
 
-            else if ( (g_ipc_ctom.ps_module[id].ps_status.bit.state > Interlock)
+            else if ( (g_ipc_ctom.ps_module[1].ps_status.bit.state > Interlock)
                       && (!PIN_STATUS_PS2_DCLINK_RELAY) )
             {
-                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+                set_hard_interlock(1, DCLink_Relay_Fault);
             }
 
             break;
@@ -1145,23 +1085,23 @@ static void check_interlocks_ps_module(uint16_t id)
         {
             if(!PIN_STATUS_PS3_FUSE)
             {
-                set_hard_interlock(id, FUSE_FAIL);
+                set_hard_interlock(2, DCLink_Fuse_Fault);
             }
 
             if(!PIN_STATUS_PS3_DRIVER_ERROR)
             {
-                set_hard_interlock(id, DRIVER_FAIL);
+                set_hard_interlock(2, MOSFETs_Driver_Fault);
             }
 
-            if ( (g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock) &&
+            if ( (g_ipc_ctom.ps_module[2].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS3_DCLINK_RELAY)) {
-                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+                set_hard_interlock(2, DCLink_Relay_Fault);
             }
 
-            else if ( (g_ipc_ctom.ps_module[id].ps_status.bit.state > Interlock)
+            else if ( (g_ipc_ctom.ps_module[2].ps_status.bit.state > Interlock)
                       && (!PIN_STATUS_PS3_DCLINK_RELAY) )
             {
-                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+                set_hard_interlock(2, DCLink_Relay_Fault);
             }
 
             break;
@@ -1171,23 +1111,23 @@ static void check_interlocks_ps_module(uint16_t id)
         {
             if(!PIN_STATUS_PS4_FUSE)
             {
-                set_hard_interlock(id, FUSE_FAIL);
+                set_hard_interlock(3, DCLink_Fuse_Fault);
             }
 
             if(!PIN_STATUS_PS4_DRIVER_ERROR)
             {
-                set_hard_interlock(id, DRIVER_FAIL);
+                set_hard_interlock(3, MOSFETs_Driver_Fault);
             }
 
-            if ( (g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock) &&
+            if ( (g_ipc_ctom.ps_module[3].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS4_DCLINK_RELAY)) {
-                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+                set_hard_interlock(3, DCLink_Relay_Fault);
             }
 
-            else if ( (g_ipc_ctom.ps_module[id].ps_status.bit.state > Interlock)
+            else if ( (g_ipc_ctom.ps_module[3].ps_status.bit.state > Interlock)
                       && (!PIN_STATUS_PS4_DCLINK_RELAY) )
             {
-                set_hard_interlock(id, DCLINK_RELAY_FAIL);
+                set_hard_interlock(3, DCLink_Relay_Fault);
             }
 
             break;
@@ -1195,4 +1135,8 @@ static void check_interlocks_ps_module(uint16_t id)
     }
 
     EINT;
+
+    SET_DEBUG_GPIO1;
+    run_interlocks_debouncing(id);
+    CLEAR_DEBUG_GPIO1;
 }

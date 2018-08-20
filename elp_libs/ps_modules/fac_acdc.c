@@ -26,14 +26,13 @@
 #include "common/structs.h"
 #include "common/timeslicer.h"
 #include "control/control.h"
+#include "event_manager/event_manager.h"
 #include "HRADC_board/HRADC_Boards.h"
 #include "ipc/ipc.h"
 #include "parameters/parameters.h"
 #include "pwm/pwm.h"
 
 #include "fac_acdc.h"
-
-#define USE_ITLK
 
 /**
  * PWM parameters
@@ -155,21 +154,33 @@
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
 
+#define BUF_SAMPLES                     &g_ipc_ctom.buf_samples[0]
+
 /**
- * Interlock defines
+ * Interlocks defines
  */
-#define CAPBANK_OVERVOLTAGE         0x00000001
-#define RECTIFIER_OVERVOLTAGE       0x00000002
-#define RECTIFIER_UNDERVOLTAGE      0x00000004
-#define RECTIFIER_OVERCURRENT       0x00000008
-#define AC_MAINS_CONTACTOR_FAIL     0x00000010
-#define IGBT_DRIVER_FAIL            0x00000020
+typedef enum
+{
+    CapBank_Overvoltage,
+    Rectifier_Overvoltage,
+    Rectifier_Undervoltage,
+    Rectifier_Overcurrent,
+    AC_Mains_Contactor_Fault,
+    IGBT_Driver_Fault
+} hard_interlocks_t;
 
-#define HEATSINK_OVERTEMP           0x00000001
-#define INDUCTORS_OVERTEMP          0x00000002
+typedef enum
+{
+    Heatsink_Overtemperature,
+    Inductors_Overtemperature
+} soft_interlocks_t;
 
-#define BUF_SAMPLES                 &g_ipc_ctom.buf_samples[0]
+#define NUM_HARD_INTERLOCKS     IGBT_Driver_Fault + 1
+#define NUM_SOFT_INTERLOCKS     Inductors_Overtemperature + 1
 
+/**
+ *  Private variables
+ */
 static float decimation_factor;
 static float decimation_coeff;
 
@@ -179,10 +190,6 @@ static float decimation_coeff;
 #pragma CODE_SECTION(isr_init_controller, "ramfuncs");
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
-#pragma CODE_SECTION(set_hard_interlock, "ramfuncs");
-#pragma CODE_SECTION(set_soft_interlock, "ramfuncs");
-#pragma CODE_SECTION(isr_hard_interlock, "ramfuncs");
-#pragma CODE_SECTION(isr_soft_interlock, "ramfuncs");
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -201,11 +208,6 @@ static void turn_on(uint16_t dummy);
 static void turn_off(uint16_t dummy);
 
 static void reset_interlocks(uint16_t dummy);
-static void set_hard_interlock(uint32_t itlk);
-static void set_soft_interlock(uint32_t itlk);
-static interrupt void isr_hard_interlock(void);
-static interrupt void isr_soft_interlock(void);
-
 static inline void check_interlocks(void);
 
 /**
@@ -308,6 +310,13 @@ static void init_controller(void)
     g_ipc_ctom.ps_module[1].ps_status.all = 0;
     g_ipc_ctom.ps_module[2].ps_status.all = 0;
     g_ipc_ctom.ps_module[3].ps_status.all = 0;
+
+    init_event_manager(0, ISR_CONTROL_FREQ,
+                       NUM_HARD_INTERLOCKS, NUM_SOFT_INTERLOCKS,
+                       &HARD_INTERLOCKS_DEBOUNCE_TIME,
+                       &HARD_INTERLOCKS_RESET_TIME,
+                       &SOFT_INTERLOCKS_DEBOUNCE_TIME,
+                       &SOFT_INTERLOCKS_RESET_TIME);
 
     init_ipc();
     init_control_framework(&g_controller_ctom);
@@ -629,6 +638,7 @@ static interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
+    CLEAR_DEBUG_GPIO1;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -757,10 +767,12 @@ static interrupt void isr_controller(void)
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
 
-    CLEAR_DEBUG_GPIO1;
+    SET_INTERLOCKS_TIMEBASE_FLAG(0);
 
     PWM_MODULATOR->ETCLR.bit.INT = 1;
     PieCtrlRegs.PIEACK.all |= M_INT3;
+
+    CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -824,7 +836,7 @@ static void turn_on(uint16_t dummy)
 
         if(!PIN_STATUS_AC_MAINS_CONTACTOR)
         {
-            set_hard_interlock(AC_MAINS_CONTACTOR_FAIL);
+            set_hard_interlock(0, AC_Mains_Contactor_Fault);
         }
         #ifdef USE_ITLK
         else
@@ -876,90 +888,18 @@ static void reset_interlocks(uint16_t dummy)
 }
 
 /**
- * Set specified hard interlock for specified power supply.
- *
- * @param itlk specified hard interlock
- */
-static void set_hard_interlock(uint32_t itlk)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_hard_interlock & itlk))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_hard_interlock |= itlk;
-    }
-}
-
-/**
- * Set specified soft interlock for specified power supply.
- *
- * @param itlk specified soft interlock
- */
-static void set_soft_interlock(uint32_t itlk)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_soft_interlock & itlk))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_soft_interlock |= itlk;
-    }
-}
-
-/**
- * ISR for MtoC hard interlock request.
- */
-static interrupt void isr_hard_interlock(void)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_hard_interlock &
-         g_ipc_mtoc.ps_module[0].ps_hard_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_hard_interlock |=
-        g_ipc_mtoc.ps_module[0].ps_hard_interlock;
-    }
-}
-
-/**
- * ISR for MtoC soft interlock request.
- */
-static interrupt void isr_soft_interlock(void)
-{
-    if(!(g_ipc_ctom.ps_module[0].ps_soft_interlock &
-         g_ipc_mtoc.ps_module[0].ps_soft_interlock))
-    {
-        #ifdef USE_ITLK
-        turn_off(0);
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Interlock;
-        #endif
-
-        g_ipc_ctom.ps_module[0].ps_soft_interlock |=
-        g_ipc_mtoc.ps_module[0].ps_soft_interlock;
-    }
-}
-
-/**
  * Check interlocks of this specific power supply topology
  */
 static inline void check_interlocks(void)
 {
     if(fabs(V_CAPBANK) > MAX_V_CAPBANK)
     {
-        set_hard_interlock(CAPBANK_OVERVOLTAGE);
+        set_hard_interlock(0, CapBank_Overvoltage);
     }
 
     if(fabs(IOUT_RECT) > MAX_IOUT_RECT)
     {
-        set_hard_interlock(RECTIFIER_OVERCURRENT);
+        set_hard_interlock(0, Rectifier_Overcurrent);
     }
 
     DINT;
@@ -967,14 +907,18 @@ static inline void check_interlocks(void)
     if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
          (PIN_STATUS_AC_MAINS_CONTACTOR) )
     {
-        set_hard_interlock(AC_MAINS_CONTACTOR_FAIL);
+        set_hard_interlock(0, AC_Mains_Contactor_Fault);
     }
 
     else if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
               && (!PIN_STATUS_AC_MAINS_CONTACTOR) )
     {
-        set_hard_interlock(AC_MAINS_CONTACTOR_FAIL);
+        set_hard_interlock(0, AC_Mains_Contactor_Fault);
     }
 
     EINT;
+
+    SET_DEBUG_GPIO1;
+    run_interlocks_debouncing(0);
+    CLEAR_DEBUG_GPIO1;
 }

@@ -99,5 +99,6 @@ extern void set_hard_interlock(uint16_t id, uint32_t itlk);
 extern void set_soft_interlock(uint16_t id, uint32_t itlk);
 extern interrupt void isr_hard_interlock(void);
 extern interrupt void isr_soft_interlock(void);
+extern interrupt void isr_interlocks_timebase(void);
 
 #endif /* EVENT_MANAGER_H_ */
