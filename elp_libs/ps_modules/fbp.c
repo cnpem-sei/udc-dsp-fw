@@ -37,7 +37,6 @@
  *
  * TODO: transfer this to param bank
  */
-#define TIMEOUT_DCLINK_RELAY    200000
 
 #define PWM_FREQ                g_ipc_mtoc.pwm.freq_pwm
 #define PWM_DEAD_TIME           g_ipc_mtoc.pwm.dead_time
@@ -225,6 +224,9 @@ typedef enum
 #define NUM_HARD_INTERLOCKS             MOSFETs_Driver_Fault + 1
 #define NUM_SOFT_INTERLOCKS             Heatsink_Overtemperature + 1
 
+#define ISR_FREQ_INTERLOCK_TIMEBASE     5000.0
+
+
 /**
  * Private functions
  */
@@ -233,6 +235,7 @@ typedef enum
 #pragma CODE_SECTION(turn_off, "ramfuncs");
 #pragma CODE_SECTION(open_relay, "ramfuncs");
 #pragma CODE_SECTION(get_relay_status, "ramfuncs");
+
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -257,6 +260,10 @@ static uint16_t get_relay_status(uint16_t id);
 
 static void reset_interlocks(uint16_t id);
 static void check_interlocks_ps_module(uint16_t id);
+
+static inline void run_dsp_pi_inline(dsp_pi_t *p_pi);
+static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
+                                               *p_pwm_module, float duty_pu);
 
 /**
  * Main function for this power supply module
@@ -381,7 +388,8 @@ static void init_peripherals_drivers(void)
 
     /// Initialization of timers
     InitCpuTimers();
-    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ,
+                   (1000000.0/ISR_FREQ_INTERLOCK_TIMEBASE));
     CpuTimer0Regs.TCR.bit.TIE = 0;
 }
 
@@ -400,7 +408,7 @@ static void init_controller(void)
                        &turn_on, &turn_off, &isr_soft_interlock,
                        &isr_hard_interlock, &reset_interlocks);
 
-        init_event_manager(i, ISR_CONTROL_FREQ,
+        init_event_manager(i, ISR_FREQ_INTERLOCK_TIMEBASE,
                            NUM_HARD_INTERLOCKS, NUM_SOFT_INTERLOCKS,
                            &HARD_INTERLOCKS_DEBOUNCE_TIME,
                            &HARD_INTERLOCKS_RESET_TIME,
@@ -585,6 +593,9 @@ static void enable_controller()
     start_DMA();
     HRADCs_Info.enable_Sampling = 1;
     enable_pwm_tbclk();
+
+    /// Enable interlocks time-base timer
+    CpuTimer0Regs.TCR.all = 0x4000;
 }
 
 /**
@@ -627,7 +638,6 @@ static interrupt void isr_controller(void)
     static uint16_t i, flag_siggen = 0;
     static float temp[4];
 
-    CLEAR_DEBUG_GPIO1;
     SET_DEBUG_GPIO1;
 
     /// Get HRADC samples
@@ -686,9 +696,7 @@ static interrupt void isr_controller(void)
                         {
                             SIGGEN.amplitude = g_ipc_mtoc.siggen.amplitude;
                             SIGGEN.offset = g_ipc_mtoc.siggen.offset;
-                            //SET_DEBUG_GPIO1;
                             SIGGEN.p_run_siggen(&SIGGEN);
-                            //CLEAR_DEBUG_GPIO1;
                             flag_siggen = 1;
                         }
 
@@ -722,13 +730,13 @@ static interrupt void isr_controller(void)
                             *g_controller_ctom.dsp_modules.dsp_error[i].pos -
                             *g_controller_ctom.dsp_modules.dsp_error[i].neg;
 
-                    run_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[i]);
+                    run_dsp_pi_inline(&g_controller_ctom.dsp_modules.dsp_pi[i]);
 
                     //SATURATE(g_controller_ctom.output_signals[i].f,
                     //         PWM_MAX_DUTY, PWM_MIN_DUTY);
                 }
 
-                set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[i*2],
+                set_pwm_duty_hbridge_inline(g_pwm_modules.pwm_regs[i*2],
                                      g_controller_ctom.output_signals[i].f);
             }
         }
@@ -758,12 +766,14 @@ static interrupt void isr_controller(void)
 static void init_interruptions(void)
 {
     EALLOW;
-    PieVectTable.EPWM1_INT =  &isr_init_controller;
-    PieVectTable.EPWM2_INT =  &isr_controller;
+    PieVectTable.EPWM1_INT = &isr_init_controller;
+    PieVectTable.EPWM2_INT = &isr_controller;
+    PieVectTable.TINT0     = &isr_interlocks_timebase;
     EDIS;
 
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;  /// ePWM1
     PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  /// ePWM2
+    PieCtrlRegs.PIEIER1.bit.INTx7 = 1;  /// CpuTimer0
 
     enable_pwm_interrupt(PS4_PWM_MODULATOR);
     enable_pwm_interrupt(PS4_PWM_MODULATOR_NEG);
@@ -814,17 +824,64 @@ static void turn_on(uint16_t id)
         if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
         #endif
         {
-            reset_controller(id);
-            close_relay(id);
-
-            DELAY_US(TIMEOUT_DCLINK_RELAY);
-
-            if(!get_relay_status(id))
+            if(fabs(g_controller_mtoc.net_signals[id].f) < MIN_DCLINK)
             {
-                set_hard_interlock(id,DCLink_Relay_Fault);
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(id, DCLink_Undervoltage);
+                set_hard_interlock(id, DCLink_Undervoltage);
             }
-            else
+
+            switch(id)
             {
+                case 0:
+                {
+                    if(!PIN_STATUS_PS1_FUSE)
+                    {
+                        BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Fuse_Fault);
+                        set_hard_interlock(0, DCLink_Fuse_Fault);
+                    }
+                    break;
+                }
+
+                case 1:
+                {
+                    if(!PIN_STATUS_PS2_FUSE)
+                    {
+                        BYPASS_HARD_INTERLOCK_DEBOUNCE(1, DCLink_Fuse_Fault);
+                        set_hard_interlock(1, DCLink_Fuse_Fault);
+                    }
+                    break;
+                }
+
+                case 2:
+                {
+                    if(!PIN_STATUS_PS3_FUSE)
+                    {
+                        BYPASS_HARD_INTERLOCK_DEBOUNCE(2, DCLink_Fuse_Fault);
+                        set_hard_interlock(2, DCLink_Fuse_Fault);
+                    }
+                    break;
+                }
+
+                case 3:
+                {
+                    if(!PIN_STATUS_PS4_FUSE)
+                    {
+                        BYPASS_HARD_INTERLOCK_DEBOUNCE(3, DCLink_Fuse_Fault);
+                        set_hard_interlock(3, DCLink_Fuse_Fault);
+                    }
+                    break;
+                }
+            }
+
+            #ifdef USE_ITLK
+            if(g_ipc_ctom.ps_module[id].ps_status.bit.state == Off)
+            #else
+            if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
+            #endif
+            {
+                reset_controller(id);
+                close_relay(id);
+
                 g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
                 g_ipc_ctom.ps_module[id].ps_status.bit.state = SlowRef;
 
@@ -848,7 +905,6 @@ static void turn_off(uint16_t id)
         disable_pwm_output((2*id)+1);
 
         open_relay(id);
-        DELAY_US(TIMEOUT_DCLINK_RELAY);
 
         g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
         if (g_ipc_ctom.ps_module[id].ps_status.bit.state != Interlock)
@@ -1008,11 +1064,6 @@ static void check_interlocks_ps_module(uint16_t id)
         set_hard_interlock(id, DCLink_Overvoltage);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id].f) < MIN_DCLINK)
-    {
-        set_hard_interlock(id, DCLink_Undervoltage);
-    }
-
     if(fabs(g_controller_mtoc.net_signals[id+4].f) > MAX_VLOAD)
     {
         set_hard_interlock(id, Load_Overvoltage);
@@ -1023,21 +1074,16 @@ static void check_interlocks_ps_module(uint16_t id)
         set_soft_interlock(id, Heatsink_Overtemperature);
     }
 
-    DINT;
-
     switch(id)
     {
         case 0:
         {
-            if(!PIN_STATUS_PS1_FUSE)
-            {
-                set_hard_interlock(0, DCLink_Fuse_Fault);
-            }
-
             if(!PIN_STATUS_PS1_DRIVER_ERROR)
             {
                 set_hard_interlock(0, MOSFETs_Driver_Fault);
             }
+
+            IER &= ~M_INT11;
 
             if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
                  (PIN_STATUS_PS1_DCLINK_RELAY) )
@@ -1045,10 +1091,22 @@ static void check_interlocks_ps_module(uint16_t id)
                 set_hard_interlock(0, DCLink_Relay_Fault);
             }
 
-            else if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
-                      && (!PIN_STATUS_PS1_DCLINK_RELAY) )
+            else if (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
             {
-                set_hard_interlock(0, DCLink_Relay_Fault);
+                if(!PIN_STATUS_PS1_DCLINK_RELAY)
+                {
+                    set_hard_interlock(0, DCLink_Relay_Fault);
+                }
+
+                if(!PIN_STATUS_PS1_FUSE)
+                {
+                    set_hard_interlock(0, DCLink_Fuse_Fault);
+                }
+
+                if(fabs(g_controller_mtoc.net_signals[0].f) < MIN_DCLINK)
+                {
+                    set_hard_interlock(0, DCLink_Undervoltage);
+                }
             }
 
             break;
@@ -1056,15 +1114,12 @@ static void check_interlocks_ps_module(uint16_t id)
 
         case 1:
         {
-            if(!PIN_STATUS_PS2_FUSE)
-            {
-                set_hard_interlock(1, DCLink_Fuse_Fault);
-            }
-
             if(!PIN_STATUS_PS2_DRIVER_ERROR)
             {
                 set_hard_interlock(1, MOSFETs_Driver_Fault);
             }
+
+            IER &= ~M_INT11;
 
             if ( (g_ipc_ctom.ps_module[1].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS2_DCLINK_RELAY))
@@ -1072,10 +1127,22 @@ static void check_interlocks_ps_module(uint16_t id)
                 set_hard_interlock(1, DCLink_Relay_Fault);
             }
 
-            else if ( (g_ipc_ctom.ps_module[1].ps_status.bit.state > Interlock)
-                      && (!PIN_STATUS_PS2_DCLINK_RELAY) )
+            else if (g_ipc_ctom.ps_module[1].ps_status.bit.state > Interlock)
             {
-                set_hard_interlock(1, DCLink_Relay_Fault);
+                if(!PIN_STATUS_PS2_DCLINK_RELAY)
+                {
+                    set_hard_interlock(1, DCLink_Relay_Fault);
+                }
+
+                if(!PIN_STATUS_PS2_FUSE)
+                {
+                    set_hard_interlock(1, DCLink_Fuse_Fault);
+                }
+
+                if(fabs(g_controller_mtoc.net_signals[1].f) < MIN_DCLINK)
+                {
+                    set_hard_interlock(1, DCLink_Undervoltage);
+                }
             }
 
             break;
@@ -1083,25 +1150,35 @@ static void check_interlocks_ps_module(uint16_t id)
 
         case 2:
         {
-            if(!PIN_STATUS_PS3_FUSE)
-            {
-                set_hard_interlock(2, DCLink_Fuse_Fault);
-            }
-
             if(!PIN_STATUS_PS3_DRIVER_ERROR)
             {
                 set_hard_interlock(2, MOSFETs_Driver_Fault);
             }
+
+            IER &= ~M_INT11;
 
             if ( (g_ipc_ctom.ps_module[2].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS3_DCLINK_RELAY)) {
                 set_hard_interlock(2, DCLink_Relay_Fault);
             }
 
-            else if ( (g_ipc_ctom.ps_module[2].ps_status.bit.state > Interlock)
-                      && (!PIN_STATUS_PS3_DCLINK_RELAY) )
+            else if (g_ipc_ctom.ps_module[2].ps_status.bit.state > Interlock)
             {
-                set_hard_interlock(2, DCLink_Relay_Fault);
+                if(!PIN_STATUS_PS3_DCLINK_RELAY)
+                {
+                    set_hard_interlock(2, DCLink_Relay_Fault);
+                }
+
+                if(!PIN_STATUS_PS3_FUSE)
+                {
+                    set_hard_interlock(2, DCLink_Fuse_Fault);
+                }
+
+                if(fabs(g_controller_mtoc.net_signals[2].f) < MIN_DCLINK)
+                {
+                    set_hard_interlock(2, DCLink_Undervoltage);
+                }
+
             }
 
             break;
@@ -1109,34 +1186,78 @@ static void check_interlocks_ps_module(uint16_t id)
 
         case 3:
         {
-            if(!PIN_STATUS_PS4_FUSE)
-            {
-                set_hard_interlock(3, DCLink_Fuse_Fault);
-            }
-
             if(!PIN_STATUS_PS4_DRIVER_ERROR)
             {
                 set_hard_interlock(3, MOSFETs_Driver_Fault);
             }
+
+            IER &= ~M_INT11;
 
             if ( (g_ipc_ctom.ps_module[3].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS4_DCLINK_RELAY)) {
                 set_hard_interlock(3, DCLink_Relay_Fault);
             }
 
-            else if ( (g_ipc_ctom.ps_module[3].ps_status.bit.state > Interlock)
-                      && (!PIN_STATUS_PS4_DCLINK_RELAY) )
+            else if (g_ipc_ctom.ps_module[3].ps_status.bit.state > Interlock)
             {
-                set_hard_interlock(3, DCLink_Relay_Fault);
+                if(!PIN_STATUS_PS4_DCLINK_RELAY)
+                {
+                    set_hard_interlock(3, DCLink_Relay_Fault);
+                }
+
+                if(!PIN_STATUS_PS4_FUSE)
+                {
+                    set_hard_interlock(3, DCLink_Fuse_Fault);
+                }
+
+                if(fabs(g_controller_mtoc.net_signals[3].f) < MIN_DCLINK)
+                {
+                    set_hard_interlock(3, DCLink_Undervoltage);
+                }
             }
 
             break;
         }
     }
 
-    EINT;
+    IER |= M_INT11;
 
-    SET_DEBUG_GPIO1;
     run_interlocks_debouncing(id);
-    CLEAR_DEBUG_GPIO1;
+}
+
+static inline void run_dsp_pi_inline(dsp_pi_t *p_pi)
+{
+    float dyn_max;
+    float dyn_min;
+    float temp;
+
+    temp = *(p_pi->in) * p_pi->coeffs.s.kp;
+    SATURATE(temp, p_pi->coeffs.s.u_max, p_pi->coeffs.s.u_min);
+    p_pi->u_prop = temp;
+
+    dyn_max = (p_pi->coeffs.s.u_max - temp);
+    dyn_min = (p_pi->coeffs.s.u_min - temp);
+
+    temp = p_pi->u_int + *(p_pi->in) * p_pi->coeffs.s.ki;
+    SATURATE(temp, dyn_max, dyn_min);
+    p_pi->u_int = temp;
+
+    *(p_pi->out) = p_pi->u_int + p_pi->u_prop;
+}
+
+static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
+                                               *p_pwm_module, float duty_pu)
+{
+    uint16_t duty_int;
+    uint16_t duty_frac;
+    float duty;
+
+    duty = (0.5 * duty_pu + 0.5) * (float)p_pwm_module->TBPRD;
+
+    duty_int  = (uint16_t) duty;
+    duty_frac = ((uint16_t) ((duty - (float)duty_int) * MEP_ScaleFactor)) << 8;
+    duty_frac += 0x0180;
+
+    p_pwm_module->CMPAM2.half.CMPA    = duty_int;
+    p_pwm_module->CMPAM2.half.CMPAHR  = duty_frac;
 }

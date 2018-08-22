@@ -191,7 +191,6 @@ void run_interlocks_debouncing(uint16_t id)
     /// Check once per time-base period indicated by this flag
     if(g_event_manager[id].timebase_flag)
     {
-        //SET_DEBUG_GPIO1;
         for(i = 0; i < g_event_manager[id].hard_interlocks.num_events; i++)
         {
             if( g_event_manager[id].hard_interlocks.event[i].flag )
@@ -201,7 +200,6 @@ void run_interlocks_debouncing(uint16_t id)
                 {
                     g_event_manager[id].hard_interlocks.event[i].flag = 0;
                     g_event_manager[id].hard_interlocks.event[i].counter = 0;
-                    CLEAR_DEBUG_GPIO0;
                 }
             }
         }
@@ -215,13 +213,11 @@ void run_interlocks_debouncing(uint16_t id)
                 {
                     g_event_manager[id].soft_interlocks.event[i].flag = 0;
                     g_event_manager[id].soft_interlocks.event[i].counter = 0;
-                    //CLEAR_DEBUG_GPIO0;
                 }
             }
         }
 
         g_event_manager[id].timebase_flag = 0;
-        //CLEAR_DEBUG_GPIO1;
     }
 }
 
@@ -242,7 +238,6 @@ void set_hard_interlock(uint16_t id, uint32_t itlk)
     {
         if(!(g_ipc_ctom.ps_module[id].ps_hard_interlock & lut_bit_position[itlk]))
         {
-            SET_DEBUG_GPIO0
             #ifdef USE_ITLK
             g_ipc_ctom.ps_module[id].turn_off(id);
             g_ipc_ctom.ps_module[id].ps_status.bit.state = Interlock;
@@ -273,7 +268,6 @@ void set_soft_interlock(uint16_t id, uint32_t itlk)
     {
         if(!(g_ipc_ctom.ps_module[id].ps_soft_interlock & lut_bit_position[itlk]))
         {
-            //SET_DEBUG_GPIO0;
             #ifdef USE_ITLK
             g_ipc_ctom.ps_module[id].turn_off(id);
             g_ipc_ctom.ps_module[id].ps_status.bit.state = Interlock;
@@ -327,12 +321,10 @@ interrupt void isr_soft_interlock(void)
 
 interrupt void isr_interlocks_timebase(void)
 {
-    SET_DEBUG_GPIO1;
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
     SET_INTERLOCKS_TIMEBASE_FLAG(1);
     SET_INTERLOCKS_TIMEBASE_FLAG(2);
     SET_INTERLOCKS_TIMEBASE_FLAG(3);
 
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
-    CLEAR_DEBUG_GPIO1;
 }

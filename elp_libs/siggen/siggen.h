@@ -16,6 +16,12 @@
  * supports some broadly used signals, like sinusoidals, trapezoids, squares,
  * triangular, etc.
  *
+ * TODO: Compare implementation using uint32_t representation on counter 'n'.
+ *       This is suggested in order to avoid inexact representations of large
+ *       integer due to float limitation.
+ *       (Ref.: https://en.wikipedia.org/wiki/Single-precision_floating-point_format#Precision_limits_on_integer_values)
+ *
+ *
  * @author gabriel.brunheira
  * @date 11/02/2018
  *

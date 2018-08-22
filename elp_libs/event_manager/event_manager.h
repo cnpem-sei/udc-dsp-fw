@@ -62,6 +62,12 @@
  */
 #define SET_INTERLOCKS_TIMEBASE_FLAG(id)    g_event_manager[id].timebase_flag = 1;
 
+/**
+ * Calling this defines allows immediate set of hard/soft interlocks
+ */
+#define BYPASS_HARD_INTERLOCK_DEBOUNCE(id,itlk) g_event_manager[id].hard_interlocks.event[itlk].counter = g_event_manager[id].hard_interlocks.event[itlk].debounce_count;
+#define BYPASS_SOFT_INTERLOCK_DEBOUNCE(id,itlk) g_event_manager[id].soft_interlocks.event[itlk].counter = g_event_manager[id].soft_interlocks.event[itlk].debounce_count;
+
 typedef struct
 {
     uint16_t flag;

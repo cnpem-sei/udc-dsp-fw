@@ -39,7 +39,6 @@
 #define MIN_REF                 g_ipc_mtoc.control.min_ref
 #define MAX_REF_OL              g_ipc_mtoc.control.max_ref_openloop
 #define MIN_REF_OL              g_ipc_mtoc.control.min_ref_openloop
-#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
 
 /**
  * Digital I/O's operations and status
@@ -50,9 +49,9 @@
 #define PIN_OPEN_EXTERNAL_RELAY         CLEAR_GPDO2
 #define PIN_CLOSE_EXTERNAL_RELAY        SET_GPDO2
 
-#define PIN_STATUS_POWER_MODULE_1_FAULT !GET_GPDI1
-#define PIN_STATUS_POWER_MODULE_2_FAULT !GET_GPDI2
-#define PIN_STATUS_POWER_MODULE_3_FAULT !GET_GPDI3
+#define PIN_STATUS_POWER_MODULE_1_FAULT GET_GPDI1
+#define PIN_STATUS_POWER_MODULE_2_FAULT GET_GPDI2
+#define PIN_STATUS_POWER_MODULE_3_FAULT GET_GPDI3
 
 #define PIN_STATUS_SMOKE_DETECTOR       GET_GPDI4
 #define PIN_STATUS_EXTERNAL_INTERLOCK   GET_GPDI5
@@ -104,6 +103,8 @@ typedef enum
 #define NUM_HARD_INTERLOCKS     External_Interlock + 1
 #define NUM_SOFT_INTERLOCKS     0
 
+#define ISR_FREQ_INTERLOCK_TIMEBASE     10000.0
+
 /**
  * Private functions
  */
@@ -125,11 +126,15 @@ void main_fbp_dclink(void)
 {
     uint16_t i;
 
-    //DELAY_US(1000000);
-
     init_controller();
     init_peripherals_drivers();
     init_interruptions();
+
+    /**
+     * This delay waits for the stabilization of power supplies after power up,
+     * avoid invalid interlock checks
+     */
+    DELAY_US(1000000);
 
     /// TODO: check why first sync_pulse occurs
     g_ipc_ctom.counter_sync_pulse = 0;
@@ -181,7 +186,7 @@ static void init_controller(void)
                    &turn_on, &turn_off, &isr_soft_interlock,
                    &isr_hard_interlock, &reset_interlocks);
 
-    init_event_manager(0, ISR_CONTROL_FREQ,
+    init_event_manager(0, ISR_FREQ_INTERLOCK_TIMEBASE,
                        NUM_HARD_INTERLOCKS, NUM_SOFT_INTERLOCKS,
                        &HARD_INTERLOCKS_DEBOUNCE_TIME,
                        &HARD_INTERLOCKS_RESET_TIME,
@@ -205,7 +210,7 @@ static void init_peripherals_drivers(void)
     InitCpuTimers();
 
     /// Timer for time-base of interlocks debouncing
-    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, (1000000.0/ISR_CONTROL_FREQ) );
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, (1000000.0/ISR_FREQ_INTERLOCK_TIMEBASE) );
     CpuTimer0Regs.TCR.bit.TIE = 0;
 }
 
@@ -436,7 +441,5 @@ static void check_interlocks_ps_module(uint16_t id)
 
     EINT;
 
-    //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
-    //CLEAR_DEBUG_GPIO1;
 }
