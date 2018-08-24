@@ -56,12 +56,13 @@
 #define MAX_SR_SIGGEN_OFFSET    50.0        /// Max SigGen offset slew-rate [A/s]
 #define MAX_SR_SIGGEN_AMP       100.0       /// Max SigGen amplitude slew-rate [A/s]
 
-#define APPLICATION             UVX_LINAC_RACK1
+#define APPLICATION             UVX_LINAC_RACK3
 
 #define UVX_LINAC_RACK1     0
 #define UVX_LINAC_RACK2     1
-#define WEG_PILOT_BATCH_CHARACTERIZATION    2
-#define ELP_FAC_CON_TESTS   3
+#define UVX_LINAC_RACK3     2
+#define WEG_PILOT_BATCH_CHARACTERIZATION    3
+#define ELP_FAC_CON_TESTS   4
 
 /**
  * UVX Linac FBP Rack 1:
@@ -106,6 +107,29 @@
     // PS3: LCV04
     #define PS4_KP      1.5
     #define PS4_KI      125.0
+
+/**
+ * UVX Linac FBP Rack 2:
+ *      LCH02 / LCV02
+ */
+#elif APPLICATION == UVX_LINAC_RACK3
+
+    // PS1: LCH02
+    #define PS1_KP      1.185194
+    #define PS1_KI      110.8797
+
+    // PS2: LCV02
+    #define PS2_KP      1.405844
+    #define PS2_KI      110.8797
+
+    // PS3: -
+    #define PS3_KP      0.0
+    #define PS3_KI      0.0
+
+    // PS3: -
+    #define PS4_KP      0.0
+    #define PS4_KI      0.0
+
 
 /**
  *  WEG pilot batch characterization
