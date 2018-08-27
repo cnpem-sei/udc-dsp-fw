@@ -50,7 +50,7 @@
 #define MIN_DCLINK              3.0         /// DC Link under limit for interlock [V]
 #define NOM_VDCLINK             15.0        /// Nominal DC Link
 #define MAX_DCLINK              17.0        /// DC Link over limit for interlock [V]
-#define MAX_TEMP                80.0        /// Temperature limit for interlock [ºC]
+#define MAX_TEMP                128.0       /// Temperature limit for interlock [ºC]
 
 #define MAX_REF_SLEWRATE        1000000.0   /// Max reference slew-rate [A/s]
 #define MAX_SR_SIGGEN_OFFSET    50.0        /// Max SigGen offset slew-rate [A/s]
@@ -1192,7 +1192,7 @@ static void check_interlocks_ps_module(uint16_t id)
 
     if(fabs(g_controller_mtoc.net_signals[id+8].f) > MAX_TEMP)
     {
-        set_soft_interlock(id, OVERTEMP);
+        //set_soft_interlock(id, OVERTEMP);
     }
 
     switch(id)
