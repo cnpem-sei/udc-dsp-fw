@@ -534,5 +534,5 @@ interrupt void isr_ipc_sync_pulse(void)
     PieCtrlRegs.PIEACK.all |= M_INT1;
     PieCtrlRegs.PIEACK.all |= M_INT11;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }

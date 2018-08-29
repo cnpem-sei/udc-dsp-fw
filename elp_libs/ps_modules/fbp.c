@@ -638,7 +638,8 @@ static interrupt void isr_controller(void)
     static uint16_t i, flag_siggen = 0;
     static float temp[4];
 
-    SET_DEBUG_GPIO1;
+    CLEAR_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     /// Get HRADC samples
     temp[0] = (float) *(HRADCs_Info.HRADC_boards[0].SamplesBuffer);
@@ -757,7 +758,7 @@ static interrupt void isr_controller(void)
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }
 
 /**

@@ -616,7 +616,7 @@ interrupt void isr_controller(void)
     static uint16_t i;
 
     CLEAR_DEBUG_GPIO1;
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -788,7 +788,7 @@ interrupt void isr_controller(void)
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -1024,7 +1024,7 @@ static inline void check_interlocks(void)
     EINT;
 
     //CLEAR_DEBUG_GPIO1;
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }
