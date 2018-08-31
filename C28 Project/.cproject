@@ -66,7 +66,7 @@
 							</tool>
 							<tool id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.linkerDebug.930499414" name="C2000 Linker" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.linkerDebug">
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.STACK_SIZE.1447605799" name="Set C system stack size (--stack_size, -stack)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.STACK_SIZE" value="0x300" valueType="string"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE.947989827" name="Specify output file name (--output_file, -o)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE" value="&quot;${ProjName}.out&quot;" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE.947989827" name="Specify output file name (--output_file, -o)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE" useByScannerDiscovery="false" value="${ProjName}.out" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.MAP_FILE.549955281" name="Input and output sections listed into &lt;file&gt; (--map_file, -m)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.MAP_FILE" value="&quot;${ProjName}.map&quot;" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH.1274894458" name="Add &lt;dir&gt; to library search path (--search_path, -i)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/lib&quot;"/>
@@ -88,7 +88,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="F28M36x_ELP_DRS/PS_modules/FBP_FAC_UFJF.c|F28M36x_ELP_DRS/PS_modules/FAC_Full_ACDC_10kHz.c|F28M36x_ELP_DRS/PS_modules/Test_HRPWM.c|F28M36x_ELP_DRS/PS_modules/Test_HRADC_2.c|F28M36x_ELP_DRS/PS_modules/FAP_DCDC_20kHz.c|F28M36x_ELP_DRS/PS_modules/Test_BCB_Board.c|F28M36x_ELP_DRS/PS_modules/FBP_100kHz.c|F28M36x_ELP_DRS/PS_modules/FAP_ACDC.c|F28M36x_ELP_DRS/PS_modules/FAP_DCDC_15kHz_225A.c|F28M36x_ELP_DRS/PS_modules/Jiga_HRADC.c|F28M36x_ELP_DRS/PS_modules/Test_HRADC.c|F28M36x_ELP_DRS/PS_modules/FBP_Parallel_100kHz.c|F28M36x_ELP_DRS/DP_framework/TI_DCL|F28M36x_ELP_DRS/DP_framework/RefManager|F28M36x_generic_wshared_C28_FLASH.cmd|F28M36x_ELP_DRS/PWM_modules/PWM_modules_old.c|F28M36x_ELP_DRS/shared_memory|F28M36x_ELP_DRS/Regulators_modules|main_FBP_v2_0_1.c|app|app/PS_modules|app/DP_framework|app/IPC_modules|FLASH|main_v5.c|main_v2.c|main_HRADC_Debug.c|main_v3.c|main_v8.c|main_v7.c|old|main_v6.c|app/shared_memory/main_var.c|main_v4.c|app/shared_memory2|F28M36x_generic_wshared_C28_RAM.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="F28M36x_ELP_DRS/PS_modules/FBP_FAC_UFJF.c|F28M36x_ELP_DRS/PS_modules/FAC_Full_ACDC_10kHz.c|F28M36x_ELP_DRS/PS_modules/Test_HRPWM.c|F28M36x_ELP_DRS/PS_modules/Test_HRADC_2.c|F28M36x_ELP_DRS/PS_modules/FAP_DCDC_20kHz.c|F28M36x_ELP_DRS/PS_modules/Test_BCB_Board.c|F28M36x_ELP_DRS/PS_modules/FAP_ACDC.c|F28M36x_ELP_DRS/PS_modules/FAP_DCDC_15kHz_225A.c|F28M36x_ELP_DRS/PS_modules/Jiga_HRADC.c|F28M36x_ELP_DRS/PS_modules/Test_HRADC.c|F28M36x_ELP_DRS/PS_modules/FBP_Parallel_100kHz.c|F28M36x_ELP_DRS/DP_framework/TI_DCL|F28M36x_ELP_DRS/DP_framework/RefManager|F28M36x_generic_wshared_C28_FLASH.cmd|F28M36x_ELP_DRS/PWM_modules/PWM_modules_old.c|F28M36x_ELP_DRS/shared_memory|F28M36x_ELP_DRS/Regulators_modules|main_FBP_v2_0_1.c|app|app/PS_modules|app/DP_framework|app/IPC_modules|FLASH|main_v5.c|main_v2.c|main_HRADC_Debug.c|main_v3.c|main_v8.c|main_v7.c|old|main_v6.c|app/shared_memory/main_var.c|main_v4.c|app/shared_memory2|F28M36x_generic_wshared_C28_RAM.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -146,7 +146,7 @@
 							</tool>
 							<tool id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.linkerDebug.711849741" name="C2000 Linker" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.linkerDebug">
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.STACK_SIZE.170030130" name="Set C system stack size (--stack_size, -stack)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.STACK_SIZE" value="0x300" valueType="string"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE.1030201674" name="Specify output file name (--output_file, -o)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE" value="&quot;${ProjName}.out&quot;" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE.1030201674" name="Specify output file name (--output_file, -o)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.OUTPUT_FILE" useByScannerDiscovery="false" value="${ProjName}.out" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.MAP_FILE.1623253559" name="Input and output sections listed into &lt;file&gt; (--map_file, -m)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.MAP_FILE" value="&quot;${ProjName}.map&quot;" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH.593447299" name="Add &lt;dir&gt; to library search path (--search_path, -i)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.SEARCH_PATH" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/lib&quot;"/>
@@ -191,4 +191,5 @@
 	</storageModule>
 	<storageModule moduleId="null.endianPreference"/>
 	<storageModule moduleId="cpuFamily"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>

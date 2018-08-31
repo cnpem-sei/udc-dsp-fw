@@ -122,7 +122,7 @@ void main(void)
 		{
 			case FBP_100kHz:
 			{
-				//main_FBP_100kHz();
+				main_FBP_100kHz();
 				//main_Test_BCB_Board();
 				break;
 			}
