@@ -126,6 +126,12 @@
 #define MIN_I_ACTIVE_DCCT       g_ipc_mtoc.analog_vars.min[6]
 #define MAX_VOUT_MODULE         g_ipc_mtoc.analog_vars.max[7]
 
+#define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[8]
+#define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[8]
+
+#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
+#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+
 /**
  * Controller defines
  */
@@ -796,9 +802,7 @@ interrupt void isr_controller(void)
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, I_LOAD_1);
-        //insert_buffer(BUF_SAMPLES, I_LOAD_2);
-        //insert_buffer(BUF_SAMPLES, g_controller_ctom.net_signals[10].f);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
