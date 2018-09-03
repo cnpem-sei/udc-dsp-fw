@@ -26,8 +26,8 @@
 //#define KP						7.819075048934596e-01
 //#define KI						2.150245638457013
 
-#define KP						0.193
-#define KI						0.175
+#define KP						IPC_MtoC_Msg.DPModule.Coeffs[0] //0.193
+#define KI						IPC_MtoC_Msg.DPModule.Coeffs[1] //0.175
 
 #define CONTROL_FREQ			(2.0*PWM_FREQ)
 #define CONTROL_PERIOD			(1.0/CONTROL_FREQ)
@@ -41,10 +41,15 @@
 
 #define	BUFFER_DECIMATION		40
 
-#define TRANSDUCER_0_INPUT_RATED	600.0			// 	DCCT LEM ITZ 600
+#define TRANSDUCER_0_INPUT_RATED    150.0           //  DCCT PM TOPPAC
+#define TRANSDUCER_0_OUTPUT_RATED   10.0            //   In_rated   = +/- 150 A
+#define TRANSDUCER_0_OUTPUT_TYPE    Vin_bipolar     //   Out_rated  = +/- 10 V
+#define TRANSDUCER_0_GAIN           TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
+
+/*#define TRANSDUCER_0_INPUT_RATED	600.0			// 	DCCT LEM ITZ 600
 #define TRANSDUCER_0_OUTPUT_RATED	10.0			//   In_rated 	= +/- 600 A
 #define TRANSDUCER_0_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
-#define TRANSDUCER_0_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
+#define TRANSDUCER_0_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED*/
 
 /*#define TRANSDUCER_0_INPUT_RATED	1200.0			// DCCT EU-Kontroll ZCT:
 #define TRANSDUCER_0_OUTPUT_RATED	10.0			//   In_rated 	= +/- 1200 A
