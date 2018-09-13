@@ -136,11 +136,9 @@ uint16_t insert_buffer(buf_t *p_buf, float data)
         }
         else if(p_buf->status == Postmortem)
         {
-            if(p_buf->p_buf_idx < p_buf->p_buf_end)
-            {
-                *(p_buf->p_buf_idx++) = data;
-            }
-            else
+            *(p_buf->p_buf_idx) = data;
+
+            if(p_buf->p_buf_idx++ == p_buf->p_buf_end)
             {
                 p_buf->p_buf_idx = p_buf->p_buf_start;
                 p_buf->status = Idle;
@@ -160,6 +158,7 @@ uint16_t insert_buffer(buf_t *p_buf, float data)
 
     return p_buf->status;
 }
+
 
 /**
  * Test to indicate whether the buffer contains any sample outside the limits
