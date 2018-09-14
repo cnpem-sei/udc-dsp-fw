@@ -571,7 +571,6 @@ static interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
-    CLEAR_DEBUG_GPIO1;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -763,14 +762,14 @@ static void term_interruptions(void)
 static void turn_on(uint16_t dummy)
 {
     #ifdef USE_ITLK
-    if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Off)
+    if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state == Off)
     #else
-    if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
+    if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state <= Interlock)
     #endif
     {
         reset_controller();
 
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
+        g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Initializing;
 
         PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_A;
         PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_B;
@@ -779,18 +778,21 @@ static void turn_on(uint16_t dummy)
 
         if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A)
         {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_A_ID, AC_Mains_Contactor_Fault);
             set_hard_interlock(MOD_A_ID, AC_Mains_Contactor_Fault);
         }
 
         if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B)
         {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_B_ID, AC_Mains_Contactor_Fault);
             set_hard_interlock(MOD_B_ID, AC_Mains_Contactor_Fault);
+            g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Interlock;
         }
 
-        if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
+        if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state == Initializing)
         {
-            g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
-            g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+            g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.openloop = OPEN_LOOP;
+            g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = SlowRef;
             enable_pwm_output(MOD_A_ID);
             enable_pwm_output(MOD_B_ID);
         }
@@ -814,9 +816,10 @@ static void turn_off(uint16_t dummy)
 
     reset_controller();
 
-    if(g_ipc_ctom.ps_module[0].ps_status.bit.state != Interlock)
+    if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state != Interlock)
     {
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
+        g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Off;
+        g_ipc_ctom.ps_module[MOD_B_ID].ps_status.bit.state = Off;
     }
 }
 
@@ -834,9 +837,10 @@ static void reset_interlocks(uint16_t dummy)
     g_ipc_ctom.ps_module[MOD_B_ID].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[MOD_B_ID].ps_soft_interlock = 0;
 
-    if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
+    if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state < Initializing)
     {
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
+        g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Off;
+        g_ipc_ctom.ps_module[MOD_B_ID].ps_status.bit.state = Off;
     }
 }
 
@@ -892,10 +896,15 @@ static inline void check_interlocks(void)
     }
     EINT;
 
-    SET_DEBUG_GPIO1;
+    if(g_ipc_ctom.ps_module[MOD_B_ID].ps_status.bit.state == Interlock)
+    {
+        g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Interlock;
+    }
+
+    //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
     run_interlocks_debouncing(1);
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }
 
 static void init_controller_module_A(void)
