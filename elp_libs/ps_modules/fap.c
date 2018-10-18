@@ -136,6 +136,8 @@
 #define DUTY_MEAN               g_controller_ctom.net_signals[5].f
 #define DUTY_DIFF               g_controller_ctom.net_signals[7].f
 
+#define V_DCLINK_FILTERED       g_controller_ctom.net_signals[10].f
+
 #define DUTY_CYCLE_IGBT_1       g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_IGBT_2       g_controller_ctom.output_signals[1].f
 
@@ -465,8 +467,8 @@ static void init_controller(void)
      *        name:     IIR_2P2Z_LPF_V_DCLINK
      * description:     DC-Link voltage low-pass filter
      *    DP class:     ELP_IIR_2P2Z
-     *          in:     net_signals[2]
-     *         out:     net_signals[10]
+     *          in:     V_DCLINK
+     *         out:     V_DCLINK_FILTERED
      */
 
     init_dsp_iir_2p2z(IIR_2P2Z_LPF_V_DCLINK,
@@ -475,35 +477,32 @@ static void init_controller(void)
                       IIR_2P2Z_LPF_V_DCLINK_COEFFS.b2,
                       IIR_2P2Z_LPF_V_DCLINK_COEFFS.a1,
                       IIR_2P2Z_LPF_V_DCLINK_COEFFS.a2,
-                      FLT_MAX, -FLT_MAX, &g_controller_ctom.net_signals[2].f,
-                      &g_controller_ctom.net_signals[10].f);
+                      FLT_MAX, -FLT_MAX, &V_DCLINK, &V_DCLINK_FILTERED);
 
     /**
      *        name:     FF_V_DCLINK_IGBT_1
      * description:     DC-Link voltage feed-forward for IGBT 1
      *    DP class:     DSP_VdcLink_FeedForward
-     *    vdc_meas:     net_signals[10]
+     *    vdc_meas:     V_DCLINK_FILTERED
      *          in:     net_signals[8]
      *         out:     output_signals[0]
      */
 
     init_dsp_vdclink_ff(FF_V_DCLINK_IGBT_1, NOM_V_DCLINK_FF, MIN_V_DCLINK_FF,
-                        &g_controller_ctom.net_signals[10].f,
-                        &g_controller_ctom.net_signals[8].f,
+                        &V_DCLINK_FILTERED, &g_controller_ctom.net_signals[8].f,
                         &g_controller_ctom.output_signals[0].f);
 
     /**
      *        name:     FF_V_DCLINK_IGBT_2
      * description:     DC-Link voltage feed-forward for IGBT 2
      *    DP class:     DSP_VdcLink_FeedForward
-     *    vdc_meas:     net_signals[10]
+     *    vdc_meas:     V_DCLINK_FILTERED
      *          in:     net_signals[9]
      *         out:     output_signals[1]
      */
 
     init_dsp_vdclink_ff(FF_V_DCLINK_IGBT_2, NOM_V_DCLINK_FF, MIN_V_DCLINK_FF,
-                        &g_controller_ctom.net_signals[10].f,
-                        &g_controller_ctom.net_signals[9].f,
+                        &V_DCLINK_FILTERED, &g_controller_ctom.net_signals[9].f,
                         &g_controller_ctom.output_signals[1].f);
 
     /************************************/
@@ -850,6 +849,7 @@ static void turn_on(uint16_t dummy)
     {
         if(V_DCLINK < MIN_V_DCLINK)
         {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Undervoltage);
             set_hard_interlock(0, DCLink_Undervoltage);
         }
 
@@ -863,6 +863,7 @@ static void turn_on(uint16_t dummy)
 
             if(!PIN_STATUS_DCLINK_CONTACTOR)
             {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Contactor_Fault);
                 set_hard_interlock(0, DCLink_Contactor_Fault);
             }
 

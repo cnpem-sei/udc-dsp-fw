@@ -66,6 +66,7 @@
 #define PWM_MIN_DUTY            g_ipc_mtoc.pwm.min_duty
 #define PWM_MAX_DUTY_OL         g_ipc_mtoc.pwm.max_duty_openloop
 #define PWM_MIN_DUTY_OL         g_ipc_mtoc.pwm.min_duty_openloop
+#define PWM_LIM_DUTY_SHARE      g_ipc_mtoc.pwm.lim_duty_share
 
 /**
  * Control parameters
@@ -137,9 +138,19 @@
  */
 #define I_LOAD_1                        g_controller_ctom.net_signals[0].f  // HRADC0
 #define I_LOAD_2                        g_controller_ctom.net_signals[1].f  // HRADC1
-#define I_LOAD_MEAN                     g_controller_ctom.net_signals[2].f
-#define I_LOAD_DIFF                     g_controller_ctom.net_signals[3].f
-#define I_LOAD_ERROR                    g_controller_ctom.net_signals[4].f
+#define I_ARM_1                         g_controller_ctom.net_signals[2].f  // HRADC2
+#define I_ARM_2                         g_controller_ctom.net_signals[3].f  // HRADC3
+
+#define I_LOAD_SETPOINT_FILTERED        g_controller_ctom.net_signals[4].f
+
+#define I_LOAD_MEAN                     g_controller_ctom.net_signals[5].f
+#define I_LOAD_ERROR                    g_controller_ctom.net_signals[6].f
+#define DUTY_MEAN                       g_controller_ctom.net_signals[7].f
+
+#define I_ARMS_DIFF                     g_controller_ctom.net_signals[8].f
+#define DUTY_DIFF                       g_controller_ctom.net_signals[9].f
+
+#define I_LOAD_DIFF                     g_controller_ctom.net_signals[10].f
 
 #define V_LOAD                          g_controller_mtoc.net_signals[0].f
 
@@ -160,9 +171,6 @@
 #define V_OUT_MOD_6                     g_controller_mtoc.net_signals[14].f
 #define V_OUT_MOD_7                     g_controller_mtoc.net_signals[15].f
 #define V_OUT_MOD_8                     g_controller_mtoc.net_signals[16].f
-
-//#define TEMP_INDUCTORS                  g_controller_mtoc.net_signals[10].f
-//#define TEMP_IGBT                       g_controller_mtoc.net_signals[11].f
 
 #define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
@@ -187,6 +195,12 @@
 #define IIR_2P2Z_CONTROLLER_I_LOAD           &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
 #define IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
+#define ERROR_I_SHARE                   &g_controller_ctom.dsp_modules.dsp_error[1]
+#define PI_CONTROLLER_I_SHARE           &g_controller_ctom.dsp_modules.dsp_pi[1]
+#define PI_CONTROLLER_I_SHARE_COEFFS    g_controller_mtoc.dsp_modules.dsp_pi[1].coeffs.s
+#define KP_I_SHARE                      PI_CONTROLLER_I_SHARE_COEFFS.kp
+#define KI_I_SHARE                      PI_CONTROLLER_I_SHARE_COEFFS.ki
+
 #define PWM_MODULATOR_Q1_MOD_1_5          g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_Q2_MOD_1_5          g_pwm_modules.pwm_regs[1]
 #define PWM_MODULATOR_Q1_MOD_2_6          g_pwm_modules.pwm_regs[2]
@@ -204,10 +218,10 @@
 /**
  * Digital I/O's status
  */
-#define PIN_STATUS_DCCT_1_STATUS    GET_GPDI9
-#define PIN_STATUS_DCCT_1_ACTIVE    GET_GPDI10
-#define PIN_STATUS_DCCT_2_STATUS    GET_GPDI11
-#define PIN_STATUS_DCCT_2_ACTIVE    GET_GPDI12
+#define PIN_STATUS_DCCT_1_STATUS    GET_GPDI13
+#define PIN_STATUS_DCCT_1_ACTIVE    GET_GPDI14
+#define PIN_STATUS_DCCT_2_STATUS    GET_GPDI5
+#define PIN_STATUS_DCCT_2_ACTIVE    GET_GPDI6
 
 /**
  * Interlocks defines
@@ -531,18 +545,18 @@ static void init_controller(void)
      * description:     Capacitor bank voltage PI controller
      *  dsp module:     DSP_PI
      *          in:     I_LOAD_ERROR
-     *         out:     DUTY_CYCLE
+     *         out:     DUTY_MEAN
      */
 
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_CYCLE_MOD_1);
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_MEAN);
 
     /**
      *        name:     IIR_2P2Z_CONTROLLER_I_LOAD
      * description:     Load current IIR 2P2Z controller
      *    DP class:     DSP_IIR_2P2Z
-     *          in:     net_signals[4]
-     *         out:     DUTY_CYCLE
+     *          in:     I_LOAD_ERROR
+     *         out:     DUTY_MEAN
      */
 
     init_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_I_LOAD,
@@ -552,7 +566,22 @@ static void init_controller(void)
                       IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.a1,
                       IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.a2,
                       PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR,
-                      &DUTY_CYCLE_MOD_1);
+                      &DUTY_MEAN);
+
+    /*******************************************************/
+    /** INITIALIZATION OF ARMS CURRENT SHARE CONTROL LOOP **/
+    /*******************************************************/
+
+    /**
+     *        name:     PI_CONTROLLER_I_SHARE
+     * description:     Arms current share PI controller
+     *  dsp module:     DSP_PI
+     *          in:     I_ARMS_DIFF
+     *         out:     DUTY_DIFF
+     */
+
+    init_dsp_pi(PI_CONTROLLER_I_SHARE, KP_I_SHARE, KI_I_SHARE, ISR_CONTROL_FREQ,
+                PWM_LIM_DUTY_SHARE, -PWM_LIM_DUTY_SHARE, &I_ARMS_DIFF, &DUTY_DIFF);
 
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
@@ -604,6 +633,8 @@ static void reset_controller(void)
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
     reset_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_I_LOAD);
+
+    reset_dsp_pi(PI_CONTROLLER_I_SHARE);
 
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
@@ -700,11 +731,12 @@ interrupt void isr_controller(void)
 
     I_LOAD_1 = temp[0];
     I_LOAD_2 = temp[1];
+    I_ARM_1 = temp[2];
+    I_ARM_2 = temp[3];
+
     I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
     I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
-
-    g_controller_ctom.net_signals[10].f = temp[2];
-    g_controller_ctom.net_signals[11].f = temp[3];
+    I_ARMS_DIFF = I_ARM_1 - I_ARM_2;
 
     /// Check whether power supply is ON
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
@@ -773,6 +805,8 @@ interrupt void isr_controller(void)
             SATURATE(I_LOAD_REFERENCE, MAX_REF_OL, MIN_REF_OL);
             DUTY_CYCLE_MOD_1 = 0.01 * I_LOAD_REFERENCE;
             SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
+
+            DUTY_CYCLE_MOD_5 = DUTY_CYCLE_MOD_1;
         }
         /// Closed-loop
         else
@@ -781,13 +815,22 @@ interrupt void isr_controller(void)
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
             //run_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_I_LOAD);
+            run_dsp_pi(PI_CONTROLLER_I_SHARE);
+
+            DUTY_CYCLE_MOD_1 = DUTY_MEAN - DUTY_DIFF;
+            DUTY_CYCLE_MOD_5 = DUTY_MEAN + DUTY_DIFF;
 
             SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_MOD_5, PWM_MAX_DUTY, PWM_MIN_DUTY);
         }
 
         DUTY_CYCLE_MOD_2 = DUTY_CYCLE_MOD_1;
         DUTY_CYCLE_MOD_3 = DUTY_CYCLE_MOD_1;
         DUTY_CYCLE_MOD_4 = DUTY_CYCLE_MOD_1;
+
+        DUTY_CYCLE_MOD_6 = DUTY_CYCLE_MOD_5;
+        DUTY_CYCLE_MOD_7 = DUTY_CYCLE_MOD_5;
+        DUTY_CYCLE_MOD_8 = DUTY_CYCLE_MOD_5;
 
         /**
          * TODO: for 8 modules, create new function to set duty on channel B,
@@ -797,6 +840,11 @@ interrupt void isr_controller(void)
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_2_6, DUTY_CYCLE_MOD_2);
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_3_7, DUTY_CYCLE_MOD_3);
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_4_8, DUTY_CYCLE_MOD_4);
+
+        set_pwm_duty_hbridge_chB(PWM_MODULATOR_Q1_MOD_1_5, DUTY_CYCLE_MOD_5);
+        set_pwm_duty_hbridge_chB(PWM_MODULATOR_Q1_MOD_2_6, DUTY_CYCLE_MOD_6);
+        set_pwm_duty_hbridge_chB(PWM_MODULATOR_Q1_MOD_3_7, DUTY_CYCLE_MOD_7);
+        set_pwm_duty_hbridge_chB(PWM_MODULATOR_Q1_MOD_4_8, DUTY_CYCLE_MOD_8);
     }
 
     /*********************************************/
@@ -997,9 +1045,9 @@ static inline void check_interlocks(void)
 
     EINT;
 
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }
 
 static inline void check_capbank_undervoltage(void)
@@ -1109,4 +1157,28 @@ static void cfg_pwm_module_h_brigde_q2(volatile struct EPWM_REGS *p_pwm_module)
     p_pwm_module->AQCTLB.bit.CAD = AQ_NO_ACTION;
     p_pwm_module->AQCTLB.bit.CBU = AQ_SET;
     p_pwm_module->AQCTLB.bit.CBD = AQ_NO_ACTION;
+}
+
+/**
+ * Set duty-cycle (-1.0 to 1.0) for specified PWM module working with a H-bridge
+ * with unipolar switching scheme using only channels B for Q1 and Q2,
+ * independent from channels A.
+ *
+ * @param p_pwm_module specified PWM module
+ * @param duty specified duty cycle [p.u.]
+ */
+void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, float duty_pu)
+{
+    uint16_t duty_int;
+    uint16_t duty_frac;
+    float duty;
+
+    duty = (0.5 * duty_pu + 0.5) * (float)p_pwm_module->TBPRD;
+
+    duty_int  = (uint16_t) duty;
+    duty_frac = ((uint16_t) ((duty - (float)duty_int) * MEP_ScaleFactor)) << 8;
+    duty_frac += 0x0180;
+
+    p_pwm_module->CMPBM.half.CMPB    = duty_int;
+    p_pwm_module->CMPBM.half.CMPBHR  = duty_frac;
 }
