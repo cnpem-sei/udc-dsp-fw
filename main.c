@@ -35,6 +35,7 @@
 #include "ps_modules/fac_2p4s_acdc.h"
 #include "ps_modules/fac_2p4s_dcdc.h"
 #include "ps_modules/fap.h"
+#include "ps_modules/fap_225A.h"
 
 /**
  * @brief Main function
@@ -142,6 +143,12 @@ void main(void)
             case FAP:
             {
                 main_fap();
+                break;
+            }
+
+            case FAP_225A:
+            {
+                main_fap_225A();
                 break;
             }
 

@@ -40,6 +40,7 @@ static float coeff_exp_approx;
 #pragma CODE_SECTION(run_siggen_sine, "ramfuncs");
 #pragma CODE_SECTION(run_siggen_dampedsine, "ramfuncs");
 #pragma CODE_SECTION(run_siggen_trapezoidal, "ramfuncs");
+#pragma CODE_SECTION(run_siggen_dampedsinesquared, "ramfuncs");
 #pragma CODE_SECTION(update_siggen_freq, "ramfuncs");
 
 static void update_siggen_freq(siggen_t *p_siggen);
@@ -147,6 +148,7 @@ void cfg_siggen(siggen_t *p_siggen, siggen_type_t sig_type, uint16_t num_cycles,
                 p_siggen->p_run_siggen = &run_siggen_dampedsine;
                 break;
             }
+
             case Trapezoidal:
             {
                 p_siggen->aux_var[0] = p_siggen->aux_param[0] *
@@ -169,6 +171,29 @@ void cfg_siggen(siggen_t *p_siggen, siggen_type_t sig_type, uint16_t num_cycles,
                 p_siggen->aux_var[5] = 0.0;
 
                 p_siggen->p_run_siggen = &run_siggen_trapezoidal;
+                break;
+            }
+
+            case DampedSineSquared:
+            {
+                /// Sample phase
+                p_siggen->aux_var[1] = PI * p_siggen->aux_param[0] / 180.0;
+
+                /// Total number of samples (apply only for fractional frequencies)
+                p_siggen->aux_var[2] = p_siggen->num_cycles +
+                                       ( p_siggen->aux_param[1] -
+                                         p_siggen->aux_param[0] ) / (360.0);
+                if(p_siggen->aux_param[0] > p_siggen->aux_param[1])
+                {
+                    p_siggen->aux_var[2]++;
+                }
+                p_siggen->aux_var[2] *= p_siggen->freq_sampling/(p_siggen->freq);
+
+                /// Damping exponencial coefficient
+                p_siggen->aux_var[3] = -(1.0/p_siggen->aux_param[2]) /
+                                         p_siggen->freq_sampling ;
+
+                p_siggen->p_run_siggen = &run_siggen_dampedsinesquared;
                 break;
             }
         }
@@ -200,6 +225,7 @@ void set_siggen_freq(siggen_t *p_siggen, float freq)
     {
         case Sine:
         case DampedSine:
+        case DampedSineSquared:
         {
             /// Continuous operation only allows integer frequencies. To
             /// generate continuous-like operation with fractional frequencies,
@@ -237,6 +263,7 @@ void enable_siggen(siggen_t *p_siggen)
         {
             case Sine:
             case DampedSine:
+            case DampedSineSquared:
                 update_siggen_freq(p_siggen);
                 break;
 
@@ -364,6 +391,33 @@ void run_siggen_trapezoidal(siggen_t *p_siggen)
 	}
 }
 
+/**
+ * Run damped squared sinusoidal signal.
+ *
+ * @param p_siggen  Pointer to specified siggen controller
+ */
+void run_siggen_dampedsinesquared(siggen_t *p_siggen)
+{
+    float temp = 0;
+
+    if(p_siggen->enable)
+    {
+        if(p_siggen->n < p_siggen->aux_var[2])
+        {
+            temp = sin( p_siggen->aux_var[0] * p_siggen->n + p_siggen->aux_var[1] );
+
+            *(p_siggen->p_out) = p_siggen->amplitude *
+                                 exp_approx(p_siggen->aux_var[3] * p_siggen->n) *
+                                 temp * temp + p_siggen->offset;
+
+            p_siggen->n++;
+        }
+        else
+        {
+            disable_siggen(p_siggen);
+        }
+    }
+}
 
 /**
  * Update frequency of signal.
@@ -376,6 +430,7 @@ void update_siggen_freq(siggen_t *p_siggen)
     {
         case Sine:
         case DampedSine:
+        case DampedSineSquared:
         {
             p_siggen->aux_var[0] = 2.0 * PI * (p_siggen->freq) /
                                    p_siggen->freq_sampling;
