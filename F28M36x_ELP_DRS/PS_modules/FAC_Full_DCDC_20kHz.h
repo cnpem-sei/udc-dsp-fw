@@ -16,9 +16,9 @@
 #define PWM_MIN_DUTY_OL			-0.4		// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
 #define PWM_MAX_SHARE_DUTY		0.01
 
-#define MAX_REF					990.0//200.0		// Valor m�ximo da refer�ncia de corrente na carga [A]
-#define MIN_REF					-990.0//-200.0		// Valor m�nimo da refer�ncia de corrente na carga [A]
-#define MAX_ILOAD_MEASURED		1000.0//210.0		// Limite de corrente na carga para interlock [A]
+#define MAX_REF					1000.0//990.0//200.0		// Valor m�ximo da refer�ncia de corrente na carga [A]
+#define MIN_REF					-1000.0//-990.0//-200.0		// Valor m�nimo da refer�ncia de corrente na carga [A]
+#define MAX_ILOAD_MEASURED		1050.0//1000.0//210.0		// Limite de corrente na carga para interlock [A]
 
 #define MAX_DCLINK				105.0		// Valor maximo de tensao no DC-Link para interlock [V]
 #define MIN_DCLINK				1.0			// Valor minimo de tensao no DC-Link para feed-forward operar [V]
@@ -52,8 +52,8 @@
 #define PWM_DAC_FREQ			(100.0*CONTROL_FREQ)
 #define PWM_DAC_MODULE			&EPwm4Regs
 
-#define TRANSDUCER_0_INPUT_RATED	1000.0			// DCCT ITZ-2000 PR
-#define TRANSDUCER_0_OUTPUT_RATED	10.0			//   In_rated 	= +/- 1000 A
+#define TRANSDUCER_0_INPUT_RATED	1125.0			// DCCT ITZ-2000 PR
+#define TRANSDUCER_0_OUTPUT_RATED	10.0			//   In_rated 	= +/- 1125 A
 #define TRANSDUCER_0_OUTPUT_TYPE	Vin_bipolar		//   Out_rated 	= +/- 10 V
 #define TRANSDUCER_0_GAIN			TRANSDUCER_0_INPUT_RATED/TRANSDUCER_0_OUTPUT_RATED
 #define HRADC_0_R_BURDEN			20.0			// Resistor Burden = 20 R

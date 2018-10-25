@@ -32,6 +32,8 @@
 #pragma CODE_SECTION(Run_ELP_SigGen_Triangle, "ramfuncs");
 #pragma CODE_SECTION(Run_ELP_SigGen_FreqSweep, "ramfuncs");
 #pragma CODE_SECTION(Run_ELP_SigGen_DampedSine, "ramfuncs");
+#pragma CODE_SECTION(Run_ELP_SigGen_Trapezoidal, "ramfuncs");
+#pragma CODE_SECTION(Run_ELP_SigGen_DampedSineSquared, "ramfuncs");
 
 /*
  * Prototype statements for functions found within this file
@@ -49,6 +51,7 @@ void Run_ELP_SigGen_Triangle(tELP_SigGen *ptr_sg);
 void Run_ELP_SigGen_FreqSweep(tELP_SigGen *ptr_sg);
 void Run_ELP_SigGen_DampedSine(tELP_SigGen *ptr_sg);
 void Run_ELP_SigGen_Trapezoidal(tELP_SigGen *ptr_sg);
+void Run_ELP_SigGen_DampedSineSquared(tELP_SigGen *ptr_sg);
 
 tELP_SigGen SignalGenerator;
 
@@ -118,6 +121,11 @@ Uint16 Init_ELP_SigGen(tELP_SigGen *ptr_sg, eSigGenType sigType, float phase_sta
 				ptr_sg->Aux = (*ptr_amp) / (phase_end * freqSample);
 				ptr_sg->Run_ELP_SigGen = Run_ELP_SigGen_Trapezoidal;
 				break;
+
+            case DampedSineSquared:
+                ptr_sg->Aux = -(1.0/(*ptr_aux)) / freqSample;
+                ptr_sg->Run_ELP_SigGen = Run_ELP_SigGen_DampedSineSquared;
+                break;
 		}
 
 		EINT;
@@ -261,6 +269,26 @@ void Run_ELP_SigGen_Trapezoidal(tELP_SigGen *ptr_sg)
 		}
 	}
 }
+
+void Run_ELP_SigGen_DampedSineSquared(tELP_SigGen *ptr_sg)
+{
+    float temp;
+
+    if(ptr_sg->Enable)
+    {
+        if(ptr_sg->n < ptr_sg->nSamples)
+        {
+            temp = sin( ptr_sg->w * ptr_sg->n + ptr_sg->PhaseStart);
+            *(ptr_sg->out) = (*ptr_sg->ptr_Amp) * exp(ptr_sg->Aux * ptr_sg->n) * temp * temp + (*ptr_sg->ptr_Offset);
+            ptr_sg->n++;
+        }
+        else
+        {
+            Disable_ELP_SigGen(ptr_sg);
+        }
+    }
+}
+
 
 void Update_ELP_SigGen(tELP_SigGen *ptr_sg)
 {
