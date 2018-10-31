@@ -41,8 +41,9 @@
 /**
  * C28 system defines
  */
-#define C28_FREQ_MHZ    150
-#define LSPCLK_DV       1       /// Divide LSPCLOCK by 2 (used by McBSP and SCI)
+#define C28_FREQ_MHZ    150.0
+#define LSPCLK_DV       2       /// LSPCLK = SYSCLKOUT/2 (used by McBSP and SCI)
+#define LSPCLK_FREQ     (C28_FREQ_MHZ * 1E6)/(LSPCLK_DV >> 1)
 
 /**
  * GPIO macros
