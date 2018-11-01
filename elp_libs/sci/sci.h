@@ -25,6 +25,9 @@
 
 #include "boards/udc_c28.h"
 
+#define SET_SCI_RD      GpioDataRegs.GPDSET.bit.GPIO117 = 1;
+#define RESET_SCI_RD    GpioDataRegs.GPDCLEAR.bit.GPIO117 = 1;
+
 extern void init_sci(float baudrate, uint16_t rxfifo_lvl);
 extern void init_sci_rx_fifo_interrupt(void (*p_isr_sci_rx_fifo)(void));
 

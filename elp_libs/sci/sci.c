@@ -88,6 +88,21 @@ void init_sci(float baudrate, uint16_t rxfifo_lvl)
     SciaRegs.SCICTL1.all = 0x0023;
     SciaRegs.SCIFFTX.bit.TXFIFOXRESET = 1;
     SciaRegs.SCIFFRX.bit.RXFIFORESET = 1;
+
+    /**
+     * Initialize pins
+     */
+    EALLOW;
+    GpioCtrlRegs.GPDDIR.bit.GPIO117 = 1;
+    GpioDataRegs.GPDCLEAR.bit.GPIO117 = 1;
+    GpioCtrlRegs.GPDMUX2.bit.GPIO117 = 0;   // SCI_RD
+
+    GpioCtrlRegs.GPDDIR.bit.GPIO118 = 1;
+    GpioCtrlRegs.GPDMUX2.bit.GPIO118 = 2;   // SCITXDA
+
+    GpioCtrlRegs.GPDDIR.bit.GPIO119 = 0;
+    GpioCtrlRegs.GPDMUX2.bit.GPIO119 = 2;   // SCIRXDA
+    EDIS;
 }
 
 void init_sci_rx_fifo_interrupt(void (*p_isr_sci_rx_fifo)(void))

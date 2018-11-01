@@ -26,6 +26,7 @@
 
 #include "boards/udc_c28.h"
 #include "ps_modules/ps_modules.h"
+#include "sci/sci.h"
 
 #define SIZE_SCI_FIFO           3
 
@@ -38,8 +39,6 @@
 
 #define NUM_MAX_UDC_NET_NODES   5
 
-#define DRS_Master_Interlock    10
-
 typedef enum
 {
     Turn_On_UDC_Net,
@@ -51,13 +50,13 @@ typedef enum
 
 typedef struct
 {
-    uint16_t    reserved1   : 8;
-    uint16_t    add         : 4;
     uint16_t    cmd         : 4;
-    uint16_t    reserved2   : 8;
+    uint16_t    add         : 4;
+    uint16_t    reserved1   : 8;
     uint16_t    data        : 8;
-    uint16_t    reserved3   : 8;
+    uint16_t    reserved2   : 8;
     uint16_t    checksum    : 8;
+    uint16_t    reserved3   : 8;
 } udc_net_msg_bit_t;
 
 typedef union
@@ -77,13 +76,39 @@ typedef struct
 
 extern volatile udc_net_t g_udc_net;
 
-extern void init_udc_net( uint16_t node_type, uint16_t add,
-                          void (*p_process_data)(void) );
+extern void init_udc_net(uint16_t add, void (*p_process_data)(void));
 
 extern void send_udc_net_cmd(uint16_t add, uint16_t cmd, uint16_t data);
 
-extern inline void set_interlock_udc_net(void);
-extern inline void reset_interlock_udc_net(void);
-extern inline void get_status_udc_net(uint16_t add);
+
+inline void set_interlock_udc_net(void)
+{
+    SET_DEBUG_GPIO1;
+    SET_SCI_RD;
+    SciaRegs.SCITXBUF = 0x00F2;
+    SciaRegs.SCITXBUF = g_udc_net.add;
+    SciaRegs.SCITXBUF = 0x000E - g_udc_net.add;
+    //RESET_SCI_RD;
+}
+
+inline void reset_interlock_udc_net(void)
+{
+    SET_DEBUG_GPIO1;
+    SET_SCI_RD;
+    SciaRegs.SCITXBUF = 0x00F3;
+    SciaRegs.SCITXBUF = 0x0000;
+    SciaRegs.SCITXBUF = 0x000D;
+    //RESET_SCI_RD;
+}
+
+inline void get_status_udc_net(uint16_t add)
+{
+    SET_DEBUG_GPIO1;
+    SET_SCI_RD;
+    SciaRegs.SCITXBUF = 0x0004 | (add << 4);
+    SciaRegs.SCITXBUF = 0x0000;
+    SciaRegs.SCITXBUF = 0x00FC - (add << 4);
+    //RESET_SCI_RD;
+}
 
 #endif /* UDC_NET_H_ */

@@ -32,6 +32,7 @@
 #include "ipc/ipc.h"
 #include "parameters/parameters.h"
 #include "pwm/pwm.h"
+#include "udc_net/udc_net.h"
 
 #include "fac_2p4s_acdc.h"
 
@@ -222,7 +223,12 @@ typedef enum
     Rectifier_Undervoltage,
     Rectifier_Overcurrent,
     AC_Mains_Contactor_Fault,
-    IGBT_Driver_Fault
+    IGBT_Driver_Fault,
+    DRS_Master_Interlock,
+    DRS_Slave_1_Interlock,
+    DRS_Slave_2_Interlock,
+    DRS_Slave_3_Interlock,
+    DRS_Slave_4_Interlock
 } hard_interlocks_t;
 
 typedef enum
@@ -247,6 +253,8 @@ static float decimation_coeff;
 #pragma CODE_SECTION(isr_init_controller, "ramfuncs");
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
+#pragma CODE_SECTION(process_data_udc_net_slave, "ramfuncs");
+#pragma CODE_SECTION(isr_udc_net_tx_end, "ramfuncs");
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -268,6 +276,9 @@ static void turn_off(uint16_t dummy);
 
 static void reset_interlocks(uint16_t dummy);
 static inline void check_interlocks(void);
+
+static void process_data_udc_net_slave(void);
+static interrupt void isr_udc_net_tx_end(void);
 
 /**
  * Main function for this power supply module
@@ -354,6 +365,14 @@ static void init_peripherals_drivers(void)
     InitCpuTimers();
     ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
     CpuTimer0Regs.TCR.bit.TIE = 0;
+
+    /// Initialization of timers
+    InitCpuTimers();
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 29);
+    CpuTimer0Regs.TCR.bit.TIE = 0;
+
+    /// Initialization of UDC Net
+    init_udc_net(1, &process_data_udc_net_slave);
 }
 
 static void term_peripherals_drivers(void)
@@ -722,13 +741,26 @@ static void init_interruptions(void)
 {
     EALLOW;
     PieVectTable.EPWM1_INT =  &isr_init_controller;
+    PieVectTable.TINT0 =      &isr_udc_net_tx_end;
     EDIS;
+
+    PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
 
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
     enable_pwm_interrupt(PWM_MODULATOR_MOD_A);
 
+    PieCtrlRegs.PIEIER9.bit.INTx1=1;
+
+    /**
+     * Enable interrupt groups related to:
+     *  INT1:  External sync
+     *  INT3:  PWM
+     *  INT9:  SCI RX FIFO
+     *  INT11: IPC MTOC
+     */
     IER |= M_INT1;
     IER |= M_INT3;
+    IER |= M_INT9;
     IER |= M_INT11;
 
     /// Enable global interrupts (EINT)
@@ -748,10 +780,11 @@ static void term_interruptions(void)
     /// Clear enables
     IER = 0;
     PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
+    PieCtrlRegs.PIEIER9.bit.INTx1 = 0;  /// SCI RX
     disable_pwm_interrupt(PWM_MODULATOR_MOD_A);
 
     /// Clear flags
-    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
+    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT9 | M_INT11;
 }
 
 /**
@@ -1187,4 +1220,67 @@ static void init_controller_module_B(void)
                 KI_IOUT_RECT_MOD_B, CONTROLLER_FREQ_SAMP, PWM_MAX_DUTY,
                 PWM_MIN_DUTY, &g_controller_ctom.net_signals[17].f,
                 &DUTY_CYCLE_MOD_B);
+}
+
+/**
+ *
+ */
+static void process_data_udc_net_slave(void)
+{
+    switch(g_udc_net.recv_msg.bit.cmd)
+    {
+        case Turn_On_UDC_Net:
+        {
+            turn_on(0);
+            break;
+        }
+
+        case Turn_Off_UDC_Net:
+        {
+            turn_off(0);
+            break;
+        }
+
+        case Set_Interlock_UDC_Net:
+        {
+            set_hard_interlock(0, DRS_Master_Interlock +
+                                  g_udc_net.recv_msg.bit.data);
+            break;
+        }
+
+        case Reset_Interlock_UDC_Net:
+        {
+            reset_interlocks(0);
+            break;
+        }
+
+        case Get_Status_UDC_Net:
+        {
+            if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+            {
+                set_interlock_udc_net();
+            }
+            else
+            {
+            send_udc_net_cmd( 0, Get_Status_UDC_Net,
+                              (uint16_t) g_ipc_ctom.ps_module[0].ps_status.all );
+            }
+
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
+    CpuTimer0Regs.TCR.all = 0x4020;
+}
+
+static interrupt void isr_udc_net_tx_end(void)
+{
+    RESET_SCI_RD;
+    CpuTimer0Regs.TCR.all = 0xC010;
+    CLEAR_DEBUG_GPIO1;
+    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
 }

@@ -54,6 +54,7 @@
 #include "ipc/ipc.h"
 #include "parameters/parameters.h"
 #include "pwm/pwm.h"
+#include "udc_net/udc_net.h"
 
 #include "fac_2p4s_dcdc.h"
 
@@ -93,6 +94,10 @@
 #define TIMESLICER_BUFFER       1
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
 #define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
+
+#define TIMESLICER_UDC_NET      2
+#define UDC_NET_FREQ            g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_UDC_NET]
+#define UDC_NET_DECIMATION      (uint16_t) roundf(ISR_CONTROL_FREQ / UDC_NET_FREQ)
 
 #define SIGGEN                  g_ipc_ctom.siggen
 
@@ -215,6 +220,24 @@
 
 #define BUF_SAMPLES                     &g_ipc_ctom.buf_samples[0]
 
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_1    &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_2    &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_3    &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_4    &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_5    &g_controller_ctom.dsp_modules.dsp_iir_2p2z[4]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_6    &g_controller_ctom.dsp_modules.dsp_iir_2p2z[5]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_7    &g_controller_ctom.dsp_modules.dsp_iir_2p2z[6]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_8    &g_controller_ctom.dsp_modules.dsp_iir_2p2z[7]
+
+#define FF_V_CAPBANK_1                      &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK_2                      &g_controller_ctom.dsp_modules.dsp_ff[1]
+#define FF_V_CAPBANK_3                      &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK_4                      &g_controller_ctom.dsp_modules.dsp_ff[1]
+#define FF_V_CAPBANK_5                      &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK_6                      &g_controller_ctom.dsp_modules.dsp_ff[1]
+#define FF_V_CAPBANK_7                      &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK_8                      &g_controller_ctom.dsp_modules.dsp_ff[1]
+
 /**
  * Digital I/O's status
  */
@@ -254,7 +277,12 @@ typedef enum
     Module_5_Output_Overvoltage,
     Module_6_Output_Overvoltage,
     Module_7_Output_Overvoltage,
-    Module_8_Output_Overvoltage
+    Module_8_Output_Overvoltage,
+    DRS_Master_Interlock,
+    DRS_Slave_1_Interlock,
+    DRS_Slave_2_Interlock,
+    DRS_Slave_3_Interlock,
+    DRS_Slave_4_Interlock
 } hard_interlocks_t;
 
 typedef enum
@@ -276,6 +304,7 @@ typedef enum
  */
 static uint16_t decimation_factor;
 static float decimation_coeff;
+static uint16_t udc_net_tx_ok;
 
 /**
  * Private functions
@@ -283,6 +312,9 @@ static float decimation_coeff;
 #pragma CODE_SECTION(isr_init_controller, "ramfuncs");
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
+#pragma CODE_SECTION(set_pwm_duty_hbridge_chB,"ramfuncs");
+#pragma CODE_SECTION(process_data_udc_net_master, "ramfuncs");
+#pragma CODE_SECTION(isr_udc_net_tx_end, "ramfuncs");
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -305,8 +337,12 @@ static inline void check_interlocks(void);
 static inline void check_capbank_undervoltage(void);
 static inline void check_capbank_overvoltage(void);
 
+static void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module,
+                                     float duty_pu);
 static void cfg_pwm_module_h_brigde_q2(volatile struct EPWM_REGS *p_pwm_module);
 
+static void process_data_udc_net_master(void);
+static interrupt void isr_udc_net_tx_end(void);
 
 /**
  * Main function for this power supply module
@@ -320,6 +356,7 @@ void main_fac_2p4s_dcdc(void)
 
     /// TODO: check why first sync_pulse occurs
     g_ipc_ctom.counter_sync_pulse = 0;
+    udc_net_tx_ok = 1;
 
     /// TODO: include condition for re-initialization
     while(1)
@@ -445,8 +482,11 @@ static void init_peripherals_drivers(void)
 
     /// Initialization of timers
     InitCpuTimers();
-    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 29);
     CpuTimer0Regs.TCR.bit.TIE = 0;
+
+    /// Initialization of UDC Net
+    init_udc_net(0, &process_data_udc_net_master);
 }
 
 static void term_peripherals_drivers(void)
@@ -598,6 +638,11 @@ static void init_controller(void)
     cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
 
     /**
+     * Time-slicer for UDC Net
+     */
+    cfg_timeslicer(TIMESLICER_UDC_NET, UDC_NET_DECIMATION);
+
+    /**
      * Samples buffer initialization
      */
     init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
@@ -693,8 +738,8 @@ interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
-    CLEAR_DEBUG_GPIO1;
-    SET_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -709,6 +754,24 @@ interrupt void isr_controller(void)
         temp[2] += (float) *(HRADCs_Info.HRADC_boards[2].SamplesBuffer++);
         temp[3] += (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer++);
     }
+
+    /*********************************************/
+    RUN_TIMESLICER(TIMESLICER_UDC_NET)
+    /*********************************************/
+
+        if(udc_net_tx_ok)
+        {
+            //CLEAR_DEBUG_GPIO1;
+            SET_DEBUG_GPIO1;
+            get_status_udc_net(1);
+            CpuTimer0Regs.TCR.all = 0x4020;
+            udc_net_tx_ok = 0;
+            SET_DEBUG_GPIO1;
+        }
+
+    /*********************************************/
+    END_TIMESLICER(TIMESLICER_UDC_NET)
+    /*********************************************/
 
     //CLEAR_DEBUG_GPIO1;
 
@@ -820,17 +883,44 @@ interrupt void isr_controller(void)
             DUTY_CYCLE_MOD_1 = DUTY_MEAN - DUTY_DIFF;
             DUTY_CYCLE_MOD_5 = DUTY_MEAN + DUTY_DIFF;
 
+            //SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            //SATURATE(DUTY_CYCLE_MOD_5, PWM_MAX_DUTY, PWM_MIN_DUTY);
+
+            DUTY_CYCLE_MOD_2 = DUTY_CYCLE_MOD_1;
+            DUTY_CYCLE_MOD_3 = DUTY_CYCLE_MOD_1;
+            DUTY_CYCLE_MOD_4 = DUTY_CYCLE_MOD_1;
+
+            DUTY_CYCLE_MOD_6 = DUTY_CYCLE_MOD_5;
+            DUTY_CYCLE_MOD_7 = DUTY_CYCLE_MOD_5;
+            DUTY_CYCLE_MOD_8 = DUTY_CYCLE_MOD_5;
+
+            run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD_1);
+            run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD_2);
+            run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD_3);
+            run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD_4);
+            run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD_5);
+            run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD_6);
+            run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD_7);
+            run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD_8);
+
+            run_dsp_vdclink_ff(FF_V_CAPBANK_1);
+            run_dsp_vdclink_ff(FF_V_CAPBANK_2);
+            run_dsp_vdclink_ff(FF_V_CAPBANK_3);
+            run_dsp_vdclink_ff(FF_V_CAPBANK_4);
+            run_dsp_vdclink_ff(FF_V_CAPBANK_5);
+            run_dsp_vdclink_ff(FF_V_CAPBANK_6);
+            run_dsp_vdclink_ff(FF_V_CAPBANK_7);
+            run_dsp_vdclink_ff(FF_V_CAPBANK_8);
+
             SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_MOD_2, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_MOD_3, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_MOD_4, PWM_MAX_DUTY, PWM_MIN_DUTY);
             SATURATE(DUTY_CYCLE_MOD_5, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_MOD_6, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_MOD_7, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_MOD_8, PWM_MAX_DUTY, PWM_MIN_DUTY);
         }
-
-        DUTY_CYCLE_MOD_2 = DUTY_CYCLE_MOD_1;
-        DUTY_CYCLE_MOD_3 = DUTY_CYCLE_MOD_1;
-        DUTY_CYCLE_MOD_4 = DUTY_CYCLE_MOD_1;
-
-        DUTY_CYCLE_MOD_6 = DUTY_CYCLE_MOD_5;
-        DUTY_CYCLE_MOD_7 = DUTY_CYCLE_MOD_5;
-        DUTY_CYCLE_MOD_8 = DUTY_CYCLE_MOD_5;
 
         /**
          * TODO: for 8 modules, create new function to set duty on channel B,
@@ -862,7 +952,7 @@ interrupt void isr_controller(void)
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -873,15 +963,28 @@ static void init_interruptions(void)
     EALLOW;
     PieVectTable.EPWM1_INT =  &isr_init_controller;
     PieVectTable.EPWM2_INT =  &isr_controller;
+    PieVectTable.TINT0 =      &isr_udc_net_tx_end;
     EDIS;
+
+    PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
 
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
     PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
     enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1_5);
     enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1_5);
 
+    PieCtrlRegs.PIEIER9.bit.INTx1 = 1;
+
+    /**
+     * Enable interrupt groups related to:
+     *  INT1:  External sync
+     *  INT3:  PWM
+     *  INT9:  SCI RX FIFO
+     *  INT11: IPC MTOC
+     */
     IER |= M_INT1;
     IER |= M_INT3;
+    IER |= M_INT9;
     IER |= M_INT11;
 
     /// Enable global interrupts (EINT)
@@ -902,11 +1005,12 @@ static void term_interruptions(void)
     IER = 0;
     PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
     PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
+    PieCtrlRegs.PIEIER9.bit.INTx1 = 0;  /// SCI RX
     disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1_5);
     disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1_5);
 
     /// Clear flags
-    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
+    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT9 | M_INT11;
 }
 
 /**
@@ -938,7 +1042,6 @@ static void turn_on(uint16_t dummy)
         enable_pwm_output(7);
     }
 }
-
 /**
  * Turn off specified power supply.
  *
@@ -1167,7 +1270,8 @@ static void cfg_pwm_module_h_brigde_q2(volatile struct EPWM_REGS *p_pwm_module)
  * @param p_pwm_module specified PWM module
  * @param duty specified duty cycle [p.u.]
  */
-void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, float duty_pu)
+static void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module,
+                                     float duty_pu)
 {
     uint16_t duty_int;
     uint16_t duty_frac;
@@ -1181,4 +1285,52 @@ void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, float dut
 
     p_pwm_module->CMPBM.half.CMPB    = duty_int;
     p_pwm_module->CMPBM.half.CMPBHR  = duty_frac;
+}
+
+/**
+ *
+ */
+static void process_data_udc_net_master(void)
+{
+    uint16_t last_send_add;
+
+    last_send_add = g_udc_net.send_msg.bit.add;
+
+    switch(g_udc_net.recv_msg.bit.cmd)
+    {
+        case Set_Interlock_UDC_Net:
+        {
+            set_hard_interlock(0, DRS_Master_Interlock +
+                                  g_udc_net.recv_msg.bit.data);
+            break;
+        }
+
+        case Get_Status_UDC_Net:
+        {
+            g_udc_net.ps_status_nodes[last_send_add] =
+                                      (ps_status_t) g_udc_net.recv_msg.bit.data;
+
+            if(g_udc_net.ps_status_nodes[last_send_add].bit.state == Interlock)
+            {
+                set_hard_interlock(0, DRS_Master_Interlock + last_send_add);
+            }
+
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
+
+    udc_net_tx_ok = 1;
+}
+
+static interrupt void isr_udc_net_tx_end(void)
+{
+    RESET_SCI_RD;
+    CpuTimer0Regs.TCR.all = 0xC010;
+    CLEAR_DEBUG_GPIO1;
+    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
 }
