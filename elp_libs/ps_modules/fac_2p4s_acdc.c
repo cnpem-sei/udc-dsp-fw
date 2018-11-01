@@ -368,7 +368,7 @@ static void init_peripherals_drivers(void)
 
     /// Initialization of timers
     InitCpuTimers();
-    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 29);
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 6.5);
     CpuTimer0Regs.TCR.bit.TIE = 0;
 
     /// Initialization of UDC Net
@@ -819,7 +819,9 @@ static void turn_on(uint16_t dummy)
         {
             BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_B_ID, AC_Mains_Contactor_Fault);
             set_hard_interlock(MOD_B_ID, AC_Mains_Contactor_Fault);
+            #ifdef USE_ITLK
             g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Interlock;
+            #endif
         }
 
         if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state == Initializing)

@@ -30,7 +30,7 @@
 
 #define SIZE_SCI_FIFO           3
 
-#define UDC_NET_BAUDRATE        1000000
+#define UDC_NET_BAUDRATE        5000000
 
 #define UDC_NET_MASTER          0
 #define UDC_NET_SLAVE           1

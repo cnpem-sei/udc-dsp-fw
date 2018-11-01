@@ -28,6 +28,9 @@
 #define SET_SCI_RD      GpioDataRegs.GPDSET.bit.GPIO117 = 1;
 #define RESET_SCI_RD    GpioDataRegs.GPDCLEAR.bit.GPIO117 = 1;
 
+#define TIME_TX_1041666_MBPS_US    29
+#define TIME_TX_4687500_MBPS_US    6.5
+
 extern void init_sci(float baudrate, uint16_t rxfifo_lvl);
 extern void init_sci_rx_fifo_interrupt(void (*p_isr_sci_rx_fifo)(void));
 

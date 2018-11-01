@@ -482,7 +482,7 @@ static void init_peripherals_drivers(void)
 
     /// Initialization of timers
     InitCpuTimers();
-    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 29);
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 6.5);
     CpuTimer0Regs.TCR.bit.TIE = 0;
 
     /// Initialization of UDC Net
@@ -739,7 +739,7 @@ interrupt void isr_controller(void)
     static uint16_t i;
 
     //CLEAR_DEBUG_GPIO1;
-    //SET_DEBUG_GPIO1;
+    SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -756,10 +756,10 @@ interrupt void isr_controller(void)
     }
 
     /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_UDC_NET)
+//    RUN_TIMESLICER(TIMESLICER_UDC_NET)
     /*********************************************/
 
-        if(udc_net_tx_ok)
+  /*      if(udc_net_tx_ok)
         {
             //CLEAR_DEBUG_GPIO1;
             SET_DEBUG_GPIO1;
@@ -768,9 +768,9 @@ interrupt void isr_controller(void)
             udc_net_tx_ok = 0;
             SET_DEBUG_GPIO1;
         }
-
+*/
     /*********************************************/
-    END_TIMESLICER(TIMESLICER_UDC_NET)
+  //  END_TIMESLICER(TIMESLICER_UDC_NET)
     /*********************************************/
 
     //CLEAR_DEBUG_GPIO1;
@@ -945,6 +945,24 @@ interrupt void isr_controller(void)
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
 
+    /*********************************************/
+    RUN_TIMESLICER(TIMESLICER_UDC_NET)
+    /*********************************************/
+
+        if(udc_net_tx_ok)
+        {
+            CLEAR_DEBUG_GPIO1;
+            SET_DEBUG_GPIO1;
+            get_status_udc_net(1);
+            CpuTimer0Regs.TCR.all = 0x4020;
+            udc_net_tx_ok = 0;
+            //SET_DEBUG_GPIO1;
+        }
+
+    /*********************************************/
+    END_TIMESLICER(TIMESLICER_UDC_NET)
+    /*********************************************/
+
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
 
     PWM_MODULATOR_Q1_MOD_1_5->ETCLR.bit.INT = 1;
@@ -952,7 +970,7 @@ interrupt void isr_controller(void)
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    //CLEAR_DEBUG_GPIO1;
+    CLEAR_DEBUG_GPIO1;
 }
 
 /**
