@@ -68,6 +68,7 @@ typedef union
 typedef struct
 {
     uint16_t        add;
+    uint16_t        enable_tx;
     udc_net_msg_t   send_msg;
     udc_net_msg_t   recv_msg;
     void            (*p_process_data)(void);
@@ -77,9 +78,7 @@ typedef struct
 extern volatile udc_net_t g_udc_net;
 
 extern void init_udc_net(uint16_t add, void (*p_process_data)(void));
-
 extern void send_udc_net_cmd(uint16_t add, uint16_t cmd, uint16_t data);
-
 
 inline void set_interlock_udc_net(void)
 {
@@ -104,11 +103,26 @@ inline void reset_interlock_udc_net(void)
 inline void get_status_udc_net(uint16_t add)
 {
     SET_DEBUG_GPIO1;
+
+    /// Set transceiver as transmitter
     SET_SCI_RD;
+
+    /// Send message
     SciaRegs.SCITXBUF = 0x0004 | (add << 4);
     SciaRegs.SCITXBUF = 0x0000;
     SciaRegs.SCITXBUF = 0x00FC - (add << 4);
-    //RESET_SCI_RD;
+
+    /**
+     * Start Timer0, which sets transceiver as receiver at the end of
+     * transmission
+     */
+    CpuTimer0Regs.TCR.all = 0x4020;
+
+    /**
+     * Disable transmissions momentarily (enabled again by end of reception of
+     * reply or timeout)
+     */
+    g_udc_net.enable_tx = 0;
 }
 
 #endif /* UDC_NET_H_ */

@@ -304,7 +304,6 @@ typedef enum
  */
 static uint16_t decimation_factor;
 static float decimation_coeff;
-static uint16_t udc_net_tx_ok;
 
 /**
  * Private functions
@@ -314,7 +313,6 @@ static uint16_t udc_net_tx_ok;
 #pragma CODE_SECTION(turn_off, "ramfuncs");
 #pragma CODE_SECTION(set_pwm_duty_hbridge_chB,"ramfuncs");
 #pragma CODE_SECTION(process_data_udc_net_master, "ramfuncs");
-#pragma CODE_SECTION(isr_udc_net_tx_end, "ramfuncs");
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -342,7 +340,6 @@ static void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module,
 static void cfg_pwm_module_h_brigde_q2(volatile struct EPWM_REGS *p_pwm_module);
 
 static void process_data_udc_net_master(void);
-static interrupt void isr_udc_net_tx_end(void);
 
 /**
  * Main function for this power supply module
@@ -356,7 +353,6 @@ void main_fac_2p4s_dcdc(void)
 
     /// TODO: check why first sync_pulse occurs
     g_ipc_ctom.counter_sync_pulse = 0;
-    udc_net_tx_ok = 1;
 
     /// TODO: include condition for re-initialization
     while(1)
@@ -479,11 +475,6 @@ static void init_peripherals_drivers(void)
     InitEPwm6Gpio();
     InitEPwm7Gpio();
     InitEPwm8Gpio();
-
-    /// Initialization of timers
-    InitCpuTimers();
-    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 6.5);
-    CpuTimer0Regs.TCR.bit.TIE = 0;
 
     /// Initialization of UDC Net
     init_udc_net(0, &process_data_udc_net_master);
@@ -755,24 +746,6 @@ interrupt void isr_controller(void)
         temp[3] += (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer++);
     }
 
-    /*********************************************/
-//    RUN_TIMESLICER(TIMESLICER_UDC_NET)
-    /*********************************************/
-
-  /*      if(udc_net_tx_ok)
-        {
-            //CLEAR_DEBUG_GPIO1;
-            SET_DEBUG_GPIO1;
-            get_status_udc_net(1);
-            CpuTimer0Regs.TCR.all = 0x4020;
-            udc_net_tx_ok = 0;
-            SET_DEBUG_GPIO1;
-        }
-*/
-    /*********************************************/
-  //  END_TIMESLICER(TIMESLICER_UDC_NET)
-    /*********************************************/
-
     //CLEAR_DEBUG_GPIO1;
 
     HRADCs_Info.HRADC_boards[0].SamplesBuffer = buffers_HRADC[0];
@@ -949,14 +922,10 @@ interrupt void isr_controller(void)
     RUN_TIMESLICER(TIMESLICER_UDC_NET)
     /*********************************************/
 
-        if(udc_net_tx_ok)
+        if(g_udc_net.enable_tx)
         {
             CLEAR_DEBUG_GPIO1;
-            SET_DEBUG_GPIO1;
             get_status_udc_net(1);
-            CpuTimer0Regs.TCR.all = 0x4020;
-            udc_net_tx_ok = 0;
-            //SET_DEBUG_GPIO1;
         }
 
     /*********************************************/
@@ -981,7 +950,7 @@ static void init_interruptions(void)
     EALLOW;
     PieVectTable.EPWM1_INT =  &isr_init_controller;
     PieVectTable.EPWM2_INT =  &isr_controller;
-    PieVectTable.TINT0 =      &isr_udc_net_tx_end;
+    //PieVectTable.TINT0 =      &isr_udc_net_tx_end;
     EDIS;
 
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
@@ -1342,13 +1311,5 @@ static void process_data_udc_net_master(void)
         }
     }
 
-    udc_net_tx_ok = 1;
-}
-
-static interrupt void isr_udc_net_tx_end(void)
-{
-    RESET_SCI_RD;
-    CpuTimer0Regs.TCR.all = 0xC010;
-    CLEAR_DEBUG_GPIO1;
-    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
+    g_udc_net.enable_tx = 1;
 }

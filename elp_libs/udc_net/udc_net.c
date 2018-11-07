@@ -24,10 +24,11 @@
 #include "ipc/ipc.h"
 
 #pragma CODE_SECTION(send_udc_net_cmd, "ramfuncs");
-//#pragma CODE_SECTION(get_status_udc_net, "ramfuncs");
 #pragma CODE_SECTION(isr_sci_rx_fifo_udc_net, "ramfuncs");
+#pragma CODE_SECTION(isr_udc_net_tx_end, "ramfuncs");
 
 interrupt void isr_sci_rx_fifo_udc_net(void);
+interrupt void isr_udc_net_tx_end(void);
 
 volatile udc_net_t g_udc_net;
 
@@ -42,9 +43,8 @@ void init_udc_net(uint16_t add, void (*p_process_data)(void))
 {
     uint16_t i;
 
-    init_sci(UDC_NET_BAUDRATE, SIZE_SCI_FIFO);
-
     g_udc_net.add = add;
+    g_udc_net.enable_tx = 1;
     g_udc_net.p_process_data = p_process_data;
 
     for(i = 0; i < SIZE_SCI_FIFO; i ++)
@@ -58,7 +58,18 @@ void init_udc_net(uint16_t add, void (*p_process_data)(void))
         g_udc_net.ps_status_nodes[i].all = 0;
     }
 
+    /// Initialize SCI driver
+    init_sci(UDC_NET_BAUDRATE, SIZE_SCI_FIFO);
     init_sci_rx_fifo_interrupt(&isr_sci_rx_fifo_udc_net);
+
+    /// Initialize CpuTimer0
+    InitCpuTimers();
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 6.25);
+    CpuTimer0Regs.TCR.bit.TIE = 0;
+
+    EALLOW;
+    PieVectTable.TINT0 = &isr_udc_net_tx_end;
+    EDIS;
 }
 
 void send_udc_net_cmd(uint16_t add, uint16_t cmd, uint16_t data)
@@ -75,6 +86,7 @@ void send_udc_net_cmd(uint16_t add, uint16_t cmd, uint16_t data)
     SciaRegs.SCITXBUF = g_udc_net.send_msg.u16[0];
     SciaRegs.SCITXBUF = g_udc_net.send_msg.u16[1];
     SciaRegs.SCITXBUF = g_udc_net.send_msg.u16[2];
+    CLEAR_DEBUG_GPIO1;
     //RESET_SCI_RD;
 }
 
@@ -108,4 +120,14 @@ interrupt void isr_sci_rx_fifo_udc_net(void)
     // Issue PIE acknowledge to enable more interrupts from this group
     SciaRegs.SCIFFRX.bit.RXFFINTCLR=1;
     PieCtrlRegs.PIEACK.all |= M_INT9;
+}
+
+/**
+ *
+ */
+interrupt void isr_udc_net_tx_end(void)
+{
+    RESET_SCI_RD;
+    CpuTimer0Regs.TCR.all = 0xC010;
+    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
 }

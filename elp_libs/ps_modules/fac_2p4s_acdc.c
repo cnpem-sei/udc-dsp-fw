@@ -254,7 +254,6 @@ static float decimation_coeff;
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
 #pragma CODE_SECTION(process_data_udc_net_slave, "ramfuncs");
-#pragma CODE_SECTION(isr_udc_net_tx_end, "ramfuncs");
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -278,7 +277,6 @@ static void reset_interlocks(uint16_t dummy);
 static inline void check_interlocks(void);
 
 static void process_data_udc_net_slave(void);
-static interrupt void isr_udc_net_tx_end(void);
 
 /**
  * Main function for this power supply module
@@ -741,7 +739,7 @@ static void init_interruptions(void)
 {
     EALLOW;
     PieVectTable.EPWM1_INT =  &isr_init_controller;
-    PieVectTable.TINT0 =      &isr_udc_net_tx_end;
+    //PieVectTable.TINT0 =      &isr_udc_net_tx_end;
     EDIS;
 
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
@@ -1277,12 +1275,4 @@ static void process_data_udc_net_slave(void)
         }
     }
     CpuTimer0Regs.TCR.all = 0x4020;
-}
-
-static interrupt void isr_udc_net_tx_end(void)
-{
-    RESET_SCI_RD;
-    CpuTimer0Regs.TCR.all = 0xC010;
-    CLEAR_DEBUG_GPIO1;
-    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
 }
