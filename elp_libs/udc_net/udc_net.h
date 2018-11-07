@@ -30,14 +30,18 @@
 
 #define SIZE_SCI_FIFO           3
 
+#define TIMEOUT_SCI_RD_US           6.25
+#define TIMEOUT_SCI_RD_SYSCLK       937     /// 150 MHz * 6.25 us
+#define TIMEOUT_SCI_SLAVE_SYSCLK    50000   /// 150 MHz * 333 us
+
 #define UDC_NET_BAUDRATE        5000000
 
-#define UDC_NET_MASTER          0
-#define UDC_NET_SLAVE           1
-
+#define UDC_NET_SLAVE           0
+#define UDC_NET_MASTER          1
 #define UDC_NET_BROADCAST_ADD   0xF
 
 #define NUM_MAX_UDC_NET_NODES   5
+
 
 typedef enum
 {
@@ -68,6 +72,7 @@ typedef union
 typedef struct
 {
     uint16_t        add;
+    uint16_t        node_type;
     uint16_t        enable_tx;
     udc_net_msg_t   send_msg;
     udc_net_msg_t   recv_msg;
@@ -77,8 +82,9 @@ typedef struct
 
 extern volatile udc_net_t g_udc_net;
 
-extern void init_udc_net(uint16_t add, void (*p_process_data)(void));
+extern void init_udc_net(uint16_t add, uint16_t node_type, void (*p_process_data)(void));
 extern void send_udc_net_cmd(uint16_t add, uint16_t cmd, uint16_t data);
+extern interrupt void isr_udc_net_tx_end(void);
 
 inline void set_interlock_udc_net(void)
 {
@@ -102,7 +108,7 @@ inline void reset_interlock_udc_net(void)
 
 inline void get_status_udc_net(uint16_t add)
 {
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     /// Set transceiver as transmitter
     SET_SCI_RD;

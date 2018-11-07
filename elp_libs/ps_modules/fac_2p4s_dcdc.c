@@ -477,7 +477,7 @@ static void init_peripherals_drivers(void)
     InitEPwm8Gpio();
 
     /// Initialization of UDC Net
-    init_udc_net(0, &process_data_udc_net_master);
+    init_udc_net(0, UDC_NET_MASTER, &process_data_udc_net_master);
 }
 
 static void term_peripherals_drivers(void)
@@ -730,7 +730,7 @@ interrupt void isr_controller(void)
     static uint16_t i;
 
     //CLEAR_DEBUG_GPIO1;
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -924,7 +924,7 @@ interrupt void isr_controller(void)
 
         if(g_udc_net.enable_tx)
         {
-            CLEAR_DEBUG_GPIO1;
+            //CLEAR_DEBUG_GPIO1;
             get_status_udc_net(1);
         }
 
@@ -939,7 +939,7 @@ interrupt void isr_controller(void)
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -950,7 +950,6 @@ static void init_interruptions(void)
     EALLOW;
     PieVectTable.EPWM1_INT =  &isr_init_controller;
     PieVectTable.EPWM2_INT =  &isr_controller;
-    //PieVectTable.TINT0 =      &isr_udc_net_tx_end;
     EDIS;
 
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
@@ -1282,6 +1281,19 @@ static void process_data_udc_net_master(void)
     uint16_t last_send_add;
 
     last_send_add = g_udc_net.send_msg.bit.add;
+
+    if(g_udc_net.node_type = UDC_NET_MASTER)
+    {
+        /// Clear interrupt flag and disable timer
+        CpuTimer0Regs.TCR.all = 0xC010;
+        CpuTimer0Regs.PRD.all = TIMEOUT_SCI_RD_SYSCLK;
+
+        EALLOW;
+        PieVectTable.TINT0 = &isr_udc_net_tx_end;
+        EDIS;
+
+        CLEAR_DEBUG_GPIO1;
+    }
 
     switch(g_udc_net.recv_msg.bit.cmd)
     {

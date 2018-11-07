@@ -22,13 +22,16 @@
 
 #include "udc_net.h"
 #include "ipc/ipc.h"
+#include "event_manager/event_manager.h"
 
 #pragma CODE_SECTION(send_udc_net_cmd, "ramfuncs");
 #pragma CODE_SECTION(isr_sci_rx_fifo_udc_net, "ramfuncs");
 #pragma CODE_SECTION(isr_udc_net_tx_end, "ramfuncs");
+#pragma CODE_SECTION(isr_udc_net_slave_timeout, "ramfuncs");
 
 interrupt void isr_sci_rx_fifo_udc_net(void);
 interrupt void isr_udc_net_tx_end(void);
+interrupt void isr_udc_net_slave_timeout(void);
 
 volatile udc_net_t g_udc_net;
 
@@ -39,11 +42,12 @@ volatile udc_net_t g_udc_net;
  * @param add
  * @param p_process_data
  */
-void init_udc_net(uint16_t add, void (*p_process_data)(void))
+void init_udc_net(uint16_t add, uint16_t node_type, void (*p_process_data)(void))
 {
     uint16_t i;
 
     g_udc_net.add = add;
+    g_udc_net.node_type = node_type;
     g_udc_net.enable_tx = 1;
     g_udc_net.p_process_data = p_process_data;
 
@@ -64,7 +68,7 @@ void init_udc_net(uint16_t add, void (*p_process_data)(void))
 
     /// Initialize CpuTimer0
     InitCpuTimers();
-    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 6.25);
+    ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, TIMEOUT_SCI_RD_US);
     CpuTimer0Regs.TCR.bit.TIE = 0;
 
     EALLOW;
@@ -128,6 +132,53 @@ interrupt void isr_sci_rx_fifo_udc_net(void)
 interrupt void isr_udc_net_tx_end(void)
 {
     RESET_SCI_RD;
+
+    /// Clear interrupt flag and disable timer
     CpuTimer0Regs.TCR.all = 0xC010;
+
+    if(g_udc_net.node_type = UDC_NET_MASTER)
+    {
+        SET_DEBUG_GPIO1;
+        CpuTimer0Regs.PRD.all = TIMEOUT_SCI_SLAVE_SYSCLK;
+
+        EALLOW;
+        PieVectTable.TINT0 = &isr_udc_net_slave_timeout;
+        EDIS;
+
+        /// Reload period and enable timer
+        CpuTimer0Regs.TCR.all = 0x4020;
+    }
+
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
+}
+
+/**
+ *
+ */
+interrupt void isr_udc_net_slave_timeout(void)
+{
+    /// LIMPAR BUFFER
+    /// SETAR INTERLOCK
+    /// SETAR TIMER
+    /// HABILITAR TX
+    ///
+    if(g_udc_net.node_type = UDC_NET_MASTER)
+    {
+        SET_DEBUG_GPIO1;
+        /// Clear interrupt flag and disable timer
+        CpuTimer0Regs.TCR.all = 0xC010;
+        CpuTimer0Regs.PRD.all = TIMEOUT_SCI_RD_SYSCLK;
+
+        EALLOW;
+        PieVectTable.TINT0 = &isr_udc_net_tx_end;
+        EDIS;
+
+        ///LIMPAR BUFFER FIFO
+        ///set_hard_interlock(id, Slave)
+        g_udc_net.enable_tx = 1;
+
+        CLEAR_DEBUG_GPIO1;
+
+        PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
+    }
 }

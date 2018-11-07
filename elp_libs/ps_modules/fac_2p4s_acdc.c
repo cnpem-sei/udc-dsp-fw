@@ -370,7 +370,7 @@ static void init_peripherals_drivers(void)
     CpuTimer0Regs.TCR.bit.TIE = 0;
 
     /// Initialization of UDC Net
-    init_udc_net(1, &process_data_udc_net_slave);
+    init_udc_net(1, UDC_NET_SLAVE, &process_data_udc_net_slave);
 }
 
 static void term_peripherals_drivers(void)
@@ -739,7 +739,6 @@ static void init_interruptions(void)
 {
     EALLOW;
     PieVectTable.EPWM1_INT =  &isr_init_controller;
-    //PieVectTable.TINT0 =      &isr_udc_net_tx_end;
     EDIS;
 
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
