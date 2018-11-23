@@ -100,6 +100,12 @@
 #define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS   g_ipc_mtoc.analog_vars.max[6]
 #define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS   g_ipc_mtoc.analog_vars.max[7]
 
+#define NETSIGNAL_ELEM_CTOM_BUF                 g_ipc_mtoc.analog_vars.max[8]
+#define NETSIGNAL_ELEM_MTOC_BUF                 g_ipc_mtoc.analog_vars.min[8]
+
+#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
+#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+
 /**
  * Power supply defines
  */
@@ -755,14 +761,8 @@ static interrupt void isr_controller(void)
     /******** Timeslicer for samples buffer ******/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        //insert_buffer(BUF_SAMPLES, V_CAPBANK);
-
-        /// Output of 4Hz notch filter
-        insert_buffer(BUF_SAMPLES, g_controller_ctom.net_signals[3].f);
-        insert_buffer(BUF_SAMPLES, g_controller_ctom.net_signals[5].f);
-        insert_buffer(BUF_SAMPLES, IOUT_RECT);
-        insert_buffer(BUF_SAMPLES, DUTY_CYCLE);
-
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/

@@ -84,6 +84,9 @@ void init_ipc(void)
     *   - Qualification is asynchronous
     *   - Enable XINT2
     *   - Map XINT2 ISR
+    *
+    *  TODO: choose between XINT2 or XINT3
+    *
     */
     if(UDC_V2_0)
     {
@@ -114,11 +117,6 @@ void init_ipc(void)
 
     XIntruptRegs.XINT2CR.bit.ENABLE = 1;
     XIntruptRegs.XINT2CR.bit.POLARITY = 0;
-    PieVectTable.XINT2 = &isr_ipc_sync_pulse;
-
-    /**
-     * TODO: choose between XINT2 or XINT3
-     */
     /*XIntruptRegs.XINT3CR.bit.ENABLE = 0;
     XIntruptRegs.XINT3CR.bit.POLARITY = 0;*/
 
@@ -131,11 +129,12 @@ void init_ipc(void)
      * TODO: verify how to specify isr_interlocks
      */
     /* Map IPC_MtoC interrupts */
-    //PieVectTable.XINT3      = &isr_ipc_sync_pulse;
     PieVectTable.MTOCIPC_INT1 = &isr_ipc_lowpriority_msg;
     PieVectTable.MTOCIPC_INT2 = &isr_ipc_sync_pulse;
-    //PieVectTable.MTOCIPC_INT3 = &isr_hard_interlock;
-    //PieVectTable.MTOCIPC_INT4 = &isr_soft_interlock;
+    PieVectTable.XINT2        = &isr_ipc_sync_pulse;
+    //PieVectTable.XINT3      = &isr_ipc_sync_pulse;
+    PieVectTable.MTOCIPC_INT3 = g_ipc_ctom.ps_module[0].isr_hard_interlock;
+    PieVectTable.MTOCIPC_INT4 = g_ipc_ctom.ps_module[0].isr_soft_interlock;
 
     /* Enable interrupts */
 
@@ -156,7 +155,7 @@ void init_ipc(void)
 
 /**
  * Send IPC CtoM message. This function must be used with care, because it
- * directly sets CTOMIPC register bits according to the argument `msg` when
+ * directly sets CTOMIPC register bits according to the argument 'msg' when
  * there's no pending messages.
  *
  * @param msg_id specified IPC module

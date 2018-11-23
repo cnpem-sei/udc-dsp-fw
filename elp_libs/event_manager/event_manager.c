@@ -298,6 +298,9 @@ interrupt void isr_hard_interlock(void)
         g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock |=
         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock;
     }
+
+    CtoMIpcRegs.MTOCIPCACK.all = HARD_INTERLOCK;
+    PieCtrlRegs.PIEACK.all |= M_INT11;
 }
 
 /**
@@ -317,6 +320,9 @@ interrupt void isr_soft_interlock(void)
         g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock |=
         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock;
     }
+
+    CtoMIpcRegs.MTOCIPCACK.all = SOFT_INTERLOCK;
+    PieCtrlRegs.PIEACK.all |= M_INT11;
 }
 
 interrupt void isr_interlocks_timebase(void)
