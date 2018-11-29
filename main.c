@@ -35,6 +35,7 @@
 #include "ps_modules/fac_2p4s_acdc.h"
 #include "ps_modules/fac_2p4s_dcdc.h"
 #include "ps_modules/fap.h"
+#include "ps_modules/fap_4p.h"
 
 /**
  * @brief Main function
@@ -145,6 +146,11 @@ void main(void)
                 break;
             }
 
+            case FAP_4P:
+            {
+                main_fap_4p();
+                break;
+            }
             default:
             {
                 break;

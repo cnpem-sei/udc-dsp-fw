@@ -9,16 +9,20 @@
  *****************************************************************************/
 
 /**
- * @file version.c
- * @brief Firmware version module
+ * @file fap_4p.h
+ * @brief FAP-4P module
  * 
- * This module contains information about current build version of UDC C28 core.
+ * Module for control of FAP-4P power supplies. It implements the controller for
+ * load current and current share between 8 IGBT's
  *
  * @author gabriel.brunheira
- * @date 08/02/2018
+ * @date 29/11/2018
  *
  */
 
-#include "version.h"
+#ifndef FAP_4P_H_
+#define FAP_4P_H_
 
-const char * udc_c28_version = "V0.21 2018-11-29";
+extern void main_fap_4p(void);
+
+#endif /* FAP_4P_H_ */
