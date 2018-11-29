@@ -196,7 +196,8 @@ typedef enum
     DCLink_Undervoltage,
     DCLink_Contactor_Fault,
     IGBT_1_Overcurrent,
-    IGBT_2_Overcurrent
+    IGBT_2_Overcurrent,
+    IIB_Itlk
 } hard_interlocks_t;
 
 typedef enum
@@ -206,7 +207,7 @@ typedef enum
     DCCT_High_Difference,
     Load_Feedback_1_Fault,
     Load_Feedback_2_Fault,
-    IGBTs_Current_High_Difference
+    IGBTs_Current_High_Difference,
 } soft_interlocks_t;
 
 #define NUM_HARD_INTERLOCKS             IGBT_2_Overcurrent + 1

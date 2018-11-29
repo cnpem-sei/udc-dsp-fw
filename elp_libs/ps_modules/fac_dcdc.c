@@ -182,7 +182,8 @@ typedef enum
     Load_Overvoltage,
     CapBank_Overvoltage,
     CapBank_Undervoltage,
-    IGBT_Driver_Fault
+    IGBT_Driver_Fault,
+    IIB_Itlk
 } hard_interlocks_t;
 
 typedef enum
@@ -193,7 +194,7 @@ typedef enum
     DCCT_2_Fault,
     DCCT_High_Difference,
     Load_Feedback_1_Fault,
-    Load_Feedback_2_Fault
+    Load_Feedback_2_Fault,
 } soft_interlocks_t;
 
 #define NUM_HARD_INTERLOCKS     IGBT_Driver_Fault + 1
