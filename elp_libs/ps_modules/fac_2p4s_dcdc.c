@@ -306,6 +306,7 @@ static inline void check_capbank_undervoltage(void);
 static inline void check_capbank_overvoltage(void);
 
 static void cfg_pwm_module_h_brigde_q2(volatile struct EPWM_REGS *p_pwm_module);
+static void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, float duty_pu);
 
 
 /**
@@ -1167,7 +1168,7 @@ static void cfg_pwm_module_h_brigde_q2(volatile struct EPWM_REGS *p_pwm_module)
  * @param p_pwm_module specified PWM module
  * @param duty specified duty cycle [p.u.]
  */
-void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, float duty_pu)
+static void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, float duty_pu)
 {
     uint16_t duty_int;
     uint16_t duty_frac;

@@ -146,6 +146,33 @@
 
 #define I_LOAD_DIFF             g_controller_ctom.net_signals[6].f
 
+#define I_MOD_1                 g_controller_ctom.net_signals[7].f
+#define I_MOD_2                 g_controller_ctom.net_signals[8].f
+#define I_MOD_3                 g_controller_ctom.net_signals[9].f
+#define I_MOD_4                 g_controller_ctom.net_signals[10].f
+
+#define I_MOD_MEAN              g_controller_ctom.net_signals[11].f
+
+#define I_MOD_1_DIFF            g_controller_ctom.net_signals[12].f
+#define I_MOD_2_DIFF            g_controller_ctom.net_signals[13].f
+#define I_MOD_3_DIFF            g_controller_ctom.net_signals[14].f
+#define I_MOD_4_DIFF            g_controller_ctom.net_signals[15].f
+
+#define I_IGBTS_DIFF_MOD_1      g_controller_ctom.net_signals[16].f
+#define I_IGBTS_DIFF_MOD_2      g_controller_ctom.net_signals[17].f
+#define I_IGBTS_DIFF_MOD_3      g_controller_ctom.net_signals[18].f
+#define I_IGBTS_DIFF_MOD_4      g_controller_ctom.net_signals[19].f
+
+#define DUTY_SHARE_MODULES_1    g_controller_ctom.net_signals[20].f
+#define DUTY_SHARE_MODULES_2    g_controller_ctom.net_signals[21].f
+#define DUTY_SHARE_MODULES_3    g_controller_ctom.net_signals[22].f
+#define DUTY_SHARE_MODULES_4    g_controller_ctom.net_signals[23].f
+
+#define DUTY_DIFF_MOD_1         g_controller_ctom.net_signals[24].f
+#define DUTY_DIFF_MOD_2         g_controller_ctom.net_signals[25].f
+#define DUTY_DIFF_MOD_3         g_controller_ctom.net_signals[26].f
+#define DUTY_DIFF_MOD_4         g_controller_ctom.net_signals[27].f
+
 #define I_IGBT_1_MOD_1          g_controller_mtoc.net_signals[0].f  // ANI0
 #define I_IGBT_2_MOD_1          g_controller_mtoc.net_signals[1].f  // ANI1
 #define I_IGBT_1_MOD_2          g_controller_mtoc.net_signals[2].f  // ANI2
@@ -155,10 +182,10 @@
 #define I_IGBT_1_MOD_4          g_controller_mtoc.net_signals[6].f  // ANI6
 #define I_IGBT_2_MOD_4          g_controller_mtoc.net_signals[7].f  // ANI7
 
-#define V_DCLINK_MOD_1          g_controller_mtoc.net_signals[7].f  // IIB 1
-#define V_DCLINK_MOD_2          g_controller_mtoc.net_signals[8].f  // IIB 2
-#define V_DCLINK_MOD_3          g_controller_mtoc.net_signals[9].f  // IIB 3
-#define V_DCLINK_MOD_4          g_controller_mtoc.net_signals[10].f // IIB 4
+#define V_DCLINK_MOD_1          g_controller_mtoc.net_signals[8].f  // IIB 1
+#define V_DCLINK_MOD_2          g_controller_mtoc.net_signals[9].f  // IIB 2
+#define V_DCLINK_MOD_3          g_controller_mtoc.net_signals[10].f // IIB 3
+#define V_DCLINK_MOD_4          g_controller_mtoc.net_signals[11].f // IIB 4
 
 #define DUTY_CYCLE_IGBT_1_MOD_1     g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_IGBT_2_MOD_1     g_controller_ctom.output_signals[1].f
@@ -169,22 +196,53 @@
 #define DUTY_CYCLE_IGBT_1_MOD_4     g_controller_ctom.output_signals[6].f
 #define DUTY_CYCLE_IGBT_2_MOD_4     g_controller_ctom.output_signals[7].f
 
-#define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
+#define SRLIM_I_LOAD_REFERENCE              &g_controller_ctom.dsp_modules.dsp_srlim[0]
 
-#define ERROR_I_LOAD                    &g_controller_ctom.dsp_modules.dsp_error[0]
-#define PI_CONTROLLER_I_LOAD            &g_controller_ctom.dsp_modules.dsp_pi[0]
-#define PI_CONTROLLER_I_LOAD_COEFFS     g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
-#define KP_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.kp
-#define KI_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.ki
+#define ERROR_I_LOAD                        &g_controller_ctom.dsp_modules.dsp_error[0]
+#define PI_CONTROLLER_I_LOAD                &g_controller_ctom.dsp_modules.dsp_pi[0]
+#define PI_CONTROLLER_I_LOAD_COEFFS         g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
+#define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
+#define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
 
-#define PWM_MODULATOR_IGBT_1_MOD_1      g_pwm_modules.pwm_regs[0]
-#define PWM_MODULATOR_IGBT_2_MOD_1      g_pwm_modules.pwm_regs[1]
-#define PWM_MODULATOR_IGBT_1_MOD_2      g_pwm_modules.pwm_regs[2]
-#define PWM_MODULATOR_IGBT_2_MOD_2      g_pwm_modules.pwm_regs[3]
-#define PWM_MODULATOR_IGBT_1_MOD_3      g_pwm_modules.pwm_regs[4]
-#define PWM_MODULATOR_IGBT_2_MOD_3      g_pwm_modules.pwm_regs[5]
-#define PWM_MODULATOR_IGBT_1_MOD_4      g_pwm_modules.pwm_regs[6]
-#define PWM_MODULATOR_IGBT_2_MOD_4      g_pwm_modules.pwm_regs[7]
+#define ERROR_I_SHARE_MOD_1                 &g_controller_ctom.dsp_modules.dsp_error[1]
+#define PI_CONTROLLER_I_SHARE_MOD_1         &g_controller_ctom.dsp_modules.dsp_pi[1]
+#define PI_CONTROLLER_I_SHARE_MOD_1_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[1].coeffs.s
+#define KP_I_SHARE_MOD_1                    PI_CONTROLLER_I_SHARE_MOD_1_COEFFS.kp
+#define KI_I_SHARE_MOD_1                    PI_CONTROLLER_I_SHARE_MOD_1_COEFFS.ki
+
+#define ERROR_I_SHARE_MOD_2                 &g_controller_ctom.dsp_modules.dsp_error[2]
+#define PI_CONTROLLER_I_SHARE_MOD_2         &g_controller_ctom.dsp_modules.dsp_pi[2]
+#define PI_CONTROLLER_I_SHARE_MOD_2_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[2].coeffs.s
+#define KP_I_SHARE_MOD_2                    PI_CONTROLLER_I_SHARE_MOD_2_COEFFS.kp
+#define KI_I_SHARE_MOD_2                    PI_CONTROLLER_I_SHARE_MOD_2_COEFFS.ki
+
+#define ERROR_I_SHARE_MOD_3                 &g_controller_ctom.dsp_modules.dsp_error[3]
+#define PI_CONTROLLER_I_SHARE_MOD_3         &g_controller_ctom.dsp_modules.dsp_pi[3]
+#define PI_CONTROLLER_I_SHARE_MOD_3_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[3].coeffs.s
+#define KP_I_SHARE_MOD_3                    PI_CONTROLLER_I_SHARE_MOD_3_COEFFS.kp
+#define KI_I_SHARE_MOD_3                    PI_CONTROLLER_I_SHARE_MOD_3_COEFFS.ki
+
+#define ERROR_I_SHARE_MOD_4                 &g_controller_ctom.dsp_modules.dsp_error[4]
+#define PI_CONTROLLER_I_SHARE_MOD_4         &g_controller_ctom.dsp_modules.dsp_pi[4]
+#define PI_CONTROLLER_I_SHARE_MOD_4_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[4].coeffs.s
+#define KP_I_SHARE_MOD_4                    PI_CONTROLLER_I_SHARE_MOD_4_COEFFS.kp
+#define KI_I_SHARE_MOD_4                    PI_CONTROLLER_I_SHARE_MOD_4_COEFFS.ki
+
+#define PI_CONTROLLER_I_SHARE_MODULES           &g_controller_ctom.dsp_modules.dsp_pi[5]
+#define PI_CONTROLLER_I_SHARE_MODULES_COEFFS    g_controller_mtoc.dsp_modules.dsp_pi[5].coeffs.s
+#define KP_I_SHARE_MODULES                      PI_CONTROLLER_I_SHARE_MODULES_COEFFS.kp
+#define KI_I_SHARE_MODULES                      PI_CONTROLLER_I_SHARE_MODULES_COEFFS.ki
+#define U_MAX_I_SHARE_MODULES                   PI_CONTROLLER_I_SHARE_MODULES_COEFFS.u_max
+#define U_MIN_I_SHARE_MODULES                   PI_CONTROLLER_I_SHARE_MODULES_COEFFS.u_min
+
+#define PWM_MODULATOR_IGBT_1_MOD_1          g_pwm_modules.pwm_regs[0]
+#define PWM_MODULATOR_IGBT_2_MOD_1          g_pwm_modules.pwm_regs[1]
+#define PWM_MODULATOR_IGBT_1_MOD_2          g_pwm_modules.pwm_regs[2]
+#define PWM_MODULATOR_IGBT_2_MOD_2          g_pwm_modules.pwm_regs[3]
+#define PWM_MODULATOR_IGBT_1_MOD_3          g_pwm_modules.pwm_regs[4]
+#define PWM_MODULATOR_IGBT_2_MOD_3          g_pwm_modules.pwm_regs[5]
+#define PWM_MODULATOR_IGBT_1_MOD_4          g_pwm_modules.pwm_regs[6]
+#define PWM_MODULATOR_IGBT_2_MOD_4          g_pwm_modules.pwm_regs[7]
 
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
@@ -242,6 +300,7 @@ typedef enum
     DCLink_Mod_2_Undervoltage,
     DCLink_Mod_3_Undervoltage,
     DCLink_Mod_4_Undervoltage,
+    IIB_Itlk
 } hard_interlocks_t;
 
 typedef enum
@@ -254,14 +313,21 @@ typedef enum
     IGBTs_Current_High_Difference
 } soft_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS             DCLink_Mod_4_Undervoltage + 1
+typedef enum
+{
+    AverageCurrent,
+    DaisyChain,
+} igbt_share_mode_t;
+
+#define NUM_HARD_INTERLOCKS             IIB_Itlk + 1
 #define NUM_SOFT_INTERLOCKS             IGBTs_Current_High_Difference + 1
 
 /**
  *  Private variables
  */
 static uint16_t decimation_factor;
-static float decimation_coeff;
+static float decimation_coeff, dummy_float;
+
 
 /**
  * Private functions
@@ -385,19 +451,19 @@ static void init_peripherals_drivers(void)
 
     init_pwm_module(PWM_MODULATOR_IGBT_1_MOD_1, PWM_FREQ, 0, PWM_Sync_Master, 0,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
-    init_pwm_module(PWM_MODULATOR_IGBT_2_MOD_1, PWM_FREQ, 1, PWM_Sync_Slave, 180,
+    init_pwm_module(PWM_MODULATOR_IGBT_2_MOD_1, PWM_FREQ, 0, PWM_Sync_Slave, 180,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
     init_pwm_module(PWM_MODULATOR_IGBT_1_MOD_2, PWM_FREQ, 0, PWM_Sync_Slave, 45,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
-    init_pwm_module(PWM_MODULATOR_IGBT_2_MOD_2, PWM_FREQ, 1, PWM_Sync_Slave, 225,
+    init_pwm_module(PWM_MODULATOR_IGBT_2_MOD_2, PWM_FREQ, 0, PWM_Sync_Slave, 225,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
     init_pwm_module(PWM_MODULATOR_IGBT_1_MOD_3, PWM_FREQ, 0, PWM_Sync_Slave, 90,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
-    init_pwm_module(PWM_MODULATOR_IGBT_2_MOD_3, PWM_FREQ, 1, PWM_Sync_Slave, 270,
+    init_pwm_module(PWM_MODULATOR_IGBT_2_MOD_3, PWM_FREQ, 0, PWM_Sync_Slave, 270,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
     init_pwm_module(PWM_MODULATOR_IGBT_1_MOD_4, PWM_FREQ, 0, PWM_Sync_Slave, 135,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
-    init_pwm_module(PWM_MODULATOR_IGBT_2_MOD_4, PWM_FREQ, 1, PWM_Sync_Slave, 315,
+    init_pwm_module(PWM_MODULATOR_IGBT_2_MOD_4, PWM_FREQ, 0, PWM_Sync_Slave, 315,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
 
     InitEPwm1Gpio();
@@ -517,6 +583,71 @@ static void init_controller(void)
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_MEAN);
 
+    /*******************************************************/
+    /** INITIALIZATION OF IGBT CURRENT SHARE CONTROL LOOP **/
+    /*******************************************************/
+
+    /**
+     *        name:     PI_CONTROLLER_I_SHARE_MOD_1
+     * description:     IGBT current share PI controller for module 1
+     *  dsp module:     DSP_PI
+     *          in:     I_IGBTS_DIFF_MOD_1
+     *         out:     DUTY_DIFF_MOD_1
+     */
+
+    init_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_1, KP_I_SHARE_MOD_1, KI_I_SHARE_MOD_1,
+                I_SHARE_CONTROLLER_FREQ_SAMP, PWM_LIM_DUTY_SHARE,
+                -PWM_LIM_DUTY_SHARE, &I_IGBTS_DIFF_MOD_1, &DUTY_DIFF_MOD_1);
+
+    /**
+     *        name:     PI_CONTROLLER_I_SHARE_MOD_2
+     * description:     IGBT current share PI controller for module 2
+     *  dsp module:     DSP_PI
+     *          in:     I_IGBTS_DIFF_MOD_2
+     *         out:     DUTY_DIFF_MOD_2
+     */
+
+    init_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_2, KP_I_SHARE_MOD_2, KI_I_SHARE_MOD_2,
+                I_SHARE_CONTROLLER_FREQ_SAMP, PWM_LIM_DUTY_SHARE,
+                -PWM_LIM_DUTY_SHARE, &I_IGBTS_DIFF_MOD_2, &DUTY_DIFF_MOD_2);
+
+    /**
+     *        name:     PI_CONTROLLER_I_SHARE_MOD_3
+     * description:     IGBT current share PI controller for module 3
+     *  dsp module:     DSP_PI
+     *          in:     I_IGBTS_DIFF_MOD_3
+     *         out:     DUTY_DIFF_MOD_3
+     */
+
+    init_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_3, KP_I_SHARE_MOD_3, KI_I_SHARE_MOD_3,
+                I_SHARE_CONTROLLER_FREQ_SAMP, PWM_LIM_DUTY_SHARE,
+                -PWM_LIM_DUTY_SHARE, &I_IGBTS_DIFF_MOD_3, &DUTY_DIFF_MOD_3);
+
+    /**
+     *        name:     PI_CONTROLLER_I_SHARE_MOD_4
+     * description:     IGBT current share PI controller for module 4
+     *  dsp module:     DSP_PI
+     *          in:     I_IGBTS_DIFF_MOD_4
+     *         out:     DUTY_DIFF_MOD_4
+     */
+
+    init_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_4, KP_I_SHARE_MOD_4, KI_I_SHARE_MOD_4,
+                I_SHARE_CONTROLLER_FREQ_SAMP, PWM_LIM_DUTY_SHARE,
+                -PWM_LIM_DUTY_SHARE, &I_IGBTS_DIFF_MOD_4, &DUTY_DIFF_MOD_4);
+
+    /**
+     *        name:     PI_CONTROLLER_I_SHARE_MODULES
+     * description:     PI controller for current share between modules
+     *  dsp module:     DSP_PI
+     *          in:     dummy_float
+     *         out:     dummy_float
+     */
+
+    init_dsp_pi(PI_CONTROLLER_I_SHARE_MODULES, KP_I_SHARE_MODULES,
+                KI_I_SHARE_MODULES, I_SHARE_CONTROLLER_FREQ_SAMP,
+                U_MAX_I_SHARE_MODULES, U_MIN_I_SHARE_MODULES,
+                &dummy_float, &dummy_float);
+
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
     /************************************/
@@ -568,6 +699,11 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
+
+    reset_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_1);
+    reset_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_2);
+    reset_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_3);
+    reset_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_4);
 
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
@@ -621,7 +757,7 @@ static interrupt void isr_init_controller(void)
 /**
  * Control ISR
  */
-interrupt void isr_controller(void)
+static interrupt void isr_controller(void)
 {
     static float temp[4];
     static uint16_t i;
@@ -756,8 +892,49 @@ interrupt void isr_controller(void)
             RUN_TIMESLICER(TIMESLICER_I_SHARE_CONTROLLER)
             /*********************************************/
 
+                I_MOD_1 = I_IGBT_1_MOD_1 + I_IGBT_2_MOD_1;
+                I_MOD_2 = I_IGBT_1_MOD_2 + I_IGBT_2_MOD_2;
+                I_MOD_3 = I_IGBT_1_MOD_3 + I_IGBT_2_MOD_3;
+                I_MOD_4 = I_IGBT_1_MOD_4 + I_IGBT_2_MOD_4;
+
+                I_IGBTS_DIFF_MOD_1 = I_IGBT_1_MOD_1 - I_IGBT_2_MOD_1;
+                I_IGBTS_DIFF_MOD_2 = I_IGBT_1_MOD_2 - I_IGBT_2_MOD_2;
+                I_IGBTS_DIFF_MOD_3 = I_IGBT_1_MOD_3 - I_IGBT_2_MOD_3;
+                I_IGBTS_DIFF_MOD_4 = I_IGBT_1_MOD_4 - I_IGBT_2_MOD_4;
+
                 switch(I_IGBT_SHARE_MODE)
                 {
+                    case AverageCurrent:
+                    {
+                        I_MOD_MEAN = 0.25 * (I_MOD_1 + I_MOD_2 + I_MOD_3 +
+                                             I_MOD_4);
+
+                        I_MOD_1_DIFF = I_MOD_MEAN - I_MOD_1;
+                        I_MOD_2_DIFF = I_MOD_MEAN - I_MOD_2;
+                        I_MOD_3_DIFF = I_MOD_MEAN - I_MOD_3;
+                        I_MOD_4_DIFF = I_MOD_MEAN - I_MOD_4;
+
+                        DUTY_SHARE_MODULES_1 = KP_I_SHARE_MODULES * I_MOD_1_DIFF;
+                        DUTY_SHARE_MODULES_2 = KP_I_SHARE_MODULES * I_MOD_2_DIFF;
+                        DUTY_SHARE_MODULES_3 = KP_I_SHARE_MODULES * I_MOD_3_DIFF;
+                        DUTY_SHARE_MODULES_4 = KP_I_SHARE_MODULES * I_MOD_4_DIFF;
+
+                        SATURATE(DUTY_SHARE_MODULES_1, U_MAX_I_SHARE_MODULES,
+                                 U_MIN_I_SHARE_MODULES);
+                        SATURATE(DUTY_SHARE_MODULES_2, U_MAX_I_SHARE_MODULES,
+                                 U_MIN_I_SHARE_MODULES);
+                        SATURATE(DUTY_SHARE_MODULES_3, U_MAX_I_SHARE_MODULES,
+                                 U_MIN_I_SHARE_MODULES);
+                        SATURATE(DUTY_SHARE_MODULES_4, U_MAX_I_SHARE_MODULES,
+                                 U_MIN_I_SHARE_MODULES);
+
+                        run_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_1);
+                        run_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_2);
+                        run_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_3);
+                        run_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_4);
+
+                        break;
+                    }
                     default:
                     {
                         break;
@@ -768,16 +945,23 @@ interrupt void isr_controller(void)
             END_TIMESLICER(TIMESLICER_I_SHARE_CONTROLLER)
             /*********************************************/
 
-            DUTY_CYCLE_IGBT_1_MOD_1 = DUTY_MEAN;
-            SATURATE(DUTY_CYCLE_IGBT_1_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            DUTY_CYCLE_IGBT_1_MOD_1 = DUTY_MEAN + DUTY_SHARE_MODULES_1 - DUTY_DIFF_MOD_1;
+            DUTY_CYCLE_IGBT_2_MOD_1 = DUTY_MEAN + DUTY_SHARE_MODULES_1 + DUTY_DIFF_MOD_1;
+            DUTY_CYCLE_IGBT_1_MOD_2 = DUTY_MEAN + DUTY_SHARE_MODULES_2 - DUTY_DIFF_MOD_2;
+            DUTY_CYCLE_IGBT_2_MOD_2 = DUTY_MEAN + DUTY_SHARE_MODULES_2 + DUTY_DIFF_MOD_2;
+            DUTY_CYCLE_IGBT_1_MOD_3 = DUTY_MEAN + DUTY_SHARE_MODULES_3 - DUTY_DIFF_MOD_3;
+            DUTY_CYCLE_IGBT_2_MOD_3 = DUTY_MEAN + DUTY_SHARE_MODULES_3 + DUTY_DIFF_MOD_3;
+            DUTY_CYCLE_IGBT_1_MOD_4 = DUTY_MEAN + DUTY_SHARE_MODULES_4 - DUTY_DIFF_MOD_4;
+            DUTY_CYCLE_IGBT_2_MOD_4 = DUTY_MEAN + DUTY_SHARE_MODULES_4 + DUTY_DIFF_MOD_4;
 
-            DUTY_CYCLE_IGBT_2_MOD_1 = DUTY_CYCLE_IGBT_1_MOD_1;
-            DUTY_CYCLE_IGBT_1_MOD_2 = DUTY_CYCLE_IGBT_1_MOD_1;
-            DUTY_CYCLE_IGBT_2_MOD_2 = DUTY_CYCLE_IGBT_1_MOD_1;
-            DUTY_CYCLE_IGBT_1_MOD_3 = DUTY_CYCLE_IGBT_1_MOD_1;
-            DUTY_CYCLE_IGBT_2_MOD_3 = DUTY_CYCLE_IGBT_1_MOD_1;
-            DUTY_CYCLE_IGBT_1_MOD_4 = DUTY_CYCLE_IGBT_1_MOD_1;
-            DUTY_CYCLE_IGBT_2_MOD_4 = DUTY_CYCLE_IGBT_1_MOD_1;
+            SATURATE(DUTY_CYCLE_IGBT_1_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_IGBT_2_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_IGBT_1_MOD_2, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_IGBT_2_MOD_2, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_IGBT_1_MOD_3, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_IGBT_2_MOD_3, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_IGBT_1_MOD_4, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_IGBT_2_MOD_4, PWM_MAX_DUTY, PWM_MIN_DUTY);
         }
 
         set_pwm_duty_chA(PWM_MODULATOR_IGBT_1_MOD_1, DUTY_CYCLE_IGBT_1_MOD_1);
@@ -822,7 +1006,7 @@ static void init_interruptions(void)
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
     PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
     enable_pwm_interrupt(PWM_MODULATOR_IGBT_1_MOD_1);
-    enable_pwm_interrupt(PWM_MODULATOR_IGBT_2_MOD_2);
+    enable_pwm_interrupt(PWM_MODULATOR_IGBT_2_MOD_1);
 
     IER |= M_INT1;
     IER |= M_INT3;
@@ -893,11 +1077,18 @@ static void turn_on(uint16_t dummy)
         }
 
         #ifdef USE_ITLK
-        if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Off)
+        if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
         {
         #endif
 
             PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
+            DELAY_US(250000);
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
+            DELAY_US(250000);
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
+            DELAY_US(250000);
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
+
             DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
 
             if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
@@ -906,35 +1097,26 @@ static void turn_on(uint16_t dummy)
                 set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
             }
 
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
-            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
-
-            if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
+            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Contactor_Fault);
                 set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
             }
 
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
-            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
-
-            if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
+            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Contactor_Fault);
                 set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
             }
 
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
-            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
-
-            if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
+            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Contactor_Fault);
                 set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
             }
 
             #ifdef USE_ITLK
-            if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Off)
+            if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
             {
             #endif
 
@@ -1197,7 +1379,7 @@ static inline void check_interlocks(void)
     EINT;
 
     //CLEAR_DEBUG_GPIO1;
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
     CLEAR_DEBUG_GPIO1;
 }
