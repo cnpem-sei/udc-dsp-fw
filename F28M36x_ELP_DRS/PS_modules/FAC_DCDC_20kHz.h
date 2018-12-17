@@ -12,8 +12,8 @@
 #define PWM_DEAD_TIME			0//2000		// Dead-time dos sinais PWM [ns]
 #define PWM_MAX_DUTY    		0.9         // Maximo ciclo de trabalho para o PWM (em p.u.)
 #define PWM_MIN_DUTY    		-0.9		// Minimo ciclo de trabalho para o PWM (em p.u.)
-#define PWM_MAX_DUTY_OL			0.45			// Maximo ciclo de trabalho para o PWM em malha aberta (em p.u.)
-#define PWM_MIN_DUTY_OL			-0.45		// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
+#define PWM_MAX_DUTY_OL			0.7			// Maximo ciclo de trabalho para o PWM em malha aberta (em p.u.)
+#define PWM_MIN_DUTY_OL			-0.7		// Minimo ciclo de trabalho para o PWM em malha aberta (em p.u.)
 
 #define MAX_REF					550.0		// Valor máximo da referência de corrente na carga [A]
 #define MIN_REF					-550.0		// Valor mínimo da referência de corrente na carga [A]
