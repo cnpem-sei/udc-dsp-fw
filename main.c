@@ -36,6 +36,7 @@
 #include "ps_modules/fac_2p4s_dcdc.h"
 #include "ps_modules/fap.h"
 #include "ps_modules/fap_4p.h"
+#include "ps_modules/fbp_ufjf.h"
 
 /**
  * @brief Main function
@@ -130,7 +131,7 @@ void main(void)
 
             case FAC_2P4S_ACDC:
             {
-                main_fac_2p4s_acdc();
+                //main_fac_2p4s_acdc();
                 break;
             }
 
@@ -151,6 +152,13 @@ void main(void)
                 main_fap_4p();
                 break;
             }
+
+            case FBP_UFJF:
+            {
+                main_fbp_ufjf();
+                break;
+            }
+
             default:
             {
                 break;

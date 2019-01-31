@@ -568,7 +568,7 @@ void init_dsp_vect_product(dsp_vect_product_t *p_vect_product, uint16_t num_rows
         {
             for(c = 0; c < p_vect_product->matrix.coeffs.s.num_cols; c++)
             {
-                p_vect_product->matrix.coeffs.s.data[r][c] = matrix[num_rows][num_cols];
+                p_vect_product->matrix.coeffs.s.data[r][c] = matrix[r][c];
 
             }
         }
