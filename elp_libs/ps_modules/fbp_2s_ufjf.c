@@ -9,14 +9,14 @@
  *****************************************************************************/
 
 /**
- * @file fbp_ufjf.c
- * @brief FBP power supply for UFJF
+ * @file fbp_2s_ufjf.c
+ * @brief Module of FPB-2S for UFJF
  * 
- * Module for control of FBP modules operating in various configurations, used
- * by partners from UFJF to study new control strategies for Sirius.
+ * Module for control of two FBP modules operating in series, used by partners
+ * from UFJF to study new control strategies for Sirius.
  *
  * @author gabriel.brunheira
- * @date 29/01/2019
+ * @date 01/02/2019
  *
  */
 
@@ -31,7 +31,7 @@
 #include "parameters/parameters.h"
 #include "pwm/pwm.h"
 
-#include "fbp_ufjf.h"
+#include "fbp_2s_ufjf.h"
 
 /**
  * PWM parameters
@@ -109,41 +109,46 @@
 #define STATE_OBSERVER          &g_controller_ctom.dsp_modules.dsp_vect_product[0]
 #define STATE_OBSERVER_IN       &I_LOAD_K_1         // In:  net_signals[1..7]
 #define STATE_OBSERVER_OUT      &I_L_MOD1_K         // Out: net_signals[8..9]
-#define NUM_ROWS_OBSERVER       2
-#define NUM_COLUMNS_OBSERVER    7
+#define NUM_ROWS_OBSERVER       4
+#define NUM_COLUMNS_OBSERVER    12
 
 #define STATE_CONTROLLER        &g_controller_ctom.dsp_modules.dsp_vect_product[1]
 #define STATE_CONTROLLER_IN     &M_MOD1_K_1         // In:  net_signals[5..11]
 #define STATE_CONTROLLER_OUT    &DUTY_CYCLE_MOD_1   // Out: output_signals[0]
-#define NUM_ROWS_CONTROLLER     1
-#define NUM_COLUMNS_CONTROLLER  7
+#define NUM_ROWS_CONTROLLER     2
+#define NUM_COLUMNS_CONTROLLER  11
 
 #define DUTY_CYCLE_MOD_1        g_controller_ctom.output_signals[0].f
-#define DUTY_CYCLE_MOD_2        g_controller_ctom.output_signals[1].f
-#define DUTY_CYCLE_MOD_3        g_controller_ctom.output_signals[2].f
-#define DUTY_CYCLE_MOD_4        g_controller_ctom.output_signals[3].f
+#define DUTY_CYCLE_MOD_3        g_controller_ctom.output_signals[1].f
 
 /**
  * States vector defines
  */
 #define I_LOAD_K_1          g_controller_ctom.net_signals[1].f  //-----
 #define V_C_MOD1_K_1        g_controller_ctom.net_signals[2].f  //  |
-#define I_L_MOD1_K_1        g_controller_ctom.net_signals[3].f  //  |
-#define V_D_MOD1_K_1        g_controller_ctom.net_signals[4].f  // STATE_OBSERVER_IN
-#define M_MOD1_K_1          g_controller_ctom.net_signals[5].f  //  |     -----
-#define I_LOAD_K            g_controller_ctom.net_signals[6].f  //  |       |
-#define V_C_MOD1_K          g_controller_ctom.net_signals[7].f  //-----     |
-#define I_L_MOD1_K          g_controller_ctom.net_signals[8].f  //         STATE_CONTROLLER_IN
-#define V_D_MOD1_K          g_controller_ctom.net_signals[9].f  //          |
-#define REF_K               g_controller_ctom.net_signals[10].f //          |
-#define Q_K_1               g_controller_ctom.net_signals[11].f //        -----
+#define V_C_MOD3_K_1        g_controller_ctom.net_signals[3].f  //  |
+#define I_L_MOD1_K_1        g_controller_ctom.net_signals[4].f  //  |
+#define V_D_MOD1_K_1        g_controller_ctom.net_signals[5].f  //  |
+#define I_L_MOD3_K_1        g_controller_ctom.net_signals[6].f  // STATE_OBSERVER_IN
+#define V_D_MOD3_K_1        g_controller_ctom.net_signals[7].f  //  |
+#define M_MOD1_K_1          g_controller_ctom.net_signals[8].f  //  |     -----
+#define M_MOD3_K_1          g_controller_ctom.net_signals[9].f  //  |       |
+#define I_LOAD_K            g_controller_ctom.net_signals[10].f //  |       |
+#define V_C_MOD1_K          g_controller_ctom.net_signals[11].f //  |       |
+#define V_C_MOD3_K          g_controller_ctom.net_signals[12].f //-----     |
+#define I_L_MOD1_K          g_controller_ctom.net_signals[13].f //          |
+#define I_L_MOD3_K          g_controller_ctom.net_signals[14].f //  STATE_CONTROLLER_IN
+#define V_D_MOD1_K          g_controller_ctom.net_signals[15].f //          |
+#define V_D_MOD3_K          g_controller_ctom.net_signals[16].f //          |
+#define REF_K               g_controller_ctom.net_signals[17].f //          |
+#define Q_K_1               g_controller_ctom.net_signals[18].f //        -----
 
 /**
  * Auxiliary states defines
  */
-#define Q_K                 g_controller_ctom.net_signals[12].f
-#define I_LOAD_ERROR        g_controller_ctom.net_signals[13].f
-#define SIZE_STATE_VECTOR   13
+#define Q_K                 g_controller_ctom.net_signals[19].f
+#define I_LOAD_ERROR        g_controller_ctom.net_signals[20].f
+#define SIZE_STATE_VECTOR   18
 
 /**
  * Power supply 1 defines
@@ -249,22 +254,15 @@ typedef enum
  * Matrices for State-space controller
  */
 static float observer[NUM_ROWS_OBSERVER][NUM_COLUMNS_OBSERVER] =
-
-                              {{ 0.899264498259943, -0.072025200704213,
-                                 0.097722876412706, -0.217336401427321,
-                                 0.648770738184373,  0.000108509533504,
-                                 0.183512544387819},
-                               { 0.050451745096166,  0.076841678770306,
-                                -0.049688943649459,  0.778405509640959,
-                                -0.240160731382644,  0.000213151422292,
-                                 0.184297448966920}};
+{{0.969041209900195,-0.043965647799023,0.000402928453119,0.024521862813578,-0.210876274118827,0.000510449105958,0.000257030257273,1.343864000756771,-0.003101784376373,-0.000056375149930,0.035514921487651,0.000827103995989},
+{0.969041209900196,0.000402928453119,-0.043965647799023,0.000510449105958,0.000257030257273,0.024521862813578,-0.210876274118827,-0.003101784376373,1.343864000756770,-0.000056375149930,0.000827103995989,0.035514921487651},
+{-0.194427074441541,0.086492835605399,-0.000035401122785,0.195558089871086,0.699232500061746,0.001335327771268,0.000307350271742,-0.940412069816523,0.001405671235379,0.001349231582072,0.369122137898272,0.000179173424345},
+{-0.194427074441541,-0.000035401122785,0.086492835605399,0.001335327771268,0.000307350271742,0.195558089871086,0.699232500061746,0.001405671235379,-0.940412069816521,0.001349231582072,0.000179173424345,0.369122137898271}};
 
 static float controller[NUM_ROWS_CONTROLLER][NUM_COLUMNS_CONTROLLER] =
+{{-0.041506935552427,   -0.035578915727007,   -4.053385511037375,  0.000100909684059,   -0.000029358577199,   -0.014034771730487,  -0.013409582708159,     -0.000223255078557,   -0.000350386725972,  4.053385511037375,  0.123595600030828},
+{ -0.035578915727007,   -0.041506935552427,   -4.053385511037396,  -0.000029358577199,  0.000100909684059,   -0.013409582708159,   -0.01403477173048,     -0.000350386725972,   -0.000223255078557,  4.053385511037396,  0.123595600030829}};
 
-                                {-0.053451087795703, -8.168810543091801,
-                                  0.000174443136914, -0.038777520508185,
-                                 -0.001806873564023,  8.168810543091801,
-                                  0.177561342520265};
 
 /**
  * Private functions
@@ -302,7 +300,7 @@ static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
 /**
  * Main function for this power supply module
  */
-void main_fbp_ufjf(void)
+void main_fbp_2s_ufjf(void)
 {
     uint16_t i;
 
@@ -413,8 +411,8 @@ static void init_peripherals_drivers(void)
 
     //InitEPwm1Gpio();
     //InitEPwm2Gpio();
-    //InitEPwm3Gpio();
-    //InitEPwm4Gpio();
+    InitEPwm3Gpio();
+    InitEPwm4Gpio();
     //InitEPwm5Gpio();
     //InitEPwm6Gpio();
     InitEPwm7Gpio();
@@ -626,6 +624,7 @@ static interrupt void isr_controller(void)
 
     I_LOAD_K = temp[0];
     V_C_MOD1_K = MOD1_LOAD_VOLTAGE;
+    V_C_MOD3_K = MOD3_LOAD_VOLTAGE;
 
     //MOD2_LOAD_CURRENT = temp[1];
     //MOD3_LOAD_CURRENT = temp[2];
@@ -708,6 +707,7 @@ static interrupt void isr_controller(void)
             DUTY_CYCLE_MOD_1 = 0.01 * I_LOAD_REFERENCE;
 
             SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
+            DUTY_CYCLE_MOD_3 = DUTY_CYCLE_MOD_1;
         }
 
         /// Closed-loop
@@ -736,17 +736,34 @@ static interrupt void isr_controller(void)
                 DUTY_CYCLE_MOD_1 = PWM_MIN_DUTY;
                 Q_K = Q_K_1;
             }
+
+            if(DUTY_CYCLE_MOD_3 > PWM_MAX_DUTY)
+            {
+                DUTY_CYCLE_MOD_3 = PWM_MAX_DUTY;
+                Q_K = Q_K_1;
+            }
+            else if(DUTY_CYCLE_MOD_3 < PWM_MIN_DUTY)
+            {
+                DUTY_CYCLE_MOD_3 = PWM_MIN_DUTY;
+                Q_K = Q_K_1;
+            }
         }
 
-        set_pwm_duty_hbridge(PWM_MOD1_A, DUTY_CYCLE_MOD_1);
-        //set_pwm_duty_hbridge_inline(PWM_MOD1_A, DUTY_CYCLE_MOD_1);
+        //set_pwm_duty_hbridge(PWM_MOD1_A, DUTY_CYCLE_MOD_1);
+        //set_pwm_duty_hbridge(PWM_MOD3_A, DUTY_CYCLE_MOD_3);
+        set_pwm_duty_hbridge_inline(PWM_MOD1_A, DUTY_CYCLE_MOD_1);
+        set_pwm_duty_hbridge_inline(PWM_MOD3_A, DUTY_CYCLE_MOD_3);
 
         /// Save current samples as past samples
         I_LOAD_K_1   = I_LOAD_K;
         V_C_MOD1_K_1 = V_C_MOD1_K;
+        V_C_MOD3_K_1 = V_C_MOD3_K;
         I_L_MOD1_K_1 = I_L_MOD1_K;
+        I_L_MOD3_K_1 = I_L_MOD3_K;
         V_D_MOD1_K_1 = V_D_MOD1_K;
+        V_D_MOD3_K_1 = V_D_MOD3_K;
         M_MOD1_K_1   = DUTY_CYCLE_MOD_1;
+        M_MOD3_K_1   = DUTY_CYCLE_MOD_3;
         Q_K_1        = Q_K;
     }
 
@@ -780,6 +797,7 @@ static void init_interruptions(void)
 {
     EALLOW;
     PieVectTable.EPWM1_INT = &isr_init_controller;
+    PWM_MOD4_A->ETPS.bit.INTPRD = ET_2ND;
     //PieVectTable.EPWM2_INT = &isr_controller;
     PieVectTable.TINT0     = &isr_interlocks_timebase;
     EDIS;
@@ -838,16 +856,16 @@ static void turn_on(uint16_t dummy)
         if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
         #endif
         {
-            if(fabs(g_controller_mtoc.net_signals[0].f) < MIN_DCLINK)
+            if(fabs(V_C_MOD1_K) < MIN_DCLINK)
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Undervoltage);
                 set_hard_interlock(0, DCLink_Undervoltage);
             }
 
-            if(!PIN_STATUS_MOD1_FUSE)
+            if(fabs(V_C_MOD3_K) < MIN_DCLINK)
             {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Fuse_Fault);
-                //set_hard_interlock(0, DCLink_Fuse_Fault);
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Undervoltage);
+                set_hard_interlock(0, DCLink_Undervoltage);
             }
 
             #ifdef USE_ITLK
@@ -857,13 +875,19 @@ static void turn_on(uint16_t dummy)
             #endif
             {
                 reset_controller();
-                close_relay(0);
+                close_relay(0);     /// Module 1
+                close_relay(1);     /// Module 3
 
                 g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
                 g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
 
+                /// Module 1
                 enable_pwm_output(0);
                 enable_pwm_output(1);
+
+                /// Module 3
+                enable_pwm_output(4);
+                enable_pwm_output(5);
             }
         }
     }
@@ -878,10 +902,16 @@ static void turn_off(uint16_t dummy)
 {
     if(g_ipc_ctom.ps_module[0].ps_status.bit.active)
     {
+        /// Module 1
         disable_pwm_output(0);
         disable_pwm_output(1);
 
-        open_relay(0);
+        /// Module 3
+        disable_pwm_output(4);
+        disable_pwm_output(5);
+
+        open_relay(0);      /// Module 1
+        open_relay(1);      /// Module 3
 
         g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
         if (g_ipc_ctom.ps_module[0].ps_status.bit.state != Interlock)
@@ -1002,7 +1032,12 @@ static void check_interlocks_ps_module(uint16_t id)
 
     if(fabs(V_C_MOD1_K) > MAX_VLOAD)
     {
-        set_hard_interlock(id, Load_Overvoltage);
+        set_hard_interlock(0, Load_Overvoltage);
+    }
+
+    if(fabs(V_C_MOD3_K) > MAX_VLOAD)
+    {
+        set_hard_interlock(0, Load_Overvoltage);
     }
 
     switch(id)

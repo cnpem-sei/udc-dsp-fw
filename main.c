@@ -37,6 +37,7 @@
 #include "ps_modules/fap.h"
 #include "ps_modules/fap_4p.h"
 #include "ps_modules/fbp_ufjf.h"
+#include "ps_modules/fbp_2s_ufjf.h"
 
 /**
  * @brief Main function
@@ -105,6 +106,7 @@ void main(void)
          */
         switch(g_ipc_mtoc.ps_module[0].ps_status.bit.model)
         {
+            #ifdef FULL_FIRMWARE
             case FBP:
             {
                 main_fbp();
@@ -131,7 +133,7 @@ void main(void)
 
             case FAC_2P4S_ACDC:
             {
-                //main_fac_2p4s_acdc();
+                main_fac_2p4s_acdc();
                 break;
             }
 
@@ -152,10 +154,17 @@ void main(void)
                 main_fap_4p();
                 break;
             }
+            #endif
 
             case FBP_UFJF:
             {
                 main_fbp_ufjf();
+                break;
+            }
+
+            case FBP_2S_UFJF:
+            {
+                main_fbp_2s_ufjf();
                 break;
             }
 
