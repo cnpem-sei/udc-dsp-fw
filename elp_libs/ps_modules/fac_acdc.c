@@ -172,7 +172,8 @@ typedef enum
     Rectifier_Undervoltage,
     Rectifier_Overcurrent,
     AC_Mains_Contactor_Fault,
-    IGBT_Driver_Fault
+    IGBT_Driver_Fault,
+    IIB_Itlk
 } hard_interlocks_t;
 
 typedef enum
