@@ -134,6 +134,8 @@
 
 #define NUM_DCCTs               g_ipc_mtoc.analog_vars.max[9]
 
+#define DELAY_TIME_INTERLOCK_IDB_US g_ipc_mtoc.analog_vars.max[10]
+
 /**
  * Controller defines
  */
@@ -219,10 +221,18 @@
 /**
  * Digital I/O's status
  */
-#define PIN_STATUS_DCCT_1_STATUS    GET_GPDI13
-#define PIN_STATUS_DCCT_1_ACTIVE    GET_GPDI14
-#define PIN_STATUS_DCCT_2_STATUS    GET_GPDI5
-#define PIN_STATUS_DCCT_2_ACTIVE    GET_GPDI6
+#define PIN_BYPASS_IDB_INTERLOCKS       SET_GPDO1;
+#define PIN_ACTIVE_IDB_INTERLOCKS       CLEAR_GPDO1;
+
+#define PIN_SET_UDC_INTERLOCK           CLEAR_GPDO2;
+#define PIN_CLEAR_UDC_INTERLOCK         SET_GPDO2;
+
+#define PIN_STATUS_DCLINK_CONTACTOR     GET_GPDI5
+
+#define PIN_STATUS_DCCT_1_STATUS        GET_GPDI9
+#define PIN_STATUS_DCCT_1_ACTIVE        GET_GPDI10
+#define PIN_STATUS_DCCT_2_STATUS        GET_GPDI13
+#define PIN_STATUS_DCCT_2_ACTIVE        GET_GPDI14
 
 /**
  * Interlocks defines
@@ -322,6 +332,15 @@ void main_fac_2p4s_dcdc(void)
 
     /// TODO: check why first sync_pulse occurs
     g_ipc_ctom.counter_sync_pulse = 0;
+
+
+    /// Initial condition for set of boards to remove them from looped interlock
+    PIN_CLEAR_UDC_INTERLOCK;
+    DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
+    PIN_BYPASS_IDB_INTERLOCKS;
+    DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
+    PIN_ACTIVE_IDB_INTERLOCKS;
+
 
     /// TODO: include condition for re-initialization
     while(1)
@@ -985,6 +1004,12 @@ static void turn_off(uint16_t dummy)
  */
 static void reset_interlocks(uint16_t dummy)
 {
+    PIN_CLEAR_UDC_INTERLOCK;
+    DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
+    PIN_BYPASS_IDB_INTERLOCKS;
+    DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
+    PIN_ACTIVE_IDB_INTERLOCKS;
+
     g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[0].ps_soft_interlock = 0;
 
@@ -1001,21 +1026,25 @@ static inline void check_interlocks(void)
 {
     if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Load_Overcurrent);
     }
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_soft_interlock(0, DCCT_High_Difference);
     }
 
     if(!PIN_STATUS_DCCT_1_STATUS)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_soft_interlock(0, DCCT_1_Fault);
     }
 
     if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
     {
+        PIN_SET_UDC_INTERLOCK;
         set_soft_interlock(0, DCCT_2_Fault);
     }
 
@@ -1023,6 +1052,7 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_1) < MIN_I_ACTIVE_DCCT)
         {
+            PIN_SET_UDC_INTERLOCK;
             set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
@@ -1030,6 +1060,7 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_1) > MAX_I_IDLE_DCCT)
         {
+            PIN_SET_UDC_INTERLOCK;
             set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
@@ -1040,6 +1071,7 @@ static inline void check_interlocks(void)
         {
             if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
             {
+                PIN_SET_UDC_INTERLOCK;
                 set_soft_interlock(0, Load_Feedback_2_Fault);
             }
         }
@@ -1047,6 +1079,7 @@ static inline void check_interlocks(void)
         {
             if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
             {
+                PIN_SET_UDC_INTERLOCK;
                 set_soft_interlock(0, Load_Feedback_2_Fault);
             }
         }
@@ -1072,41 +1105,49 @@ static inline void check_capbank_undervoltage(void)
 {
     if(V_CAPBANK_MOD_1 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_1_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_2 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_2_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_3 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_3_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_4 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_4_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_5 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_5_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_6 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_6_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_7 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_7_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_8 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_8_CapBank_Undervoltage);
     }
 }
@@ -1115,31 +1156,37 @@ static inline void check_capbank_overvoltage(void)
 {
     if(V_CAPBANK_MOD_1 > MAX_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_1_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_2 > MAX_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_2_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_3 > MAX_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_3_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_4 > MAX_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_4_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_5 > MAX_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_5_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_6 > MAX_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_6_CapBank_Overvoltage);
     }
 
@@ -1150,6 +1197,7 @@ static inline void check_capbank_overvoltage(void)
 
     if(V_CAPBANK_MOD_8 > MAX_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_8_CapBank_Overvoltage);
     }
 }
