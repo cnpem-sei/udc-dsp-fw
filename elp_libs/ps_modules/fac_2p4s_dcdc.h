@@ -9,7 +9,7 @@
  *****************************************************************************/
 
 /**
- * @file fac_dcdc.h
+ * @file fac_2p4s_dcdc.h
  * @brief FAC-2P4S DC/DC Stage module
  * 
  * Module for control of DC/DC module of FAC power supplies. It implements the
