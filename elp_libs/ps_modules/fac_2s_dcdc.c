@@ -9,7 +9,7 @@
  *****************************************************************************/
 
 /**
- * @file fac_2s_acdc.c
+ * @file fac_2s_dcdc.c
  * @brief FAC-2S DC/DC Stage module
  * 
  * Module for control of two DC/DC modules of FAC power supplies for focusing
