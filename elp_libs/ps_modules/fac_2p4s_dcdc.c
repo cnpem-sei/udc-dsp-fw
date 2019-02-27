@@ -1004,18 +1004,18 @@ static void turn_off(uint16_t dummy)
  */
 static void reset_interlocks(uint16_t dummy)
 {
-    PIN_CLEAR_UDC_INTERLOCK;
-    DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
-    PIN_BYPASS_IDB_INTERLOCKS;
-    DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
-    PIN_ACTIVE_IDB_INTERLOCKS;
-
     g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[0].ps_soft_interlock = 0;
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
+
+        PIN_CLEAR_UDC_INTERLOCK;
+        DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
+        PIN_BYPASS_IDB_INTERLOCKS;
+        DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
+        PIN_ACTIVE_IDB_INTERLOCKS;
     }
 }
 

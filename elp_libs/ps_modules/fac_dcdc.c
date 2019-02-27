@@ -170,8 +170,8 @@
 /**
  * Digital I/O's status
  */
-#define PIN_SET_EXTERNAL_INTERLOCK      CLEAR_GPDO1
-#define PIN_CLEAR_EXTERNAL_INTERLOCK    SET_GPDO1
+#define PIN_SET_EXTERNAL_INTERLOCK      CLEAR_GPDO2
+#define PIN_CLEAR_EXTERNAL_INTERLOCK    SET_GPDO2
 
 #define PIN_STATUS_EXTERNAL_INTERLOCK   GET_GPDI5
 #define PIN_STATUS_IDB_INTERLOCK        GET_GPDI6
@@ -874,8 +874,8 @@ static void turn_on(uint16_t dummy)
         if(V_CAPBANK < MIN_V_CAPBANK)
         {
             BYPASS_HARD_INTERLOCK_DEBOUNCE(0, CapBank_Undervoltage);
-            PIN_SET_EXTERNAL_INTERLOCK;
             set_hard_interlock(0, CapBank_Undervoltage);
+            PIN_SET_EXTERNAL_INTERLOCK;
         }
 
         #ifdef USE_ITLK
@@ -919,14 +919,13 @@ static void turn_off(uint16_t dummy)
  */
 static void reset_interlocks(uint16_t dummy)
 {
-    PIN_CLEAR_EXTERNAL_INTERLOCK;
-
     g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[0].ps_soft_interlock = 0;
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
+        PIN_CLEAR_EXTERNAL_INTERLOCK;
     }
 }
 
