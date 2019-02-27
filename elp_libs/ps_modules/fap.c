@@ -210,7 +210,7 @@ typedef enum
     IGBTs_Current_High_Difference,
 } soft_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS             IGBT_2_Overcurrent + 1
+#define NUM_HARD_INTERLOCKS             IIB_Itlk + 1
 #define NUM_SOFT_INTERLOCKS             IGBTs_Current_High_Difference + 1
 
 /**
@@ -610,7 +610,7 @@ static interrupt void isr_init_controller(void)
 /**
  * Control ISR
  */
-interrupt void isr_controller(void)
+static interrupt void isr_controller(void)
 {
     static float temp[4];
     static uint16_t i;

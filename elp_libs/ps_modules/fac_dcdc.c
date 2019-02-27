@@ -207,7 +207,7 @@ typedef enum
     Load_Feedback_2_Fault,
 } soft_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS     IGBT_Driver_Fault + 1
+#define NUM_HARD_INTERLOCKS     Rack_Interlock + 1
 #define NUM_SOFT_INTERLOCKS     Load_Feedback_2_Fault + 1
 
 /**
@@ -638,7 +638,7 @@ static interrupt void isr_init_controller(void)
 /**
  * Control ISR
  */
-interrupt void isr_controller(void)
+static interrupt void isr_controller(void)
 {
     static float temp[4];
     static uint16_t i;

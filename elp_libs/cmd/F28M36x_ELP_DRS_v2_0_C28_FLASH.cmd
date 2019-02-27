@@ -43,7 +43,8 @@ PAGE 0:    /* Program Memory */
            /* Memory (RAM/FLASH/OTP) blocks can be moved to PAGE1 for data allocation */
    //RAML0       : origin = 0x008000, length = 0x001000     /* on-chip RAM block L0 */
    //RAML1       : origin = 0x009000, length = 0x001000     /* on-chip RAM block L1 */
-   RAML0L1   : origin = 0x008000, length = 0x002000     /* on-chip RAM block L0-L1*/
+   //RAML0L1   : origin = 0x008000, length = 0x002000     /* on-chip RAM block L0-L1*/
+   RAML0L1L2   : origin = 0x008000, length = 0x003000     /* on-chip RAM block L0-L1-L2*/
    
    FLASHN      : origin = 0x100000, length = 0x002000     /* on-chip FLASH */
    FLASHM      : origin = 0x102000, length = 0x002000     /* on-chip FLASH */
@@ -84,7 +85,7 @@ PAGE 1 :   /* Data Memory */
    BOOT_RSVD   : origin = 0x000000, length = 0x000050     /* Part of M0, BOOT rom will use this for stack */
    RAMM0       : origin = 0x000080, length = 0x000380     /* on-chip RAM block  */
    RAMM1       : origin = 0x000400, length = 0x000400     /* on-chip RAM block M1 */
-   RAML2       : origin = 0x00A000, length = 0x001000     /* on-chip RAM block L2 */
+   //RAML2       : origin = 0x00A000, length = 0x001000     /* on-chip RAM block L2 */
    RAML3       : origin = 0x00B000, length = 0x001000     /* on-chip RAM block L3 */
    RAMS0       : origin = 0x00C000, length = 0x001000     /* on-chip Shared RAM block S0 */
    RAMS1_0     : origin = 0x00D000, length = 0x000800     /* on-chip Shared RAM block S1 - bank 0 */
@@ -121,8 +122,8 @@ SECTIONS
    .pinit              : > FLASHA,		PAGE = 0
    .text               : > FLASHE,		PAGE = 0
    codestart           : > BEGIN       	PAGE = 0
-   ramfuncs            : LOAD = FLASHD,
-                         RUN = RAML0L1,
+   ramfuncs            : LOAD = FLASHF,
+                         RUN = RAML0L1L2,
                          LOAD_START(_RamfuncsLoadStart),
                          LOAD_SIZE(_RamfuncsLoadSize),
                          LOAD_END(_RamfuncsLoadEnd),
@@ -169,8 +170,8 @@ SECTIONS
 
    /* Allocate uninitalized data sections: */
    .stack              : > RAMM0       PAGE = 1
-   .ebss               : > RAML2       PAGE = 1
-   .esysmem            : > RAML2       PAGE = 1
+   .ebss               : > RAML3       PAGE = 1
+   .esysmem            : > RAML3       PAGE = 1
 
    /* Initalized sections go in Flash */
    /* For SDFlash to program these, they must be allocated to page 0 */
@@ -184,7 +185,7 @@ SECTIONS
    /* Allocate FPU math areas: */
    FPUmathTables       : > FPUTABLES,  PAGE = 0, TYPE = NOLOAD
    
-   DMARAML2           : > RAML2,       PAGE = 1
+   //DMARAML2           : > RAML2,       PAGE = 1
    DMARAML3           : > RAML3,       PAGE = 1
 
   /* Uncomment the section below if calling the IQNexp() or IQexp()

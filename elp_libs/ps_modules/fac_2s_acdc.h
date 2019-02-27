@@ -9,16 +9,21 @@
  *****************************************************************************/
 
 /**
- * @file version.c
- * @brief Firmware version module
+ * @file fac_2s_acdc.c
+ * @brief FAC-2S AC/DC Stage module
  * 
- * This module contains information about current build version of UDC C28 core.
+ * Module for control of two AC/DC modules of FAC power supplies for focusing
+ * quadrupoles from booster. It implements the individual controllers for input
+ * current and capacitor bank voltage of each AC/DC module.
  *
  * @author gabriel.brunheira
- * @date 08/02/2018
+ * @date 15/01/2019
  *
  */
 
-#include "version.h"
+#ifndef FAC_2S_ACDC_H_
+#define FAC_2S_ACDC_H_
 
-const char * udc_c28_version = "V0.23 2019-02-27";
+extern void main_fac_2s_acdc(void);
+
+#endif /* FAC_2S_ACDC_H_ */
