@@ -119,7 +119,7 @@
 #define I_LOAD_2                        g_controller_ctom.net_signals[1].f  // HRADC1
 #define V_CAPBANK                       g_controller_ctom.net_signals[2].f  // HRADC2
 
-#define I_LOAD_SETPOINT_FILTERED        g_controller_ctom.net_signals[3].f
+#define I_LOAD_REFERENCE_WFMREF        g_controller_ctom.net_signals[3].f
 
 #define I_LOAD_MEAN                     g_controller_ctom.net_signals[4].f
 #define I_LOAD_ERROR                    g_controller_ctom.net_signals[5].f
@@ -137,11 +137,11 @@
 #define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
 #define ERROR_I_LOAD                    &g_controller_ctom.dsp_modules.dsp_error[0]
 
-#define IIR_2P2Z_REFERENCE_FILTER               &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define IIR_2P2Z_REFERENCE_FILTER_COEFFS        g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
+#define IIR_2P2Z_WFMREF_FILTER               &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define IIR_2P2Z_WFMREF_FILTER_COEFFS        g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
-#define IIR_3P3Z_REFERENCE_FILTER               &g_controller_ctom.dsp_modules.dsp_iir_3p3z[0]
-#define IIR_3P3Z_REFERENCE_FILTER_COEFFS        g_controller_mtoc.dsp_modules.dsp_iir_3p3z[0].coeffs.s
+#define IIR_3P3Z_WFMREF_FILTER               &g_controller_ctom.dsp_modules.dsp_iir_3p3z[0]
+#define IIR_3P3Z_WFMREF_FILTER_COEFFS        g_controller_mtoc.dsp_modules.dsp_iir_3p3z[0].coeffs.s
 
 #define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
 #define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
@@ -363,8 +363,7 @@ static void init_controller(void)
 
     disable_siggen(&SIGGEN);
 
-    init_siggen(&SIGGEN, ISR_CONTROL_FREQ,
-                &g_ipc_ctom.ps_module[0].ps_reference);
+    init_siggen(&SIGGEN, ISR_CONTROL_FREQ, &I_LOAD_REFERENCE);
 
     cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen.type, g_ipc_mtoc.siggen.num_cycles,
                g_ipc_mtoc.siggen.freq, g_ipc_mtoc.siggen.amplitude,
@@ -398,53 +397,52 @@ static void init_controller(void)
     /*************************************************/
 
     /**
-     *        name:     IIR_2P2Z_REFERENCE_FILTER
-     * description:     Load current reference filter
-     *  dsp module:     DSP_IIR_2P2Z
-     *          in:     I_LOAD_SETPOINT
-     *         out:     I_LOAD_SETPOINT_FILTERED
-     */
-
-    init_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FILTER,
-                      IIR_2P2Z_REFERENCE_FILTER_COEFFS.b0,
-                      IIR_2P2Z_REFERENCE_FILTER_COEFFS.b1,
-                      IIR_2P2Z_REFERENCE_FILTER_COEFFS.b2,
-                      IIR_2P2Z_REFERENCE_FILTER_COEFFS.a1,
-                      IIR_2P2Z_REFERENCE_FILTER_COEFFS.a2,
-                      //FLT_MAX, -FLT_MAX, &I_LOAD_SETPOINT,
-                      //&I_LOAD_SETPOINT_FILTERED);
-                      FLT_MAX, -FLT_MAX, &I_LOAD_SETPOINT_FILTERED,
-                      &I_LOAD_REFERENCE);
-
-    /**
-     *        name:     IIR_3P3Z_REFERENCE_FILTER
-     * description:     Load current reference filter
-     *  dsp module:     DSP_IIR_3P3Z
-     *          in:     I_LOAD_SETPOINT
-     *         out:     I_LOAD_SETPOINT_FILTERED
-     */
-    init_dsp_iir_3p3z(IIR_3P3Z_REFERENCE_FILTER,
-                      IIR_3P3Z_REFERENCE_FILTER_COEFFS.b0,
-                      IIR_3P3Z_REFERENCE_FILTER_COEFFS.b1,
-                      IIR_3P3Z_REFERENCE_FILTER_COEFFS.b2,
-                      IIR_3P3Z_REFERENCE_FILTER_COEFFS.b3,
-                      IIR_3P3Z_REFERENCE_FILTER_COEFFS.a1,
-                      IIR_3P3Z_REFERENCE_FILTER_COEFFS.a2,
-                      IIR_3P3Z_REFERENCE_FILTER_COEFFS.a3,
-                      FLT_MAX, -FLT_MAX, &I_LOAD_SETPOINT_FILTERED,
-                      &I_LOAD_REFERENCE);
-
-    /**
      *        name:     SRLIM_I_LOAD_REFERENCE
      * description:     Load current slew-rate limiter
      *  dsp module:     DSP_SRLim
-     *          in:     I_LOAD_SETPOINT_FILTERED
+     *          in:     I_LOAD_SETPOINT
      *         out:     I_LOAD_REFERENCE
      */
 
     init_dsp_srlim(SRLIM_I_LOAD_REFERENCE, MAX_REF_SLEWRATE, ISR_CONTROL_FREQ,
-    //               &I_LOAD_SETPOINT_FILTERED, &I_LOAD_REFERENCE);
-                   &I_LOAD_SETPOINT, &I_LOAD_SETPOINT_FILTERED);
+                   &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
+
+    /**
+     *        name:     IIR_2P2Z_WFMREF_FILTER
+     * description:     Load current reference filter
+     *  dsp module:     DSP_IIR_2P2Z
+     *          in:     I_LOAD_REFERENCE_WFMREF
+     *         out:     I_LOAD_REFERENCE
+     */
+
+    init_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER,
+                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b0,
+                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b1,
+                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b2,
+                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a1,
+                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a2,
+                      //FLT_MAX, -FLT_MAX, &I_LOAD_SETPOINT,
+                      //&I_LOAD_REFERENCE_WFMREF);
+                      FLT_MAX, -FLT_MAX, &I_LOAD_REFERENCE_WFMREF,
+                      &I_LOAD_REFERENCE);
+
+    /**
+     *        name:     IIR_3P3Z_WFMREF_FILTER
+     * description:     Load current reference filter
+     *  dsp module:     DSP_IIR_3P3Z
+     *          in:     I_LOAD_REFERENCE_WFMREF
+     *         out:     I_LOAD_REFERENCE
+     */
+    init_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER,
+                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b0,
+                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b1,
+                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b2,
+                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b3,
+                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a1,
+                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a2,
+                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a3,
+                      FLT_MAX, -FLT_MAX, &I_LOAD_REFERENCE_WFMREF,
+                      &I_LOAD_REFERENCE);
 
     /**
      *        name:     ERROR_I_LOAD
@@ -573,8 +571,8 @@ static void reset_controller(void)
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
 
-    reset_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FILTER);
-    reset_dsp_iir_3p3z(IIR_3P3Z_REFERENCE_FILTER);
+    reset_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
+    reset_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
 
     reset_dsp_error(ERROR_I_LOAD);
@@ -711,7 +709,6 @@ static interrupt void isr_controller(void)
             case SlowRef:
             case SlowRefSync:
             {
-                //run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FILTER);
                 run_dsp_srlim(SRLIM_I_LOAD_REFERENCE, USE_MODULE);
                 break;
             }
@@ -732,10 +729,9 @@ static interrupt void isr_controller(void)
                             if( WFMREF.wfmref_data.p_buf_idx <=
                                 WFMREF.wfmref_data.p_buf_end)
                             {
-                                I_LOAD_SETPOINT_FILTERED =
-                                //I_LOAD_REFERENCE =
-                                        *(WFMREF.wfmref_data.p_buf_idx++) *
-                                        (WFMREF.gain) + WFMREF.offset;
+                                I_LOAD_REFERENCE_WFMREF =
+                                            *(WFMREF.wfmref_data.p_buf_idx++) *
+                                             (WFMREF.gain) + WFMREF.offset;
                             }
                         END_TIMESLICER(TIMESLICER_WFMREF)
                         /*********************************************/
@@ -747,13 +743,16 @@ static interrupt void isr_controller(void)
                     {
                         if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
                         {
-                            I_LOAD_SETPOINT_FILTERED = *(WFMREF.wfmref_data.p_buf_idx) *
-                            //I_LOAD_REFERENCE =  *(WFMREF.wfmref_data.p_buf_idx) *
-                                                 (WFMREF.gain) + WFMREF.offset;
+                            I_LOAD_REFERENCE_WFMREF =
+                                              *(WFMREF.wfmref_data.p_buf_idx) *
+                                               (WFMREF.gain) + WFMREF.offset;
                         }
                         break;
                     }
                 }
+
+                //run_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
+                run_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
                 break;
             }
             case MigWfm:
@@ -769,7 +768,6 @@ static interrupt void isr_controller(void)
         /// Open-loop
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
-            I_LOAD_REFERENCE = I_LOAD_SETPOINT_FILTERED;
             SATURATE(I_LOAD_REFERENCE, MAX_REF_OL, MIN_REF_OL);
             DUTY_CYCLE = 0.01 * I_LOAD_REFERENCE;
             SATURATE(DUTY_CYCLE, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
@@ -777,8 +775,6 @@ static interrupt void isr_controller(void)
         /// Closed-loop
         else
         {
-            //run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FILTER);
-            run_dsp_iir_3p3z(IIR_3P3Z_REFERENCE_FILTER);
             SATURATE(I_LOAD_REFERENCE, MAX_REF, MIN_REF);
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
