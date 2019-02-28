@@ -118,6 +118,8 @@
 #define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
 #define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
 
+#define NUM_DCCTs               g_ipc_mtoc.analog_vars.max[12]
+
 /**
  * Controller defines
  */
@@ -651,12 +653,27 @@ static interrupt void isr_controller(void)
     temp[3] *= HRADCs_Info.HRADC_boards[3].gain * decimation_coeff;
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
-    I_LOAD_1 = temp[0];
-    I_LOAD_2 = temp[1];
-    V_DCLINK = temp[2];
+    if(NUM_DCCTs)
+    {
+        I_LOAD_1 = temp[0];
+        I_LOAD_2 = temp[1];
+        V_DCLINK = temp[2];
+        g_controller_ctom.net_signals[20].f = temp[2];
 
-    I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
-    I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
+        I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
+        I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
+    }
+    else
+    {
+        I_LOAD_1 = temp[0];
+        V_DCLINK = temp[1];
+        g_controller_ctom.net_signals[20].f = temp[2];
+        g_controller_ctom.net_signals[21].f = temp[3];
+
+        I_LOAD_MEAN = I_LOAD_1;
+        I_LOAD_DIFF = 0;
+    }
+
     I_IGBTS_DIFF = I_IGBT_1 - I_IGBT_2;
 
     /// Run low-pass filter for DC-Link voltage
@@ -966,7 +983,7 @@ static inline void check_interlocks(void)
         set_soft_interlock(0, DCCT_1_Fault);
     }
 
-    if(!PIN_STATUS_DCCT_2_STATUS)
+    if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
     {
         set_soft_interlock(0, DCCT_2_Fault);
     }
@@ -986,18 +1003,21 @@ static inline void check_interlocks(void)
         }
     }
 
-    if(PIN_STATUS_DCCT_2_ACTIVE)
+    if(NUM_DCCTs)
     {
-        if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
+        if(PIN_STATUS_DCCT_2_ACTIVE)
         {
-            set_soft_interlock(0, Load_Feedback_2_Fault);
+            if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
+            {
+                set_soft_interlock(0, Load_Feedback_2_Fault);
+            }
         }
-    }
-    else
-    {
-        if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
+        else
         {
-            set_soft_interlock(0, Load_Feedback_2_Fault);
+            if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
+            {
+                set_soft_interlock(0, Load_Feedback_2_Fault);
+            }
         }
     }
 
