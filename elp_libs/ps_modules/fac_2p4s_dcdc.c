@@ -267,7 +267,8 @@ typedef enum
     Module_5_Output_Overvoltage,
     Module_6_Output_Overvoltage,
     Module_7_Output_Overvoltage,
-    Module_8_Output_Overvoltage
+    Module_8_Output_Overvoltage,
+    IIB_Itlk
 } hard_interlocks_t;
 
 typedef enum
@@ -281,7 +282,7 @@ typedef enum
     Load_Feedback_2_Fault
 } soft_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS     Module_8_Output_Overvoltage + 1
+#define NUM_HARD_INTERLOCKS     IIB_Itlk + 1
 #define NUM_SOFT_INTERLOCKS     Load_Feedback_2_Fault + 1
 
 /**

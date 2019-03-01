@@ -222,7 +222,8 @@ typedef enum
     Rectifier_Undervoltage,
     Rectifier_Overcurrent,
     AC_Mains_Contactor_Fault,
-    IGBT_Driver_Fault
+    IGBT_Driver_Fault,
+    IIB_Itlk
 } hard_interlocks_t;
 
 typedef enum
@@ -231,7 +232,7 @@ typedef enum
     Inductors_Overtemperature
 } soft_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS     IGBT_Driver_Fault + 1
+#define NUM_HARD_INTERLOCKS     IIB_Itlk + 1
 #define NUM_SOFT_INTERLOCKS     Inductors_Overtemperature + 1
 
 /**
