@@ -143,8 +143,8 @@ void init_ipc(void)
 
     PieCtrlRegs.PIEIER11.bit.INTx1 = 1;                 // MTOCIPCINT1
     PieCtrlRegs.PIEIER11.bit.INTx2 = 1;                 // MTOCIPCINT2
-    PieCtrlRegs.PIEIER11.bit.INTx3 = 0;                 // MTOCIPCINT3
-    PieCtrlRegs.PIEIER11.bit.INTx4 = 0;                 // MTOCIPCINT4
+    PieCtrlRegs.PIEIER11.bit.INTx3 = 1;                 // MTOCIPCINT3
+    PieCtrlRegs.PIEIER11.bit.INTx4 = 1;                 // MTOCIPCINT4
 
     CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;
     PieCtrlRegs.PIEACK.all |= M_INT1;

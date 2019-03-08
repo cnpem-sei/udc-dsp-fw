@@ -43,7 +43,8 @@ typedef enum
 {
     Sine,
     DampedSine,
-    Trapezoidal
+    Trapezoidal,
+    DampedSquaredSine
 } siggen_type_t;
 
 typedef volatile struct siggen_t siggen_t;
@@ -80,5 +81,6 @@ extern void disable_siggen(siggen_t *p_siggen);
 extern void run_siggen_sine(siggen_t *p_siggen);
 extern void run_siggen_dampedsine(siggen_t *p_siggen);
 extern void run_siggen_trapezoidal(siggen_t *p_siggen);
+extern void run_siggen_dampedsquaredsine(siggen_t *p_siggen);
 
 #endif
