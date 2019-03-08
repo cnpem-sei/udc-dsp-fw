@@ -41,6 +41,7 @@ static float coeff_exp_approx;
 #pragma CODE_SECTION(run_siggen_dampedsine, "ramfuncs");
 #pragma CODE_SECTION(run_siggen_trapezoidal, "ramfuncs");
 #pragma CODE_SECTION(run_siggen_dampedsquaredsine, "ramfuncs");
+#pragma CODE_SECTION(run_siggen_square, "ramfuncs");
 #pragma CODE_SECTION(update_siggen_freq, "ramfuncs");
 
 static void update_siggen_freq(siggen_t *p_siggen);
@@ -197,6 +198,30 @@ void cfg_siggen(siggen_t *p_siggen, siggen_type_t sig_type, uint16_t num_cycles,
                 break;
             }
 
+            case Square:
+            {
+                /// Sample phase
+                p_siggen->aux_var[1] = PI * p_siggen->aux_param[0] / 180.0;
+
+                /// Total number of samples (apply only for fractional frequencies)
+                p_siggen->aux_var[2] = p_siggen->num_cycles +
+                                       ( p_siggen->aux_param[1] -
+                                         p_siggen->aux_param[0] ) / (360.0);
+                if(p_siggen->aux_param[0] > p_siggen->aux_param[1])
+                {
+                    p_siggen->aux_var[2]++;
+                }
+                p_siggen->aux_var[2] *= p_siggen->freq_sampling/(p_siggen->freq);
+
+                p_siggen->p_run_siggen = &run_siggen_square;
+                break;
+            }
+
+            default:
+            {
+
+            }
+
         }
     }
 }
@@ -227,6 +252,7 @@ void set_siggen_freq(siggen_t *p_siggen, float freq)
         case Sine:
         case DampedSine:
         case DampedSquaredSine:
+        case Square:
         {
             /// Continuous operation only allows integer frequencies. To
             /// generate continuous-like operation with fractional frequencies,
@@ -265,6 +291,7 @@ void enable_siggen(siggen_t *p_siggen)
             case Sine:
             case DampedSine:
             case DampedSquaredSine:
+            case Square:
                 update_siggen_freq(p_siggen);
                 break;
 
@@ -422,6 +449,54 @@ void run_siggen_dampedsquaredsine(siggen_t *p_siggen)
 }
 
 /**
+ * Run square signal.
+ *
+ * @param p_siggen  Pointer to specified siggen controller
+ */
+void run_siggen_square(siggen_t *p_siggen)
+{
+    float temp;
+
+    if(p_siggen->enable)
+    {
+        temp = sin( p_siggen->aux_var[0] * p_siggen->n++ + p_siggen->aux_var[1] );
+
+        if(temp < 0)
+        {
+            *(p_siggen->p_out) = p_siggen->offset - (p_siggen->amplitude);
+        }
+        else
+        {
+            *(p_siggen->p_out) = p_siggen->offset + (p_siggen->amplitude);
+        }
+
+        if(p_siggen->aux_var[2] >  0)
+        {
+            if(p_siggen->n >= p_siggen->aux_var[2])
+            {
+                disable_siggen(p_siggen);
+            }
+
+        }
+        else if(p_siggen->n >= p_siggen->freq_sampling)
+        {
+            /**
+             *  Compares with freq_sampling, in order to increment n during 1
+             *  second. If n is compared with aux_var[2], signal is generated
+             *  discontinuously, since aux_var[2] could result in float, while
+             *  n doesn't.
+             *
+             *  After counting up to 1 second, frequency parameter is updated,
+             *  creating a smooth transition from one frequency to other.
+             *
+             */
+            update_siggen_freq(p_siggen);
+            p_siggen->n = 0.0;
+        }
+    }
+}
+
+/**
  * Update frequency of signal.
  *
  * @param p_siggen  Pointer to specified siggen controller
@@ -433,6 +508,7 @@ void update_siggen_freq(siggen_t *p_siggen)
         case Sine:
         case DampedSine:
         case DampedSquaredSine:
+        case Square:
         {
             p_siggen->aux_var[0] = 2.0 * PI * (p_siggen->freq) /
                                    p_siggen->freq_sampling;
