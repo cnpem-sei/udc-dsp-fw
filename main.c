@@ -38,6 +38,7 @@
 #include "ps_modules/fac_2p4s_dcdc.h"
 #include "ps_modules/fap.h"
 #include "ps_modules/fap_4p.h"
+#include "ps_modules/fac_dcdc_ema.h"
 
 /**
  * @brief Main function
@@ -165,6 +166,13 @@ void main(void)
                 main_fap_4p();
                 break;
             }
+
+            case FAC_DCDC_EMA:
+            {
+                main_fac_dcdc_ema();
+                break;
+            }
+
             default:
             {
                 break;
