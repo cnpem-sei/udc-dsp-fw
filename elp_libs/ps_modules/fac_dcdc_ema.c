@@ -176,8 +176,15 @@
 #define PIN_SET_MAGNAPOWER_RESET        SET_GPDO3
 #define PIN_CLEAR_MAGNAPOWER_RESET      CLEAR_GPDO3
 
-#define PIN_SET_MAGNAPOWER_INTERLOCK    SET_GPDO4
-#define PIN_CLEAR_MAGNAPOWER_INTERLOCK  CLEAR_GPDO4
+#define PIN_SET_MAGNAPOWER_INTERLOCK    CLEAR_GPDO4
+#define PIN_CLEAR_MAGNAPOWER_INTERLOCK  SET_GPDO4
+
+#define RESET_INTERLOCK_MAGNAPOWER      PIN_CLEAR_MAGNAPOWER_INTERLOCK; \
+                                        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US); \
+                                        PIN_SET_MAGNAPOWER_RESET; \
+                                        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US); \
+                                        PIN_CLEAR_MAGNAPOWER_RESET; \
+                                        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US);
 
 
 /**
@@ -240,6 +247,9 @@ static inline void check_interlocks(void);
  */
 void main_fac_dcdc_ema(void)
 {
+    /// Clear interlock on MagnaPower caused by UDC power-on
+    RESET_INTERLOCK_MAGNAPOWER;
+
     init_controller();
     init_peripherals_drivers();
     init_interruptions();
@@ -319,6 +329,7 @@ static void init_peripherals_drivers(void)
     InitCpuTimers();
     ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
     CpuTimer0Regs.TCR.bit.TIE = 0;
+
 }
 
 static void term_peripherals_drivers(void)
@@ -826,6 +837,7 @@ static void turn_on(uint16_t dummy)
         {
             BYPASS_HARD_INTERLOCK_DEBOUNCE(0, CapBank_Undervoltage);
             set_hard_interlock(0, CapBank_Undervoltage);
+            PIN_SET_MAGNAPOWER_INTERLOCK;
         }
 
         #ifdef USE_ITLK
@@ -880,11 +892,7 @@ static void reset_interlocks(uint16_t dummy)
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
-        PIN_SET_MAGNAPOWER_RESET;
-        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US);
-        PIN_CLEAR_MAGNAPOWER_RESET;
-        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US);
-
+        RESET_INTERLOCK_MAGNAPOWER;
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
     }
 }
@@ -897,31 +905,37 @@ static inline void check_interlocks(void)
     if(fabs(I_LOAD) > MAX_ILOAD)
     {
         set_hard_interlock(0, Load_Overcurrent);
+        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(V_CAPBANK > MAX_V_CAPBANK)
     {
         set_hard_interlock(0, CapBank_Overvoltage);
+        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(!PIN_STATUS_EMERGENCY_BUTTON)
     {
         set_hard_interlock(0, Emergency_Button);
+        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(!PIN_STATUS_WATERFLOW_MAGNET)
     {
         set_hard_interlock(0, Load_Waterflow);
+        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(!PIN_STATUS_TEMP_MAGNET)
     {
         set_hard_interlock(0, Load_Overtemperature);
+        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(!PIN_STATUS_DCCT_STATUS)
     {
         set_soft_interlock(0, DCCT_Fault);
+        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(PIN_STATUS_DCCT_ACTIVE)
@@ -929,6 +943,7 @@ static inline void check_interlocks(void)
         if(fabs(I_LOAD) < MIN_I_ACTIVE_DCCT)
         {
             set_soft_interlock(0, Load_Feedback_Fault);
+            PIN_SET_MAGNAPOWER_INTERLOCK;
         }
     }
     else
@@ -936,6 +951,7 @@ static inline void check_interlocks(void)
         if(fabs(I_LOAD) > MAX_I_IDLE_DCCT)
         {
             set_soft_interlock(0, Load_Feedback_Fault);
+            PIN_SET_MAGNAPOWER_INTERLOCK;
         }
     }
 
@@ -945,6 +961,7 @@ static inline void check_interlocks(void)
               && (V_CAPBANK < MIN_V_CAPBANK) )
     {
         set_hard_interlock(0, CapBank_Undervoltage);
+        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     EINT;
