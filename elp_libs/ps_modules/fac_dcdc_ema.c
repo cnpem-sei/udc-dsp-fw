@@ -99,7 +99,8 @@
 #define MAX_I_IDLE_DCCT                 g_ipc_mtoc.analog_vars.max[4]
 #define MIN_I_ACTIVE_DCCT               g_ipc_mtoc.analog_vars.min[4]
 
-#define TIMEOUT_MAGNAPOWER_COMMANDS_US  g_ipc_mtoc.analog_vars.max[5]
+#define TIMEOUT_MAGNAPOWER_COMMAND_PULSE_US     g_ipc_mtoc.analog_vars.max[5]
+#define TIMEOUT_MAGNAPOWER_POWER_ON_US          g_ipc_mtoc.analog_vars.min[5]
 
 #define NETSIGNAL_ELEM_CTOM_BUF         g_ipc_mtoc.analog_vars.max[6]
 #define NETSIGNAL_ELEM_MTOC_BUF         g_ipc_mtoc.analog_vars.min[6]
@@ -180,12 +181,10 @@
 #define PIN_CLEAR_MAGNAPOWER_INTERLOCK  SET_GPDO4
 
 #define RESET_INTERLOCK_MAGNAPOWER      PIN_CLEAR_MAGNAPOWER_INTERLOCK; \
-                                        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US); \
+                                        DELAY_US(TIMEOUT_MAGNAPOWER_COMMAND_PULSE_US); \
                                         PIN_SET_MAGNAPOWER_RESET; \
-                                        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US); \
-                                        PIN_CLEAR_MAGNAPOWER_RESET; \
-                                        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US);
-
+                                        DELAY_US(TIMEOUT_MAGNAPOWER_COMMAND_PULSE_US); \
+                                        PIN_CLEAR_MAGNAPOWER_RESET;
 
 /**
  * Interlocks defines
@@ -328,8 +327,7 @@ static void init_peripherals_drivers(void)
     /// Initialization of timers
     InitCpuTimers();
     ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
-    CpuTimer0Regs.TCR.bit.TIE = 0;
-
+    CpuTimer0Regs.TCR.all = 0x8010;
 }
 
 static void term_peripherals_drivers(void)
@@ -829,31 +827,19 @@ static void turn_on(uint16_t dummy)
     #endif
     {
         PIN_SET_MAGNAPOWER_START;
-        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US);
+        DELAY_US(TIMEOUT_MAGNAPOWER_COMMAND_PULSE_US);
         PIN_CLEAR_MAGNAPOWER_START;
-        DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US);
 
-        if(V_CAPBANK < MIN_V_CAPBANK)
-        {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, CapBank_Undervoltage);
-            set_hard_interlock(0, CapBank_Undervoltage);
-            PIN_SET_MAGNAPOWER_INTERLOCK;
-        }
+        g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
 
-        #ifdef USE_ITLK
-        else
-        {
-        #endif
-            reset_controller();
+        DELAY_US(TIMEOUT_MAGNAPOWER_POWER_ON_US);
 
-            g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
-            g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
-            enable_pwm_output(0);
-            enable_pwm_output(1);
+        reset_controller();
 
-        #ifdef USE_ITLK
-        }
-        #endif
+        g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
+        g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+        enable_pwm_output(0);
+        enable_pwm_output(1);
     }
 }
 
@@ -868,9 +854,8 @@ static void turn_off(uint16_t dummy)
     disable_pwm_output(1);
 
     PIN_SET_MAGNAPOWER_STOP;
-    DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US);
+    DELAY_US(TIMEOUT_MAGNAPOWER_COMMAND_PULSE_US);
     PIN_CLEAR_MAGNAPOWER_STOP;
-    DELAY_US(TIMEOUT_MAGNAPOWER_COMMANDS_US);
 
     reset_controller();
 
