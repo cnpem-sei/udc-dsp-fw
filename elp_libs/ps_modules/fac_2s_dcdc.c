@@ -213,6 +213,12 @@
 /**
  * Digital I/O's status
  */
+#define PIN_SET_UDC_INTERLOCK           CLEAR_GPDO2;
+#define PIN_CLEAR_UDC_INTERLOCK         SET_GPDO2;
+
+#define PIN_STATUS_EXTERNAL_INTERLOCK   GET_GPDI5
+#define PIN_STATUS_IDB_INTERLOCK        GET_GPDI6
+
 #define PIN_STATUS_DCCT_1_STATUS        GET_GPDI9
 #define PIN_STATUS_DCCT_1_ACTIVE        GET_GPDI10
 #define PIN_STATUS_DCCT_2_STATUS        GET_GPDI11
@@ -223,16 +229,18 @@
  */
 typedef enum
 {
-    Load_Overcurrent,             //!< Load_Overcurrent
-    Load_Overvoltage,             //!< Load_Overvoltage
-    Module_1_CapBank_Overvoltage, //!< Module_1_CapBank_Overvoltage
-    Module_2_CapBank_Overvoltage, //!< Module_2_CapBank_Overvoltage
-    Module_1_CapBank_Undervoltage,//!< Module_1_CapBank_Undervoltage
-    Module_2_CapBank_Undervoltage,//!< Module_2_CapBank_Undervoltage
-    Module_1_Output_Overvoltage,  //!< Module_1_Output_Overvoltage
-    Module_2_Output_Overvoltage,  //!< Module_2_Output_Overvoltage
-    IIB_1_Itlk,                   //!< IIB_1_Itlk
-    IIB_2_Itlk,                   //!< IIB_2_Itlk
+    Load_Overcurrent,
+    Load_Overvoltage,
+    Module_1_CapBank_Overvoltage,
+    Module_2_CapBank_Overvoltage,
+    Module_1_CapBank_Undervoltage,
+    Module_2_CapBank_Undervoltage,
+    Module_1_Output_Overvoltage,
+    Module_2_Output_Overvoltage,
+    IIB_1_Itlk,
+    IIB_2_Itlk,
+    External_Interlock,
+    Rack_Interlock
 } hard_interlocks_t;
 
 typedef enum
@@ -244,7 +252,7 @@ typedef enum
     Load_Feedback_2_Fault
 } soft_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS     IIB_2_Itlk + 1
+#define NUM_HARD_INTERLOCKS     Rack_Interlock + 1
 #define NUM_SOFT_INTERLOCKS     Load_Feedback_2_Fault + 1
 
 /**
@@ -981,11 +989,13 @@ static void turn_on(uint16_t dummy)
 {
     if(V_CAPBANK_MOD_1 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_1_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_2 < MIN_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK
         set_hard_interlock(0, Module_2_CapBank_Undervoltage);
     }
 
@@ -1039,6 +1049,8 @@ static void reset_interlocks(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
+
+        PIN_CLEAR_UDC_INTERLOCK;
     }
 }
 
@@ -1049,21 +1061,37 @@ static inline void check_interlocks(void)
 {
     if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
     {
+        PIN_SET_UDC_INTERLOCK
         set_hard_interlock(0, Load_Overcurrent);
     }
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
     {
+        PIN_SET_UDC_INTERLOCK
         set_soft_interlock(0, DCCT_High_Difference);
+    }
+
+    if(!PIN_STATUS_EXTERNAL_INTERLOCK)
+    {
+        PIN_SET_UDC_INTERLOCK
+        set_hard_interlock(0, External_Interlock);
+    }
+
+    if(!PIN_STATUS_IDB_INTERLOCK)
+    {
+        PIN_SET_UDC_INTERLOCK
+        set_hard_interlock(0, Rack_Interlock);
     }
 
     if(!PIN_STATUS_DCCT_1_STATUS)
     {
+        PIN_SET_UDC_INTERLOCK
         set_soft_interlock(0, DCCT_1_Fault);
     }
 
     if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
     {
+        PIN_SET_UDC_INTERLOCK
         set_soft_interlock(0, DCCT_2_Fault);
     }
 
@@ -1071,6 +1099,7 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_1) < MIN_I_ACTIVE_DCCT)
         {
+            PIN_SET_UDC_INTERLOCK
             set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
@@ -1078,6 +1107,7 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_1) > MAX_I_IDLE_DCCT)
         {
+            PIN_SET_UDC_INTERLOCK
             set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
@@ -1088,6 +1118,7 @@ static inline void check_interlocks(void)
         {
             if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
             {
+                PIN_SET_UDC_INTERLOCK
                 set_soft_interlock(0, Load_Feedback_2_Fault);
             }
         }
@@ -1095,6 +1126,7 @@ static inline void check_interlocks(void)
         {
             if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
             {
+                PIN_SET_UDC_INTERLOCK
                 set_soft_interlock(0, Load_Feedback_2_Fault);
             }
         }
@@ -1102,11 +1134,13 @@ static inline void check_interlocks(void)
 
     if(V_CAPBANK_MOD_1 > MAX_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK
         set_hard_interlock(0, Module_1_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_2 > MAX_V_CAPBANK)
     {
+        PIN_SET_UDC_INTERLOCK
         set_hard_interlock(0, Module_2_CapBank_Overvoltage);
     }
 
@@ -1116,11 +1150,13 @@ static inline void check_interlocks(void)
     {
         if(V_CAPBANK_MOD_1 < MIN_V_CAPBANK)
         {
+            PIN_SET_UDC_INTERLOCK
             set_hard_interlock(0, Module_1_CapBank_Undervoltage);
         }
 
         if(V_CAPBANK_MOD_2 < MIN_V_CAPBANK)
         {
+            PIN_SET_UDC_INTERLOCK
             set_hard_interlock(0, Module_2_CapBank_Undervoltage);
         }
     }

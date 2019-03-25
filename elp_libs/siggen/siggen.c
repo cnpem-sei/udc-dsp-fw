@@ -146,6 +146,17 @@ void cfg_siggen(siggen_t *p_siggen, siggen_type_t sig_type, uint16_t num_cycles,
                 p_siggen->aux_var[3] = -(1.0/p_siggen->aux_param[2]) /
                                          p_siggen->freq_sampling ;
 
+                /// Amplitude correction factor
+                p_siggen->aux_var[6] = 2.0 * PI * (p_siggen->freq);
+
+                p_siggen->aux_var[5] = atan( p_siggen->aux_var[6] *
+                                             p_siggen->aux_param[2] ) /
+                                       p_siggen->aux_var[6];
+                p_siggen->aux_var[4] = exp( p_siggen->aux_var[5] /
+                                            p_siggen->aux_param[2] ) /
+                                       sin( p_siggen->aux_var[6] *
+                                            p_siggen->aux_var[5] );
+
                 p_siggen->p_run_siggen = &run_siggen_dampedsine;
                 break;
             }
@@ -193,6 +204,17 @@ void cfg_siggen(siggen_t *p_siggen, siggen_type_t sig_type, uint16_t num_cycles,
                 /// Damping exponencial coefficient
                 p_siggen->aux_var[3] = -(1.0/p_siggen->aux_param[2]) /
                                          p_siggen->freq_sampling ;
+
+                /// Amplitude correction factor
+                p_siggen->aux_var[6] = 2.0 * PI * (p_siggen->freq);
+
+                p_siggen->aux_var[5] = atan( 2.0 * p_siggen->aux_var[6] *
+                                             p_siggen->aux_param[2] ) /
+                                       p_siggen->aux_var[6];
+                p_siggen->aux_var[4] = exp( p_siggen->aux_var[5] /
+                                            p_siggen->aux_param[2] ) /
+                                       ( pow( sin( p_siggen->aux_var[6] *
+                                                   p_siggen->aux_var[5] ), 2) );
 
                 p_siggen->p_run_siggen = &run_siggen_dampedsquaredsine;
                 break;
@@ -363,7 +385,7 @@ void run_siggen_dampedsine(siggen_t *p_siggen)
 	{
 		if(p_siggen->n < p_siggen->aux_var[2])
 		{
-			*(p_siggen->p_out) = p_siggen->amplitude *
+			*(p_siggen->p_out) = p_siggen->amplitude * p_siggen->aux_var[4] *
 			                     exp_approx(p_siggen->aux_var[3] * p_siggen->n) *
 			                     sin( p_siggen->aux_var[0] * p_siggen->n +
 			                     p_siggen->aux_var[1] ) + p_siggen->offset;
@@ -435,7 +457,7 @@ void run_siggen_dampedsquaredsine(siggen_t *p_siggen)
             aux_sine = sin( p_siggen->aux_var[0] * p_siggen->n +
                         p_siggen->aux_var[1] );
 
-            *(p_siggen->p_out) = p_siggen->amplitude *
+            *(p_siggen->p_out) = p_siggen->amplitude * p_siggen->aux_var[4] *
                                  exp_approx(p_siggen->aux_var[3] * p_siggen->n) *
                                  aux_sine * aux_sine + p_siggen->offset;
 
