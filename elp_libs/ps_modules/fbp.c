@@ -30,6 +30,7 @@
 #include "parameters/parameters.h"
 #include "pwm/pwm.h"
 
+
 #include "fbp.h"
 
 /**
@@ -56,7 +57,10 @@
 #define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/ISR_CONTROL_FREQ)
 
 #define TIMESLICER_BUFFER       1
-#define BUFFER_DECIMATION       (1.0 / g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER])
+#define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
+#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
+
+#define BUF_SAMPLES             &g_ipc_ctom.buf_samples[0]
 
 #define MAX_ILOAD               g_ipc_mtoc.analog_vars.max[0]
 #define MAX_VLOAD               g_ipc_mtoc.analog_vars.max[1]
@@ -66,6 +70,8 @@
 
 #define SIGGEN                  g_ipc_ctom.siggen
 #define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
+
+#define WFMREF_OUTPUT           g_controller_ctom.net_signals[13].f
 
 #define TRANSDUCER_OUTPUT_TYPE  g_ipc_mtoc.hradc.type_transducer_output[0]
 #if (HRADC_v2_0)
@@ -547,6 +553,11 @@ static void init_controller(void)
     /// 1: Time-slicer for SamplesBuffer
     cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
 
+    /**
+     * Samples buffer initialization
+     */
+    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
+
     /// Reset all internal variables
     reset_controllers();
 }
@@ -635,7 +646,7 @@ static interrupt void isr_init_controller(void)
  */
 static interrupt void isr_controller(void)
 {
-    static uint16_t i, flag_siggen = 0;
+    static uint16_t i, flag_siggen, flag_wfmref = 0;
     static float temp[4];
 
     SET_DEBUG_GPIO1;
@@ -684,6 +695,42 @@ static interrupt void isr_controller(void)
                     }
                     case RmpWfm:
                     {
+                        if(!flag_wfmref)
+                        {
+                            switch(WFMREF.sync_mode)
+                            {
+                                case OneShot:
+                                {   /*********************************************/
+                                    RUN_TIMESLICER(TIMESLICER_WFMREF)
+                                        if( WFMREF.wfmref_data.p_buf_idx <=
+                                            WFMREF.wfmref_data.p_buf_end)
+                                        {
+                                            WFMREF_OUTPUT =
+                                                    *(WFMREF.wfmref_data.p_buf_idx++) *
+                                                    (WFMREF.gain) + WFMREF.offset;
+                                        }
+                                    END_TIMESLICER(TIMESLICER_WFMREF)
+                                    /*********************************************/
+                                    break;
+                                }
+
+                                case SampleBySample:
+                                case SampleBySample_OneCycle:
+                                {
+                                    if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
+                                    {
+                                        WFMREF_OUTPUT =  *(WFMREF.wfmref_data.p_buf_idx) *
+                                                             (WFMREF.gain) + WFMREF.offset;
+                                    }
+                                    break;
+                                }
+                            }
+
+                            flag_wfmref = 1;
+                        }
+
+                        g_ipc_ctom.ps_module[i].ps_reference = WFMREF_OUTPUT;
+
                         break;
                     }
                     case MigWfm:
@@ -744,6 +791,14 @@ static interrupt void isr_controller(void)
         /// TODO: save on buffers
     }
 
+    /*********************************************/
+    RUN_TIMESLICER(TIMESLICER_BUFFER)
+    /*********************************************/
+        insert_buffer(BUF_SAMPLES, PS1_LOAD_CURRENT);
+    /*********************************************/
+    END_TIMESLICER(TIMESLICER_BUFFER)
+    /*********************************************/
+
     PS1_PWM_MODULATOR->ETCLR.bit.INT = 1;
     PS1_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
     PS2_PWM_MODULATOR->ETCLR.bit.INT = 1;
@@ -754,6 +809,7 @@ static interrupt void isr_controller(void)
     PS4_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
 
     flag_siggen = 0;
+    flag_wfmref = 0;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
