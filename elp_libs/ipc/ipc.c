@@ -497,6 +497,8 @@ interrupt void isr_ipc_sync_pulse(void)
                         case OneShot:
                         {
                             WFMREF = g_ipc_mtoc.wfmref;
+                            WFMREF.wfmref_data.p_buf_idx =
+                                                 WFMREF.wfmref_data.p_buf_start;
                             WFMREF.wfmref_data.status = Buffering;
                             g_timeslicers.counter[TIMESLICER_WFMREF] =
                                     g_timeslicers.freq_ratio[TIMESLICER_WFMREF];
@@ -528,6 +530,8 @@ interrupt void isr_ipc_sync_pulse(void)
     }
 
     g_ipc_ctom.counter_sync_pulse++;
+
+    postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
 
     CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;
     PieCtrlRegs.PIEACK.all |= M_INT1;
