@@ -1043,28 +1043,38 @@ static void turn_on(uint16_t dummy)
     {
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
 
-        if(V_DCLINK_MOD_1 < MIN_V_DCLINK)
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
+        DELAY_US(250000);
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
+        DELAY_US(250000);
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
+        DELAY_US(250000);
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
+
+        DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
+
+        if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Undervoltage);
-            set_hard_interlock(0, DCLink_Mod_1_Undervoltage);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Contactor_Fault);
+            set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
         }
 
-        if(V_DCLINK_MOD_2 < MIN_V_DCLINK)
+        else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Undervoltage);
-            set_hard_interlock(0, DCLink_Mod_2_Undervoltage);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Contactor_Fault);
+            set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
         }
 
-        if(V_DCLINK_MOD_3 < MIN_V_DCLINK)
+        else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Undervoltage);
-            set_hard_interlock(0, DCLink_Mod_3_Undervoltage);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Contactor_Fault);
+            set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
         }
 
-        if(V_DCLINK_MOD_4 < MIN_V_DCLINK)
+        else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Undervoltage);
-            set_hard_interlock(0, DCLink_Mod_4_Undervoltage);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Contactor_Fault);
+            set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
         }
 
         #ifdef USE_ITLK
@@ -1072,60 +1082,21 @@ static void turn_on(uint16_t dummy)
         {
         #endif
 
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
-            DELAY_US(250000);
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
-            DELAY_US(250000);
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
-            DELAY_US(250000);
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
+            reset_controller();
 
-            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
+            g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
+            g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
 
-            if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Contactor_Fault);
-                set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
-            }
+            enable_pwm_output(0);
+            enable_pwm_output(1);
+            enable_pwm_output(2);
+            enable_pwm_output(3);
+            enable_pwm_output(4);
+            enable_pwm_output(5);
+            enable_pwm_output(6);
+            enable_pwm_output(7);
 
-            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Contactor_Fault);
-                set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
-            }
-
-            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Contactor_Fault);
-                set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
-            }
-
-            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Contactor_Fault);
-                set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
-            }
-
-            #ifdef USE_ITLK
-            if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
-            {
-            #endif
-
-                reset_controller();
-
-                g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
-                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
-                enable_pwm_output(0);
-                enable_pwm_output(1);
-                enable_pwm_output(2);
-                enable_pwm_output(3);
-                enable_pwm_output(4);
-                enable_pwm_output(5);
-                enable_pwm_output(6);
-                enable_pwm_output(7);
-
-            #ifdef USE_ITLK
-            }
+        #ifdef USE_ITLK
         }
         #endif
     }

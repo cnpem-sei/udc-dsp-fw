@@ -21,4 +21,4 @@
 
 #include "version.h"
 
-const char * udc_c28_version = "V0.34 2019-04-25";
+const char * udc_c28_version = "V0.34 2019-03-05";
