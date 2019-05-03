@@ -136,8 +136,8 @@
  */
 #define I_LOAD_1                    g_controller_ctom.net_signals[0].f  // HRADC0
 #define I_LOAD_2                    g_controller_ctom.net_signals[1].f  // HRADC1
-#define I_ARM_1                     g_controller_ctom.net_signals[2].f  // HRADC2
-#define I_ARM_2                     g_controller_ctom.net_signals[3].f  // HRADC3
+#define I_ARM_MODS_3_4              g_controller_ctom.net_signals[2].f  // HRADC2
+#define I_ARM_MODS_1_2              g_controller_ctom.net_signals[3].f  // HRADC3
 
 #define I_LOAD_MEAN                 g_controller_ctom.net_signals[4].f
 #define I_LOAD_ERROR                g_controller_ctom.net_signals[5].f
@@ -576,12 +576,12 @@ static void init_controller(void)
      *        name:     ERROR_I_ARMS_SHARE
      * description:     Parallel arms current difference error
      *  dsp module:     DSP_Error
-     *           +:     I_ARM_1
-     *           -:     I_ARM_2
+     *           +:     I_ARM_MODS_1_2
+     *           -:     I_ARM_MODS_3_4
      *         out:     I_ARMS_DIFF
      */
 
-    init_dsp_error(ERROR_I_ARMS_SHARE, &I_ARM_1, &I_ARM_2, &I_ARMS_DIFF);
+    init_dsp_error(ERROR_I_ARMS_SHARE, &I_ARM_MODS_1_2, &I_ARM_MODS_3_4, &I_ARMS_DIFF);
 
     /**
      *        name:     PI_CONTROLLER_I_SHARE_MODULES
@@ -805,8 +805,8 @@ static interrupt void isr_controller(void)
     {
         I_LOAD_1 = temp[0];
         I_LOAD_2 = temp[1];
-        I_ARM_1 = temp[2];
-        I_ARM_2 = temp[3];
+        I_ARM_MODS_3_4 = temp[2];
+        I_ARM_MODS_1_2 = temp[3];
 
         I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
         I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
@@ -814,8 +814,8 @@ static interrupt void isr_controller(void)
     else
     {
         I_LOAD_1 = temp[0];
-        I_ARM_1 = temp[1];
-        I_ARM_2 = temp[2];
+        I_ARM_MODS_3_4 = temp[1];
+        I_ARM_MODS_1_2 = temp[2];
 
         I_LOAD_MEAN = I_LOAD_1;
         I_LOAD_DIFF = 0;
