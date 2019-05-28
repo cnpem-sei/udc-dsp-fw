@@ -243,7 +243,6 @@ typedef enum
 {
     Load_Overcurrent,
     Load_Overvoltage,
-    IGBT_Driver_Fault,
     Module_1_CapBank_Overvoltage,
     Module_2_CapBank_Overvoltage,
     Module_3_CapBank_Overvoltage,

@@ -270,18 +270,14 @@ void run_dsp_pi(dsp_pi_t *p_pi)
 {
     float dyn_max;
     float dyn_min;
-    float temp;
 
-    temp = *(p_pi->in) * p_pi->coeffs.s.kp;
-    SATURATE(temp, p_pi->coeffs.s.u_max, p_pi->coeffs.s.u_min);
-    p_pi->u_prop = temp;
+    p_pi->u_prop = *(p_pi->in) * p_pi->coeffs.s.kp;
 
-    dyn_max = (p_pi->coeffs.s.u_max - temp);
-    dyn_min = (p_pi->coeffs.s.u_min - temp);
+    dyn_max = (p_pi->coeffs.s.u_max - p_pi->u_prop);
+    dyn_min = (p_pi->coeffs.s.u_min - p_pi->u_prop);
 
-    temp = p_pi->u_int + *(p_pi->in) * p_pi->coeffs.s.ki;
-    SATURATE(temp, dyn_max, dyn_min);
-    p_pi->u_int = temp;
+    p_pi->u_int = p_pi->u_int + *(p_pi->in) * p_pi->coeffs.s.ki;
+    SATURATE(p_pi->u_int, dyn_max, dyn_min);
 
     *(p_pi->out) = p_pi->u_int + p_pi->u_prop;
 }

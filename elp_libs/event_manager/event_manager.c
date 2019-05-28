@@ -125,8 +125,8 @@ void init_event_manager(uint16_t id, float freq_timebase,
                     (uint32_t) ( (freq_timebase * reset_time_us) * 1e-6);
 
             /**
-             *  Prevents bypassing an interlock by setting a reset time greater
-             *  than debounc time.
+             *  Prevents bypassing an interlock by setting a reset time smaller
+             *  than debounce time.
              */
             SATURATE(g_event_manager[id].hard_interlocks.event[i].reset_count,
                      max_reset_counts,
@@ -159,8 +159,8 @@ void init_event_manager(uint16_t id, float freq_timebase,
                     (uint32_t) ( (freq_timebase * reset_time_us) * 1e-6);
 
             /**
-             *  Prevents bypassing an interlock by setting a reset time greater
-             *  than debounc time.
+             *  Prevents bypassing an interlock by setting a reset time smaller
+             *  than debounce time.
              */
             SATURATE(g_event_manager[id].soft_interlocks.event[i].reset_count,
                      max_reset_counts,
