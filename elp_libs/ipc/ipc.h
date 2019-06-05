@@ -36,7 +36,7 @@
  * Shared resources defines
  */
 
-#define SIZE_BUF_SAMPLES_CTOM   4096
+#define SIZE_BUF_SAMPLES_CTOM   8192
 #define SIZE_BUF_SAMPLES_MTOC   4096
 
 #define SIZE_PS_NAME            16
@@ -145,7 +145,7 @@ typedef struct
 
 extern volatile float g_wfmref[SIZE_WFMREF];
 extern volatile float g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM];
-extern volatile float g_buf_samples_mtoc[SIZE_BUF_SAMPLES_MTOC];
+//extern volatile float g_buf_samples_mtoc[SIZE_BUF_SAMPLES_MTOC];
 
 extern volatile ipc_ctom_t g_ipc_ctom;
 extern volatile ipc_mtoc_t g_ipc_mtoc;

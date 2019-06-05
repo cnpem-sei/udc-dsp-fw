@@ -34,11 +34,8 @@
 #include "fbp.h"
 
 /**
- * Configuration parameters
- *
- * TODO: transfer this to param bank
+ * PWM parameters
  */
-
 #define PWM_FREQ                g_ipc_mtoc.pwm.freq_pwm
 #define PWM_DEAD_TIME           g_ipc_mtoc.pwm.dead_time
 #define PWM_MAX_DUTY            g_ipc_mtoc.pwm.max_duty
@@ -46,12 +43,17 @@
 #define PWM_MAX_DUTY_OL         g_ipc_mtoc.pwm.max_duty_openloop
 #define PWM_MIN_DUTY_OL         g_ipc_mtoc.pwm.min_duty_openloop
 
+/**
+ * Control parameters
+ */
 #define MAX_REF                 g_ipc_mtoc.control.max_ref
 #define MIN_REF                 g_ipc_mtoc.control.min_ref
 #define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
 #define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
 #define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
+
 #define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
+
 #define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/ISR_CONTROL_FREQ)
@@ -62,17 +64,29 @@
 
 #define BUF_SAMPLES             &g_ipc_ctom.buf_samples[0]
 
+#define SIGGEN                  g_ipc_ctom.siggen
+#define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
+
+#define WFMREF_OUTPUT           g_controller_ctom.net_signals[13].f
+
+/**
+ * Analog variables parameters
+ */
 #define MAX_ILOAD               g_ipc_mtoc.analog_vars.max[0]
 #define MAX_VLOAD               g_ipc_mtoc.analog_vars.max[1]
 #define MIN_DCLINK              g_ipc_mtoc.analog_vars.min[2]
 #define MAX_DCLINK              g_ipc_mtoc.analog_vars.max[2]
 #define MAX_TEMP                g_ipc_mtoc.analog_vars.max[3]
 
-#define SIGGEN                  g_ipc_ctom.siggen
-#define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
+#define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[4]
+#define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[4]
 
-#define WFMREF_OUTPUT           g_controller_ctom.net_signals[13].f
+#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
+#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
 
+/**
+ * HRADC parameters
+ */
 #define TRANSDUCER_OUTPUT_TYPE  g_ipc_mtoc.hradc.type_transducer_output[0]
 #if (HRADC_v2_0)
     #define TRANSDUCER_GAIN     -g_ipc_mtoc.hradc.gain_transducer[0]
@@ -203,7 +217,6 @@
 
 #define PS4_KP                          PI_CONTROLLER_ILOAD_PS4_COEFFS.kp
 #define PS4_KI                          PI_CONTROLLER_ILOAD_PS4_COEFFS.ki
-
 
 #define PS4_PWM_MODULATOR               g_pwm_modules.pwm_regs[6]
 #define PS4_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[7]
@@ -709,6 +722,14 @@ static interrupt void isr_controller(void)
                                                     *(WFMREF.wfmref_data.p_buf_idx++) *
                                                     (WFMREF.gain) + WFMREF.offset;
                                         }
+
+                                        if( (WFMREF.wfmref_data.p_buf_idx >
+                                             WFMREF.wfmref_data.p_buf_end) &&
+                                            (g_ipc_ctom.buf_samples[0].status == Postmortem) )
+                                        {
+                                            WFMREF.wfmref_data.p_buf_idx =
+                                                 WFMREF.wfmref_data.p_buf_start;
+                                        }
                                     END_TIMESLICER(TIMESLICER_WFMREF)
                                     /*********************************************/
                                     break;
@@ -794,7 +815,7 @@ static interrupt void isr_controller(void)
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, PS1_LOAD_CURRENT);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/

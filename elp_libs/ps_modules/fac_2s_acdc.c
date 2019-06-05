@@ -220,7 +220,10 @@ typedef enum
     CapBank_Overvoltage,
     Rectifier_Overcurrent,
     AC_Mains_Contactor_Fault,
-    IIB_Itlk
+    IIB_1_Itlk,
+    IIB_2_Itlk,
+    IIB_3_Itlk,
+    IIB_4_Itlk
 } hard_interlocks_t;
 
 typedef enum
@@ -229,7 +232,7 @@ typedef enum
     Inductors_Overtemperature
 } soft_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS     IIB_Itlk + 1
+#define NUM_HARD_INTERLOCKS     IIB_4_Itlk + 1
 #define NUM_SOFT_INTERLOCKS     Inductors_Overtemperature + 1
 
 /**
