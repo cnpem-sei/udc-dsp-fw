@@ -118,6 +118,8 @@
 #define PS1_LOAD_VOLTAGE                g_controller_mtoc.net_signals[4].f  // ANI6
 #define PS1_TEMPERATURE                 g_controller_mtoc.net_signals[8].f  // I2C Add 0x48
 
+#define PS1_LOAD_CURRENT_FILTERED       g_controller_ctom.net_signals[20].f
+
 #define PS1_SETPOINT                    g_ipc_ctom.ps_module[0].ps_setpoint
 #define PS1_REFERENCE                   g_ipc_ctom.ps_module[0].ps_reference
 
@@ -127,6 +129,9 @@
 
 #define PS1_KP                          PI_CONTROLLER_ILOAD_PS1_COEFFS.kp
 #define PS1_KI                          PI_CONTROLLER_ILOAD_PS1_COEFFS.ki
+
+#define IIR_3P3Z_DECIMATION_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_3p3z[0]
+#define IIR_3P3Z_DECIMATION_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_3p3z[0].coeffs.s
 
 #define PS1_PWM_MODULATOR               g_pwm_modules.pwm_regs[0]
 #define PS1_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[1]
@@ -480,6 +485,24 @@ static void init_controller(void)
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[4].f,
                 &g_controller_ctom.output_signals[0].f);
 
+    /**
+     *        name:     IIR_3P3Z_DECIMATION_FILTER
+     * description:     Antialiasing filter for decimation on samples buffer
+     *  dsp module:     DSP_IIR_3P3Z
+     *          in:     PS1_LOAD_CURRENT
+     *         out:     PS1_LOAD_CURRENT_FILTERED
+     */
+    init_dsp_iir_3p3z(IIR_3P3Z_DECIMATION_FILTER,
+                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.b0,
+                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.b1,
+                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.b2,
+                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.b3,
+                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.a1,
+                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.a2,
+                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.a3,
+                      FLT_MAX, -FLT_MAX, &PS1_LOAD_CURRENT,
+                      &PS1_LOAD_CURRENT_FILTERED);
+
     /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 2
 
     /**
@@ -590,6 +613,8 @@ static void reset_controller(uint16_t id)
     reset_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[id]);
     reset_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[id]);
 
+    reset_dsp_iir_3p3z(IIR_3P3Z_DECIMATION_FILTER);
+
     disable_siggen(&SIGGEN);
     reset_timeslicers();
 }
@@ -686,6 +711,8 @@ static interrupt void isr_controller(void)
     PS2_LOAD_CURRENT = temp[1];
     PS3_LOAD_CURRENT = temp[2];
     PS4_LOAD_CURRENT = temp[3];
+
+    run_dsp_iir_3p3z(IIR_3P3Z_DECIMATION_FILTER);
 
     /// Loop through active power supplies
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
@@ -815,7 +842,8 @@ static interrupt void isr_controller(void)
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        //insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES, PS1_LOAD_CURRENT_FILTERED);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
