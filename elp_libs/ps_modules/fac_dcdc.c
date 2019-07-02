@@ -356,6 +356,7 @@ static void init_controller(void)
 
     init_ipc();
     init_control_framework(&g_controller_ctom);
+    init_wfmref_lerp(WFMREF_FREQ, ISR_CONTROL_FREQ);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -728,29 +729,53 @@ static interrupt void isr_controller(void)
                                 WFMREF.wfmref_data.p_buf_end)
                             {
                                 I_LOAD_REFERENCE_WFMREF =
-                                            *(WFMREF.wfmref_data.p_buf_idx++) *
-                                             (WFMREF.gain) + WFMREF.offset;
+                                        *(WFMREF.wfmref_data.p_buf_idx++) *
+                                        (WFMREF.gain) + WFMREF.offset;
                             }
                         END_TIMESLICER(TIMESLICER_WFMREF)
                         /*********************************************/
+
+                        run_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
                         break;
                     }
 
                     case SampleBySample:
                     case SampleBySample_OneCycle:
                     {
-                        if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
+                        static float lerp_fraction;
+
+                        if(WFMREF.wfmref_data.p_buf_idx <
+                           WFMREF.wfmref_data.p_buf_end)
                         {
-                            I_LOAD_REFERENCE_WFMREF =
-                                              *(WFMREF.wfmref_data.p_buf_idx) *
-                                               (WFMREF.gain) + WFMREF.offset;
+                            if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
+                            {
+                                lerp_fraction = g_wfmref_lerp.fraction *
+                                                g_wfmref_lerp.counter++;
+
+                                g_wfmref_lerp.out =
+                                  INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
+                                               *(WFMREF.wfmref_data.p_buf_idx+1),
+                                                 lerp_fraction);
+                            }
+
+                            else
+                            {
+                                g_wfmref_lerp.out =
+                                              *(WFMREF.wfmref_data.p_buf_idx+1);
+                            }
                         }
-                        break;
+
+                        else if( WFMREF.wfmref_data.p_buf_idx ==
+                                 WFMREF.wfmref_data.p_buf_end)
+                        {
+                            g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
+                        }
+
+                        I_LOAD_REFERENCE = g_wfmref_lerp.out * WFMREF.gain +
+                                           WFMREF.offset;
                     }
                 }
 
-                //run_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
-                run_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
                 break;
             }
             case MigWfm:
@@ -789,6 +814,8 @@ static interrupt void isr_controller(void)
 
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1, DUTY_CYCLE);
     }
+
+    g_controller_ctom.net_signals[24].f = I_LOAD_REFERENCE;
 
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)

@@ -239,20 +239,15 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state
                    > Interlock)
                 {
+                    WFMREF = g_ipc_mtoc.wfmref;
+                    disable_siggen(&g_ipc_ctom.siggen);
+
                     switch(g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state)
                     {
                         case RmpWfm:
                         case MigWfm:
                         {
-                            WFMREF = g_ipc_mtoc.wfmref;
                             WFMREF.wfmref_data.status = Buffering;
-                            break;
-                        }
-
-                        case Cycle:
-                        {
-                            WFMREF.wfmref_data.status = Idle;
-                            disable_siggen(&g_ipc_ctom.siggen);
                             break;
                         }
 
@@ -476,13 +471,13 @@ interrupt void isr_ipc_sync_pulse(void)
 
                         case SampleBySample_OneCycle:
                         {
-                            if(WFMREF.wfmref_data.p_buf_idx++ ==
+                            if(WFMREF.wfmref_data.p_buf_idx ==
                                WFMREF.wfmref_data.p_buf_end)
                             {
                                 WFMREF.wfmref_data.p_buf_idx =
                                         WFMREF.wfmref_data.p_buf_end;
                             }
-                            else if(WFMREF.wfmref_data.p_buf_idx++ >
+                            else if(WFMREF.wfmref_data.p_buf_idx >
                                     WFMREF.wfmref_data.p_buf_end)
                             {
                                 WFMREF.wfmref_data.p_buf_idx =
@@ -490,6 +485,8 @@ interrupt void isr_ipc_sync_pulse(void)
                                 WFMREF.gain = g_ipc_mtoc.wfmref.gain;
                                 WFMREF.offset = g_ipc_mtoc.wfmref.offset;
                             }
+
+                            WFMREF.wfmref_data.p_buf_idx++;
 
                             break;
                         }
@@ -506,6 +503,8 @@ interrupt void isr_ipc_sync_pulse(void)
                             break;
                         }
                     }
+
+                    g_wfmref_lerp.counter = 0;
 
                     break;
                 }

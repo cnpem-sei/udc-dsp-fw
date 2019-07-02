@@ -441,6 +441,7 @@ static void init_controller(void)
 
     init_ipc();
     init_control_framework(&g_controller_ctom);
+    init_wfmref_lerp(WFMREF_FREQ, ISR_CONTROL_FREQ);
 
     /// Initialization of signal generator module
     disable_siggen(&SIGGEN);
@@ -707,36 +708,39 @@ static interrupt void isr_controller(void)
                     }
                     case RmpWfm:
                     {
+                        static float lerp_fraction;
+
                         if(!flag_wfmref)
                         {
-                            switch(WFMREF.sync_mode)
+                            if(WFMREF.wfmref_data.p_buf_idx <
+                               WFMREF.wfmref_data.p_buf_end)
                             {
-                                case OneShot:
-                                {   /*********************************************/
-                                    RUN_TIMESLICER(TIMESLICER_WFMREF)
-                                        if( WFMREF.wfmref_data.p_buf_idx <=
-                                            WFMREF.wfmref_data.p_buf_end)
-                                        {
-                                            WFMREF_OUTPUT =
-                                                    *(WFMREF.wfmref_data.p_buf_idx++) *
-                                                    (WFMREF.gain) + WFMREF.offset;
-                                        }
-                                    END_TIMESLICER(TIMESLICER_WFMREF)
-                                    /*********************************************/
-                                    break;
+                                if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
+                                {
+                                    lerp_fraction = g_wfmref_lerp.fraction *
+                                                    g_wfmref_lerp.counter++;
+
+                                    g_wfmref_lerp.out =
+                                      INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
+                                                   *(WFMREF.wfmref_data.p_buf_idx+1),
+                                                     lerp_fraction);
                                 }
 
-                                case SampleBySample:
-                                case SampleBySample_OneCycle:
+                                else
                                 {
-                                    if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
-                                    {
-                                        WFMREF_OUTPUT =  *(WFMREF.wfmref_data.p_buf_idx) *
-                                                             (WFMREF.gain) + WFMREF.offset;
-                                    }
-                                    break;
+                                    g_wfmref_lerp.out =
+                                                  *(WFMREF.wfmref_data.p_buf_idx+1);
                                 }
                             }
+
+                            else if( WFMREF.wfmref_data.p_buf_idx ==
+                                     WFMREF.wfmref_data.p_buf_end)
+                            {
+                                g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
+                            }
+
+                            WFMREF_OUTPUT = g_wfmref_lerp.out * WFMREF.gain +
+                                               WFMREF.offset;
 
                             flag_wfmref = 1;
                         }

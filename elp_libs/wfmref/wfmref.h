@@ -25,8 +25,10 @@
 #include <stdint.h>
 #include "common/structs.h"
 
-#define SIZE_WFMREF     4096
-#define WFMREF          g_ipc_ctom.wfmref
+#define SIZE_WFMREF             4096
+#define WFMREF                  g_ipc_ctom.wfmref
+
+#define INTERPOLATE(a, b, f)    (a * (1.0 - f)) + (b * f)
 
 typedef enum
 {
@@ -34,6 +36,14 @@ typedef enum
     SampleBySample_OneCycle,
     OneShot
 } sync_mode_t;
+
+typedef volatile struct
+{
+    uint16_t        counter;
+    uint16_t        max_count;
+    float           fraction;
+    float           out;
+} wfmref_lerp_t;
 
 typedef volatile struct
 {
@@ -49,6 +59,9 @@ typedef volatile struct
  * to be accessed by other modules.
  */
 
+extern volatile wfmref_lerp_t g_wfmref_lerp;
+
+extern void init_wfmref_lerp(float freq_base, float freq_lerp);
 extern void reset_wfmref(wfmref_t *p_wfmref);
 
 #endif /* WFMREF_H_ */
