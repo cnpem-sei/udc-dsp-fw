@@ -720,30 +720,46 @@ static interrupt void isr_controller(void)
             }
             case RmpWfm:
             {
+                static float lerp_fraction;
+
                 switch(WFMREF.sync_mode)
                 {
                     case OneShot:
-                    {   /*********************************************/
-                        RUN_TIMESLICER(TIMESLICER_WFMREF)
-                            if( WFMREF.wfmref_data.p_buf_idx <=
-                                WFMREF.wfmref_data.p_buf_end)
+                    {
+                        if(WFMREF.wfmref_data.p_buf_idx <
+                           WFMREF.wfmref_data.p_buf_end)
+                        {
+                            if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
                             {
-                                I_LOAD_REFERENCE_WFMREF =
-                                        *(WFMREF.wfmref_data.p_buf_idx++) *
-                                        (WFMREF.gain) + WFMREF.offset;
-                            }
-                        END_TIMESLICER(TIMESLICER_WFMREF)
-                        /*********************************************/
+                                lerp_fraction = g_wfmref_lerp.fraction *
+                                                g_wfmref_lerp.counter++;
 
-                        run_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
+                                g_wfmref_lerp.out =
+                                  INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
+                                               *(WFMREF.wfmref_data.p_buf_idx+1),
+                                                 lerp_fraction);
+
+                                if(g_wfmref_lerp.counter >=
+                                   g_wfmref_lerp.max_count)
+                                {
+                                    g_wfmref_lerp.counter = 0;
+                                    WFMREF.wfmref_data.p_buf_idx++;
+                                }
+                            }
+                        }
+
+                        else if( WFMREF.wfmref_data.p_buf_idx ==
+                                 WFMREF.wfmref_data.p_buf_end)
+                        {
+                            g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
+                        }
+
                         break;
                     }
 
                     case SampleBySample:
                     case SampleBySample_OneCycle:
                     {
-                        static float lerp_fraction;
-
                         if(WFMREF.wfmref_data.p_buf_idx <
                            WFMREF.wfmref_data.p_buf_end)
                         {
@@ -770,13 +786,18 @@ static interrupt void isr_controller(void)
                         {
                             g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
                         }
+                        break;
+                    }
 
-                        I_LOAD_REFERENCE = g_wfmref_lerp.out * WFMREF.gain +
-                                           WFMREF.offset;
+                    default:
+                    {
+                        break;
                     }
                 }
 
-                break;
+                I_LOAD_REFERENCE = g_wfmref_lerp.out * WFMREF.gain +
+                                   WFMREF.offset;
+
             }
             case MigWfm:
             {

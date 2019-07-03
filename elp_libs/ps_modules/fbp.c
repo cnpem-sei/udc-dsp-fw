@@ -708,35 +708,81 @@ static interrupt void isr_controller(void)
                     }
                     case RmpWfm:
                     {
-                        static float lerp_fraction;
-
                         if(!flag_wfmref)
                         {
-                            if(WFMREF.wfmref_data.p_buf_idx <
-                               WFMREF.wfmref_data.p_buf_end)
-                            {
-                                if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
-                                {
-                                    lerp_fraction = g_wfmref_lerp.fraction *
-                                                    g_wfmref_lerp.counter++;
+                            static float lerp_fraction;
 
-                                    g_wfmref_lerp.out =
-                                      INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
-                                                   *(WFMREF.wfmref_data.p_buf_idx+1),
-                                                     lerp_fraction);
+                            switch(WFMREF.sync_mode)
+                            {
+                                case OneShot:
+                                {
+                                    if(WFMREF.wfmref_data.p_buf_idx <
+                                       WFMREF.wfmref_data.p_buf_end)
+                                    {
+                                        if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
+                                        {
+                                            lerp_fraction = g_wfmref_lerp.fraction *
+                                                            g_wfmref_lerp.counter++;
+
+                                            g_wfmref_lerp.out =
+                                              INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
+                                                           *(WFMREF.wfmref_data.p_buf_idx+1),
+                                                             lerp_fraction);
+
+                                            if(g_wfmref_lerp.counter >=
+                                               g_wfmref_lerp.max_count)
+                                            {
+                                                g_wfmref_lerp.counter = 0;
+                                                WFMREF.wfmref_data.p_buf_idx++;
+                                            }
+                                        }
+                                    }
+
+                                    else if( WFMREF.wfmref_data.p_buf_idx ==
+                                             WFMREF.wfmref_data.p_buf_end)
+                                    {
+                                        g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
+                                    }
+
+                                    break;
                                 }
 
-                                else
+                                case SampleBySample:
+                                case SampleBySample_OneCycle:
                                 {
-                                    g_wfmref_lerp.out =
-                                                  *(WFMREF.wfmref_data.p_buf_idx+1);
-                                }
-                            }
+                                    if(WFMREF.wfmref_data.p_buf_idx <
+                                       WFMREF.wfmref_data.p_buf_end)
+                                    {
+                                        if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
+                                        {
+                                            lerp_fraction = g_wfmref_lerp.fraction *
+                                                            g_wfmref_lerp.counter++;
 
-                            else if( WFMREF.wfmref_data.p_buf_idx ==
-                                     WFMREF.wfmref_data.p_buf_end)
-                            {
-                                g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
+                                            g_wfmref_lerp.out =
+                                              INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
+                                                           *(WFMREF.wfmref_data.p_buf_idx+1),
+                                                             lerp_fraction);
+                                        }
+
+                                        else
+                                        {
+                                            g_wfmref_lerp.out =
+                                                          *(WFMREF.wfmref_data.p_buf_idx+1);
+                                        }
+                                    }
+
+                                    else if( WFMREF.wfmref_data.p_buf_idx ==
+                                             WFMREF.wfmref_data.p_buf_end)
+                                    {
+                                        g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
+                                    }
+                                    break;
+                                }
+
+                                default:
+                                {
+                                    break;
+                                }
                             }
 
                             WFMREF_OUTPUT = g_wfmref_lerp.out * WFMREF.gain +
@@ -746,7 +792,6 @@ static interrupt void isr_controller(void)
                         }
 
                         g_ipc_ctom.ps_module[i].ps_reference = WFMREF_OUTPUT;
-
                         break;
                     }
                     case MigWfm:
