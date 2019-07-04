@@ -252,8 +252,6 @@ typedef enum
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
 #pragma CODE_SECTION(open_relay, "ramfuncs");
-#pragma CODE_SECTION(get_relay_status, "ramfuncs");
-
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -274,7 +272,6 @@ static void turn_off(uint16_t id);
 
 static void open_relay(uint16_t id);
 static void close_relay(uint16_t id);
-static uint16_t get_relay_status(uint16_t id);
 
 static void reset_interlocks(uint16_t id);
 static void check_interlocks_ps_module(uint16_t id);
@@ -1124,42 +1121,6 @@ static void close_relay(uint16_t id)
         default:
         {
             break;
-        }
-    }
-}
-
-/**
- * Get relay status from specified power supply.
- *
- * @param id specified power supply
- */
-static uint16_t get_relay_status(uint16_t id)
-{
-    switch(id)
-    {
-        case PS1_ID:
-        {
-            return PIN_STATUS_PS1_DCLINK_RELAY;
-        }
-
-        case PS2_ID:
-        {
-            return PIN_STATUS_PS2_DCLINK_RELAY;
-        }
-
-        case PS3_ID:
-        {
-            return PIN_STATUS_PS3_DCLINK_RELAY;
-        }
-
-        case PS4_ID:
-        {
-            return PIN_STATUS_PS4_DCLINK_RELAY;
-        }
-
-        default:
-        {
-            return 0;
         }
     }
 }

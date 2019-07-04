@@ -134,7 +134,7 @@
 #define I_LOAD_ERROR                    g_controller_ctom.net_signals[6].f
 
 #define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[7].f
-#define DUTY_REFERENCE_FF               g_controller_ctom.net_signals[8].f
+#define DUTY_REF_FF                     g_controller_ctom.net_signals[8].f
 #define DUTY_MEAN                       g_controller_ctom.net_signals[9].f
 
 #define V_OUT_DIFF                      g_controller_ctom.net_signals[10].f
@@ -162,12 +162,6 @@
 
 #define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
 
-#define IIR_2P2Z_WFMREF_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define IIR_2P2Z_WFMREF_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
-
-#define IIR_3P3Z_WFMREF_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_3p3z[0]
-#define IIR_3P3Z_WFMREF_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_3p3z[0].coeffs.s
-
 #define SIGGEN                          g_ipc_ctom.siggen
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
@@ -180,8 +174,8 @@
 #define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
 
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
 /// Output voltage share controller
 #define ERROR_V_SHARE                       &g_controller_ctom.dsp_modules.dsp_error[1]
@@ -192,11 +186,11 @@
 #define KI_V_SHARE                          PI_CONTROLLER_V_SHARE_COEFFS.ki
 
 /// Cap-bank voltage feedforward controllers
-#define IIR_2P2Z_LPF_V_CAPBANK_MOD_1            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
-#define IIR_2P2Z_LPF_V_CAPBANK_MOD_1_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+#define IIR_2P2Z_LPF_V_CAPBANK_MOD_1            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define IIR_2P2Z_LPF_V_CAPBANK_MOD_1_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
 
-#define IIR_2P2Z_LPF_V_CAPBANK_MOD_2            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
-#define IIR_2P2Z_LPF_V_CAPBANK_MOD_2_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+#define IIR_2P2Z_LPF_V_CAPBANK_MOD_2            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define IIR_2P2Z_LPF_V_CAPBANK_MOD_2_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
 
 #define FF_V_CAPBANK_MOD_1              &g_controller_ctom.dsp_modules.dsp_ff[0]
 #define FF_V_CAPBANK_MOD_2              &g_controller_ctom.dsp_modules.dsp_ff[1]
@@ -423,6 +417,7 @@ static void init_controller(void)
 
     init_ipc();
     init_control_framework(&g_controller_ctom);
+    init_wfmref_lerp(WFMREF_FREQ, ISR_CONTROL_FREQ);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -475,41 +470,6 @@ static void init_controller(void)
                    &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
 
     /**
-     *        name:     IIR_2P2Z_WFMREF_FILTER
-     * description:     Reference filter for WfmRef
-     *  dsp module:     DSP_IIR_2P2Z
-     *          in:     I_LOAD_REFERENCE_WFMREF
-     *         out:     I_LOAD_REFERENCE
-     */
-
-    init_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b0,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b1,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b2,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a1,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a2,
-                      FLT_MAX, -FLT_MAX,
-                      &I_LOAD_REFERENCE_WFMREF, &I_LOAD_REFERENCE);
-
-    /**
-     *        name:     IIR_3P3Z_WFMREF_FILTER
-     * description:     Reference filter for WfmRef
-     *  dsp module:     DSP_IIR_3P3Z
-     *          in:     I_LOAD_REFERENCE_WFMREF
-     *         out:     I_LOAD_REFERENCE
-     */
-    init_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b0,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b1,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b2,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b3,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a1,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a2,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a3,
-                      FLT_MAX, -FLT_MAX,
-                      &I_LOAD_REFERENCE_WFMREF, &I_LOAD_REFERENCE);
-
-    /**
      *        name:     ERROR_I_LOAD
      * description:     Load current reference error
      *  dsp module:     DSP_Error
@@ -536,7 +496,7 @@ static void init_controller(void)
      * description:     Load current reference feedforward IIR 2P2Z controller
      *  dsp module:     DSP_IIR_2P2Z
      *          in:     I_LOAD_REFERENCE
-     *         out:     DUTY_REFERENCE_FF
+     *         out:     DUTY_REF_FF
      */
 
     init_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD,
@@ -546,7 +506,7 @@ static void init_controller(void)
                       IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS.a1,
                       IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS.a2,
                       PWM_MAX_DUTY, PWM_MIN_DUTY,
-                      &I_LOAD_REFERENCE, &DUTY_REFERENCE_FF);
+                      &I_LOAD_REFERENCE, &DUTY_REF_FF);
 
     /*****************************************************************/
     /** INITIALIZATION OF MODULES OUTPUT VOLTAGE SHARE CONTROL LOOP **/
@@ -678,11 +638,10 @@ static void reset_controller(void)
     I_LOAD_REFERENCE_WFMREF = 0.0;
 
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
-    reset_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
-    reset_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
 
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
+
     reset_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
     reset_dsp_error(ERROR_V_SHARE);
@@ -834,39 +793,84 @@ static interrupt void isr_controller(void)
             }
             case RmpWfm:
             {
+                static float lerp_fraction;
+
                 switch(WFMREF.sync_mode)
                 {
                     case OneShot:
-                    {   /*********************************************/
-                        RUN_TIMESLICER(TIMESLICER_WFMREF)
-                            if( WFMREF.wfmref_data.p_buf_idx <=
-                                WFMREF.wfmref_data.p_buf_end)
+                    {
+                        if(WFMREF.wfmref_data.p_buf_idx <
+                           WFMREF.wfmref_data.p_buf_end)
+                        {
+                            if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
                             {
-                                I_LOAD_REFERENCE_WFMREF =
-                                            *(WFMREF.wfmref_data.p_buf_idx++) *
-                                             (WFMREF.gain) + WFMREF.offset;
+                                lerp_fraction = g_wfmref_lerp.fraction *
+                                                g_wfmref_lerp.counter++;
+
+                                g_wfmref_lerp.out =
+                                  INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
+                                               *(WFMREF.wfmref_data.p_buf_idx+1),
+                                                 lerp_fraction);
+
+                                if(g_wfmref_lerp.counter >=
+                                   g_wfmref_lerp.max_count)
+                                {
+                                    g_wfmref_lerp.counter = 0;
+                                    WFMREF.wfmref_data.p_buf_idx++;
+                                }
                             }
-                        END_TIMESLICER(TIMESLICER_WFMREF)
-                        /*********************************************/
+                        }
+
+                        else if( WFMREF.wfmref_data.p_buf_idx ==
+                                 WFMREF.wfmref_data.p_buf_end)
+                        {
+                            g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
+                        }
+
                         break;
                     }
 
                     case SampleBySample:
                     case SampleBySample_OneCycle:
                     {
-                        if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
+                        if(WFMREF.wfmref_data.p_buf_idx <
+                           WFMREF.wfmref_data.p_buf_end)
                         {
-                            I_LOAD_REFERENCE_WFMREF =
-                                              *(WFMREF.wfmref_data.p_buf_idx) *
-                                               (WFMREF.gain) + WFMREF.offset;
+                            if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
+                            {
+                                lerp_fraction = g_wfmref_lerp.fraction *
+                                                g_wfmref_lerp.counter++;
+
+                                g_wfmref_lerp.out =
+                                  INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
+                                               *(WFMREF.wfmref_data.p_buf_idx+1),
+                                                 lerp_fraction);
+                            }
+
+                            else
+                            {
+                                g_wfmref_lerp.out =
+                                              *(WFMREF.wfmref_data.p_buf_idx+1);
+                            }
                         }
+
+                        else if( WFMREF.wfmref_data.p_buf_idx ==
+                                 WFMREF.wfmref_data.p_buf_end)
+                        {
+                            g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
+                        }
+                        break;
+                    }
+
+                    default:
+                    {
                         break;
                     }
                 }
 
-                //run_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
-                run_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
-                break;
+                I_LOAD_REFERENCE = g_wfmref_lerp.out * WFMREF.gain +
+                                   WFMREF.offset;
+
             }
             case MigWfm:
             {
@@ -897,7 +901,7 @@ static interrupt void isr_controller(void)
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
             run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
-            DUTY_MEAN = DUTY_I_LOAD_PI + DUTY_REFERENCE_FF;
+            DUTY_MEAN = DUTY_I_LOAD_PI + DUTY_REF_FF;
 
             /// Modules output voltage share controller
             run_dsp_error(ERROR_V_SHARE);
@@ -917,6 +921,8 @@ static interrupt void isr_controller(void)
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_1, DUTY_CYCLE_MOD_1);
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_2, DUTY_CYCLE_MOD_2);
     }
+
+    g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
 
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
