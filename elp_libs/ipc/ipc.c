@@ -240,6 +240,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
                    > Interlock)
                 {
                     WFMREF = g_ipc_mtoc.wfmref;
+                    g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_end);
                     disable_siggen(&g_ipc_ctom.siggen);
 
                     switch(g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state)
@@ -359,6 +360,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
             {
                 WFMREF = g_ipc_mtoc.wfmref;
                 WFMREF.wfmref_data.status = Buffering;
+                g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_end);
             }
 
             case Cfg_SigGen:
@@ -530,7 +532,7 @@ interrupt void isr_ipc_sync_pulse(void)
 
     g_ipc_ctom.counter_sync_pulse++;
 
-    postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
+    //postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
 
     CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;
     PieCtrlRegs.PIEACK.all |= M_INT1;
