@@ -88,15 +88,9 @@
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
 
-/*#define TIMESLICER_WFMREF       0
-#define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
-#define WFMREF_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / WFMREF_FREQ)*/
-
 #define TIMESLICER_BUFFER       1
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
 #define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
-#define SIGGEN                  g_ipc_ctom.siggen
 
 /**
  * HRADC parameters
@@ -141,6 +135,8 @@
 /**
  * Controller defines
  */
+
+/// DSP Net Signals
 #define I_LOAD_1                        g_controller_ctom.net_signals[0].f  // HRADC0
 #define I_LOAD_2                        g_controller_ctom.net_signals[1].f  // HRADC1
 #define I_ARM_1                         g_controller_ctom.net_signals[2].f  // HRADC2
@@ -159,6 +155,22 @@
 
 #define DUTY_REF_FF                     g_controller_ctom.net_signals[11].f
 
+#define V_CAPBANK_ARM_1_FILTERED        g_controller_ctom.net_signals[12].f
+#define V_CAPBANK_ARM_2_FILTERED        g_controller_ctom.net_signals[13].f
+
+#define IN_FF_V_CAPBANK_ARM_1           g_controller_ctom.net_signals[14].f
+#define IN_FF_V_CAPBANK_ARM_2           g_controller_ctom.net_signals[15].f
+
+#define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
+#define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
+#define DUTY_CYCLE_MOD_3                g_controller_ctom.output_signals[2].f
+#define DUTY_CYCLE_MOD_4                g_controller_ctom.output_signals[3].f
+#define DUTY_CYCLE_MOD_5                g_controller_ctom.output_signals[4].f
+#define DUTY_CYCLE_MOD_6                g_controller_ctom.output_signals[5].f
+#define DUTY_CYCLE_MOD_7                g_controller_ctom.output_signals[6].f
+#define DUTY_CYCLE_MOD_8                g_controller_ctom.output_signals[7].f
+
+/// ARM Net Signals
 #define V_LOAD                          g_controller_mtoc.net_signals[0].f
 
 #define V_CAPBANK_MOD_1                 g_controller_mtoc.net_signals[1].f
@@ -179,35 +191,49 @@
 #define V_OUT_MOD_7                     g_controller_mtoc.net_signals[15].f
 #define V_OUT_MOD_8                     g_controller_mtoc.net_signals[16].f
 
-#define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
-#define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
-#define DUTY_CYCLE_MOD_3                g_controller_ctom.output_signals[2].f
-#define DUTY_CYCLE_MOD_4                g_controller_ctom.output_signals[3].f
-#define DUTY_CYCLE_MOD_5                g_controller_ctom.output_signals[4].f
-#define DUTY_CYCLE_MOD_6                g_controller_ctom.output_signals[5].f
-#define DUTY_CYCLE_MOD_7                g_controller_ctom.output_signals[6].f
-#define DUTY_CYCLE_MOD_8                g_controller_ctom.output_signals[7].f
-
+/// Reference
 #define I_LOAD_SETPOINT                 g_ipc_ctom.ps_module[0].ps_setpoint
 #define I_LOAD_REFERENCE                g_ipc_ctom.ps_module[0].ps_reference
 
 #define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
-#define ERROR_I_LOAD                    &g_controller_ctom.dsp_modules.dsp_error[0]
 
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
+#define SIGGEN                          g_ipc_ctom.siggen
+#define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
+#define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+/// Load current controller
+#define ERROR_I_LOAD                    &g_controller_ctom.dsp_modules.dsp_error[0]
 
 #define PI_CONTROLLER_I_LOAD            &g_controller_ctom.dsp_modules.dsp_pi[0]
 #define PI_CONTROLLER_I_LOAD_COEFFS     g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
 #define KP_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.ki
 
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
+
+/// Arms current share controller
 #define ERROR_I_SHARE                   &g_controller_ctom.dsp_modules.dsp_error[1]
+
 #define PI_CONTROLLER_I_SHARE           &g_controller_ctom.dsp_modules.dsp_pi[1]
 #define PI_CONTROLLER_I_SHARE_COEFFS    g_controller_mtoc.dsp_modules.dsp_pi[1].coeffs.s
 #define KP_I_SHARE                      PI_CONTROLLER_I_SHARE_COEFFS.kp
 #define KI_I_SHARE                      PI_CONTROLLER_I_SHARE_COEFFS.ki
 
+/// Cap-bank voltage feedforward controllers
+#define IIR_2P2Z_LPF_V_CAPBANK_ARM_1            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define IIR_2P2Z_LPF_V_CAPBANK_ARM_1_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+
+#define IIR_2P2Z_LPF_V_CAPBANK_ARM_2            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define IIR_2P2Z_LPF_V_CAPBANK_ARM_2_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+
+#define FF_V_CAPBANK_ARM_1              &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK_ARM_1_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
+
+#define FF_V_CAPBANK_ARM_2              &g_controller_ctom.dsp_modules.dsp_ff[1]
+#define FF_V_CAPBANK_ARM_2_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[1].coeffs.s
+
+/// PWM Modulators
 #define PWM_MODULATOR_Q1_MOD_1_5          g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_Q2_MOD_1_5          g_pwm_modules.pwm_regs[1]
 #define PWM_MODULATOR_Q1_MOD_2_6          g_pwm_modules.pwm_regs[2]
@@ -217,9 +243,7 @@
 #define PWM_MODULATOR_Q1_MOD_4_8          g_pwm_modules.pwm_regs[6]
 #define PWM_MODULATOR_Q2_MOD_4_8          g_pwm_modules.pwm_regs[7]
 
-#define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
-#define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
-
+/// Samples Buffer
 #define BUF_SAMPLES                     &g_ipc_ctom.buf_samples[0]
 
 /**
@@ -616,6 +640,72 @@ static void init_controller(void)
     init_dsp_pi(PI_CONTROLLER_I_SHARE, KP_I_SHARE, KI_I_SHARE, ISR_CONTROL_FREQ,
                 PWM_LIM_DUTY_SHARE, -PWM_LIM_DUTY_SHARE, &I_ARMS_DIFF, &DUTY_DIFF);
 
+    /**********************************************************/
+    /** INITIALIZATION OF CAPACITOR BANK VOLTAGE FEEDFORWARD **/
+    /**********************************************************/
+
+    /**
+     *        name:     IIR_2P2Z_LPF_V_CAPBANK_ARM_1
+     * description:     Module 1 capacitor bank voltage low-pass filter
+     *    DP class:     ELP_IIR_2P2Z
+     *          in:     V_CAPBANK_MOD_4
+     *         out:     V_CAPBANK_ARM_1_FILTERED
+     */
+
+    init_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK_ARM_1,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_1_COEFFS.b0,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_1_COEFFS.b1,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_1_COEFFS.b2,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_1_COEFFS.a1,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_1_COEFFS.a2,
+                      FLT_MAX, -FLT_MAX,
+                      &V_CAPBANK_MOD_4, &V_CAPBANK_ARM_1_FILTERED);
+
+    /**
+     *        name:     FF_V_CAPBANK_ARM_1
+     * description:     Module 1 capacitor bank voltage feed-forward
+     *    DP class:     DSP_VdcLink_FeedForward
+     *    vdc_meas:     V_CAPBANK_ARM_1_FILTERED
+     *          in:     IN_FF_V_CAPBANK_ARM_1
+     *         out:     DUTY_CYCLE_MOD_1
+     */
+
+    init_dsp_vdclink_ff(FF_V_CAPBANK_ARM_1, FF_V_CAPBANK_ARM_1_COEFFS.vdc_nom,
+                        FF_V_CAPBANK_ARM_1_COEFFS.vdc_min,
+                        &V_CAPBANK_ARM_1_FILTERED, &IN_FF_V_CAPBANK_ARM_1,
+                        &DUTY_CYCLE_MOD_1);
+
+    /**
+     *        name:     IIR_2P2Z_LPF_V_CAPBANK_ARM_2
+     * description:     Module 2 capacitor bank voltage low-pass filter
+     *    DP class:     ELP_IIR_2P2Z
+     *          in:     V_CAPBANK_MOD_5
+     *         out:     V_CAPBANK_ARM_2_FILTERED
+     */
+
+    init_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK_ARM_2,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_2_COEFFS.b0,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_2_COEFFS.b1,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_2_COEFFS.b2,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_2_COEFFS.a1,
+                      IIR_2P2Z_LPF_V_CAPBANK_ARM_2_COEFFS.a2,
+                      FLT_MAX, -FLT_MAX,
+                      &V_CAPBANK_MOD_5, &V_CAPBANK_ARM_2_FILTERED);
+
+    /**
+     *        name:     FF_V_CAPBANK_ARM_2
+     * description:     Module 2 capacitor bank voltage feed-forward
+     *    DP class:     DSP_VdcLink_FeedForward
+     *    vdc_meas:     V_CAPBANK_ARM_2_FILTERED
+     *          in:     IN_FF_V_CAPBANK_ARM_2
+     *         out:     DUTY_CYCLE_MOD_5
+     */
+
+    init_dsp_vdclink_ff(FF_V_CAPBANK_ARM_2, FF_V_CAPBANK_ARM_2_COEFFS.vdc_nom,
+                        FF_V_CAPBANK_ARM_2_COEFFS.vdc_min,
+                        &V_CAPBANK_ARM_2_FILTERED, &IN_FF_V_CAPBANK_ARM_2,
+                        &DUTY_CYCLE_MOD_5);
+
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
     /************************************/
@@ -669,6 +759,12 @@ static void reset_controller(void)
     reset_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
     reset_dsp_pi(PI_CONTROLLER_I_SHARE);
+
+    reset_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK_ARM_1);
+    reset_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK_ARM_2);
+
+    reset_dsp_vdclink_ff(FF_V_CAPBANK_ARM_1);
+    reset_dsp_vdclink_ff(FF_V_CAPBANK_ARM_2);
 
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
@@ -784,6 +880,9 @@ static interrupt void isr_controller(void)
     }
 
     I_ARMS_DIFF = I_ARM_1 - I_ARM_2;
+
+    run_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK_ARM_1);
+    run_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK_ARM_2);
 
     /// Check whether power supply is ON
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
@@ -908,13 +1007,21 @@ static interrupt void isr_controller(void)
         else
         {
             SATURATE(I_LOAD_REFERENCE, MAX_REF, MIN_REF);
+
+            /// Load current controller
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
             run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
+
+            /// Arms current share controller
             run_dsp_pi(PI_CONTROLLER_I_SHARE);
 
-            DUTY_CYCLE_MOD_1 = DUTY_I_LOAD_PI + DUTY_REF_FF - DUTY_DIFF;
-            DUTY_CYCLE_MOD_5 = DUTY_I_LOAD_PI + DUTY_REF_FF + DUTY_DIFF;
+            /// Cap-bank voltage feedforward controller
+            IN_FF_V_CAPBANK_ARM_1 = DUTY_I_LOAD_PI + DUTY_REF_FF - DUTY_DIFF;
+            IN_FF_V_CAPBANK_ARM_2 = DUTY_I_LOAD_PI + DUTY_REF_FF + DUTY_DIFF;
+
+            run_dsp_vdclink_ff(FF_V_CAPBANK_ARM_1);
+            run_dsp_vdclink_ff(FF_V_CAPBANK_ARM_2);
 
             SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
             SATURATE(DUTY_CYCLE_MOD_5, PWM_MAX_DUTY, PWM_MIN_DUTY);
@@ -1086,25 +1193,21 @@ static inline void check_interlocks(void)
 {
     if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Load_Overcurrent);
     }
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_soft_interlock(0, DCCT_High_Difference);
     }
 
     if(!PIN_STATUS_DCCT_1_STATUS)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_soft_interlock(0, DCCT_1_Fault);
     }
 
     if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
     {
-        PIN_SET_UDC_INTERLOCK;
         set_soft_interlock(0, DCCT_2_Fault);
     }
 
@@ -1112,7 +1215,6 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_1) < MIN_I_ACTIVE_DCCT)
         {
-            PIN_SET_UDC_INTERLOCK;
             set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
@@ -1120,7 +1222,6 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_1) > MAX_I_IDLE_DCCT)
         {
-            PIN_SET_UDC_INTERLOCK;
             set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
@@ -1131,7 +1232,6 @@ static inline void check_interlocks(void)
         {
             if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
             {
-                PIN_SET_UDC_INTERLOCK;
                 set_soft_interlock(0, Load_Feedback_2_Fault);
             }
         }
@@ -1139,7 +1239,6 @@ static inline void check_interlocks(void)
         {
             if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
             {
-                PIN_SET_UDC_INTERLOCK;
                 set_soft_interlock(0, Load_Feedback_2_Fault);
             }
         }
@@ -1159,55 +1258,52 @@ static inline void check_interlocks(void)
     //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
     //CLEAR_DEBUG_GPIO1;
+
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+    {
+        PIN_SET_UDC_INTERLOCK;
+    }
 }
 
 static inline void check_capbank_undervoltage(void)
 {
     if(V_CAPBANK_MOD_1 < MIN_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_1_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_2 < MIN_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_2_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_3 < MIN_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_3_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_4 < MIN_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_4_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_5 < MIN_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_5_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_6 < MIN_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_6_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_7 < MIN_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_7_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_8 < MIN_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_8_CapBank_Undervoltage);
     }
 }
@@ -1216,37 +1312,31 @@ static inline void check_capbank_overvoltage(void)
 {
     if(V_CAPBANK_MOD_1 > MAX_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_1_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_2 > MAX_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_2_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_3 > MAX_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_3_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_4 > MAX_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_4_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_5 > MAX_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_5_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_6 > MAX_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_6_CapBank_Overvoltage);
     }
 
@@ -1257,7 +1347,6 @@ static inline void check_capbank_overvoltage(void)
 
     if(V_CAPBANK_MOD_8 > MAX_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK;
         set_hard_interlock(0, Module_8_CapBank_Overvoltage);
     }
 }
