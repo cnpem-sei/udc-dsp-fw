@@ -132,6 +132,8 @@
 
 #define DELAY_TIME_INTERLOCK_IDB_US g_ipc_mtoc.analog_vars.max[10]
 
+#define D_DUTY_MAX              g_ipc_mtoc.analog_vars.max[11]
+
 /**
  * Controller defines
  */
@@ -1017,8 +1019,8 @@ static interrupt void isr_controller(void)
             run_dsp_pi(PI_CONTROLLER_I_SHARE);
 
             /// Cap-bank voltage feedforward controller
-            IN_FF_V_CAPBANK_ARM_1 = DUTY_I_LOAD_PI + DUTY_REF_FF - DUTY_DIFF;
-            IN_FF_V_CAPBANK_ARM_2 = DUTY_I_LOAD_PI + DUTY_REF_FF + DUTY_DIFF;
+            IN_FF_V_CAPBANK_ARM_1 = DUTY_I_LOAD_PI + DUTY_REF_FF - DUTY_DIFF + D_DUTY_MAX;
+            IN_FF_V_CAPBANK_ARM_2 = DUTY_I_LOAD_PI + DUTY_REF_FF + DUTY_DIFF + D_DUTY_MAX;
 
             run_dsp_vdclink_ff(FF_V_CAPBANK_ARM_1);
             run_dsp_vdclink_ff(FF_V_CAPBANK_ARM_2);
@@ -1396,4 +1398,15 @@ static void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, fl
 
     p_pwm_module->CMPBM.half.CMPB    = duty_int;
     p_pwm_module->CMPBM.half.CMPBHR  = duty_frac;
+}
+
+static float compensate_pwm_deadtime(float duty, float i_load)
+{
+    static float d_duty;
+    static float lim_gain = 1.0;
+
+    d_duty = i_load * lim_gain;
+    SATURATE(d_duty, D_DUTY_MAX, -D_DUTY_MAX);
+
+    return duty + d_duty;
 }
