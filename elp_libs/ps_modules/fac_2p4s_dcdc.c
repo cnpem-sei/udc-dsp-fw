@@ -323,7 +323,7 @@ typedef enum
  *  Private variables
  */
 static uint16_t decimation_factor;
-static float decimation_coeff;
+static float decimation_coeff, duty_comp_a;
 
 /**
  * Private functions
@@ -355,7 +355,7 @@ static inline void check_capbank_overvoltage(void);
 
 static void cfg_pwm_module_h_brigde_q2(volatile struct EPWM_REGS *p_pwm_module);
 static void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, float duty_pu);
-
+static float compensate_pwm_deadtime(float duty, float i_load);
 
 /**
  * Main function for this power supply module
@@ -773,6 +773,15 @@ static void reset_controller(void)
     disable_siggen(&SIGGEN);
 
     reset_timeslicers();
+
+    if(D_DUTY_MAX > 0.0)
+    {
+        duty_comp_a = -1.0/D_DUTY_MAX;
+    }
+    else
+    {
+        duty_comp_a = 0.0;
+    }
 }
 
 /**
@@ -1019,11 +1028,14 @@ static interrupt void isr_controller(void)
             run_dsp_pi(PI_CONTROLLER_I_SHARE);
 
             /// Cap-bank voltage feedforward controller
-            IN_FF_V_CAPBANK_ARM_1 = DUTY_I_LOAD_PI + DUTY_REF_FF - DUTY_DIFF + D_DUTY_MAX;
-            IN_FF_V_CAPBANK_ARM_2 = DUTY_I_LOAD_PI + DUTY_REF_FF + DUTY_DIFF + D_DUTY_MAX;
+            IN_FF_V_CAPBANK_ARM_1 = DUTY_I_LOAD_PI + DUTY_REF_FF - DUTY_DIFF;
+            IN_FF_V_CAPBANK_ARM_2 = DUTY_I_LOAD_PI + DUTY_REF_FF + DUTY_DIFF;
 
             run_dsp_vdclink_ff(FF_V_CAPBANK_ARM_1);
             run_dsp_vdclink_ff(FF_V_CAPBANK_ARM_2);
+
+            DUTY_CYCLE_MOD_1 = compensate_pwm_deadtime(DUTY_CYCLE_MOD_1, I_LOAD_MEAN);
+            DUTY_CYCLE_MOD_5 = compensate_pwm_deadtime(DUTY_CYCLE_MOD_5, I_LOAD_MEAN);
 
             SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
             SATURATE(DUTY_CYCLE_MOD_5, PWM_MAX_DUTY, PWM_MIN_DUTY);
@@ -1402,11 +1414,25 @@ static void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, fl
 
 static float compensate_pwm_deadtime(float duty, float i_load)
 {
-    static float d_duty;
-    static float lim_gain = 1.0;
+    static float duty_offset, duty_comp_b;
 
-    d_duty = i_load * lim_gain;
-    SATURATE(d_duty, D_DUTY_MAX, -D_DUTY_MAX);
+    if(fabs(duty) < D_DUTY_MAX)
+    {
+        if(duty >= 0.0)
+        {
+            duty_comp_b = 2;
+        }
+        else
+        {
+            duty_comp_b = -2;
+        }
 
-    return duty + d_duty;
+        duty_offset = duty_comp_a*duty*duty + duty_comp_b*duty;
+    }
+    else
+    {
+        duty_offset = D_DUTY_MAX;
+    }
+
+    return duty + duty_offset;
 }
