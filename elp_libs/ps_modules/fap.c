@@ -914,7 +914,7 @@ static void turn_off(uint16_t dummy)
     disable_pwm_output(0);
     disable_pwm_output(1);
 
-    PIN_OPEN_DCLINK_CONTACTOR;;
+    PIN_OPEN_DCLINK_CONTACTOR;
     DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
 
     reset_controller();
@@ -932,6 +932,14 @@ static void turn_off(uint16_t dummy)
  */
 static void reset_interlocks(uint16_t dummy)
 {
+    if( g_ipc_ctom.ps_module[0].ps_hard_interlock &
+        (0x00000001 << DCLink_Contactor_Fault) )
+    {
+        PIN_CLOSE_DCLINK_CONTACTOR;
+        DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
+        PIN_OPEN_DCLINK_CONTACTOR;
+    }
+
     g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[0].ps_soft_interlock = 0;
 
