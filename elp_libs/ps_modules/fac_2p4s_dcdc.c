@@ -122,17 +122,18 @@
 #define MIN_I_ACTIVE_DCCT       g_ipc_mtoc.analog_vars.min[6]
 #define MAX_VOUT_MODULE         g_ipc_mtoc.analog_vars.max[7]
 
-#define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[8]
-#define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[8]
+#define NETSIGNAL_ELEM_CTOM_BUF1    g_ipc_mtoc.analog_vars.max[8]
+#define NETSIGNAL_ELEM_CTOM_BUF2    g_ipc_mtoc.analog_vars.min[8]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+#define NETSIGNAL_CTOM_BUF1      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF1].f
+#define NETSIGNAL_CTOM_BUF2      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF2].f
 
 #define NUM_DCCTs               g_ipc_mtoc.analog_vars.max[9]
 
 #define DELAY_TIME_INTERLOCK_IDB_US g_ipc_mtoc.analog_vars.max[10]
 
-#define D_DUTY_MAX              g_ipc_mtoc.analog_vars.max[11]
+#define D_DUTY_MAX_POS          g_ipc_mtoc.analog_vars.max[11]
+#define D_DUTY_MAX_NEG          g_ipc_mtoc.analog_vars.max[12]
 
 /**
  * Controller defines
@@ -162,6 +163,8 @@
 
 #define IN_FF_V_CAPBANK_ARM_1           g_controller_ctom.net_signals[14].f
 #define IN_FF_V_CAPBANK_ARM_2           g_controller_ctom.net_signals[15].f
+
+#define WFMREF_IDX                      g_controller_ctom.net_signals[30].f
 
 #define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
@@ -323,7 +326,7 @@ typedef enum
  *  Private variables
  */
 static uint16_t decimation_factor;
-static float decimation_coeff, duty_comp_a;
+static float decimation_coeff;
 
 /**
  * Private functions
@@ -773,39 +776,63 @@ static void reset_controller(void)
     disable_siggen(&SIGGEN);
 
     reset_timeslicers();
-
-    if(D_DUTY_MAX > 0.0)
-    {
-        duty_comp_a = -1.0/D_DUTY_MAX;
-    }
-    else
-    {
-        duty_comp_a = 0.0;
-    }
 }
 
 /**
- * Enable control ISR
+ * Initialization of interruptions.
  */
-static void enable_controller()
+static void init_interruptions(void)
 {
-    stop_DMA();
-    DELAY_US(5);
-    start_DMA();
-    HRADCs_Info.enable_Sampling = 1;
-    enable_pwm_tbclk();
+    EALLOW;
+    PieVectTable.EPWM1_INT =  &isr_init_controller;
+    PieVectTable.EPWM2_INT =  &isr_controller;
+    PieVectTable.EPWM5_INT =  &isr_controller;
+    PieVectTable.EPWM6_INT =  &isr_controller;
+    EDIS;
+
+    PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx5 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx6 = 1;
+
+    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1_5);
+    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1_5);
+    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_3_7);
+    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_3_7);
+
+    IER |= M_INT1;
+    IER |= M_INT3;
+    IER |= M_INT11;
+
+    /// Enable global interrupts (EINT)
+    EINT;
+    ERTM;
 }
 
 /**
- * Disable control ISR
+ * Termination of interruptions.
  */
-static void disable_controller()
+static void term_interruptions(void)
 {
-    disable_pwm_tbclk();
-    HRADCs_Info.enable_Sampling = 0;
-    stop_DMA();
+    /// Disable global interrupts (EINT)
+    DINT;
+    DRTM;
 
-    reset_controller();
+    /// Clear enables
+    IER = 0;
+
+    PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
+    PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
+    PieCtrlRegs.PIEIER3.bit.INTx5 = 0;  /// ePWM5
+    PieCtrlRegs.PIEIER3.bit.INTx6 = 0;  /// ePWM6
+
+    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1_5);
+    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1_5);
+    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_3_7);
+    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_3_7);
+
+    /// Clear flags
+    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
 }
 
 /**
@@ -822,6 +849,13 @@ static interrupt void isr_init_controller(void)
 
     PWM_MODULATOR_Q2_MOD_1_5->ETSEL.bit.INTSEL = ET_CTR_ZERO;
     PWM_MODULATOR_Q2_MOD_1_5->ETCLR.bit.INT = 1;
+
+    PWM_MODULATOR_Q1_MOD_3_7->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q1_MOD_3_7->ETCLR.bit.INT = 1;
+
+    PWM_MODULATOR_Q2_MOD_3_7->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q2_MOD_3_7->ETCLR.bit.INT = 1;
+
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
@@ -1060,12 +1094,16 @@ static interrupt void isr_controller(void)
         set_pwm_duty_hbridge_chB(PWM_MODULATOR_Q1_MOD_4_8, DUTY_CYCLE_MOD_8);
     }
 
+    WFMREF_IDX = (float) (WFMREF.wfmref_data.p_buf_idx -
+                              WFMREF.wfmref_data.p_buf_start);
+
     g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
 
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF1);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF2);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
@@ -1074,6 +1112,8 @@ static interrupt void isr_controller(void)
 
     PWM_MODULATOR_Q1_MOD_1_5->ETCLR.bit.INT = 1;
     PWM_MODULATOR_Q2_MOD_1_5->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q1_MOD_3_7->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q2_MOD_3_7->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
@@ -1081,47 +1121,27 @@ static interrupt void isr_controller(void)
 }
 
 /**
- * Initialization of interruptions.
+ * Enable control ISR
  */
-static void init_interruptions(void)
+static void enable_controller()
 {
-    EALLOW;
-    PieVectTable.EPWM1_INT =  &isr_init_controller;
-    PieVectTable.EPWM2_INT =  &isr_controller;
-    EDIS;
-
-    PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
-    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1_5);
-    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1_5);
-
-    IER |= M_INT1;
-    IER |= M_INT3;
-    IER |= M_INT11;
-
-    /// Enable global interrupts (EINT)
-    EINT;
-    ERTM;
+    stop_DMA();
+    DELAY_US(5);
+    start_DMA();
+    HRADCs_Info.enable_Sampling = 1;
+    enable_pwm_tbclk();
 }
 
 /**
- * Termination of interruptions.
+ * Disable control ISR
  */
-static void term_interruptions(void)
+static void disable_controller()
 {
-    /// Disable global interrupts (EINT)
-    DINT;
-    DRTM;
+    disable_pwm_tbclk();
+    HRADCs_Info.enable_Sampling = 0;
+    stop_DMA();
 
-    /// Clear enables
-    IER = 0;
-    PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
-    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1_5);
-    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1_5);
-
-    /// Clear flags
-    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
+    reset_controller();
 }
 
 /**
@@ -1414,24 +1434,15 @@ static void set_pwm_duty_hbridge_chB(volatile struct EPWM_REGS *p_pwm_module, fl
 
 static float compensate_pwm_deadtime(float duty, float i_load)
 {
-    static float duty_offset, duty_comp_b;
+    static float duty_offset;
 
-    if(fabs(duty) < D_DUTY_MAX)
+    if(i_load < 0.0)
     {
-        if(duty >= 0.0)
-        {
-            duty_comp_b = 2;
-        }
-        else
-        {
-            duty_comp_b = -2;
-        }
-
-        duty_offset = duty_comp_a*duty*duty + duty_comp_b*duty;
+        duty_offset = D_DUTY_MAX_NEG;
     }
     else
     {
-        duty_offset = D_DUTY_MAX;
+        duty_offset = D_DUTY_MAX_POS;
     }
 
     return duty + duty_offset;

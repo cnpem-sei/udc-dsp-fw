@@ -20,7 +20,7 @@
  *      2. Alarms, in general caused by unusual operation values
  *      3. Commands received via communication interfaces, such as turn on/off,
  *         selection of operation mode, open/close control loop, changes on
- *         setpoint or other operation paramenters, etc. Usually is done by BSMP
+ *         setpoint or other operation parameters, etc. Usually is done by BSMP
  *         functions or HMI operation.
  *
  * Current version implements only interlocks management, including debouncing
