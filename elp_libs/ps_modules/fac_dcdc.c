@@ -62,15 +62,9 @@
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
 
-/*#define TIMESLICER_WFMREF       0
-#define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
-#define WFMREF_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / WFMREF_FREQ)*/
-
 #define TIMESLICER_BUFFER       1
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
 #define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
-#define SIGGEN                  g_ipc_ctom.siggen
 
 /**
  * HRADC parameters
@@ -104,65 +98,78 @@
 #define MAX_I_IDLE_DCCT         g_ipc_mtoc.analog_vars.max[7]
 #define MIN_I_ACTIVE_DCCT       g_ipc_mtoc.analog_vars.min[7]
 
-#define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[8]
-#define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[8]
+#define NETSIGNAL_ELEM_CTOM_BUF1    g_ipc_mtoc.analog_vars.max[8]
+#define NETSIGNAL_ELEM_CTOM_BUF2    g_ipc_mtoc.analog_vars.min[8]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+#define NETSIGNAL_CTOM_BUF1      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF1].f
+#define NETSIGNAL_CTOM_BUF2      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF2].f
 
 #define NUM_DCCTs               g_ipc_mtoc.analog_vars.max[9]
 
 /**
  * Controller defines
  */
-#define I_LOAD_1                        g_controller_ctom.net_signals[0].f  // HRADC0
-#define I_LOAD_2                        g_controller_ctom.net_signals[1].f  // HRADC1
-#define V_CAPBANK                       g_controller_ctom.net_signals[2].f  // HRADC2
 
-#define I_LOAD_REFERENCE_WFMREF         g_controller_ctom.net_signals[3].f
+/// DSP Net Signals
+#define I_LOAD_1                    g_controller_ctom.net_signals[0].f  // HRADC0
+#define I_LOAD_2                    g_controller_ctom.net_signals[1].f  // HRADC1
+#define V_CAPBANK                   g_controller_ctom.net_signals[2].f  // HRADC2
 
-#define I_LOAD_MEAN                     g_controller_ctom.net_signals[4].f
-#define I_LOAD_ERROR                    g_controller_ctom.net_signals[5].f
+#define I_LOAD_REFERENCE_WFMREF     g_controller_ctom.net_signals[3].f
 
-#define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[6].f
-#define DUTY_REF_FF                     g_controller_ctom.net_signals[7].f
+#define I_LOAD_MEAN                 g_controller_ctom.net_signals[4].f
+#define I_LOAD_ERROR                g_controller_ctom.net_signals[5].f
 
-#define IN_FF_V_CAPBANK                 g_controller_ctom.net_signals[8].f
-#define V_CAPBANK_FILTERED              g_controller_ctom.net_signals[9].f
+#define DUTY_I_LOAD_PI              g_controller_ctom.net_signals[6].f
+#define DUTY_REF_FF                 g_controller_ctom.net_signals[7].f
 
-#define I_LOAD_DIFF                     g_controller_ctom.net_signals[10].f
+#define IN_FF_V_CAPBANK             g_controller_ctom.net_signals[8].f
+#define V_CAPBANK_FILTERED          g_controller_ctom.net_signals[9].f
 
-#define V_LOAD                          g_controller_mtoc.net_signals[0].f
-#define TEMP_INDUCTORS                  g_controller_mtoc.net_signals[1].f
-#define TEMP_IGBT                       g_controller_mtoc.net_signals[2].f
+#define I_LOAD_DIFF                 g_controller_ctom.net_signals[10].f
 
-#define DUTY_CYCLE                      g_controller_ctom.output_signals[0].f
+#define WFMREF_IDX                  g_controller_ctom.net_signals[30].f
 
-#define I_LOAD_SETPOINT                 g_ipc_ctom.ps_module[0].ps_setpoint
-#define I_LOAD_REFERENCE                g_ipc_ctom.ps_module[0].ps_reference
+#define DUTY_CYCLE                  g_controller_ctom.output_signals[0].f
 
-#define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
-#define ERROR_I_LOAD                    &g_controller_ctom.dsp_modules.dsp_error[0]
+/// ARM Net Signals
+#define V_LOAD                      g_controller_mtoc.net_signals[0].f
+#define TEMP_INDUCTORS              g_controller_mtoc.net_signals[1].f
+#define TEMP_IGBT                   g_controller_mtoc.net_signals[2].f
 
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+/// Reference
+#define I_LOAD_SETPOINT             g_ipc_ctom.ps_module[0].ps_setpoint
+#define I_LOAD_REFERENCE            g_ipc_ctom.ps_module[0].ps_reference
+
+#define SRLIM_I_LOAD_REFERENCE      &g_controller_ctom.dsp_modules.dsp_srlim[0]
+
+#define SIGGEN                      g_ipc_ctom.siggen
+#define SRLIM_SIGGEN_AMP            &g_controller_ctom.dsp_modules.dsp_srlim[1]
+#define SRLIM_SIGGEN_OFFSET         &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+/// Load current controller
+#define ERROR_I_LOAD                        &g_controller_ctom.dsp_modules.dsp_error[0]
 
 #define PI_CONTROLLER_I_LOAD                &g_controller_ctom.dsp_modules.dsp_pi[0]
 #define PI_CONTROLLER_I_LOAD_COEFFS         g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
 #define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
 
-#define IIR_2P2Z_LPF_V_CAPBANK              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
-#define IIR_2P2Z_LPF_V_CAPBANK_COEFFS       g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
 
-#define FF_V_CAPBANK                 &g_controller_ctom.dsp_modules.dsp_ff[0]
+/// Cap-bank voltage feedforward controller
+#define IIR_2P2Z_LPF_V_CAPBANK          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define IIR_2P2Z_LPF_V_CAPBANK_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
 
+#define FF_V_CAPBANK                    &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK_COEFFS             g_controller_ctom.dsp_modules.dsp_ff[0].coeffs.s
+
+/// PWM modulators
 #define PWM_MODULATOR_Q1            g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_Q2            g_pwm_modules.pwm_regs[1]
 
-#define SRLIM_SIGGEN_AMP            &g_controller_ctom.dsp_modules.dsp_srlim[1]
-#define SRLIM_SIGGEN_OFFSET         &g_controller_ctom.dsp_modules.dsp_srlim[2]
-
+/// Samples buffer
 #define BUF_SAMPLES                 &g_ipc_ctom.buf_samples[0]
 
 /**
@@ -774,12 +781,16 @@ static interrupt void isr_controller(void)
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1, DUTY_CYCLE);
     }
 
+    WFMREF_IDX = (float) (WFMREF.wfmref_data.p_buf_idx -
+                                  WFMREF.wfmref_data.p_buf_start);
+
     g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
 
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF1);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF2);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/

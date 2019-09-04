@@ -122,7 +122,7 @@ void main(void)
 
             case FAC_ACDC:
             {
-                main_fac_acdc();
+                //main_fac_acdc();
                 break;
             }
 

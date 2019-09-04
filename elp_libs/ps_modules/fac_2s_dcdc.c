@@ -110,11 +110,11 @@
 
 #define MAX_I_IDLE_DCCT         g_ipc_mtoc.analog_vars.max[6]
 #define MIN_I_ACTIVE_DCCT       g_ipc_mtoc.analog_vars.min[6]
-#define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[7]
-#define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[7]
+#define NETSIGNAL_ELEM_CTOM_BUF1    g_ipc_mtoc.analog_vars.max[7]
+#define NETSIGNAL_ELEM_CTOM_BUF2    g_ipc_mtoc.analog_vars.min[7]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+#define NETSIGNAL_CTOM_BUF1      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF1].f
+#define NETSIGNAL_CTOM_BUF2      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF2].f
 
 #define NUM_DCCTs               g_ipc_mtoc.analog_vars.max[8]
 
@@ -148,6 +148,8 @@
 
 #define I_LOAD_DIFF                     g_controller_ctom.net_signals[16].f
 #define V_LOAD                          g_controller_ctom.net_signals[17].f
+
+#define WFMREF_IDX                      g_controller_ctom.net_signals[30].f
 
 #define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
@@ -193,7 +195,10 @@
 #define IIR_2P2Z_LPF_V_CAPBANK_MOD_2_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
 
 #define FF_V_CAPBANK_MOD_1              &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK_MOD_1_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
+
 #define FF_V_CAPBANK_MOD_2              &g_controller_ctom.dsp_modules.dsp_ff[1]
+#define FF_V_CAPBANK_MOD_2_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[1].coeffs.s
 
 /// PWM modulators
 #define PWM_MODULATOR_Q1_MOD_1          g_pwm_modules.pwm_regs[0]
@@ -564,7 +569,8 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE_MOD_1
      */
 
-    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1, NOM_V_CAPBANK_FF, MIN_V_CAPBANK_FF,
+    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1, FF_V_CAPBANK_MOD_1_COEFFS.vdc_nom,
+                        FF_V_CAPBANK_MOD_1_COEFFS.vdc_min,
                         &V_CAPBANK_MOD_1_FILTERED, &IN_FF_V_CAPBANK_MOD_1,
                         &DUTY_CYCLE_MOD_1);
 
@@ -594,7 +600,8 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE_MOD_2
      */
 
-    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2, NOM_V_CAPBANK_FF, MIN_V_CAPBANK_FF,
+    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2, FF_V_CAPBANK_MOD_2_COEFFS.vdc_nom,
+                        FF_V_CAPBANK_MOD_2_COEFFS.vdc_min,
                         &V_CAPBANK_MOD_2_FILTERED, &IN_FF_V_CAPBANK_MOD_2,
                         &DUTY_CYCLE_MOD_2);
 
@@ -660,27 +667,60 @@ static void reset_controller(void)
 }
 
 /**
- * Enable control ISR
+ * Initialization of interruptions.
  */
-static void enable_controller()
+static void init_interruptions(void)
 {
-    stop_DMA();
-    DELAY_US(5);
-    start_DMA();
-    HRADCs_Info.enable_Sampling = 1;
-    enable_pwm_tbclk();
+    EALLOW;
+    PieVectTable.EPWM1_INT =  &isr_init_controller;
+    PieVectTable.EPWM2_INT =  &isr_controller;
+    PieVectTable.EPWM3_INT =  &isr_controller;
+    PieVectTable.EPWM4_INT =  &isr_controller;
+    EDIS;
+
+    PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx3 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx4 = 1;
+
+    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1);
+    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1);
+    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_2);
+    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_2);
+
+    IER |= M_INT1;
+    IER |= M_INT3;
+    IER |= M_INT11;
+
+    /// Enable global interrupts (EINT)
+    EINT;
+    ERTM;
 }
 
 /**
- * Disable control ISR
+ * Termination of interruptions.
  */
-static void disable_controller()
+static void term_interruptions(void)
 {
-    disable_pwm_tbclk();
-    HRADCs_Info.enable_Sampling = 0;
-    stop_DMA();
+    /// Disable global interrupts (EINT)
+    DINT;
+    DRTM;
 
-    reset_controller();
+    /// Clear enables
+    IER = 0;
+
+    PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
+    PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
+    PieCtrlRegs.PIEIER3.bit.INTx3 = 0;  /// ePWM3
+    PieCtrlRegs.PIEIER3.bit.INTx4 = 0;  /// ePWM4
+
+    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1);
+    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1);
+    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_2);
+    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_2);
+
+    /// Clear flags
+    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
 }
 
 /**
@@ -697,6 +737,12 @@ static interrupt void isr_init_controller(void)
 
     PWM_MODULATOR_Q2_MOD_1->ETSEL.bit.INTSEL = ET_CTR_ZERO;
     PWM_MODULATOR_Q2_MOD_1->ETCLR.bit.INT = 1;
+
+    PWM_MODULATOR_Q1_MOD_2->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q1_MOD_2->ETCLR.bit.INT = 1;
+
+    PWM_MODULATOR_Q2_MOD_2->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q2_MOD_2->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
@@ -921,12 +967,16 @@ static interrupt void isr_controller(void)
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_2, DUTY_CYCLE_MOD_2);
     }
 
+    WFMREF_IDX = (float) (WFMREF.wfmref_data.p_buf_idx -
+                              WFMREF.wfmref_data.p_buf_start);
+
     g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
 
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF1);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF2);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
@@ -935,6 +985,8 @@ static interrupt void isr_controller(void)
 
     PWM_MODULATOR_Q1_MOD_1->ETCLR.bit.INT = 1;
     PWM_MODULATOR_Q2_MOD_1->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q1_MOD_2->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q2_MOD_2->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
@@ -942,47 +994,27 @@ static interrupt void isr_controller(void)
 }
 
 /**
- * Initialization of interruptions.
+ * Enable control ISR
  */
-static void init_interruptions(void)
+static void enable_controller()
 {
-    EALLOW;
-    PieVectTable.EPWM1_INT =  &isr_init_controller;
-    PieVectTable.EPWM2_INT =  &isr_controller;
-    EDIS;
-
-    PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
-    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1);
-    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1);
-
-    IER |= M_INT1;
-    IER |= M_INT3;
-    IER |= M_INT11;
-
-    /// Enable global interrupts (EINT)
-    EINT;
-    ERTM;
+    stop_DMA();
+    DELAY_US(5);
+    start_DMA();
+    HRADCs_Info.enable_Sampling = 1;
+    enable_pwm_tbclk();
 }
 
 /**
- * Termination of interruptions.
+ * Disable control ISR
  */
-static void term_interruptions(void)
+static void disable_controller()
 {
-    /// Disable global interrupts (EINT)
-    DINT;
-    DRTM;
+    disable_pwm_tbclk();
+    HRADCs_Info.enable_Sampling = 0;
+    stop_DMA();
 
-    /// Clear enables
-    IER = 0;
-    PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
-    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1);
-    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1);
-
-    /// Clear flags
-    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
+    reset_controller();
 }
 
 /**
