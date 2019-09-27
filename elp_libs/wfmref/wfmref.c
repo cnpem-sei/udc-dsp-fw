@@ -21,34 +21,202 @@
 #include <math.h>
 #include "wfmref.h"
 
-/**
- * TODO: Put here your defines. Just what is local. If you don't
- * need to access it from other module, consider use a constant (const)
- */
+#pragma DATA_SECTION(g_wfmref_data,"SHARERAMS2345")
+volatile u_wfmref_data_t g_wfmref_data;
 
-/**
- * TODO: Put here your constants and variables. Always use static for 
- * private members.
- */
-volatile wfmref_lerp_t g_wfmref_lerp;
+#pragma CODE_SECTION(run_wfmref,"ramfuncs")
 
-/**
- * TODO: Put here your function prototypes for private functions. Use
- * static in declaration.
- */
-
-
-/**
- * TODO: Put here the implementation for your public functions.
- */
-void init_wfmref_lerp(float freq_base, float freq_lerp)
+void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
+                 sync_mode_t sync_mode, float freq_base, float freq_lerp,
+                 float gain, float offset, float *p_start, uint16_t size,
+                 float *p_out)
 {
-    g_wfmref_lerp.counter = 0;
-    g_wfmref_lerp.max_count = (uint16_t) roundf(freq_lerp / freq_base);
-    g_wfmref_lerp.fraction = freq_base / freq_lerp;
-    g_wfmref_lerp.out = 0.0;
+    uint16_t i;
+
+    p_wfmref->wfmref_selected = wfmref_selected;
+    p_wfmref->sync_mode = sync_mode;
+    p_wfmref->gain = gain;
+    p_wfmref->offset = offset;
+    p_wfmref->p_out = p_out;
+
+    for(i = 0; i < NUM_WFMREF_CURVES; i++)
+    {
+        init_buffer(&p_wfmref->wfmref_data[i], p_start + i * size, size);
+        p_wfmref->wfmref_data[i].p_buf_idx   = p_wfmref->wfmref_data[i].p_buf_end + 1;
+    }
+
+    p_wfmref->lerp.counter = 0;
+    p_wfmref->lerp.max_count = (uint16_t) roundf(freq_lerp / freq_base);
+    p_wfmref->lerp.inv_decimation = freq_base / freq_lerp;
+    p_wfmref->lerp.out = 0.0;
 }
 
-/**
- * TODO: Put here the implementation for your private functions.
- */
+void reset_wfmref(wfmref_t *p_wfmref)
+{
+    static uint16_t i;
+
+    for(i = 0; i < NUM_WFMREF_CURVES; i++)
+    {
+        p_wfmref->wfmref_data[i].p_buf_idx = p_wfmref->wfmref_data[i].p_buf_end + 1;
+    }
+
+    p_wfmref->lerp.counter = 0;
+    p_wfmref->lerp.out = *(p_wfmref->wfmref_data[p_wfmref->wfmref_selected].p_buf_end);
+}
+
+void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
+{
+    static uint16_t sel;
+
+    sel = p_wfmref->wfmref_selected;
+
+    switch(p_wfmref->sync_mode)
+    {
+        case SampleBySample:
+        {
+            if(p_wfmref->wfmref_data[sel].p_buf_idx++ >=
+               p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                p_wfmref->wfmref_selected = p_wfmref_new->wfmref_selected;
+                sel = p_wfmref->wfmref_selected;
+
+                p_wfmref->wfmref_data[sel] = p_wfmref_new->wfmref_data[sel];
+
+                p_wfmref->gain = p_wfmref_new->gain;
+                p_wfmref->offset = p_wfmref_new->offset;
+            }
+
+            break;
+        }
+
+        case SampleBySample_OneCycle:
+        {
+            if(p_wfmref->wfmref_data[sel].p_buf_idx++ ==
+               p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                p_wfmref->wfmref_data[sel].p_buf_idx =
+                        p_wfmref->wfmref_data[sel].p_buf_end;
+            }
+            else if(p_wfmref->wfmref_data[sel].p_buf_idx >
+                    p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                p_wfmref->wfmref_selected = p_wfmref_new->wfmref_selected;
+                sel = p_wfmref->wfmref_selected;
+
+                p_wfmref->wfmref_data[sel] = p_wfmref_new->wfmref_data[sel];
+
+                p_wfmref->wfmref_data[sel].p_buf_idx =
+                                    p_wfmref->wfmref_data[sel].p_buf_start;
+
+                p_wfmref->gain = p_wfmref_new->gain;
+                p_wfmref->offset = p_wfmref_new->offset;
+            }
+            else
+            {
+                //p_wfmref->wfmref_data[sel].p_buf_idx++;
+            }
+
+            break;
+        }
+
+        case OneShot:
+        {
+            p_wfmref->wfmref_selected = p_wfmref_new->wfmref_selected;
+            sel = p_wfmref->wfmref_selected;
+
+            p_wfmref->wfmref_data[sel] = p_wfmref_new->wfmref_data[sel];
+
+            p_wfmref->wfmref_data[sel].p_buf_idx =
+                                    p_wfmref->wfmref_data[sel].p_buf_start;
+
+            p_wfmref->gain = p_wfmref_new->gain;
+            p_wfmref->offset = p_wfmref_new->offset;
+
+            break;
+        }
+    }
+
+    p_wfmref->lerp.counter = 0;
+}
+
+void run_wfmref(wfmref_t *p_wfmref)
+{
+    static uint16_t sel;
+
+    sel = p_wfmref->wfmref_selected;
+
+    switch(p_wfmref->sync_mode)
+    {
+        case SampleBySample:
+        case SampleBySample_OneCycle:
+        {
+            if(p_wfmref->wfmref_data[sel].p_buf_idx <
+               p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                if(p_wfmref->lerp.counter < p_wfmref->lerp.max_count)
+                {
+                    p_wfmref->lerp.fraction = p_wfmref->lerp.inv_decimation *
+                                              p_wfmref->lerp.counter++;
+
+                    p_wfmref->lerp.out =
+                         INTERPOLATE( *(p_wfmref->wfmref_data[sel].p_buf_idx),
+                                      *(p_wfmref->wfmref_data[sel].p_buf_idx+1),
+                                        p_wfmref->lerp.fraction);
+                }
+
+                else
+                {
+                    p_wfmref->lerp.out = *(p_wfmref->wfmref_data[sel].p_buf_idx+1);
+                }
+            }
+
+            else if( p_wfmref->wfmref_data[sel].p_buf_idx ==
+                     p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                p_wfmref->lerp.out = *(p_wfmref->wfmref_data[sel].p_buf_idx);
+            }
+
+            break;
+        }
+
+        case OneShot:
+        {
+            if(p_wfmref->wfmref_data[sel].p_buf_idx <
+               p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                if(p_wfmref->lerp.counter < p_wfmref->lerp.max_count)
+                {
+                    p_wfmref->lerp.fraction = p_wfmref->lerp.inv_decimation *
+                                              p_wfmref->lerp.counter++;
+
+                    p_wfmref->lerp.out =
+                         INTERPOLATE( *(p_wfmref->wfmref_data[sel].p_buf_idx),
+                                      *(p_wfmref->wfmref_data[sel].p_buf_idx+1),
+                                        p_wfmref->lerp.fraction);
+
+                    if(p_wfmref->lerp.counter >= p_wfmref->lerp.max_count)
+                    {
+                        p_wfmref->lerp.counter = 0;
+                        p_wfmref->wfmref_data[sel].p_buf_idx++;
+                    }
+                }
+            }
+
+            else if( p_wfmref->wfmref_data[sel].p_buf_idx ==
+                     p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                p_wfmref->lerp.out = *(p_wfmref->wfmref_data[sel].p_buf_idx);
+            }
+
+            break;
+        }
+
+        default:
+        {
+            p_wfmref->lerp.out = 0.0;
+            break;
+        }
+    }
+
+    *(p_wfmref->p_out) = p_wfmref->lerp.out * p_wfmref->gain + p_wfmref->offset;
+}

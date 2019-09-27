@@ -26,7 +26,9 @@
 #include "common/structs.h"
 
 #define SIZE_WFMREF             4096
-#define WFMREF                  g_ipc_ctom.wfmref
+#define SIZE_WFMREF_FBP         SIZE_WFMREF/4
+#define NUM_WFMREF_CURVES       2
+//#define WFMREF                  g_ipc_ctom.wfmref
 
 #define INTERPOLATE(a, b, f)    (a * (1.0 - f)) + (b * f)
 
@@ -37,31 +39,41 @@ typedef enum
     OneShot
 } sync_mode_t;
 
+typedef union
+{
+    float data[NUM_WFMREF_CURVES][SIZE_WFMREF];
+    float data_fbp[4][NUM_WFMREF_CURVES][SIZE_WFMREF_FBP];
+} u_wfmref_data_t;
+
 typedef volatile struct
 {
     uint16_t        counter;
     uint16_t        max_count;
+    float           inv_decimation;
     float           fraction;
     float           out;
 } wfmref_lerp_t;
 
 typedef volatile struct
 {
-    buf_t           wfmref_data;
-    float           gain;
-    float           offset;
+    buf_t           wfmref_data[NUM_WFMREF_CURVES];
     uint16_t        wfmref_selected;
     sync_mode_t     sync_mode;
+    wfmref_lerp_t   lerp;
+    float           gain;
+    float           offset;
+    float           *p_out;
 } wfmref_t;
 
-/**
- * TODO: Put here your functions prototypes. Just what need 
- * to be accessed by other modules.
- */
+extern volatile u_wfmref_data_t g_wfmref_data;
+extern volatile wfmref_lerp_t wfmref_lerp;
 
-extern volatile wfmref_lerp_t g_wfmref_lerp;
-
-extern void init_wfmref_lerp(float freq_base, float freq_lerp);
+extern void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
+                        sync_mode_t sync_mode, float freq_base, float freq_lerp,
+                        float gain, float offset, float *p_start, uint16_t size,
+                        float *p_out);
 extern void reset_wfmref(wfmref_t *p_wfmref);
+extern void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
+extern void run_wfmref(wfmref_t *p_wfmref);
 
 #endif /* WFMREF_H_ */

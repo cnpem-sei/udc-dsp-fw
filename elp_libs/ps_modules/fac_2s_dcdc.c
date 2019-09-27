@@ -164,6 +164,8 @@
 
 #define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
 
+#define WFMREF                          g_ipc_ctom.wfmref[0]
+
 #define SIGGEN                          g_ipc_ctom.siggen
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
@@ -420,9 +422,15 @@ static void init_controller(void)
                        &SOFT_INTERLOCKS_DEBOUNCE_TIME,
                        &SOFT_INTERLOCKS_RESET_TIME);
 
-    init_ipc();
     init_control_framework(&g_controller_ctom);
-    init_wfmref_lerp(WFMREF_FREQ, ISR_CONTROL_FREQ);
+
+    init_ipc();
+
+    init_wfmref(&WFMREF, g_ipc_mtoc.wfmref[0].wfmref_selected,
+                g_ipc_mtoc.wfmref[0].sync_mode, ISR_CONTROL_FREQ,
+                WFMREF_FREQ, g_ipc_mtoc.wfmref[0].gain,
+                g_ipc_mtoc.wfmref[0].offset, &g_wfmref_data.data,
+                SIZE_WFMREF, &I_LOAD_REFERENCE);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -663,6 +671,8 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
     disable_siggen(&SIGGEN);
 
+    reset_wfmref(&WFMREF);
+
     reset_timeslicers();
 }
 
@@ -838,84 +848,8 @@ static interrupt void isr_controller(void)
             }
             case RmpWfm:
             {
-                static float lerp_fraction;
-
-                switch(WFMREF.sync_mode)
-                {
-                    case OneShot:
-                    {
-                        if(WFMREF.wfmref_data.p_buf_idx <
-                           WFMREF.wfmref_data.p_buf_end)
-                        {
-                            if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
-                            {
-                                lerp_fraction = g_wfmref_lerp.fraction *
-                                                g_wfmref_lerp.counter++;
-
-                                g_wfmref_lerp.out =
-                                  INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
-                                               *(WFMREF.wfmref_data.p_buf_idx+1),
-                                                 lerp_fraction);
-
-                                if(g_wfmref_lerp.counter >=
-                                   g_wfmref_lerp.max_count)
-                                {
-                                    g_wfmref_lerp.counter = 0;
-                                    WFMREF.wfmref_data.p_buf_idx++;
-                                }
-                            }
-                        }
-
-                        else if( WFMREF.wfmref_data.p_buf_idx ==
-                                 WFMREF.wfmref_data.p_buf_end)
-                        {
-                            g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
-                        }
-
-                        break;
-                    }
-
-                    case SampleBySample:
-                    case SampleBySample_OneCycle:
-                    {
-                        if(WFMREF.wfmref_data.p_buf_idx <
-                           WFMREF.wfmref_data.p_buf_end)
-                        {
-                            if(g_wfmref_lerp.counter < g_wfmref_lerp.max_count)
-                            {
-                                lerp_fraction = g_wfmref_lerp.fraction *
-                                                g_wfmref_lerp.counter++;
-
-                                g_wfmref_lerp.out =
-                                  INTERPOLATE( *(WFMREF.wfmref_data.p_buf_idx),
-                                               *(WFMREF.wfmref_data.p_buf_idx+1),
-                                                 lerp_fraction);
-                            }
-
-                            else
-                            {
-                                g_wfmref_lerp.out =
-                                              *(WFMREF.wfmref_data.p_buf_idx+1);
-                            }
-                        }
-
-                        else if( WFMREF.wfmref_data.p_buf_idx ==
-                                 WFMREF.wfmref_data.p_buf_end)
-                        {
-                            g_wfmref_lerp.out = *(WFMREF.wfmref_data.p_buf_idx);
-                        }
-                        break;
-                    }
-
-                    default:
-                    {
-                        break;
-                    }
-                }
-
-                I_LOAD_REFERENCE = g_wfmref_lerp.out * WFMREF.gain +
-                                   WFMREF.offset;
-
+                run_wfmref(&WFMREF);
+                break;
             }
             case MigWfm:
             {
@@ -967,8 +901,8 @@ static interrupt void isr_controller(void)
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_2, DUTY_CYCLE_MOD_2);
     }
 
-    WFMREF_IDX = (float) (WFMREF.wfmref_data.p_buf_idx -
-                              WFMREF.wfmref_data.p_buf_start);
+    WFMREF_IDX = (float) (WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_idx -
+                          WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_start);
 
     g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
 
