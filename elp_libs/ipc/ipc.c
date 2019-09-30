@@ -262,20 +262,8 @@ interrupt void isr_ipc_lowpriority_msg(void)
                         case RmpWfm:
                         case MigWfm:
                         {
-
+                            update_wfmref(&WFMREF_CTOM[msg_id],&WFMREF_MTOC[msg_id]);
                             reset_wfmref(&WFMREF_CTOM[msg_id]);
-
-                            WFMREF_CTOM[msg_id].wfmref_selected =
-                                    WFMREF_MTOC[msg_id].wfmref_selected;
-
-                            sel = WFMREF_MTOC[msg_id].wfmref_selected;
-
-                            WFMREF_CTOM[msg_id].wfmref_data[sel] =
-                                           WFMREF_MTOC[msg_id].wfmref_data[sel];
-
-                            WFMREF_CTOM[msg_id].gain = WFMREF_MTOC[msg_id].gain;
-                            WFMREF_CTOM[msg_id].offset = WFMREF_MTOC[msg_id].offset;
-
                             break;
                         }
 
@@ -382,6 +370,11 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 break;
             }
 
+            case Update_WfmRef:
+            {
+                update_wfmref(&WFMREF_CTOM[msg_id],&WFMREF_MTOC[msg_id]);
+            }
+
             case Reset_WfmRef:
             {
                 reset_wfmref(&WFMREF_CTOM[msg_id]);
@@ -486,13 +479,13 @@ interrupt void isr_ipc_sync_pulse(void)
 
                 case RmpWfm:
                 {
-                    update_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
+                    sync_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
                     break;
                 }
 
                 case MigWfm:
                 {
-                    update_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
+                    sync_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
                     break;
                 }
 

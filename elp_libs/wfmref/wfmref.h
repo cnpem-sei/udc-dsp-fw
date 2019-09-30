@@ -69,11 +69,12 @@ extern volatile u_wfmref_data_t g_wfmref_data;
 extern volatile wfmref_lerp_t wfmref_lerp;
 
 extern void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
-                        sync_mode_t sync_mode, float freq_base, float freq_lerp,
+                        sync_mode_t sync_mode, float freq_lerp, float freq_wfmref,
                         float gain, float offset, float *p_start, uint16_t size,
                         float *p_out);
 extern void reset_wfmref(wfmref_t *p_wfmref);
 extern void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
+extern void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
 extern void run_wfmref(wfmref_t *p_wfmref);
 
 #endif /* WFMREF_H_ */

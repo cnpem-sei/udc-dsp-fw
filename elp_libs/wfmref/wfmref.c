@@ -27,7 +27,7 @@ volatile u_wfmref_data_t g_wfmref_data;
 #pragma CODE_SECTION(run_wfmref,"ramfuncs")
 
 void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
-                 sync_mode_t sync_mode, float freq_base, float freq_lerp,
+                 sync_mode_t sync_mode, float freq_lerp, float freq_wfmref,
                  float gain, float offset, float *p_start, uint16_t size,
                  float *p_out)
 {
@@ -46,8 +46,9 @@ void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
     }
 
     p_wfmref->lerp.counter = 0;
-    p_wfmref->lerp.max_count = (uint16_t) roundf(freq_lerp / freq_base);
-    p_wfmref->lerp.inv_decimation = freq_base / freq_lerp;
+    p_wfmref->lerp.max_count = (uint16_t) roundf(freq_lerp / freq_wfmref);
+    //p_wfmref->lerp.inv_decimation = freq_wfmref / freq_lerp;
+    p_wfmref->lerp.inv_decimation = 1.0/(roundf(freq_lerp/freq_wfmref));
     p_wfmref->lerp.out = 0.0;
 }
 
@@ -66,6 +67,22 @@ void reset_wfmref(wfmref_t *p_wfmref)
 
 void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 {
+    static uint16_t i;
+
+    for(i = 0; i < NUM_WFMREF_CURVES; i++)
+    {
+        p_wfmref->wfmref_data[i] = p_wfmref_new->wfmref_data[i];
+    }
+
+    p_wfmref->wfmref_selected   = p_wfmref_new->wfmref_selected;
+    p_wfmref->gain              = p_wfmref_new->gain;
+    p_wfmref->offset            = p_wfmref_new->offset;
+    p_wfmref->wfmref_selected   = p_wfmref_new->wfmref_selected;
+    p_wfmref->sync_mode         = p_wfmref_new->sync_mode;
+}
+
+void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
+{
     static uint16_t sel;
 
     sel = p_wfmref->wfmref_selected;
@@ -82,8 +99,12 @@ void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 
                 p_wfmref->wfmref_data[sel] = p_wfmref_new->wfmref_data[sel];
 
+                p_wfmref->wfmref_data[sel].p_buf_idx =
+                                    p_wfmref->wfmref_data[sel].p_buf_start;
+
                 p_wfmref->gain = p_wfmref_new->gain;
                 p_wfmref->offset = p_wfmref_new->offset;
+                p_wfmref->sync_mode = p_wfmref_new->sync_mode;
             }
 
             break;
@@ -110,6 +131,7 @@ void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 
                 p_wfmref->gain = p_wfmref_new->gain;
                 p_wfmref->offset = p_wfmref_new->offset;
+                p_wfmref->sync_mode = p_wfmref_new->sync_mode;
             }
             else
             {
@@ -131,6 +153,7 @@ void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 
             p_wfmref->gain = p_wfmref_new->gain;
             p_wfmref->offset = p_wfmref_new->offset;
+            p_wfmref->sync_mode = p_wfmref_new->sync_mode;
 
             break;
         }
