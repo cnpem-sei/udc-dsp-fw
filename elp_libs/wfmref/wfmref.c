@@ -47,7 +47,13 @@ void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
 
     p_wfmref->lerp.counter = 0;
     p_wfmref->lerp.max_count = (uint16_t) roundf(freq_lerp / freq_wfmref);
-    //p_wfmref->lerp.inv_decimation = freq_wfmref / freq_lerp;
+
+    /**
+     * TODO: Due to the FPUFastRTS library, some accuracy has been lost in the
+     * direct form of this calculating. This inverse of the division showed
+     * better results.
+     */
+    ///p_wfmref->lerp.inv_decimation = freq_wfmref / freq_lerp;
     p_wfmref->lerp.inv_decimation = 1.0/(roundf(freq_lerp/freq_wfmref));
     p_wfmref->lerp.out = 0.0;
 }
