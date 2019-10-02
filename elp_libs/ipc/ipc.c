@@ -45,6 +45,8 @@ volatile float g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM];
 volatile ipc_ctom_t g_ipc_ctom;
 volatile ipc_mtoc_t g_ipc_mtoc;
 
+#pragma CODE_SECTION(isr_ipc_sync_pulse,"ramfuncs");
+
 /**
  * Interrupt service routine for handling Low Priority MtoC IPC messages
  */
@@ -455,7 +457,7 @@ interrupt void isr_ipc_sync_pulse(void)
 {
     uint16_t i;
 
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
     {
@@ -478,14 +480,86 @@ interrupt void isr_ipc_sync_pulse(void)
                 }
 
                 case RmpWfm:
-                {
-                    sync_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
-                    break;
-                }
-
                 case MigWfm:
                 {
-                    sync_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
+                    //sync_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
+                    static uint16_t sel;
+
+                    sel = WFMREF_CTOM[i].wfmref_selected;
+
+                    switch(WFMREF_CTOM[i].sync_mode)
+                    {
+                        case SampleBySample:
+                        {
+                            if(WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx++ >=
+                               WFMREF_CTOM[i].wfmref_data[sel].p_buf_end)
+                            {
+                                WFMREF_CTOM[i].wfmref_selected = WFMREF_MTOC[i].wfmref_selected;
+                                sel = WFMREF_CTOM[i].wfmref_selected;
+
+                                WFMREF_CTOM[i].wfmref_data[sel] = WFMREF_MTOC[i].wfmref_data[sel];
+
+                                WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
+                                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_start;
+
+                                WFMREF_CTOM[i].gain = WFMREF_MTOC[i].gain;
+                                WFMREF_CTOM[i].offset = WFMREF_MTOC[i].offset;
+                                WFMREF_CTOM[i].sync_mode = WFMREF_MTOC[i].sync_mode;
+                            }
+
+                            break;
+                        }
+
+                        case SampleBySample_OneCycle:
+                        {
+                            if(WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx++ ==
+                               WFMREF_CTOM[i].wfmref_data[sel].p_buf_end)
+                            {
+                                WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
+                                        WFMREF_CTOM[i].wfmref_data[sel].p_buf_end;
+                            }
+                            else if(WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx >
+                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_end)
+                            {
+                                WFMREF_CTOM[i].wfmref_selected = WFMREF_MTOC[i].wfmref_selected;
+                                sel = WFMREF_CTOM[i].wfmref_selected;
+
+                                WFMREF_CTOM[i].wfmref_data[sel] = WFMREF_MTOC[i].wfmref_data[sel];
+
+                                WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
+                                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_start;
+
+                                WFMREF_CTOM[i].gain = WFMREF_MTOC[i].gain;
+                                WFMREF_CTOM[i].offset = WFMREF_MTOC[i].offset;
+                                WFMREF_CTOM[i].sync_mode = WFMREF_MTOC[i].sync_mode;
+                            }
+                            else
+                            {
+                                //WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx++;
+                            }
+
+                            break;
+                        }
+
+                        case OneShot:
+                        {
+                            WFMREF_CTOM[i].wfmref_selected = WFMREF_MTOC[i].wfmref_selected;
+                            sel = WFMREF_CTOM[i].wfmref_selected;
+
+                            WFMREF_CTOM[i].wfmref_data[sel] = WFMREF_MTOC[i].wfmref_data[sel];
+
+                            WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
+                                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_start;
+
+                            WFMREF_CTOM[i].gain = WFMREF_MTOC[i].gain;
+                            WFMREF_CTOM[i].offset = WFMREF_MTOC[i].offset;
+                            WFMREF_CTOM[i].sync_mode = WFMREF_MTOC[i].sync_mode;
+
+                            break;
+                        }
+                    }
+
+                    WFMREF_CTOM[i].lerp.counter = 0;
                     break;
                 }
 
@@ -505,5 +579,5 @@ interrupt void isr_ipc_sync_pulse(void)
     PieCtrlRegs.PIEACK.all |= M_INT1;
     PieCtrlRegs.PIEACK.all |= M_INT11;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }

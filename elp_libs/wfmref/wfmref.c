@@ -21,10 +21,11 @@
 #include <math.h>
 #include "wfmref.h"
 
-#pragma DATA_SECTION(g_wfmref_data,"SHARERAMS2345")
+#pragma DATA_SECTION(g_wfmref_data,"SHARERAMS2345");
 volatile u_wfmref_data_t g_wfmref_data;
 
-#pragma CODE_SECTION(run_wfmref,"ramfuncs")
+//#pragma CODE_SECTION(sync_wfmref,"ramfuncs");
+#pragma CODE_SECTION(run_wfmref,"ramfuncs");
 
 void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
                  sync_mode_t sync_mode, float freq_lerp, float freq_wfmref,
@@ -86,7 +87,7 @@ void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
     p_wfmref->wfmref_selected   = p_wfmref_new->wfmref_selected;
     p_wfmref->sync_mode         = p_wfmref_new->sync_mode;
 }
-
+/*
 void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 {
     static uint16_t sel;
@@ -167,7 +168,7 @@ void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 
     p_wfmref->lerp.counter = 0;
 }
-
+*/
 void run_wfmref(wfmref_t *p_wfmref)
 {
     static uint16_t sel;

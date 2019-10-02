@@ -65,6 +65,87 @@ typedef volatile struct
     float           *p_out;
 } wfmref_t;
 
+inline void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
+{
+    static uint16_t sel;
+
+    sel = p_wfmref->wfmref_selected;
+
+    switch(p_wfmref->sync_mode)
+    {
+        case SampleBySample:
+        {
+            if(p_wfmref->wfmref_data[sel].p_buf_idx++ >=
+               p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                p_wfmref->wfmref_selected = p_wfmref_new->wfmref_selected;
+                sel = p_wfmref->wfmref_selected;
+
+                p_wfmref->wfmref_data[sel] = p_wfmref_new->wfmref_data[sel];
+
+                p_wfmref->wfmref_data[sel].p_buf_idx =
+                                    p_wfmref->wfmref_data[sel].p_buf_start;
+
+                p_wfmref->gain = p_wfmref_new->gain;
+                p_wfmref->offset = p_wfmref_new->offset;
+                p_wfmref->sync_mode = p_wfmref_new->sync_mode;
+            }
+
+            break;
+        }
+
+        case SampleBySample_OneCycle:
+        {
+            if(p_wfmref->wfmref_data[sel].p_buf_idx++ ==
+               p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                p_wfmref->wfmref_data[sel].p_buf_idx =
+                        p_wfmref->wfmref_data[sel].p_buf_end;
+            }
+            else if(p_wfmref->wfmref_data[sel].p_buf_idx >
+                    p_wfmref->wfmref_data[sel].p_buf_end)
+            {
+                p_wfmref->wfmref_selected = p_wfmref_new->wfmref_selected;
+                sel = p_wfmref->wfmref_selected;
+
+                p_wfmref->wfmref_data[sel] = p_wfmref_new->wfmref_data[sel];
+
+                p_wfmref->wfmref_data[sel].p_buf_idx =
+                                    p_wfmref->wfmref_data[sel].p_buf_start;
+
+                p_wfmref->gain = p_wfmref_new->gain;
+                p_wfmref->offset = p_wfmref_new->offset;
+                p_wfmref->sync_mode = p_wfmref_new->sync_mode;
+            }
+            else
+            {
+                //p_wfmref->wfmref_data[sel].p_buf_idx++;
+            }
+
+            break;
+        }
+
+        case OneShot:
+        {
+            p_wfmref->wfmref_selected = p_wfmref_new->wfmref_selected;
+            sel = p_wfmref->wfmref_selected;
+
+            p_wfmref->wfmref_data[sel] = p_wfmref_new->wfmref_data[sel];
+
+            p_wfmref->wfmref_data[sel].p_buf_idx =
+                                    p_wfmref->wfmref_data[sel].p_buf_start;
+
+            p_wfmref->gain = p_wfmref_new->gain;
+            p_wfmref->offset = p_wfmref_new->offset;
+            p_wfmref->sync_mode = p_wfmref_new->sync_mode;
+
+            break;
+        }
+    }
+
+    p_wfmref->lerp.counter = 0;
+}
+
 extern volatile u_wfmref_data_t g_wfmref_data;
 extern volatile wfmref_lerp_t wfmref_lerp;
 
@@ -74,7 +155,7 @@ extern void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
                         float *p_out);
 extern void reset_wfmref(wfmref_t *p_wfmref);
 extern void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
-extern void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
+//extern void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
 extern void run_wfmref(wfmref_t *p_wfmref);
 
 #endif /* WFMREF_H_ */

@@ -280,6 +280,8 @@ static void check_interlocks_ps_module(uint16_t id);
 static inline void run_dsp_pi_inline(dsp_pi_t *p_pi);
 static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
                                                *p_pwm_module, float duty_pu);
+static inline uint16_t insert_buffer_inline(buf_t *p_buf, float data);
+
 
 /**
  * Main function for this power supply module
@@ -665,7 +667,7 @@ static interrupt void isr_init_controller(void)
  */
 static interrupt void isr_controller(void)
 {
-    static uint16_t i, flag_siggen, flag_wfmref = 0;
+    static uint16_t i, flag_siggen;
     static float temp[4];
 
     SET_DEBUG_GPIO1;
@@ -714,7 +716,86 @@ static interrupt void isr_controller(void)
                     }
                     case RmpWfm:
                     {
-                        run_wfmref(&WFMREF[i]);
+                        //run_wfmref(&WFMREF[i]);
+                        static uint16_t sel;
+
+                        sel = WFMREF[i].wfmref_selected;
+
+                        switch(WFMREF[i].sync_mode)
+                        {
+                            case SampleBySample:
+                            case SampleBySample_OneCycle:
+                            {
+                                if(WFMREF[i].wfmref_data[sel].p_buf_idx <
+                                   WFMREF[i].wfmref_data[sel].p_buf_end)
+                                {
+                                    if(WFMREF[i].lerp.counter < WFMREF[i].lerp.max_count)
+                                    {
+                                        WFMREF[i].lerp.fraction = WFMREF[i].lerp.inv_decimation *
+                                                                  WFMREF[i].lerp.counter++;
+
+                                        WFMREF[i].lerp.out =
+                                             INTERPOLATE( *(WFMREF[i].wfmref_data[sel].p_buf_idx),
+                                                          *(WFMREF[i].wfmref_data[sel].p_buf_idx+1),
+                                                            WFMREF[i].lerp.fraction);
+                                    }
+
+                                    else
+                                    {
+                                        WFMREF[i].lerp.out = *(WFMREF[i].wfmref_data[sel].p_buf_idx+1);
+                                    }
+                                }
+
+                                else if( WFMREF[i].wfmref_data[sel].p_buf_idx ==
+                                         WFMREF[i].wfmref_data[sel].p_buf_end)
+                                {
+                                    WFMREF[i].lerp.out = *(WFMREF[i].wfmref_data[sel].p_buf_idx);
+                                }
+
+                                break;
+                            }
+
+                            case OneShot:
+                            {
+                                if(WFMREF[i].wfmref_data[sel].p_buf_idx <
+                                   WFMREF[i].wfmref_data[sel].p_buf_end)
+                                {
+                                    if(WFMREF[i].lerp.counter < WFMREF[i].lerp.max_count)
+                                    {
+                                        WFMREF[i].lerp.fraction = WFMREF[i].lerp.inv_decimation *
+                                                                  WFMREF[i].lerp.counter++;
+
+                                        WFMREF[i].lerp.out =
+                                             INTERPOLATE( *(WFMREF[i].wfmref_data[sel].p_buf_idx),
+                                                          *(WFMREF[i].wfmref_data[sel].p_buf_idx+1),
+                                                            WFMREF[i].lerp.fraction);
+
+                                        if(WFMREF[i].lerp.counter >= WFMREF[i].lerp.max_count)
+                                        {
+                                            WFMREF[i].lerp.counter = 0;
+                                            WFMREF[i].wfmref_data[sel].p_buf_idx++;
+                                        }
+                                    }
+                                }
+
+                                else if( WFMREF[i].wfmref_data[sel].p_buf_idx ==
+                                         WFMREF[i].wfmref_data[sel].p_buf_end)
+                                {
+                                    WFMREF[i].lerp.out = *(WFMREF[i].wfmref_data[sel].p_buf_idx);
+                                }
+
+                                break;
+                            }
+
+                            default:
+                            {
+                                WFMREF[i].lerp.out = 0.0;
+                                break;
+                            }
+                        }
+
+                        *(WFMREF[i].p_out) = WFMREF[i].lerp.out * WFMREF[i].gain + WFMREF[i].offset;
+
                         break;
                     }
                     case MigWfm:
@@ -778,7 +859,7 @@ static interrupt void isr_controller(void)
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer_inline(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
@@ -793,7 +874,6 @@ static interrupt void isr_controller(void)
     PS4_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
 
     flag_siggen = 0;
-    flag_wfmref = 0;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
@@ -1264,4 +1344,43 @@ static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
 
     p_pwm_module->CMPAM2.half.CMPA    = duty_int;
     p_pwm_module->CMPAM2.half.CMPAHR  = duty_frac;
+}
+
+static inline uint16_t insert_buffer_inline(buf_t *p_buf, float data)
+{
+    if( (p_buf->p_buf_idx >= p_buf->p_buf_start) &&
+        (p_buf->p_buf_idx <= p_buf->p_buf_end) )
+    {
+        if(p_buf->status == Buffering)
+        {
+            *(p_buf->p_buf_idx) = data;
+
+            if(p_buf->p_buf_idx++ == p_buf->p_buf_end)
+            {
+                p_buf->p_buf_idx = p_buf->p_buf_start;
+            }
+        }
+        else if(p_buf->status == Postmortem)
+        {
+            *(p_buf->p_buf_idx) = data;
+
+            if(p_buf->p_buf_idx++ == p_buf->p_buf_end)
+            {
+                p_buf->p_buf_idx = p_buf->p_buf_start;
+                p_buf->status = Idle;
+            }
+        }
+        else
+        {
+            p_buf->status = Idle;
+        }
+    }
+
+    else
+    {
+        p_buf->p_buf_idx = p_buf->p_buf_start;
+        p_buf->status = Idle;
+    }
+
+    return p_buf->status;
 }
