@@ -61,7 +61,7 @@
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
 #define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
 
-#define BUF_SAMPLES             &g_ipc_ctom.buf_samples[0]
+#define BUF_SAMPLES             &g_ipc_ctom.buf_samples
 
 #define SIGGEN                  g_ipc_ctom.siggen
 #define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
@@ -81,7 +81,11 @@
 #define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[4]
 #define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[4]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
+#define PS1_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
+#define PS2_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 1].f
+#define PS3_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 2].f
+#define PS4_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 3].f
+
 #define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
 
 /**
@@ -575,7 +579,10 @@ static void init_controller(void)
     /**
      * Samples buffer initialization
      */
-    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
+    init_buffer(BUF_SAMPLES[0], &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/4);
+    init_buffer(BUF_SAMPLES[1], &g_buf_samples_ctom[1024], SIZE_BUF_SAMPLES_CTOM/4);
+    init_buffer(BUF_SAMPLES[2], &g_buf_samples_ctom[2048], SIZE_BUF_SAMPLES_CTOM/4);
+    init_buffer(BUF_SAMPLES[3], &g_buf_samples_ctom[3072], SIZE_BUF_SAMPLES_CTOM/4);
 
     /// Reset all internal variables
     reset_controllers();
@@ -715,91 +722,9 @@ static interrupt void isr_controller(void)
                         break;
                     }
                     case RmpWfm:
-                    {
-                        //run_wfmref(&WFMREF[i]);
-                        static uint16_t sel;
-
-                        sel = WFMREF[i].wfmref_selected;
-
-                        switch(WFMREF[i].sync_mode)
-                        {
-                            case SampleBySample:
-                            case SampleBySample_OneCycle:
-                            {
-                                if(WFMREF[i].wfmref_data[sel].p_buf_idx <
-                                   WFMREF[i].wfmref_data[sel].p_buf_end)
-                                {
-                                    if(WFMREF[i].lerp.counter < WFMREF[i].lerp.max_count)
-                                    {
-                                        WFMREF[i].lerp.fraction = WFMREF[i].lerp.inv_decimation *
-                                                                  WFMREF[i].lerp.counter++;
-
-                                        WFMREF[i].lerp.out =
-                                             INTERPOLATE( *(WFMREF[i].wfmref_data[sel].p_buf_idx),
-                                                          *(WFMREF[i].wfmref_data[sel].p_buf_idx+1),
-                                                            WFMREF[i].lerp.fraction);
-                                    }
-
-                                    else
-                                    {
-                                        WFMREF[i].lerp.out = *(WFMREF[i].wfmref_data[sel].p_buf_idx+1);
-                                    }
-                                }
-
-                                else if( WFMREF[i].wfmref_data[sel].p_buf_idx ==
-                                         WFMREF[i].wfmref_data[sel].p_buf_end)
-                                {
-                                    WFMREF[i].lerp.out = *(WFMREF[i].wfmref_data[sel].p_buf_idx);
-                                }
-
-                                break;
-                            }
-
-                            case OneShot:
-                            {
-                                if(WFMREF[i].wfmref_data[sel].p_buf_idx <
-                                   WFMREF[i].wfmref_data[sel].p_buf_end)
-                                {
-                                    if(WFMREF[i].lerp.counter < WFMREF[i].lerp.max_count)
-                                    {
-                                        WFMREF[i].lerp.fraction = WFMREF[i].lerp.inv_decimation *
-                                                                  WFMREF[i].lerp.counter++;
-
-                                        WFMREF[i].lerp.out =
-                                             INTERPOLATE( *(WFMREF[i].wfmref_data[sel].p_buf_idx),
-                                                          *(WFMREF[i].wfmref_data[sel].p_buf_idx+1),
-                                                            WFMREF[i].lerp.fraction);
-
-                                        if(WFMREF[i].lerp.counter >= WFMREF[i].lerp.max_count)
-                                        {
-                                            WFMREF[i].lerp.counter = 0;
-                                            WFMREF[i].wfmref_data[sel].p_buf_idx++;
-                                        }
-                                    }
-                                }
-
-                                else if( WFMREF[i].wfmref_data[sel].p_buf_idx ==
-                                         WFMREF[i].wfmref_data[sel].p_buf_end)
-                                {
-                                    WFMREF[i].lerp.out = *(WFMREF[i].wfmref_data[sel].p_buf_idx);
-                                }
-
-                                break;
-                            }
-
-                            default:
-                            {
-                                WFMREF[i].lerp.out = 0.0;
-                                break;
-                            }
-                        }
-
-                        *(WFMREF[i].p_out) = WFMREF[i].lerp.out * WFMREF[i].gain + WFMREF[i].offset;
-
-                        break;
-                    }
                     case MigWfm:
                     {
+                        run_wfmref(&WFMREF[i]);
                         break;
                     }
                     case Cycle:
@@ -859,7 +784,10 @@ static interrupt void isr_controller(void)
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer_inline(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES[0], PS1_NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES[1], PS2_NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES[2], PS3_NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES[3], PS4_NETSIGNAL_CTOM_BUF);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
@@ -887,16 +815,16 @@ static void init_interruptions(void)
 {
     EALLOW;
     PieVectTable.EPWM1_INT = &isr_init_controller;
-    PieVectTable.EPWM2_INT = &isr_controller;
+    //PieVectTable.EPWM2_INT = &isr_controller;
     PieVectTable.TINT0     = &isr_interlocks_timebase;
     EDIS;
 
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;  /// ePWM1
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  /// ePWM2
+    //PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  /// ePWM2
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;  /// CpuTimer0
 
     enable_pwm_interrupt(PS4_PWM_MODULATOR);
-    enable_pwm_interrupt(PS4_PWM_MODULATOR_NEG);
+    //enable_pwm_interrupt(PS4_PWM_MODULATOR_NEG);
 
     IER |= M_INT1;
     IER |= M_INT3;

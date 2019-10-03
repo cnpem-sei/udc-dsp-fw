@@ -64,7 +64,7 @@ typedef volatile struct
     float           offset;
     float           *p_out;
 } wfmref_t;
-
+/*
 inline void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 {
     static uint16_t sel;
@@ -145,7 +145,7 @@ inline void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 
     p_wfmref->lerp.counter = 0;
 }
-
+*/
 extern volatile u_wfmref_data_t g_wfmref_data;
 extern volatile wfmref_lerp_t wfmref_lerp;
 
@@ -155,7 +155,7 @@ extern void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
                         float *p_out);
 extern void reset_wfmref(wfmref_t *p_wfmref);
 extern void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
-//extern void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
+extern void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
 extern void run_wfmref(wfmref_t *p_wfmref);
 
 #endif /* WFMREF_H_ */

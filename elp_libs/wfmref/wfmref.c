@@ -24,7 +24,7 @@
 #pragma DATA_SECTION(g_wfmref_data,"SHARERAMS2345");
 volatile u_wfmref_data_t g_wfmref_data;
 
-//#pragma CODE_SECTION(sync_wfmref,"ramfuncs");
+#pragma CODE_SECTION(sync_wfmref,"ramfuncs");
 #pragma CODE_SECTION(run_wfmref,"ramfuncs");
 
 void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
@@ -69,7 +69,7 @@ void reset_wfmref(wfmref_t *p_wfmref)
     }
 
     p_wfmref->lerp.counter = 0;
-    p_wfmref->lerp.out = *(p_wfmref->wfmref_data[p_wfmref->wfmref_selected].p_buf_end);
+    //p_wfmref->lerp.out = *(p_wfmref->wfmref_data[p_wfmref->wfmref_selected].p_buf_end);
 }
 
 void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
@@ -87,7 +87,7 @@ void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
     p_wfmref->wfmref_selected   = p_wfmref_new->wfmref_selected;
     p_wfmref->sync_mode         = p_wfmref_new->sync_mode;
 }
-/*
+
 void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 {
     static uint16_t sel;
@@ -168,7 +168,7 @@ void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new)
 
     p_wfmref->lerp.counter = 0;
 }
-*/
+
 void run_wfmref(wfmref_t *p_wfmref)
 {
     static uint16_t sel;
@@ -198,12 +198,15 @@ void run_wfmref(wfmref_t *p_wfmref)
                 {
                     p_wfmref->lerp.out = *(p_wfmref->wfmref_data[sel].p_buf_idx+1);
                 }
+
+                *(p_wfmref->p_out) = p_wfmref->lerp.out * p_wfmref->gain + p_wfmref->offset;
             }
 
             else if( p_wfmref->wfmref_data[sel].p_buf_idx ==
                      p_wfmref->wfmref_data[sel].p_buf_end)
             {
                 p_wfmref->lerp.out = *(p_wfmref->wfmref_data[sel].p_buf_idx);
+                *(p_wfmref->p_out) = p_wfmref->lerp.out * p_wfmref->gain + p_wfmref->offset;
             }
 
             break;
@@ -229,6 +232,8 @@ void run_wfmref(wfmref_t *p_wfmref)
                         p_wfmref->lerp.counter = 0;
                         p_wfmref->wfmref_data[sel].p_buf_idx++;
                     }
+
+                    *(p_wfmref->p_out) = p_wfmref->lerp.out * p_wfmref->gain + p_wfmref->offset;
                 }
             }
 
@@ -236,6 +241,7 @@ void run_wfmref(wfmref_t *p_wfmref)
                      p_wfmref->wfmref_data[sel].p_buf_end)
             {
                 p_wfmref->lerp.out = *(p_wfmref->wfmref_data[sel].p_buf_idx);
+                *(p_wfmref->p_out) = p_wfmref->lerp.out * p_wfmref->gain + p_wfmref->offset;
             }
 
             break;
@@ -248,5 +254,5 @@ void run_wfmref(wfmref_t *p_wfmref)
         }
     }
 
-    *(p_wfmref->p_out) = p_wfmref->lerp.out * p_wfmref->gain + p_wfmref->offset;
+    //*(p_wfmref->p_out) = p_wfmref->lerp.out * p_wfmref->gain + p_wfmref->offset;
 }

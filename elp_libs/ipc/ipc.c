@@ -310,7 +310,11 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
             case Enable_Buf_Samples:
             {
-                enable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                //enable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                enable_buffer(&g_ipc_ctom.buf_samples[0]);
+                enable_buffer(&g_ipc_ctom.buf_samples[1]);
+                enable_buffer(&g_ipc_ctom.buf_samples[2]);
+                enable_buffer(&g_ipc_ctom.buf_samples[3]);
                 break;
             }
 
@@ -320,7 +324,11 @@ interrupt void isr_ipc_lowpriority_msg(void)
                  * TODO: It sets as Postmortem to wait buffer complete. Maybe
                  * it's better to create a postmortem BSMP function
                  */
-                postmortem_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                //postmortem_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[1]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[2]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[3]);
                 //disable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
                 break;
             }
@@ -482,7 +490,8 @@ interrupt void isr_ipc_sync_pulse(void)
                 case RmpWfm:
                 case MigWfm:
                 {
-                    //sync_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
+                    sync_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
+                    /*
                     static uint16_t sel;
 
                     sel = WFMREF_CTOM[i].wfmref_selected;
@@ -559,7 +568,7 @@ interrupt void isr_ipc_sync_pulse(void)
                         }
                     }
 
-                    WFMREF_CTOM[i].lerp.counter = 0;
+                    WFMREF_CTOM[i].lerp.counter = 0;*/
                     break;
                 }
 
@@ -573,7 +582,13 @@ interrupt void isr_ipc_sync_pulse(void)
 
     g_ipc_ctom.counter_sync_pulse++;
 
-    //postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
+    if(g_ipc_ctom.buf_samples[0].status == Idle)
+    {
+        g_ipc_ctom.buf_samples[0].status = Postmortem;
+        g_ipc_ctom.buf_samples[1].status = Postmortem;
+        g_ipc_ctom.buf_samples[2].status = Postmortem;
+        g_ipc_ctom.buf_samples[3].status = Postmortem;
+    }
 
     CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;
     PieCtrlRegs.PIEACK.all |= M_INT1;
