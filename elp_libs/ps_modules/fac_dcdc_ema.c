@@ -699,12 +699,9 @@ static interrupt void isr_controller(void)
                 break;
             }
             case RmpWfm:
-            {
-                run_wfmref(&WFMREF);
-                break;
-            }
             case MigWfm:
             {
+                run_wfmref(&WFMREF);
                 break;
             }
             default:

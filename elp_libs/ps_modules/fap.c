@@ -719,12 +719,9 @@ static interrupt void isr_controller(void)
                 break;
             }
             case RmpWfm:
-            {
-                run_wfmref(&WFMREF);
-                break;
-            }
             case MigWfm:
             {
+                run_wfmref(&WFMREF);
                 break;
             }
             default:
@@ -786,7 +783,7 @@ static interrupt void isr_controller(void)
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
         insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
+        //insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/

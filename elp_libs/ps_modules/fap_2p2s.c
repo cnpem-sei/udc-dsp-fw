@@ -852,7 +852,6 @@ static interrupt void isr_controller(void)
                 run_dsp_srlim(SRLIM_I_LOAD_REFERENCE, USE_MODULE);
                 break;
             }
-
             case Cycle:
             {
                 run_dsp_srlim(SRLIM_SIGGEN_AMP, USE_MODULE);
@@ -860,18 +859,12 @@ static interrupt void isr_controller(void)
                 SIGGEN.p_run_siggen(&SIGGEN);
                 break;
             }
-
             case RmpWfm:
+            case MigWfm:
             {
                 run_wfmref(&WFMREF);
                 break;
             }
-
-            case MigWfm:
-            {
-                break;
-            }
-
             default:
             {
                 break;
@@ -960,7 +953,7 @@ static interrupt void isr_controller(void)
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
         insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
+        //insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
