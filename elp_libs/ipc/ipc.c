@@ -310,11 +310,11 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
             case Enable_Buf_Samples:
             {
-                //enable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
-                enable_buffer(&g_ipc_ctom.buf_samples[0]);
+                enable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                /*enable_buffer(&g_ipc_ctom.buf_samples[0]);
                 enable_buffer(&g_ipc_ctom.buf_samples[1]);
                 enable_buffer(&g_ipc_ctom.buf_samples[2]);
-                enable_buffer(&g_ipc_ctom.buf_samples[3]);
+                enable_buffer(&g_ipc_ctom.buf_samples[3]);*/
                 break;
             }
 
@@ -324,11 +324,11 @@ interrupt void isr_ipc_lowpriority_msg(void)
                  * TODO: It sets as Postmortem to wait buffer complete. Maybe
                  * it's better to create a postmortem BSMP function
                  */
-                //postmortem_buffer(&g_ipc_ctom.buf_samples[msg_id]);
-                postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                /*postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
                 postmortem_buffer(&g_ipc_ctom.buf_samples[1]);
                 postmortem_buffer(&g_ipc_ctom.buf_samples[2]);
-                postmortem_buffer(&g_ipc_ctom.buf_samples[3]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[3]);*/
                 //disable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
                 break;
             }
