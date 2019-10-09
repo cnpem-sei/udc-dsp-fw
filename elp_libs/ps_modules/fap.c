@@ -72,8 +72,6 @@
 #define I_SHARE_CONTROLLER_FREQ_SAMP    g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_I_SHARE_CONTROLLER]
 #define I_SHARE_CONTROLLER_DECIMATION   (uint16_t) roundf(ISR_CONTROL_FREQ / I_SHARE_CONTROLLER_FREQ_SAMP)
 
-#define SIGGEN                  g_ipc_ctom.siggen
-
 /**
  * HRADC parameters
  */
@@ -123,6 +121,8 @@
 /**
  * Controller defines
  */
+
+/// DSP Net Signals
 #define I_LOAD_1                g_controller_ctom.net_signals[0].f  // HRADC0
 #define I_LOAD_2                g_controller_ctom.net_signals[1].f  // HRADC1
 #define V_DCLINK                g_controller_ctom.net_signals[2].f  // HRADC2
@@ -132,8 +132,6 @@
 #define I_LOAD_DIFF             g_controller_ctom.net_signals[16].f
 
 #define I_IGBTS_DIFF            g_controller_ctom.net_signals[6].f
-#define I_IGBT_1                g_controller_mtoc.net_signals[0].f  // ANI0
-#define I_IGBT_2                g_controller_mtoc.net_signals[1].f  // ANI1
 
 #define DUTY_MEAN               g_controller_ctom.net_signals[5].f
 #define DUTY_DIFF               g_controller_ctom.net_signals[7].f
@@ -143,35 +141,48 @@
 #define DUTY_CYCLE_IGBT_1       g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_IGBT_2       g_controller_ctom.output_signals[1].f
 
-#define I_LOAD_SETPOINT         g_ipc_ctom.ps_module[0].ps_setpoint
-#define I_LOAD_REFERENCE        g_ipc_ctom.ps_module[0].ps_reference
+/// ARM Net Signals
+#define I_IGBT_1                g_controller_mtoc.net_signals[0].f  // ANI0
+#define I_IGBT_2                g_controller_mtoc.net_signals[1].f  // ANI1
 
-#define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
+/// Reference
+#define I_LOAD_SETPOINT             g_ipc_ctom.ps_module[0].ps_setpoint
+#define I_LOAD_REFERENCE            g_ipc_ctom.ps_module[0].ps_reference
 
+#define SRLIM_I_LOAD_REFERENCE      &g_controller_ctom.dsp_modules.dsp_srlim[0]
+
+#define WFMREF                      g_ipc_ctom.wfmref[0]
+
+#define SIGGEN                      g_ipc_ctom.siggen
+#define SRLIM_SIGGEN_AMP            &g_controller_ctom.dsp_modules.dsp_srlim[1]
+#define SRLIM_SIGGEN_OFFSET         &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+/// Load current controller
 #define ERROR_I_LOAD                    &g_controller_ctom.dsp_modules.dsp_error[0]
 #define PI_CONTROLLER_I_LOAD            &g_controller_ctom.dsp_modules.dsp_pi[0]
 #define PI_CONTROLLER_I_LOAD_COEFFS     g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
 #define KP_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.ki
 
+/// IGBTs current share controller
 #define ERROR_I_SHARE                   &g_controller_ctom.dsp_modules.dsp_error[1]
 #define PI_CONTROLLER_I_SHARE           &g_controller_ctom.dsp_modules.dsp_pi[1]
 #define PI_CONTROLLER_I_SHARE_COEFFS    g_controller_mtoc.dsp_modules.dsp_pi[1].coeffs.s
 #define KP_I_SHARE                      PI_CONTROLLER_I_SHARE_COEFFS.kp
 #define KI_I_SHARE                      PI_CONTROLLER_I_SHARE_COEFFS.ki
 
+/// Cap-bank voltage feedforward controller
 #define IIR_2P2Z_LPF_V_DCLINK           &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
 #define IIR_2P2Z_LPF_V_DCLINK_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
 #define FF_V_DCLINK_IGBT_1              &g_controller_ctom.dsp_modules.dsp_ff[0]
 #define FF_V_DCLINK_IGBT_2              &g_controller_ctom.dsp_modules.dsp_ff[1]
 
+/// PWM modulators
 #define PWM_MODULATOR_IGBT_1            g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_IGBT_2            g_pwm_modules.pwm_regs[1]
 
-#define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
-#define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
-
+/// Samples buffer
 #define BUF_SAMPLES                     &g_ipc_ctom.buf_samples[0]
 
 /**
@@ -359,8 +370,15 @@ static void init_controller(void)
                        &SOFT_INTERLOCKS_DEBOUNCE_TIME,
                        &SOFT_INTERLOCKS_RESET_TIME);
 
-    init_ipc();
     init_control_framework(&g_controller_ctom);
+
+    init_ipc();
+
+    init_wfmref(&WFMREF, g_ipc_mtoc.wfmref[0].wfmref_selected,
+                g_ipc_mtoc.wfmref[0].sync_mode, ISR_CONTROL_FREQ,
+                WFMREF_FREQ, g_ipc_mtoc.wfmref[0].gain,
+                g_ipc_mtoc.wfmref[0].offset, &g_wfmref_data.data,
+                SIZE_WFMREF, &I_LOAD_REFERENCE);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -564,6 +582,8 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
     disable_siggen(&SIGGEN);
 
+    reset_wfmref(&WFMREF);
+
     reset_timeslicers();
 }
 
@@ -699,39 +719,9 @@ static interrupt void isr_controller(void)
                 break;
             }
             case RmpWfm:
-            {
-                switch(WFMREF.sync_mode)
-                {
-                    case OneShot:
-                    {   /*********************************************/
-                        RUN_TIMESLICER(TIMESLICER_WFMREF)
-                            if( WFMREF.wfmref_data.p_buf_idx <=
-                                WFMREF.wfmref_data.p_buf_end)
-                            {
-                                I_LOAD_REFERENCE =
-                                        *(WFMREF.wfmref_data.p_buf_idx++) *
-                                        (WFMREF.gain) + WFMREF.offset;
-                            }
-                        END_TIMESLICER(TIMESLICER_WFMREF)
-                        /*********************************************/
-                        break;
-                    }
-
-                    case SampleBySample:
-                    case SampleBySample_OneCycle:
-                    {
-                        if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
-                        {
-                            I_LOAD_REFERENCE =  *(WFMREF.wfmref_data.p_buf_idx) *
-                                                 (WFMREF.gain) + WFMREF.offset;
-                        }
-                        break;
-                    }
-                }
-                break;
-            }
             case MigWfm:
             {
+                run_wfmref(&WFMREF);
                 break;
             }
             default:
@@ -793,7 +783,7 @@ static interrupt void isr_controller(void)
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
         insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
+        //insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/

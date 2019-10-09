@@ -96,8 +96,9 @@ PAGE 1 :   /* Data Memory */
    //RAMS5       : origin = 0x011000, length = 0x001000     /* on-chip Shared RAM block S5 */
    //RAMS6       : origin = 0x012000, length = 0x001000     /* on-chip Shared RAM block S6 */
    //RAMS7       : origin = 0x013000, length = 0x001000     /* on-chip Shared RAM block S7 */
-   RAMS23       : origin = 0x00E000, length = 0x002000     /* on-chip Shared RAM block S2-S3 */
-   RAMS45      : origin = 0x010000, length = 0x002000     /* on-chip Shared RAM block S4-S5 */
+   //RAMS23       : origin = 0x00E000, length = 0x002000     /* on-chip Shared RAM block S2-S3 */
+   //RAMS45      : origin = 0x010000, length = 0x002000     /* on-chip Shared RAM block S4-S5 */
+   RAMS2345    : origin = 0x00E000, length = 0x004000     /* on-chip Shared RAM block S2-S5 */
    RAMS67      : origin = 0x012000, length = 0x002000     /* on-chip Shared RAM block S6-S7 */
    
 
@@ -161,9 +162,10 @@ SECTIONS
    //SHARERAMS5          : > RAMS5,        PAGE = 1
    //SHARERAMS6          : > RAMS6,        PAGE = 1
    //SHARERAMS7          : > RAMS7,        PAGE = 1
-   SHARERAMS23         : > RAMS23,       PAGE = 1		// g_wfmref
-   SHARERAMS45         : > RAMS45,       PAGE = 1		// g_buf_samples_ctom
-   SHARERAMS67         : > RAMS67,       PAGE = 1		// g_buf_samples_mtoc
+   //SHARERAMS23         : > RAMS23,       PAGE = 1		// g_wfmref
+   //SHARERAMS45         : > RAMS45,       PAGE = 1		// g_buf_samples_ctom
+   SHARERAMS2345       : > RAMS2345,       PAGE = 1     // g_wfmref
+   SHARERAMS67         : > RAMS67,       PAGE = 1		// g_buf_samples_ctom
    
    MTOC_MSG_RAM		   : > MTOCRAM,		PAGE = 1		// g_ipc_mtoc
    CTOM_MSG_RAM		   : > CTOMRAM,		PAGE = 1		// g_ipc_ctom

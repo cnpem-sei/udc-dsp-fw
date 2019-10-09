@@ -110,11 +110,11 @@
 
 #define MAX_I_IDLE_DCCT         g_ipc_mtoc.analog_vars.max[6]
 #define MIN_I_ACTIVE_DCCT       g_ipc_mtoc.analog_vars.min[6]
-#define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[7]
-#define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[7]
+#define NETSIGNAL_ELEM_CTOM_BUF1    g_ipc_mtoc.analog_vars.max[7]
+#define NETSIGNAL_ELEM_CTOM_BUF2    g_ipc_mtoc.analog_vars.min[7]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+#define NETSIGNAL_CTOM_BUF1      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF1].f
+#define NETSIGNAL_CTOM_BUF2      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF2].f
 
 #define NUM_DCCTs               g_ipc_mtoc.analog_vars.max[8]
 
@@ -134,7 +134,7 @@
 #define I_LOAD_ERROR                    g_controller_ctom.net_signals[6].f
 
 #define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[7].f
-#define DUTY_REFERENCE_FF               g_controller_ctom.net_signals[8].f
+#define DUTY_REF_FF                     g_controller_ctom.net_signals[8].f
 #define DUTY_MEAN                       g_controller_ctom.net_signals[9].f
 
 #define V_OUT_DIFF                      g_controller_ctom.net_signals[10].f
@@ -149,6 +149,8 @@
 #define I_LOAD_DIFF                     g_controller_ctom.net_signals[16].f
 #define V_LOAD                          g_controller_ctom.net_signals[17].f
 
+#define WFMREF_IDX                      g_controller_ctom.net_signals[30].f
+
 #define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
 
@@ -162,11 +164,7 @@
 
 #define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
 
-#define IIR_2P2Z_WFMREF_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define IIR_2P2Z_WFMREF_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
-
-#define IIR_3P3Z_WFMREF_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_3p3z[0]
-#define IIR_3P3Z_WFMREF_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_3p3z[0].coeffs.s
+#define WFMREF                          g_ipc_ctom.wfmref[0]
 
 #define SIGGEN                          g_ipc_ctom.siggen
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
@@ -180,8 +178,8 @@
 #define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
 
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
 /// Output voltage share controller
 #define ERROR_V_SHARE                       &g_controller_ctom.dsp_modules.dsp_error[1]
@@ -192,14 +190,17 @@
 #define KI_V_SHARE                          PI_CONTROLLER_V_SHARE_COEFFS.ki
 
 /// Cap-bank voltage feedforward controllers
-#define IIR_2P2Z_LPF_V_CAPBANK_MOD_1            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
-#define IIR_2P2Z_LPF_V_CAPBANK_MOD_1_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+#define IIR_2P2Z_LPF_V_CAPBANK_MOD_1            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define IIR_2P2Z_LPF_V_CAPBANK_MOD_1_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
 
-#define IIR_2P2Z_LPF_V_CAPBANK_MOD_2            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
-#define IIR_2P2Z_LPF_V_CAPBANK_MOD_2_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+#define IIR_2P2Z_LPF_V_CAPBANK_MOD_2            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define IIR_2P2Z_LPF_V_CAPBANK_MOD_2_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
 
 #define FF_V_CAPBANK_MOD_1              &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK_MOD_1_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
+
 #define FF_V_CAPBANK_MOD_2              &g_controller_ctom.dsp_modules.dsp_ff[1]
+#define FF_V_CAPBANK_MOD_2_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[1].coeffs.s
 
 /// PWM modulators
 #define PWM_MODULATOR_Q1_MOD_1          g_pwm_modules.pwm_regs[0]
@@ -421,8 +422,15 @@ static void init_controller(void)
                        &SOFT_INTERLOCKS_DEBOUNCE_TIME,
                        &SOFT_INTERLOCKS_RESET_TIME);
 
-    init_ipc();
     init_control_framework(&g_controller_ctom);
+
+    init_ipc();
+
+    init_wfmref(&WFMREF, g_ipc_mtoc.wfmref[0].wfmref_selected,
+                g_ipc_mtoc.wfmref[0].sync_mode, ISR_CONTROL_FREQ,
+                WFMREF_FREQ, g_ipc_mtoc.wfmref[0].gain,
+                g_ipc_mtoc.wfmref[0].offset, &g_wfmref_data.data,
+                SIZE_WFMREF, &I_LOAD_REFERENCE);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -475,41 +483,6 @@ static void init_controller(void)
                    &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
 
     /**
-     *        name:     IIR_2P2Z_WFMREF_FILTER
-     * description:     Reference filter for WfmRef
-     *  dsp module:     DSP_IIR_2P2Z
-     *          in:     I_LOAD_REFERENCE_WFMREF
-     *         out:     I_LOAD_REFERENCE
-     */
-
-    init_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b0,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b1,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b2,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a1,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a2,
-                      FLT_MAX, -FLT_MAX,
-                      &I_LOAD_REFERENCE_WFMREF, &I_LOAD_REFERENCE);
-
-    /**
-     *        name:     IIR_3P3Z_WFMREF_FILTER
-     * description:     Reference filter for WfmRef
-     *  dsp module:     DSP_IIR_3P3Z
-     *          in:     I_LOAD_REFERENCE_WFMREF
-     *         out:     I_LOAD_REFERENCE
-     */
-    init_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b0,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b1,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b2,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b3,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a1,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a2,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a3,
-                      FLT_MAX, -FLT_MAX,
-                      &I_LOAD_REFERENCE_WFMREF, &I_LOAD_REFERENCE);
-
-    /**
      *        name:     ERROR_I_LOAD
      * description:     Load current reference error
      *  dsp module:     DSP_Error
@@ -536,7 +509,7 @@ static void init_controller(void)
      * description:     Load current reference feedforward IIR 2P2Z controller
      *  dsp module:     DSP_IIR_2P2Z
      *          in:     I_LOAD_REFERENCE
-     *         out:     DUTY_REFERENCE_FF
+     *         out:     DUTY_REF_FF
      */
 
     init_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD,
@@ -546,7 +519,7 @@ static void init_controller(void)
                       IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS.a1,
                       IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS.a2,
                       PWM_MAX_DUTY, PWM_MIN_DUTY,
-                      &I_LOAD_REFERENCE, &DUTY_REFERENCE_FF);
+                      &I_LOAD_REFERENCE, &DUTY_REF_FF);
 
     /*****************************************************************/
     /** INITIALIZATION OF MODULES OUTPUT VOLTAGE SHARE CONTROL LOOP **/
@@ -604,7 +577,8 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE_MOD_1
      */
 
-    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1, NOM_V_CAPBANK_FF, MIN_V_CAPBANK_FF,
+    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1, FF_V_CAPBANK_MOD_1_COEFFS.vdc_nom,
+                        FF_V_CAPBANK_MOD_1_COEFFS.vdc_min,
                         &V_CAPBANK_MOD_1_FILTERED, &IN_FF_V_CAPBANK_MOD_1,
                         &DUTY_CYCLE_MOD_1);
 
@@ -634,10 +608,10 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE_MOD_2
      */
 
-    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2, NOM_V_CAPBANK_FF, MIN_V_CAPBANK_FF,
+    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2, FF_V_CAPBANK_MOD_2_COEFFS.vdc_nom,
+                        FF_V_CAPBANK_MOD_2_COEFFS.vdc_min,
                         &V_CAPBANK_MOD_2_FILTERED, &IN_FF_V_CAPBANK_MOD_2,
                         &DUTY_CYCLE_MOD_2);
-
 
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
@@ -678,11 +652,10 @@ static void reset_controller(void)
     I_LOAD_REFERENCE_WFMREF = 0.0;
 
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
-    reset_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
-    reset_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
 
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
+
     reset_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
     reset_dsp_error(ERROR_V_SHARE);
@@ -698,31 +671,66 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
     disable_siggen(&SIGGEN);
 
+    reset_wfmref(&WFMREF);
+
     reset_timeslicers();
 }
 
 /**
- * Enable control ISR
+ * Initialization of interruptions.
  */
-static void enable_controller()
+static void init_interruptions(void)
 {
-    stop_DMA();
-    DELAY_US(5);
-    start_DMA();
-    HRADCs_Info.enable_Sampling = 1;
-    enable_pwm_tbclk();
+    EALLOW;
+    PieVectTable.EPWM1_INT =  &isr_init_controller;
+    PieVectTable.EPWM2_INT =  &isr_controller;
+    PieVectTable.EPWM3_INT =  &isr_controller;
+    PieVectTable.EPWM4_INT =  &isr_controller;
+    EDIS;
+
+    PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx3 = 1;
+    PieCtrlRegs.PIEIER3.bit.INTx4 = 1;
+
+    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1);
+    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1);
+    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_2);
+    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_2);
+
+    IER |= M_INT1;
+    IER |= M_INT3;
+    IER |= M_INT11;
+
+    /// Enable global interrupts (EINT)
+    EINT;
+    ERTM;
 }
 
 /**
- * Disable control ISR
+ * Termination of interruptions.
  */
-static void disable_controller()
+static void term_interruptions(void)
 {
-    disable_pwm_tbclk();
-    HRADCs_Info.enable_Sampling = 0;
-    stop_DMA();
+    /// Disable global interrupts (EINT)
+    DINT;
+    DRTM;
 
-    reset_controller();
+    /// Clear enables
+    IER = 0;
+
+    PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
+    PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
+    PieCtrlRegs.PIEIER3.bit.INTx3 = 0;  /// ePWM3
+    PieCtrlRegs.PIEIER3.bit.INTx4 = 0;  /// ePWM4
+
+    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1);
+    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1);
+    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_2);
+    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_2);
+
+    /// Clear flags
+    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
 }
 
 /**
@@ -739,6 +747,12 @@ static interrupt void isr_init_controller(void)
 
     PWM_MODULATOR_Q2_MOD_1->ETSEL.bit.INTSEL = ET_CTR_ZERO;
     PWM_MODULATOR_Q2_MOD_1->ETCLR.bit.INT = 1;
+
+    PWM_MODULATOR_Q1_MOD_2->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q1_MOD_2->ETCLR.bit.INT = 1;
+
+    PWM_MODULATOR_Q2_MOD_2->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_Q2_MOD_2->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
@@ -833,43 +847,9 @@ static interrupt void isr_controller(void)
                 break;
             }
             case RmpWfm:
-            {
-                switch(WFMREF.sync_mode)
-                {
-                    case OneShot:
-                    {   /*********************************************/
-                        RUN_TIMESLICER(TIMESLICER_WFMREF)
-                            if( WFMREF.wfmref_data.p_buf_idx <=
-                                WFMREF.wfmref_data.p_buf_end)
-                            {
-                                I_LOAD_REFERENCE_WFMREF =
-                                            *(WFMREF.wfmref_data.p_buf_idx++) *
-                                             (WFMREF.gain) + WFMREF.offset;
-                            }
-                        END_TIMESLICER(TIMESLICER_WFMREF)
-                        /*********************************************/
-                        break;
-                    }
-
-                    case SampleBySample:
-                    case SampleBySample_OneCycle:
-                    {
-                        if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
-                        {
-                            I_LOAD_REFERENCE_WFMREF =
-                                              *(WFMREF.wfmref_data.p_buf_idx) *
-                                               (WFMREF.gain) + WFMREF.offset;
-                        }
-                        break;
-                    }
-                }
-
-                //run_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
-                run_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
-                break;
-            }
             case MigWfm:
             {
+                run_wfmref(&WFMREF);
                 break;
             }
             default:
@@ -897,7 +877,7 @@ static interrupt void isr_controller(void)
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
             run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
-            DUTY_MEAN = DUTY_I_LOAD_PI + DUTY_REFERENCE_FF;
+            DUTY_MEAN = DUTY_I_LOAD_PI + DUTY_REF_FF;
 
             /// Modules output voltage share controller
             run_dsp_error(ERROR_V_SHARE);
@@ -918,10 +898,16 @@ static interrupt void isr_controller(void)
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1_MOD_2, DUTY_CYCLE_MOD_2);
     }
 
+    WFMREF_IDX = (float) (WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_idx -
+                          WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_start);
+
+    g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
+
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF1);
+        //insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF2);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
@@ -930,6 +916,8 @@ static interrupt void isr_controller(void)
 
     PWM_MODULATOR_Q1_MOD_1->ETCLR.bit.INT = 1;
     PWM_MODULATOR_Q2_MOD_1->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q1_MOD_2->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_Q2_MOD_2->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
@@ -937,47 +925,27 @@ static interrupt void isr_controller(void)
 }
 
 /**
- * Initialization of interruptions.
+ * Enable control ISR
  */
-static void init_interruptions(void)
+static void enable_controller()
 {
-    EALLOW;
-    PieVectTable.EPWM1_INT =  &isr_init_controller;
-    PieVectTable.EPWM2_INT =  &isr_controller;
-    EDIS;
-
-    PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
-    enable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1);
-    enable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1);
-
-    IER |= M_INT1;
-    IER |= M_INT3;
-    IER |= M_INT11;
-
-    /// Enable global interrupts (EINT)
-    EINT;
-    ERTM;
+    stop_DMA();
+    DELAY_US(5);
+    start_DMA();
+    HRADCs_Info.enable_Sampling = 1;
+    enable_pwm_tbclk();
 }
 
 /**
- * Termination of interruptions.
+ * Disable control ISR
  */
-static void term_interruptions(void)
+static void disable_controller()
 {
-    /// Disable global interrupts (EINT)
-    DINT;
-    DRTM;
+    disable_pwm_tbclk();
+    HRADCs_Info.enable_Sampling = 0;
+    stop_DMA();
 
-    /// Clear enables
-    IER = 0;
-    PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
-    disable_pwm_interrupt(PWM_MODULATOR_Q1_MOD_1);
-    disable_pwm_interrupt(PWM_MODULATOR_Q2_MOD_1);
-
-    /// Clear flags
-    PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
+    reset_controller();
 }
 
 /**
@@ -990,12 +958,14 @@ static void turn_on(uint16_t dummy)
     if(V_CAPBANK_MOD_1 < MIN_V_CAPBANK)
     {
         PIN_SET_UDC_INTERLOCK;
+        BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Module_1_CapBank_Undervoltage);
         set_hard_interlock(0, Module_1_CapBank_Undervoltage);
     }
 
     if(V_CAPBANK_MOD_2 < MIN_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK
+        PIN_SET_UDC_INTERLOCK;
+        BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Module_2_CapBank_Undervoltage);
         set_hard_interlock(0, Module_2_CapBank_Undervoltage);
     }
 
@@ -1061,37 +1031,31 @@ static inline void check_interlocks(void)
 {
     if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
     {
-        PIN_SET_UDC_INTERLOCK
         set_hard_interlock(0, Load_Overcurrent);
     }
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
     {
-        PIN_SET_UDC_INTERLOCK
         set_soft_interlock(0, DCCT_High_Difference);
     }
 
     if(!PIN_STATUS_EXTERNAL_INTERLOCK)
     {
-        PIN_SET_UDC_INTERLOCK
         set_hard_interlock(0, External_Interlock);
     }
 
     if(!PIN_STATUS_IDB_INTERLOCK)
     {
-        PIN_SET_UDC_INTERLOCK
         set_hard_interlock(0, Rack_Interlock);
     }
 
     if(!PIN_STATUS_DCCT_1_STATUS)
     {
-        PIN_SET_UDC_INTERLOCK
         set_soft_interlock(0, DCCT_1_Fault);
     }
 
     if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
     {
-        PIN_SET_UDC_INTERLOCK
         set_soft_interlock(0, DCCT_2_Fault);
     }
 
@@ -1099,7 +1063,6 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_1) < MIN_I_ACTIVE_DCCT)
         {
-            PIN_SET_UDC_INTERLOCK
             set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
@@ -1107,7 +1070,6 @@ static inline void check_interlocks(void)
     {
         if(fabs(I_LOAD_1) > MAX_I_IDLE_DCCT)
         {
-            PIN_SET_UDC_INTERLOCK
             set_soft_interlock(0, Load_Feedback_1_Fault);
         }
     }
@@ -1118,7 +1080,6 @@ static inline void check_interlocks(void)
         {
             if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
             {
-                PIN_SET_UDC_INTERLOCK
                 set_soft_interlock(0, Load_Feedback_2_Fault);
             }
         }
@@ -1126,7 +1087,6 @@ static inline void check_interlocks(void)
         {
             if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
             {
-                PIN_SET_UDC_INTERLOCK
                 set_soft_interlock(0, Load_Feedback_2_Fault);
             }
         }
@@ -1134,13 +1094,11 @@ static inline void check_interlocks(void)
 
     if(V_CAPBANK_MOD_1 > MAX_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK
         set_hard_interlock(0, Module_1_CapBank_Overvoltage);
     }
 
     if(V_CAPBANK_MOD_2 > MAX_V_CAPBANK)
     {
-        PIN_SET_UDC_INTERLOCK
         set_hard_interlock(0, Module_2_CapBank_Overvoltage);
     }
 
@@ -1150,13 +1108,11 @@ static inline void check_interlocks(void)
     {
         if(V_CAPBANK_MOD_1 < MIN_V_CAPBANK)
         {
-            PIN_SET_UDC_INTERLOCK
             set_hard_interlock(0, Module_1_CapBank_Undervoltage);
         }
 
         if(V_CAPBANK_MOD_2 < MIN_V_CAPBANK)
         {
-            PIN_SET_UDC_INTERLOCK
             set_hard_interlock(0, Module_2_CapBank_Undervoltage);
         }
     }
@@ -1166,6 +1122,11 @@ static inline void check_interlocks(void)
     //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
     //CLEAR_DEBUG_GPIO1;
+
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+    {
+        PIN_SET_UDC_INTERLOCK;
+    }
 }
 
 /**

@@ -16,7 +16,7 @@
 				<configuration artifactExtension="out" artifactName="${ProjName}" buildProperties="" cleanCommand="${CG_CLEAN_CMD}" description="Firmware da placa UDC v2.1" id="com.ti.ccstudio.buildDefinitions.C2000.Debug.2056255541" name="FLASH_UDC_V2_1" parent="com.ti.ccstudio.buildDefinitions.C2000.Debug" postbuildStep="" prebuildStep="">
 					<folderInfo id="com.ti.ccstudio.buildDefinitions.C2000.Debug.2056255541." name="/" resourcePath="">
 						<toolChain id="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.DebugToolchain.1310843154" name="TI Build Tools" secondaryOutputs="com.ti.ccstudio.buildDefinitions.C2000_6.2.hex.outputType__BIN" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.DebugToolchain" targetTool="com.ti.ccstudio.buildDefinitions.C2000_6.2.exe.linkerDebug.930499414">
-							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.417813055" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS" valueType="stringList">
+							<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.417813055" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS" valueType="stringList">
 								<listOptionValue builtIn="false" value="DEVICE_CONFIGURATION_ID=TMS320C28XX.F28M36P63C2"/>
 								<listOptionValue builtIn="false" value="OUTPUT_FORMAT=COFF"/>
 								<listOptionValue builtIn="false" value="CCS_MBS_VERSION=5.5.0"/>
@@ -34,14 +34,14 @@
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.SILICON_VERSION.2117397184" name="Processor version (--silicon_version, -v)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.SILICON_VERSION" value="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.SILICON_VERSION.28" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.FLOAT_SUPPORT.573959003" name="Specify floating point support (--float_support)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.FLOAT_SUPPORT" value="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.FLOAT_SUPPORT.fpu32" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.VCU_SUPPORT.1949555840" name="Specify VCU support (--vcu_support)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.VCU_SUPPORT" value="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.VCU_SUPPORT.vcu0" valueType="enumerated"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.INCLUDE_PATH.1786861999" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.INCLUDE_PATH" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.INCLUDE_PATH.1786861999" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${F28M36x_ELP_DRS}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${F28M36x_COMMON_PATH}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${F28M36x_HEADERS_PATH}/include&quot;"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.DEBUGGING_MODEL.338424077" name="Debugging model" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.DEBUGGING_MODEL" value="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.DEBUGGING_MODEL.SYMDEBUG__DWARF" valueType="enumerated"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.DIAG_WARNING.639879784" name="Treat diagnostic &lt;id&gt; as warning (--diag_warning, -pdsw)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.DIAG_WARNING" valueType="stringList">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.DIAG_WARNING.639879784" name="Treat diagnostic &lt;id&gt; as warning (--diag_warning, -pdsw)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.DIAG_WARNING" valueType="stringList">
 									<listOptionValue builtIn="false" value="225"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.DISPLAY_ERROR_NUMBER.111633273" name="Emit diagnostic identifier numbers (--display_error_number, -pden)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.compilerID.DISPLAY_ERROR_NUMBER" value="true" valueType="boolean"/>
@@ -63,7 +63,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DISPLAY_ERROR_NUMBER.549840139" name="Emit diagnostic identifier numbers (--display_error_number)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DISPLAY_ERROR_NUMBER" value="true" valueType="boolean"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DIAG_WRAP.9274905" name="Wrap diagnostic messages (--diag_wrap)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DIAG_WRAP" value="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.DIAG_WRAP.off" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.XML_LINK_INFO.797943670" name="Detailed link information data-base into &lt;file&gt; (--xml_link_info, -xml_link_info)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.XML_LINK_INFO" value="&quot;${ProjName}_linkInfo.xml&quot;" valueType="string"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.LIBRARY.1341013134" name="Include library file or command file as input (--library, -l)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.LIBRARY" valueType="libs">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.LIBRARY.1341013134" name="Include library file or command file as input (--library, -l)" superClass="com.ti.ccstudio.buildDefinitions.C2000_6.2.linkerID.LIBRARY" valueType="libs">
 									<listOptionValue builtIn="false" value="&quot;${F28M36x_HEADERS_PATH}/cmd/F28M36x_Headers_nonBIOS.cmd&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${F28M36x_COMMON_PATH}/lib/SFO_TI_Build_V7_FPU.lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${FPUfastRTS_PATH}/lib/rts2800_fpu32_fast_supplement.lib&quot;"/>
@@ -81,7 +81,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="app/DP_framework|main_v3.c|F28M36x_ELP_DRS/shared_memory|main_v7.c|FLASH|app/shared_memory2|F28M36x_generic_wshared_C28_FLASH.cmd|app/IPC_modules|F28M36x_ELP_DRS/Regulators_modules|old|main_v2.c|main_v6.c|F28M36x_ELP_DRS/PWM_modules/PWM_modules_old.c|main_FBP_v2_0_1.c|app/PS_modules|F28M36x_generic_wshared_C28_RAM.cmd|main_v5.c|app|F28M36x_ELP_DRS/DP_framework/RefManager|main_HRADC_Debug.c|main_v4.c|SFO_TI_Build_V7_FPU.lib|main_v8.c|app/shared_memory/main_var.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="elp_libs/ps_modules/fac_acdc.c|app/DP_framework|main_v3.c|F28M36x_ELP_DRS/shared_memory|main_v7.c|FLASH|app/shared_memory2|F28M36x_generic_wshared_C28_FLASH.cmd|app/IPC_modules|F28M36x_ELP_DRS/Regulators_modules|old|main_v2.c|main_v6.c|F28M36x_ELP_DRS/PWM_modules/PWM_modules_old.c|main_FBP_v2_0_1.c|app/PS_modules|F28M36x_generic_wshared_C28_RAM.cmd|main_v5.c|app|F28M36x_ELP_DRS/DP_framework/RefManager|main_HRADC_Debug.c|main_v4.c|SFO_TI_Build_V7_FPU.lib|main_v8.c|app/shared_memory/main_var.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

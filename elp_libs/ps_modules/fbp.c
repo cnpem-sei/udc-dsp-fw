@@ -61,11 +61,12 @@
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
 #define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
 
-#define BUF_SAMPLES             &g_ipc_ctom.buf_samples[0]
+#define BUF_SAMPLES             &g_ipc_ctom.buf_samples
 
 #define SIGGEN                  g_ipc_ctom.siggen
 #define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
 
+#define WFMREF                  g_ipc_ctom.wfmref
 #define WFMREF_OUTPUT           g_controller_ctom.net_signals[13].f
 
 /**
@@ -80,7 +81,11 @@
 #define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[4]
 #define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[4]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
+#define PS1_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
+#define PS2_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 1].f
+#define PS3_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 2].f
+#define PS4_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 3].f
+
 #define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
 
 /**
@@ -252,8 +257,6 @@ typedef enum
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
 #pragma CODE_SECTION(open_relay, "ramfuncs");
-#pragma CODE_SECTION(get_relay_status, "ramfuncs");
-
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
@@ -274,7 +277,6 @@ static void turn_off(uint16_t id);
 
 static void open_relay(uint16_t id);
 static void close_relay(uint16_t id);
-static uint16_t get_relay_status(uint16_t id);
 
 static void reset_interlocks(uint16_t id);
 static void check_interlocks_ps_module(uint16_t id);
@@ -282,6 +284,8 @@ static void check_interlocks_ps_module(uint16_t id);
 static inline void run_dsp_pi_inline(dsp_pi_t *p_pi);
 static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
                                                *p_pwm_module, float duty_pu);
+static inline uint16_t insert_buffer_inline(buf_t *p_buf, float data);
+
 
 /**
  * Main function for this power supply module
@@ -437,10 +441,17 @@ static void init_controller(void)
         {
             g_ipc_ctom.ps_module[i].ps_status.bit.active = 0;
         }
+
+        init_wfmref(&WFMREF[i], g_ipc_mtoc.wfmref[i].wfmref_selected,
+                    g_ipc_mtoc.wfmref[i].sync_mode, ISR_CONTROL_FREQ,
+                    WFMREF_FREQ, g_ipc_mtoc.wfmref[i].gain,
+                    g_ipc_mtoc.wfmref[i].offset, &g_wfmref_data.data_fbp[i],
+                    SIZE_WFMREF_FBP, &g_ipc_ctom.ps_module[i].ps_reference);
     }
 
-    init_ipc();
     init_control_framework(&g_controller_ctom);
+
+    init_ipc();
 
     /// Initialization of signal generator module
     disable_siggen(&SIGGEN);
@@ -568,7 +579,10 @@ static void init_controller(void)
     /**
      * Samples buffer initialization
      */
-    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
+    init_buffer(BUF_SAMPLES[0], &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/4);
+    init_buffer(BUF_SAMPLES[1], &g_buf_samples_ctom[1024], SIZE_BUF_SAMPLES_CTOM/4);
+    init_buffer(BUF_SAMPLES[2], &g_buf_samples_ctom[2048], SIZE_BUF_SAMPLES_CTOM/4);
+    init_buffer(BUF_SAMPLES[3], &g_buf_samples_ctom[3072], SIZE_BUF_SAMPLES_CTOM/4);
 
     /// Reset all internal variables
     reset_controllers();
@@ -588,6 +602,8 @@ static void reset_controller(uint16_t id)
 
     reset_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[id]);
     reset_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[id]);
+
+    reset_wfmref(&WFMREF[id]);
 
     disable_siggen(&SIGGEN);
     reset_timeslicers();
@@ -658,7 +674,7 @@ static interrupt void isr_init_controller(void)
  */
 static interrupt void isr_controller(void)
 {
-    static uint16_t i, flag_siggen, flag_wfmref = 0;
+    static uint16_t i, flag_siggen;
     static float temp[4];
 
     SET_DEBUG_GPIO1;
@@ -706,47 +722,9 @@ static interrupt void isr_controller(void)
                         break;
                     }
                     case RmpWfm:
-                    {
-                        if(!flag_wfmref)
-                        {
-                            switch(WFMREF.sync_mode)
-                            {
-                                case OneShot:
-                                {   /*********************************************/
-                                    RUN_TIMESLICER(TIMESLICER_WFMREF)
-                                        if( WFMREF.wfmref_data.p_buf_idx <=
-                                            WFMREF.wfmref_data.p_buf_end)
-                                        {
-                                            WFMREF_OUTPUT =
-                                                    *(WFMREF.wfmref_data.p_buf_idx++) *
-                                                    (WFMREF.gain) + WFMREF.offset;
-                                        }
-                                    END_TIMESLICER(TIMESLICER_WFMREF)
-                                    /*********************************************/
-                                    break;
-                                }
-
-                                case SampleBySample:
-                                case SampleBySample_OneCycle:
-                                {
-                                    if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
-                                    {
-                                        WFMREF_OUTPUT =  *(WFMREF.wfmref_data.p_buf_idx) *
-                                                             (WFMREF.gain) + WFMREF.offset;
-                                    }
-                                    break;
-                                }
-                            }
-
-                            flag_wfmref = 1;
-                        }
-
-                        g_ipc_ctom.ps_module[i].ps_reference = WFMREF_OUTPUT;
-
-                        break;
-                    }
                     case MigWfm:
                     {
+                        run_wfmref(&WFMREF[i]);
                         break;
                     }
                     case Cycle:
@@ -806,7 +784,10 @@ static interrupt void isr_controller(void)
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES[0], PS1_NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES[1], PS2_NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES[2], PS3_NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES[3], PS4_NETSIGNAL_CTOM_BUF);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
@@ -821,7 +802,6 @@ static interrupt void isr_controller(void)
     PS4_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
 
     flag_siggen = 0;
-    flag_wfmref = 0;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
@@ -835,16 +815,16 @@ static void init_interruptions(void)
 {
     EALLOW;
     PieVectTable.EPWM1_INT = &isr_init_controller;
-    PieVectTable.EPWM2_INT = &isr_controller;
+    //PieVectTable.EPWM2_INT = &isr_controller;
     PieVectTable.TINT0     = &isr_interlocks_timebase;
     EDIS;
 
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;  /// ePWM1
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  /// ePWM2
+    //PieCtrlRegs.PIEIER3.bit.INTx2 = 1;  /// ePWM2
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;  /// CpuTimer0
 
     enable_pwm_interrupt(PS4_PWM_MODULATOR);
-    enable_pwm_interrupt(PS4_PWM_MODULATOR_NEG);
+    //enable_pwm_interrupt(PS4_PWM_MODULATOR_NEG);
 
     IER |= M_INT1;
     IER |= M_INT3;
@@ -1080,42 +1060,6 @@ static void close_relay(uint16_t id)
 }
 
 /**
- * Get relay status from specified power supply.
- *
- * @param id specified power supply
- */
-static uint16_t get_relay_status(uint16_t id)
-{
-    switch(id)
-    {
-        case PS1_ID:
-        {
-            return PIN_STATUS_PS1_DCLINK_RELAY;
-        }
-
-        case PS2_ID:
-        {
-            return PIN_STATUS_PS2_DCLINK_RELAY;
-        }
-
-        case PS3_ID:
-        {
-            return PIN_STATUS_PS3_DCLINK_RELAY;
-        }
-
-        case PS4_ID:
-        {
-            return PIN_STATUS_PS4_DCLINK_RELAY;
-        }
-
-        default:
-        {
-            return 0;
-        }
-    }
-}
-
-/**
  * Check variables from specified power supply for interlocks
  *
  * @param id specified power supply
@@ -1328,4 +1272,43 @@ static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
 
     p_pwm_module->CMPAM2.half.CMPA    = duty_int;
     p_pwm_module->CMPAM2.half.CMPAHR  = duty_frac;
+}
+
+static inline uint16_t insert_buffer_inline(buf_t *p_buf, float data)
+{
+    if( (p_buf->p_buf_idx >= p_buf->p_buf_start) &&
+        (p_buf->p_buf_idx <= p_buf->p_buf_end) )
+    {
+        if(p_buf->status == Buffering)
+        {
+            *(p_buf->p_buf_idx) = data;
+
+            if(p_buf->p_buf_idx++ == p_buf->p_buf_end)
+            {
+                p_buf->p_buf_idx = p_buf->p_buf_start;
+            }
+        }
+        else if(p_buf->status == Postmortem)
+        {
+            *(p_buf->p_buf_idx) = data;
+
+            if(p_buf->p_buf_idx++ == p_buf->p_buf_end)
+            {
+                p_buf->p_buf_idx = p_buf->p_buf_start;
+                p_buf->status = Idle;
+            }
+        }
+        else
+        {
+            p_buf->status = Idle;
+        }
+    }
+
+    else
+    {
+        p_buf->p_buf_idx = p_buf->p_buf_start;
+        p_buf->status = Idle;
+    }
+
+    return p_buf->status;
 }

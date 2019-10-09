@@ -70,8 +70,6 @@
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
 #define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
 
-#define SIGGEN                  g_ipc_ctom.siggen
-
 /**
  * HRADC parameters
  */
@@ -111,6 +109,8 @@
 /**
  * Controller defines
  */
+
+/// DSP Net Signals
 #define I_LOAD                          g_controller_ctom.net_signals[0].f  // HRADC0
 #define V_CAPBANK                       g_controller_ctom.net_signals[1].f  // HRADC1
 
@@ -125,10 +125,19 @@
 
 #define DUTY_CYCLE                      g_controller_ctom.output_signals[0].f
 
+/// Reference
 #define I_LOAD_SETPOINT                 g_ipc_ctom.ps_module[0].ps_setpoint
 #define I_LOAD_REFERENCE                g_ipc_ctom.ps_module[0].ps_reference
 
 #define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
+
+#define WFMREF                          g_ipc_ctom.wfmref[0]
+
+#define SIGGEN                          g_ipc_ctom.siggen
+#define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
+#define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+/// Load current controller
 #define ERROR_I_LOAD                    &g_controller_ctom.dsp_modules.dsp_error[0]
 
 #define IIR_2P2Z_WFMREF_FILTER               &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
@@ -145,17 +154,17 @@
 #define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
 
+/// Cap-bank voltage feedforward controllers
 #define IIR_2P2Z_LPF_V_CAPBANK              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
 #define IIR_2P2Z_LPF_V_CAPBANK_COEFFS       g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
 
 #define FF_V_CAPBANK                 &g_controller_ctom.dsp_modules.dsp_ff[0]
 
+/// PWM modulators
 #define PWM_MODULATOR_Q1            g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_Q2            g_pwm_modules.pwm_regs[1]
 
-#define SRLIM_SIGGEN_AMP            &g_controller_ctom.dsp_modules.dsp_srlim[1]
-#define SRLIM_SIGGEN_OFFSET         &g_controller_ctom.dsp_modules.dsp_srlim[2]
-
+/// Samples buffer
 #define BUF_SAMPLES                 &g_ipc_ctom.buf_samples[0]
 
 /**
@@ -356,8 +365,15 @@ static void init_controller(void)
                        &SOFT_INTERLOCKS_DEBOUNCE_TIME,
                        &SOFT_INTERLOCKS_RESET_TIME);
 
-    init_ipc();
     init_control_framework(&g_controller_ctom);
+
+    init_ipc();
+
+    init_wfmref(&WFMREF, g_ipc_mtoc.wfmref[0].wfmref_selected,
+                g_ipc_mtoc.wfmref[0].sync_mode, ISR_CONTROL_FREQ,
+                WFMREF_FREQ, g_ipc_mtoc.wfmref[0].gain,
+                g_ipc_mtoc.wfmref[0].offset, &g_wfmref_data.data,
+                SIZE_WFMREF, &I_LOAD_REFERENCE);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -567,6 +583,8 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
     disable_siggen(&SIGGEN);
 
+    reset_wfmref(&WFMREF);
+
     reset_timeslicers();
 }
 
@@ -681,43 +699,9 @@ static interrupt void isr_controller(void)
                 break;
             }
             case RmpWfm:
-            {
-                switch(WFMREF.sync_mode)
-                {
-                    case OneShot:
-                    {   /*********************************************/
-                        RUN_TIMESLICER(TIMESLICER_WFMREF)
-                            if( WFMREF.wfmref_data.p_buf_idx <=
-                                WFMREF.wfmref_data.p_buf_end)
-                            {
-                                I_LOAD_REFERENCE_WFMREF =
-                                            *(WFMREF.wfmref_data.p_buf_idx++) *
-                                             (WFMREF.gain) + WFMREF.offset;
-                            }
-                        END_TIMESLICER(TIMESLICER_WFMREF)
-                        /*********************************************/
-                        break;
-                    }
-
-                    case SampleBySample:
-                    case SampleBySample_OneCycle:
-                    {
-                        if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
-                        {
-                            I_LOAD_REFERENCE_WFMREF =
-                                              *(WFMREF.wfmref_data.p_buf_idx) *
-                                               (WFMREF.gain) + WFMREF.offset;
-                        }
-                        break;
-                    }
-                }
-
-                //run_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
-                run_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
-                break;
-            }
             case MigWfm:
             {
+                run_wfmref(&WFMREF);
                 break;
             }
             default:

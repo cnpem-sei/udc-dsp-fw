@@ -27,19 +27,25 @@
 #include "control/control.h"
 #include "ipc.h"
 
-#pragma DATA_SECTION(g_wfmref,"SHARERAMS23")
-volatile float g_wfmref[SIZE_WFMREF];
+#define WFMREF_CTOM     g_ipc_ctom.wfmref
+#define WFMREF_MTOC     g_ipc_mtoc.wfmref
 
-#pragma DATA_SECTION(g_buf_samples_ctom,"SHARERAMS45")
+//#pragma DATA_SECTION(g_wfmref,"SHARERAMS23")
+//volatile float g_wfmref[SIZE_WFMREF];
+
+//#pragma DATA_SECTION(g_buf_samples_ctom,"SHARERAMS45")
+#pragma DATA_SECTION(g_buf_samples_ctom,"SHARERAMS67")
 volatile float g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM];
 
-#pragma DATA_SECTION(g_buf_samples_mtoc,"SHARERAMS67")
-volatile float g_buf_samples_mtoc[SIZE_BUF_SAMPLES_MTOC];
+//#pragma DATA_SECTION(g_buf_samples_mtoc,"SHARERAMS67")
+//volatile float g_buf_samples_mtoc[SIZE_BUF_SAMPLES_MTOC];
 
 #pragma DATA_SECTION(g_ipc_ctom,"CTOM_MSG_RAM");
 #pragma DATA_SECTION(g_ipc_mtoc,"MTOC_MSG_RAM");
 volatile ipc_ctom_t g_ipc_ctom;
 volatile ipc_mtoc_t g_ipc_mtoc;
+
+#pragma CODE_SECTION(isr_ipc_sync_pulse,"ramfuncs");
 
 /**
  * Interrupt service routine for handling Low Priority MtoC IPC messages
@@ -71,7 +77,7 @@ void init_ipc(void)
     g_ipc_ctom.counter_set_slowref =  0;
     g_ipc_ctom.counter_sync_pulse =  0;
 
-    WFMREF = g_ipc_mtoc.wfmref;
+    //WFMREF = g_ipc_mtoc.wfmref;
 
     EALLOW;
 
@@ -192,12 +198,14 @@ void send_ipc_lowpriority_msg(uint16_t msg_id, ipc_ctom_lowpriority_msg_t msg)
  */
 interrupt void isr_ipc_lowpriority_msg(void)
 {
-    static uint16_t i;
+    static uint16_t i, msg_id, sel;
 
     g_ipc_ctom.msg_mtoc = CtoMIpcRegs.MTOCIPCSTS.all;
     CtoMIpcRegs.MTOCIPCACK.all = g_ipc_ctom.msg_mtoc;
 
-    if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.active)
+    msg_id = g_ipc_mtoc.msg_id;
+
+    if(g_ipc_ctom.ps_module[msg_id].ps_status.bit.active)
     {
         switch(GET_IPC_MTOC_LOWPRIORITY_MSG)
         {
@@ -206,7 +214,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 /**
                  * TODO: where should disable siggen + reset wfmref be?
                  */
-                g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_on(g_ipc_mtoc.msg_id);
+                g_ipc_ctom.ps_module[msg_id].turn_on(msg_id);
                 break;
             }
 
@@ -215,19 +223,19 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 /**
                  * TODO: where should disable siggen + reset wfmref be?
                  */
-                g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_off(g_ipc_mtoc.msg_id);
+                g_ipc_ctom.ps_module[msg_id].turn_off(msg_id);
                 break;
             }
 
             case Open_Loop:
             {
-                open_loop(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
+                open_loop(&g_ipc_ctom.ps_module[msg_id]);
                 break;
             }
 
             case Close_Loop:
             {
-                close_loop(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
+                close_loop(&g_ipc_ctom.ps_module[msg_id]);
                 break;
             }
 
@@ -236,35 +244,39 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 /**
                  * TODO:
                  */
-                if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state
+                if(g_ipc_ctom.ps_module[msg_id].ps_status.bit.state
                    > Interlock)
                 {
-                    switch(g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state)
+                    switch(g_ipc_mtoc.ps_module[msg_id].ps_status.bit.state)
                     {
-                        case RmpWfm:
-                        case MigWfm:
+                        case SlowRef:
+                        case SlowRefSync:
                         {
-                            WFMREF = g_ipc_mtoc.wfmref;
-                            WFMREF.wfmref_data.status = Buffering;
-                            break;
+                            g_ipc_ctom.ps_module[msg_id].ps_setpoint =
+                                      g_ipc_ctom.ps_module[msg_id].ps_reference;
                         }
 
                         case Cycle:
                         {
-                            WFMREF.wfmref_data.status = Idle;
                             disable_siggen(&g_ipc_ctom.siggen);
+                        }
+
+                        case RmpWfm:
+                        case MigWfm:
+                        {
+                            update_wfmref(&WFMREF_CTOM[msg_id],&WFMREF_MTOC[msg_id]);
+                            reset_wfmref(&WFMREF_CTOM[msg_id]);
                             break;
                         }
 
                         default:
                         {
-                            WFMREF.wfmref_data.status = Idle;
                             break;
                         }
                     }
 
-                    cfg_ps_operation_mode(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id],
-                                          g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state);
+                    cfg_ps_operation_mode(&g_ipc_ctom.ps_module[msg_id],
+                                          g_ipc_mtoc.ps_module[msg_id].ps_status.bit.state);
                 }
 
                 break;
@@ -272,19 +284,19 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
             case Reset_Interlocks:
             {
-                g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].reset_interlocks(g_ipc_mtoc.msg_id);
+                g_ipc_ctom.ps_module[msg_id].reset_interlocks(msg_id);
                 break;
             }
 
             case Unlock_UDC:
             {
-                unlock_ps_module(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
+                unlock_ps_module(&g_ipc_ctom.ps_module[msg_id]);
                 break;
             }
 
             case Lock_UDC:
             {
-                lock_ps_module(&g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id]);
+                lock_ps_module(&g_ipc_ctom.ps_module[msg_id]);
                 break;
             }
 
@@ -298,7 +310,11 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
             case Enable_Buf_Samples:
             {
-                enable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
+                enable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                /*enable_buffer(&g_ipc_ctom.buf_samples[0]);
+                enable_buffer(&g_ipc_ctom.buf_samples[1]);
+                enable_buffer(&g_ipc_ctom.buf_samples[2]);
+                enable_buffer(&g_ipc_ctom.buf_samples[3]);*/
                 break;
             }
 
@@ -308,8 +324,12 @@ interrupt void isr_ipc_lowpriority_msg(void)
                  * TODO: It sets as Postmortem to wait buffer complete. Maybe
                  * it's better to create a postmortem BSMP function
                  */
-                postmortem_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
-                //disable_buffer(&g_ipc_ctom.buf_samples[g_ipc_mtoc.msg_id]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                /*postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[1]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[2]);
+                postmortem_buffer(&g_ipc_ctom.buf_samples[3]);*/
+                //disable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
                 break;
             }
 
@@ -317,16 +337,16 @@ interrupt void isr_ipc_lowpriority_msg(void)
             {
                 SET_DEBUG_GPIO1;
 
-                if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state == SlowRef)
+                if(g_ipc_ctom.ps_module[msg_id].ps_status.bit.state == SlowRef)
                 {
-                    g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_setpoint =
-                    g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_setpoint;
+                    g_ipc_ctom.ps_module[msg_id].ps_setpoint =
+                    g_ipc_mtoc.ps_module[msg_id].ps_setpoint;
                 }
 
-                else if(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_status.bit.state != SlowRefSync)
+                else if(g_ipc_ctom.ps_module[msg_id].ps_status.bit.state != SlowRefSync)
                 {
                     g_ipc_ctom.error_mtoc = Invalid_OpMode;
-                    send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
+                    send_ipc_lowpriority_msg(msg_id, MtoC_Message_Error);
                 }
 
                 g_ipc_ctom.counter_set_slowref++;
@@ -350,7 +370,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
                         else if(g_ipc_ctom.ps_module[i].ps_status.bit.state != SlowRefSync)
                         {
                             g_ipc_ctom.error_mtoc = Invalid_OpMode;
-                            send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
+                            send_ipc_lowpriority_msg(msg_id, MtoC_Message_Error);
                         }
                     }
                 }
@@ -360,10 +380,14 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 break;
             }
 
+            case Update_WfmRef:
+            {
+                update_wfmref(&WFMREF_CTOM[msg_id],&WFMREF_MTOC[msg_id]);
+            }
+
             case Reset_WfmRef:
             {
-                WFMREF = g_ipc_mtoc.wfmref;
-                WFMREF.wfmref_data.status = Buffering;
+                reset_wfmref(&WFMREF_CTOM[msg_id]);
             }
 
             case Cfg_SigGen:
@@ -428,7 +452,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
                  * TODO: check
                  */
                 g_ipc_ctom.error_mtoc = IPC_LowPriority_Full;
-                send_ipc_lowpriority_msg(g_ipc_mtoc.msg_id, MtoC_Message_Error);
+                send_ipc_lowpriority_msg(msg_id, MtoC_Message_Error);
                 break;
             }
         }
@@ -441,7 +465,7 @@ interrupt void isr_ipc_sync_pulse(void)
 {
     uint16_t i;
 
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
     {
@@ -456,19 +480,40 @@ interrupt void isr_ipc_sync_pulse(void)
                     break;
                 }
 
-                case RmpWfm:
+
+                case Cycle:
                 {
-                    switch(WFMREF.sync_mode)
+                    enable_siggen(&g_ipc_ctom.siggen);
+                    break;
+                }
+
+                case RmpWfm:
+                case MigWfm:
+                {
+                    sync_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
+                    /*
+                    static uint16_t sel;
+
+                    sel = WFMREF_CTOM[i].wfmref_selected;
+
+                    switch(WFMREF_CTOM[i].sync_mode)
                     {
                         case SampleBySample:
                         {
-                            if(WFMREF.wfmref_data.p_buf_idx++ >=
-                               WFMREF.wfmref_data.p_buf_end)
+                            if(WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx++ >=
+                               WFMREF_CTOM[i].wfmref_data[sel].p_buf_end)
                             {
-                                WFMREF.wfmref_data.p_buf_idx =
-                                        WFMREF.wfmref_data.p_buf_start;
-                                WFMREF.gain = g_ipc_mtoc.wfmref.gain;
-                                WFMREF.offset = g_ipc_mtoc.wfmref.offset;
+                                WFMREF_CTOM[i].wfmref_selected = WFMREF_MTOC[i].wfmref_selected;
+                                sel = WFMREF_CTOM[i].wfmref_selected;
+
+                                WFMREF_CTOM[i].wfmref_data[sel] = WFMREF_MTOC[i].wfmref_data[sel];
+
+                                WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
+                                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_start;
+
+                                WFMREF_CTOM[i].gain = WFMREF_MTOC[i].gain;
+                                WFMREF_CTOM[i].offset = WFMREF_MTOC[i].offset;
+                                WFMREF_CTOM[i].sync_mode = WFMREF_MTOC[i].sync_mode;
                             }
 
                             break;
@@ -476,19 +521,30 @@ interrupt void isr_ipc_sync_pulse(void)
 
                         case SampleBySample_OneCycle:
                         {
-                            if(WFMREF.wfmref_data.p_buf_idx++ ==
-                               WFMREF.wfmref_data.p_buf_end)
+                            if(WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx++ ==
+                               WFMREF_CTOM[i].wfmref_data[sel].p_buf_end)
                             {
-                                WFMREF.wfmref_data.p_buf_idx =
-                                        WFMREF.wfmref_data.p_buf_end;
+                                WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
+                                        WFMREF_CTOM[i].wfmref_data[sel].p_buf_end;
                             }
-                            else if(WFMREF.wfmref_data.p_buf_idx++ >
-                                    WFMREF.wfmref_data.p_buf_end)
+                            else if(WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx >
+                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_end)
                             {
-                                WFMREF.wfmref_data.p_buf_idx =
-                                        WFMREF.wfmref_data.p_buf_start;
-                                WFMREF.gain = g_ipc_mtoc.wfmref.gain;
-                                WFMREF.offset = g_ipc_mtoc.wfmref.offset;
+                                WFMREF_CTOM[i].wfmref_selected = WFMREF_MTOC[i].wfmref_selected;
+                                sel = WFMREF_CTOM[i].wfmref_selected;
+
+                                WFMREF_CTOM[i].wfmref_data[sel] = WFMREF_MTOC[i].wfmref_data[sel];
+
+                                WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
+                                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_start;
+
+                                WFMREF_CTOM[i].gain = WFMREF_MTOC[i].gain;
+                                WFMREF_CTOM[i].offset = WFMREF_MTOC[i].offset;
+                                WFMREF_CTOM[i].sync_mode = WFMREF_MTOC[i].sync_mode;
+                            }
+                            else
+                            {
+                                //WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx++;
                             }
 
                             break;
@@ -496,28 +552,23 @@ interrupt void isr_ipc_sync_pulse(void)
 
                         case OneShot:
                         {
-                            WFMREF = g_ipc_mtoc.wfmref;
-                            WFMREF.wfmref_data.p_buf_idx =
-                                                 WFMREF.wfmref_data.p_buf_start;
-                            WFMREF.wfmref_data.status = Buffering;
-                            g_timeslicers.counter[TIMESLICER_WFMREF] =
-                                    g_timeslicers.freq_ratio[TIMESLICER_WFMREF];
+                            WFMREF_CTOM[i].wfmref_selected = WFMREF_MTOC[i].wfmref_selected;
+                            sel = WFMREF_CTOM[i].wfmref_selected;
+
+                            WFMREF_CTOM[i].wfmref_data[sel] = WFMREF_MTOC[i].wfmref_data[sel];
+
+                            WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
+                                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_start;
+
+                            WFMREF_CTOM[i].gain = WFMREF_MTOC[i].gain;
+                            WFMREF_CTOM[i].offset = WFMREF_MTOC[i].offset;
+                            WFMREF_CTOM[i].sync_mode = WFMREF_MTOC[i].sync_mode;
 
                             break;
                         }
                     }
 
-                    break;
-                }
-
-                case MigWfm:
-                {
-                    break;
-                }
-
-                case Cycle:
-                {
-                    enable_siggen(&g_ipc_ctom.siggen);
+                    WFMREF_CTOM[i].lerp.counter = 0;*/
                     break;
                 }
 
@@ -531,11 +582,17 @@ interrupt void isr_ipc_sync_pulse(void)
 
     g_ipc_ctom.counter_sync_pulse++;
 
-    postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
+    if(g_ipc_ctom.buf_samples[0].status == Idle)
+    {
+        g_ipc_ctom.buf_samples[0].status = Postmortem;
+        g_ipc_ctom.buf_samples[1].status = Postmortem;
+        g_ipc_ctom.buf_samples[2].status = Postmortem;
+        g_ipc_ctom.buf_samples[3].status = Postmortem;
+    }
 
     CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;
     PieCtrlRegs.PIEACK.all |= M_INT1;
     PieCtrlRegs.PIEACK.all |= M_INT11;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }

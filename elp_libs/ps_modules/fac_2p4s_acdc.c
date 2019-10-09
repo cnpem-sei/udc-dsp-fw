@@ -640,10 +640,7 @@ static interrupt void isr_controller(void)
                 }
                 case Cycle:
                 {
-                    /*run_dsp_srlim(SRLIM_SIGGEN_AMP, USE_MODULE);
-                    run_dsp_srlim(SRLIM_SIGGEN_OFFSET, USE_MODULE);
-                    SIGGEN.p_run_siggen(&SIGGEN);
-                    break;*/
+                    break;
                 }
                 case RmpWfm:
                 {
