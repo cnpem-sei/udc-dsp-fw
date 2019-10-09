@@ -300,7 +300,10 @@ typedef enum
     DCLink_Mod_2_Undervoltage,
     DCLink_Mod_3_Undervoltage,
     DCLink_Mod_4_Undervoltage,
-    IIB_Itlk
+    IIB_Mod_1_Itlk,
+    IIB_Mod_2_Itlk,
+    IIB_Mod_3_Itlk,
+    IIB_Mod_4_Itlk
 } hard_interlocks_t;
 
 typedef enum
@@ -319,7 +322,7 @@ typedef enum
     DaisyChain,
 } igbt_share_mode_t;
 
-#define NUM_HARD_INTERLOCKS             IIB_Itlk + 1
+#define NUM_HARD_INTERLOCKS             IIB_Mod_4_Itlk + 1
 #define NUM_SOFT_INTERLOCKS             IGBTs_Current_High_Difference + 1
 
 /**
@@ -1052,6 +1055,16 @@ static void turn_on(uint16_t dummy)
     {
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
 
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
+        DELAY_US(250000);
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
+        DELAY_US(250000);
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
+        DELAY_US(250000);
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
+
+        DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
+
         if(V_DCLINK_MOD_1 < MIN_V_DCLINK)
         {
             BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Undervoltage);
@@ -1076,65 +1089,49 @@ static void turn_on(uint16_t dummy)
             set_hard_interlock(0, DCLink_Mod_4_Undervoltage);
         }
 
+        if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Contactor_Fault);
+            set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
+        }
+
+        else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Contactor_Fault);
+            set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
+        }
+
+        else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Contactor_Fault);
+            set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
+        }
+
+        else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Contactor_Fault);
+            set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
+        }
+
         #ifdef USE_ITLK
         if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
         {
         #endif
+            reset_controller();
 
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
-            DELAY_US(250000);
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
-            DELAY_US(250000);
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
-            DELAY_US(250000);
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
+            g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
+            g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
 
-            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
+            enable_pwm_output(0);
+            enable_pwm_output(1);
+            enable_pwm_output(2);
+            enable_pwm_output(3);
+            enable_pwm_output(4);
+            enable_pwm_output(5);
+            enable_pwm_output(6);
+            enable_pwm_output(7);
 
-            if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Contactor_Fault);
-                set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
-            }
-
-            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Contactor_Fault);
-                set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
-            }
-
-            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Contactor_Fault);
-                set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
-            }
-
-            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Contactor_Fault);
-                set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
-            }
-
-            #ifdef USE_ITLK
-            if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
-            {
-            #endif
-
-                reset_controller();
-
-                g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
-                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
-                enable_pwm_output(0);
-                enable_pwm_output(1);
-                enable_pwm_output(2);
-                enable_pwm_output(3);
-                enable_pwm_output(4);
-                enable_pwm_output(5);
-                enable_pwm_output(6);
-                enable_pwm_output(7);
-
-            #ifdef USE_ITLK
-            }
+        #ifdef USE_ITLK
         }
         #endif
     }
