@@ -1035,7 +1035,7 @@ static void term_interruptions(void)
  */
 static void turn_on(uint16_t dummy)
 {
-    #ifdef USE_ITLK
+#ifdef USE_ITLK
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Off)
     #else
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
@@ -1052,6 +1052,30 @@ static void turn_on(uint16_t dummy)
         PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
 
         DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
+
+        if(V_DCLINK_MOD_1 < MIN_V_DCLINK)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Undervoltage);
+            set_hard_interlock(0, DCLink_Mod_1_Undervoltage);
+        }
+
+        if(V_DCLINK_MOD_2 < MIN_V_DCLINK)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Undervoltage);
+            set_hard_interlock(0, DCLink_Mod_2_Undervoltage);
+        }
+
+        if(V_DCLINK_MOD_3 < MIN_V_DCLINK)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Undervoltage);
+            set_hard_interlock(0, DCLink_Mod_3_Undervoltage);
+        }
+
+        if(V_DCLINK_MOD_4 < MIN_V_DCLINK)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Undervoltage);
+            set_hard_interlock(0, DCLink_Mod_4_Undervoltage);
+        }
 
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
         {
@@ -1081,7 +1105,6 @@ static void turn_on(uint16_t dummy)
         if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
         {
         #endif
-
             reset_controller();
 
             g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
