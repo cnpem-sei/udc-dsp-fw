@@ -130,8 +130,8 @@
 #define PS1_KP                          PI_CONTROLLER_ILOAD_PS1_COEFFS.kp
 #define PS1_KI                          PI_CONTROLLER_ILOAD_PS1_COEFFS.ki
 
-#define IIR_3P3Z_DECIMATION_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_3p3z[0]
-#define IIR_3P3Z_DECIMATION_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_3p3z[0].coeffs.s
+#define PS1_IIR_3P3Z_DECIMATION_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_3p3z[0]
+#define PS1_IIR_3P3Z_DECIMATION_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_3p3z[0].coeffs.s
 
 #define PS1_PWM_MODULATOR               g_pwm_modules.pwm_regs[0]
 #define PS1_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[1]
@@ -153,6 +153,8 @@
 #define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[5].f  // ANI7
 #define PS2_TEMPERATURE                 g_controller_mtoc.net_signals[9].f  // I2C Add 0x49
 
+#define PS2_LOAD_CURRENT_FILTERED       g_controller_ctom.net_signals[21].f
+
 #define PS2_SETPOINT                    g_ipc_ctom.ps_module[1].ps_setpoint
 #define PS2_REFERENCE                   g_ipc_ctom.ps_module[1].ps_reference
 
@@ -162,6 +164,9 @@
 
 #define PS2_KP                          PI_CONTROLLER_ILOAD_PS2_COEFFS.kp
 #define PS2_KI                          PI_CONTROLLER_ILOAD_PS2_COEFFS.ki
+
+#define PS2_IIR_3P3Z_DECIMATION_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_3p3z[1]
+#define PS2_IIR_3P3Z_DECIMATION_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_3p3z[1].coeffs.s
 
 #define PS2_PWM_MODULATOR               g_pwm_modules.pwm_regs[2]
 #define PS2_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[3]
@@ -183,6 +188,8 @@
 #define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[6].f  // ANI3
 #define PS3_TEMPERATURE                 g_controller_mtoc.net_signals[10].f // I2C Add 0x4A
 
+#define PS3_LOAD_CURRENT_FILTERED       g_controller_ctom.net_signals[22].f
+
 #define PS3_SETPOINT                    g_ipc_ctom.ps_module[2].ps_setpoint
 #define PS3_REFERENCE                   g_ipc_ctom.ps_module[2].ps_reference
 
@@ -192,6 +199,9 @@
 
 #define PS3_KP                          PI_CONTROLLER_ILOAD_PS3_COEFFS.kp
 #define PS3_KI                          PI_CONTROLLER_ILOAD_PS3_COEFFS.ki
+
+#define PS3_IIR_3P3Z_DECIMATION_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_3p3z[2]
+#define PS3_IIR_3P3Z_DECIMATION_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_3p3z[2].coeffs.s
 
 #define PS3_PWM_MODULATOR               g_pwm_modules.pwm_regs[4]
 #define PS3_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[5]
@@ -213,6 +223,8 @@
 #define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[7].f  // ANI5
 #define PS4_TEMPERATURE                 g_controller_mtoc.net_signals[11].f // I2C Add 0x4C
 
+#define PS4_LOAD_CURRENT_FILTERED       g_controller_ctom.net_signals[23].f
+
 #define PS4_SETPOINT                    g_ipc_ctom.ps_module[3].ps_setpoint
 #define PS4_REFERENCE                   g_ipc_ctom.ps_module[3].ps_reference
 
@@ -222,6 +234,9 @@
 
 #define PS4_KP                          PI_CONTROLLER_ILOAD_PS4_COEFFS.kp
 #define PS4_KI                          PI_CONTROLLER_ILOAD_PS4_COEFFS.ki
+
+#define PS4_IIR_3P3Z_DECIMATION_FILTER          &g_controller_ctom.dsp_modules.dsp_iir_3p3z[3]
+#define PS4_IIR_3P3Z_DECIMATION_FILTER_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_3p3z[3].coeffs.s
 
 #define PS4_PWM_MODULATOR               g_pwm_modules.pwm_regs[6]
 #define PS4_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[7]
@@ -486,20 +501,20 @@ static void init_controller(void)
                 &g_controller_ctom.output_signals[0].f);
 
     /**
-     *        name:     IIR_3P3Z_DECIMATION_FILTER
+     *        name:     PS1_IIR_3P3Z_DECIMATION_FILTER
      * description:     Antialiasing filter for decimation on samples buffer
      *  dsp module:     DSP_IIR_3P3Z
      *          in:     PS1_LOAD_CURRENT
      *         out:     PS1_LOAD_CURRENT_FILTERED
      */
-    init_dsp_iir_3p3z(IIR_3P3Z_DECIMATION_FILTER,
-                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.b0,
-                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.b1,
-                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.b2,
-                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.b3,
-                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.a1,
-                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.a2,
-                      IIR_3P3Z_DECIMATION_FILTER_COEFFS.a3,
+    init_dsp_iir_3p3z(PS1_IIR_3P3Z_DECIMATION_FILTER,
+                      PS1_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b0,
+                      PS1_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b1,
+                      PS1_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b2,
+                      PS1_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b3,
+                      PS1_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a1,
+                      PS1_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a2,
+                      PS1_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a3,
                       FLT_MAX, -FLT_MAX, &PS1_LOAD_CURRENT,
                       &PS1_LOAD_CURRENT_FILTERED);
 
@@ -529,6 +544,24 @@ static void init_controller(void)
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[5].f,
                 &g_controller_ctom.output_signals[1].f);
 
+    /**
+     *        name:     PS2_IIR_3P3Z_DECIMATION_FILTER
+     * description:     Antialiasing filter for decimation on samples buffer
+     *  dsp module:     DSP_IIR_3P3Z
+     *          in:     PS2_LOAD_CURRENT
+     *         out:     PS2_LOAD_CURRENT_FILTERED
+     */
+    init_dsp_iir_3p3z(PS2_IIR_3P3Z_DECIMATION_FILTER,
+                      PS2_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b0,
+                      PS2_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b1,
+                      PS2_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b2,
+                      PS2_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b3,
+                      PS2_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a1,
+                      PS2_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a2,
+                      PS2_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a3,
+                      FLT_MAX, -FLT_MAX, &PS2_LOAD_CURRENT,
+                      &PS2_LOAD_CURRENT_FILTERED);
+
     /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 3
 
     /**
@@ -555,6 +588,24 @@ static void init_controller(void)
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[6].f,
                 &g_controller_ctom.output_signals[2].f);
 
+    /**
+     *        name:     PS3_IIR_3P3Z_DECIMATION_FILTER
+     * description:     Antialiasing filter for decimation on samples buffer
+     *  dsp module:     DSP_IIR_3P3Z
+     *          in:     PS3_LOAD_CURRENT
+     *         out:     PS3_LOAD_CURRENT_FILTERED
+     */
+    init_dsp_iir_3p3z(PS3_IIR_3P3Z_DECIMATION_FILTER,
+                      PS3_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b0,
+                      PS3_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b1,
+                      PS3_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b2,
+                      PS3_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b3,
+                      PS3_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a1,
+                      PS3_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a2,
+                      PS3_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a3,
+                      FLT_MAX, -FLT_MAX, &PS3_LOAD_CURRENT,
+                      &PS3_LOAD_CURRENT_FILTERED);
+
     /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 4
 
     /**
@@ -579,6 +630,24 @@ static void init_controller(void)
     init_dsp_pi(PI_CONTROLLER_ILOAD_PS4, PS4_KP, PS4_KI, ISR_CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7].f,
                 &g_controller_ctom.output_signals[3].f);
+
+    /**
+     *        name:     PS4_IIR_3P3Z_DECIMATION_FILTER
+     * description:     Antialiasing filter for decimation on samples buffer
+     *  dsp module:     DSP_IIR_3P3Z
+     *          in:     PS4_LOAD_CURRENT
+     *         out:     PS4_LOAD_CURRENT_FILTERED
+     */
+    init_dsp_iir_3p3z(PS4_IIR_3P3Z_DECIMATION_FILTER,
+                      PS4_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b0,
+                      PS4_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b1,
+                      PS4_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b2,
+                      PS4_IIR_3P3Z_DECIMATION_FILTER_COEFFS.b3,
+                      PS4_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a1,
+                      PS4_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a2,
+                      PS4_IIR_3P3Z_DECIMATION_FILTER_COEFFS.a3,
+                      FLT_MAX, -FLT_MAX, &PS4_LOAD_CURRENT,
+                      &PS4_LOAD_CURRENT_FILTERED);
 
     /// INITIALIZATION OF TIME SLICERS
 
@@ -613,7 +682,10 @@ static void reset_controller(uint16_t id)
     reset_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[id]);
     reset_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[id]);
 
-    reset_dsp_iir_3p3z(IIR_3P3Z_DECIMATION_FILTER);
+    reset_dsp_iir_3p3z(PS1_IIR_3P3Z_DECIMATION_FILTER);
+    reset_dsp_iir_3p3z(PS2_IIR_3P3Z_DECIMATION_FILTER);
+    reset_dsp_iir_3p3z(PS3_IIR_3P3Z_DECIMATION_FILTER);
+    reset_dsp_iir_3p3z(PS4_IIR_3P3Z_DECIMATION_FILTER);
 
     disable_siggen(&SIGGEN);
     reset_timeslicers();
@@ -712,7 +784,10 @@ static interrupt void isr_controller(void)
     PS3_LOAD_CURRENT = temp[2];
     PS4_LOAD_CURRENT = temp[3];
 
-    run_dsp_iir_3p3z(IIR_3P3Z_DECIMATION_FILTER);
+    run_dsp_iir_3p3z(PS1_IIR_3P3Z_DECIMATION_FILTER);
+    run_dsp_iir_3p3z(PS2_IIR_3P3Z_DECIMATION_FILTER);
+    run_dsp_iir_3p3z(PS3_IIR_3P3Z_DECIMATION_FILTER);
+    run_dsp_iir_3p3z(PS4_IIR_3P3Z_DECIMATION_FILTER);
 
     /// Loop through active power supplies
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
@@ -842,8 +917,8 @@ static interrupt void isr_controller(void)
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        //insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES, PS1_LOAD_CURRENT_FILTERED);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        //insert_buffer(BUF_SAMPLES, PS1_LOAD_CURRENT_FILTERED);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
