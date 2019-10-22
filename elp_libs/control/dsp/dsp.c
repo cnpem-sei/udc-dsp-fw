@@ -124,7 +124,7 @@ void bypass_dsp_srlim(dsp_srlim_t *p_srlim, uint16_t bypass)
  */
 void reset_dsp_srlim(dsp_srlim_t *p_srlim)
 {
-    *(p_srlim->out) = 0.0;
+    *(p_srlim->out) = *(p_srlim->in);
 }
 
 /**
