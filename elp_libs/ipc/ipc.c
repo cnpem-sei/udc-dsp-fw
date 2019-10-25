@@ -244,8 +244,9 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 /**
                  * TODO:
                  */
-                if(g_ipc_ctom.ps_module[msg_id].ps_status.bit.state
-                   > Interlock)
+                if( (g_ipc_ctom.ps_module[msg_id].ps_status.bit.state > Interlock) &&
+                    (WFMREF_CTOM[msg_id].wfmref_data[WFMREF_CTOM[msg_id].wfmref_selected].p_buf_idx >=
+                     WFMREF_CTOM[msg_id].wfmref_data[WFMREF_CTOM[msg_id].wfmref_selected].p_buf_end) )
                 {
                     switch(g_ipc_mtoc.ps_module[msg_id].ps_status.bit.state)
                     {
@@ -264,8 +265,12 @@ interrupt void isr_ipc_lowpriority_msg(void)
                         case RmpWfm:
                         case MigWfm:
                         {
-                            update_wfmref(&WFMREF_CTOM[msg_id],&WFMREF_MTOC[msg_id]);
-                            reset_wfmref(&WFMREF_CTOM[msg_id]);
+                            if( g_ipc_ctom.ps_module[msg_id].ps_status.bit.state != RmpWfm  &&
+                                g_ipc_ctom.ps_module[msg_id].ps_status.bit.state != MigWfm )
+                            {
+                                update_wfmref(&WFMREF_CTOM[msg_id],&WFMREF_MTOC[msg_id]);
+                                reset_wfmref(&WFMREF_CTOM[msg_id]);
+                            }
                             break;
                         }
 
