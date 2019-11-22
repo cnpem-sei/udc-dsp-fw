@@ -136,6 +136,10 @@
 #define D_DUTY_MAX_POS          g_ipc_mtoc.analog_vars.max[11]
 #define D_DUTY_MAX_NEG          g_ipc_mtoc.analog_vars.max[12]
 
+#define MAX_I_ARM               g_ipc_mtoc.analog_vars.max[13]
+#define MAX_I_ARMS_DIFF         g_ipc_mtoc.analog_vars.max[14]
+#define I_ARMS_DIFF_MODE        g_ipc_mtoc.analog_vars.max[15]
+
 /**
  * Controller defines
  */
@@ -319,11 +323,14 @@ typedef enum
     DCCT_2_Fault,
     DCCT_High_Difference,
     Load_Feedback_1_Fault,
-    Load_Feedback_2_Fault
+    Load_Feedback_2_Fault,
+    ARM_1_Overcurrent,
+    ARM_2_Overcurrent,
+    Arms_High_Difference
 } soft_interlocks_t;
 
 #define NUM_HARD_INTERLOCKS     IIB_8_Itlk + 1
-#define NUM_SOFT_INTERLOCKS     Load_Feedback_2_Fault + 1
+#define NUM_SOFT_INTERLOCKS     Arms_High_Difference + 1
 
 /**
  *  Private variables
@@ -931,8 +938,6 @@ static interrupt void isr_controller(void)
         I_LOAD_DIFF = 0;
     }
 
-    I_ARMS_DIFF = I_ARM_1 - I_ARM_2;
-
     run_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK_ARM_1);
     run_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK_ARM_2);
 
@@ -987,6 +992,14 @@ static interrupt void isr_controller(void)
             run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
             /// Arms current share controller
+            if(I_ARMS_DIFF_MODE)
+            {
+                I_ARMS_DIFF = I_ARM_1 - 0.5*I_LOAD_MEAN;
+            }
+            else
+            {
+                I_ARMS_DIFF = I_ARM_1 - I_ARM_2;
+            }
             run_dsp_pi(PI_CONTROLLER_I_SHARE);
 
             /// Cap-bank voltage feedforward controller
@@ -1161,6 +1174,21 @@ static inline void check_interlocks(void)
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
     {
         set_soft_interlock(0, DCCT_High_Difference);
+    }
+
+    if(fabs(I_ARM_1) > MAX_I_ARM)
+    {
+        set_soft_interlock(0, ARM_1_Overcurrent);
+    }
+
+    if(fabs(I_ARM_2) > MAX_I_ARM)
+    {
+        set_soft_interlock(0, ARM_2_Overcurrent);
+    }
+
+    if(fabs(I_ARMS_DIFF) > MAX_I_ARMS_DIFF)
+    {
+        set_soft_interlock(0, Arms_High_Difference);
     }
 
     if(!PIN_STATUS_DCCT_1_STATUS)

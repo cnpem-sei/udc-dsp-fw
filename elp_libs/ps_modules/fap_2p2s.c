@@ -129,6 +129,9 @@
 
 #define NUM_DCCTs                               g_ipc_mtoc.analog_vars.max[10]
 
+#define MAX_I_ARM                               g_ipc_mtoc.analog_vars.max[11]
+#define I_ARMS_DIFF_MODE                        g_ipc_mtoc.analog_vars.max[12]
+
 /**
  * Controller defines
  */
@@ -302,7 +305,9 @@ typedef enum
     IIB_Mod_1_Itlk,
     IIB_Mod_2_Itlk,
     IIB_Mod_3_Itlk,
-    IIB_Mod_4_Itlk
+    IIB_Mod_4_Itlk,
+    ARM_1_Overcurrent,
+    ARM_2_Overcurrent
 } hard_interlocks_t;
 
 typedef enum
@@ -316,7 +321,7 @@ typedef enum
     IGBTs_Current_High_Difference
 } soft_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS             IIB_Mod_4_Itlk + 1
+#define NUM_HARD_INTERLOCKS             ARM_2_Overcurrent + 1
 #define NUM_SOFT_INTERLOCKS             IGBTs_Current_High_Difference + 1
 
 /**
@@ -891,12 +896,22 @@ static interrupt void isr_controller(void)
         {
             SATURATE(I_LOAD_REFERENCE, MAX_REF, MIN_REF);
 
+            /// Load current controller
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
 
-            run_dsp_error(ERROR_I_ARMS_SHARE);
+            /// Arms current share controller
+            if(I_ARMS_DIFF_MODE)
+            {
+                I_ARMS_DIFF = I_ARM_1 - 0.5*I_LOAD_MEAN;
+            }
+            else
+            {
+                run_dsp_error(ERROR_I_ARMS_SHARE);
+            }
             run_dsp_pi(PI_CONTROLLER_I_ARMS_SHARE);
 
+            /// IGBTs current share controllers
             /*********************************************/
             RUN_TIMESLICER(TIMESLICER_I_SHARE_CONTROLLER)
             /*********************************************/
@@ -1206,6 +1221,16 @@ static inline void check_interlocks(void)
     if(fabs(I_IGBT_2_MOD_4) > MAX_I_IGBT)
     {
         set_hard_interlock(0, IGBT_2_Mod_4_Overcurrent);
+    }
+
+    if(fabs(I_ARM_1) > MAX_I_ARM)
+    {
+        set_hard_interlock(0, ARM_1_Overcurrent);
+    }
+
+    if(fabs(I_ARM_2) > MAX_I_ARM)
+    {
+        set_hard_interlock(0, ARM_2_Overcurrent);
     }
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
