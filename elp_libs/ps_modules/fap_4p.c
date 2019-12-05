@@ -128,6 +128,9 @@
 #define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
 #define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
 
+#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    g_ipc_mtoc.analog_vars.max[11]
+
+
 /**
  * Controller defines
  */
@@ -1165,6 +1168,40 @@ static void turn_off(uint16_t dummy)
  */
 static void reset_interlocks(uint16_t dummy)
 {
+    if(PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
+    {
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
+        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+        PIN_OPEN_DCLINK_CONTACTOR_MOD_1;
+        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+    }
+
+    if(PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
+    {
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
+        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+        PIN_OPEN_DCLINK_CONTACTOR_MOD_2;
+        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+    }
+
+    if(PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
+    {
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
+        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+        PIN_OPEN_DCLINK_CONTACTOR_MOD_3;
+        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+    }
+
+    if(PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
+    {
+        PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
+        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+        PIN_OPEN_DCLINK_CONTACTOR_MOD_4;
+        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+    }
+
+    DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
+
     g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[0].ps_soft_interlock = 0;
 

@@ -110,13 +110,15 @@
 #define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      g_ipc_mtoc.analog_vars.max[9]
 #define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      g_ipc_mtoc.analog_vars.max[10]
 
-#define NETSIGNAL_ELEM_CTOM_BUF     g_ipc_mtoc.analog_vars.max[11]
-#define NETSIGNAL_ELEM_MTOC_BUF     g_ipc_mtoc.analog_vars.min[11]
+#define NETSIGNAL_ELEM_CTOM_BUF                 g_ipc_mtoc.analog_vars.max[11]
+#define NETSIGNAL_ELEM_MTOC_BUF                 g_ipc_mtoc.analog_vars.min[11]
 
 #define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
 #define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
 
-#define NUM_DCCTs               g_ipc_mtoc.analog_vars.max[12]
+#define NUM_DCCTs                               g_ipc_mtoc.analog_vars.max[12]
+
+#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    g_ipc_mtoc.analog_vars.max[13]
 
 /**
  * Controller defines
@@ -922,12 +924,12 @@ static void turn_off(uint16_t dummy)
  */
 static void reset_interlocks(uint16_t dummy)
 {
-    if( g_ipc_ctom.ps_module[0].ps_hard_interlock &
-        (0x00000001 << DCLink_Contactor_Fault) )
+    if(PIN_STATUS_DCLINK_CONTACTOR)
     {
         PIN_CLOSE_DCLINK_CONTACTOR;
-        DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
+        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
         PIN_OPEN_DCLINK_CONTACTOR;
+        DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
     }
 
     g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
