@@ -62,15 +62,9 @@
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
 
-/*#define TIMESLICER_WFMREF       0
-#define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
-#define WFMREF_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / WFMREF_FREQ)*/
-
 #define TIMESLICER_BUFFER       1
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
 #define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
-#define SIGGEN                  g_ipc_ctom.siggen
 
 /**
  * HRADC parameters
@@ -104,67 +98,80 @@
 #define MAX_I_IDLE_DCCT         g_ipc_mtoc.analog_vars.max[7]
 #define MIN_I_ACTIVE_DCCT       g_ipc_mtoc.analog_vars.min[7]
 
-#define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[8]
-#define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[8]
+#define NETSIGNAL_ELEM_CTOM_BUF1    g_ipc_mtoc.analog_vars.max[8]
+#define NETSIGNAL_ELEM_CTOM_BUF2    g_ipc_mtoc.analog_vars.min[8]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+#define NETSIGNAL_CTOM_BUF1      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF1].f
+#define NETSIGNAL_CTOM_BUF2      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF2].f
 
 #define NUM_DCCTs               g_ipc_mtoc.analog_vars.max[9]
 
 /**
  * Controller defines
  */
-#define I_LOAD_1                        g_controller_ctom.net_signals[0].f  // HRADC0
-#define I_LOAD_2                        g_controller_ctom.net_signals[1].f  // HRADC1
-#define V_CAPBANK                       g_controller_ctom.net_signals[2].f  // HRADC2
 
-#define I_LOAD_REFERENCE_WFMREF        g_controller_ctom.net_signals[3].f
+/// DSP Net Signals
+#define I_LOAD_1                    g_controller_ctom.net_signals[0].f  // HRADC0
+#define I_LOAD_2                    g_controller_ctom.net_signals[1].f  // HRADC1
+#define V_CAPBANK                   g_controller_ctom.net_signals[2].f  // HRADC2
 
-#define I_LOAD_MEAN                     g_controller_ctom.net_signals[4].f
-#define I_LOAD_ERROR                    g_controller_ctom.net_signals[5].f
-#define I_LOAD_DIFF                     g_controller_ctom.net_signals[10].f
+#define I_LOAD_REFERENCE_WFMREF     g_controller_ctom.net_signals[3].f
 
-#define V_LOAD                          g_controller_mtoc.net_signals[0].f
-#define TEMP_INDUCTORS                  g_controller_mtoc.net_signals[1].f
-#define TEMP_IGBT                       g_controller_mtoc.net_signals[2].f
+#define I_LOAD_MEAN                 g_controller_ctom.net_signals[4].f
+#define I_LOAD_ERROR                g_controller_ctom.net_signals[5].f
 
-#define DUTY_CYCLE                      g_controller_ctom.output_signals[0].f
+#define DUTY_I_LOAD_PI              g_controller_ctom.net_signals[6].f
+#define DUTY_REF_FF                 g_controller_ctom.net_signals[7].f
 
-#define I_LOAD_SETPOINT                 g_ipc_ctom.ps_module[0].ps_setpoint
-#define I_LOAD_REFERENCE                g_ipc_ctom.ps_module[0].ps_reference
+#define IN_FF_V_CAPBANK             g_controller_ctom.net_signals[8].f
+#define V_CAPBANK_FILTERED          g_controller_ctom.net_signals[9].f
 
-#define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
-#define ERROR_I_LOAD                    &g_controller_ctom.dsp_modules.dsp_error[0]
+#define I_LOAD_DIFF                 g_controller_ctom.net_signals[10].f
 
-#define IIR_2P2Z_WFMREF_FILTER               &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define IIR_2P2Z_WFMREF_FILTER_COEFFS        g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
+#define WFMREF_IDX                  g_controller_ctom.net_signals[30].f
 
-#define IIR_3P3Z_WFMREF_FILTER               &g_controller_ctom.dsp_modules.dsp_iir_3p3z[0]
-#define IIR_3P3Z_WFMREF_FILTER_COEFFS        g_controller_mtoc.dsp_modules.dsp_iir_3p3z[0].coeffs.s
+#define DUTY_CYCLE                  g_controller_ctom.output_signals[0].f
 
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+/// ARM Net Signals
+#define V_LOAD                      g_controller_mtoc.net_signals[0].f
+#define TEMP_INDUCTORS              g_controller_mtoc.net_signals[1].f
+#define TEMP_IGBT                   g_controller_mtoc.net_signals[2].f
+
+/// Reference
+#define I_LOAD_SETPOINT             g_ipc_ctom.ps_module[0].ps_setpoint
+#define I_LOAD_REFERENCE            g_ipc_ctom.ps_module[0].ps_reference
+
+#define SRLIM_I_LOAD_REFERENCE      &g_controller_ctom.dsp_modules.dsp_srlim[0]
+
+#define WFMREF                      g_ipc_ctom.wfmref[0]
+
+#define SIGGEN                      g_ipc_ctom.siggen
+#define SRLIM_SIGGEN_AMP            &g_controller_ctom.dsp_modules.dsp_srlim[1]
+#define SRLIM_SIGGEN_OFFSET         &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+/// Load current controller
+#define ERROR_I_LOAD                        &g_controller_ctom.dsp_modules.dsp_error[0]
 
 #define PI_CONTROLLER_I_LOAD                &g_controller_ctom.dsp_modules.dsp_pi[0]
 #define PI_CONTROLLER_I_LOAD_COEFFS         g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
 #define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
 
-#define IIR_2P2Z_CONTROLLER_I_LOAD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
-#define IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
 
-#define IIR_2P2Z_LPF_V_CAPBANK              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
-#define IIR_2P2Z_LPF_V_CAPBANK_COEFFS       g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+/// Cap-bank voltage feedforward controller
+#define IIR_2P2Z_LPF_V_CAPBANK          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define IIR_2P2Z_LPF_V_CAPBANK_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
 
-#define FF_V_CAPBANK                 &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK                    &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_CAPBANK_COEFFS             g_controller_ctom.dsp_modules.dsp_ff[0].coeffs.s
 
+/// PWM modulators
 #define PWM_MODULATOR_Q1            g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_Q2            g_pwm_modules.pwm_regs[1]
 
-#define SRLIM_SIGGEN_AMP            &g_controller_ctom.dsp_modules.dsp_srlim[1]
-#define SRLIM_SIGGEN_OFFSET         &g_controller_ctom.dsp_modules.dsp_srlim[2]
-
+/// Samples buffer
 #define BUF_SAMPLES                 &g_ipc_ctom.buf_samples[0]
 
 /**
@@ -354,8 +361,15 @@ static void init_controller(void)
                        &SOFT_INTERLOCKS_DEBOUNCE_TIME,
                        &SOFT_INTERLOCKS_RESET_TIME);
 
-    init_ipc();
     init_control_framework(&g_controller_ctom);
+
+    init_ipc();
+
+    init_wfmref(&WFMREF, g_ipc_mtoc.wfmref[0].wfmref_selected,
+                g_ipc_mtoc.wfmref[0].sync_mode, ISR_CONTROL_FREQ,
+                WFMREF_FREQ, g_ipc_mtoc.wfmref[0].gain,
+                g_ipc_mtoc.wfmref[0].offset, &g_wfmref_data.data,
+                SIZE_WFMREF, &I_LOAD_REFERENCE);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -408,41 +422,6 @@ static void init_controller(void)
                    &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
 
     /**
-     *        name:     IIR_2P2Z_WFMREF_FILTER
-     * description:     Load current reference filter
-     *  dsp module:     DSP_IIR_2P2Z
-     *          in:     I_LOAD_REFERENCE_WFMREF
-     *         out:     I_LOAD_REFERENCE
-     */
-
-    init_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b0,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b1,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b2,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a1,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a2,
-                      FLT_MAX, -FLT_MAX, &I_LOAD_REFERENCE_WFMREF,
-                      &I_LOAD_REFERENCE);
-
-    /**
-     *        name:     IIR_3P3Z_WFMREF_FILTER
-     * description:     Load current reference filter
-     *  dsp module:     DSP_IIR_3P3Z
-     *          in:     I_LOAD_REFERENCE_WFMREF
-     *         out:     I_LOAD_REFERENCE
-     */
-    init_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b0,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b1,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b2,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b3,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a1,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a2,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a3,
-                      FLT_MAX, -FLT_MAX, &I_LOAD_REFERENCE_WFMREF,
-                      &I_LOAD_REFERENCE);
-
-    /**
      *        name:     ERROR_I_LOAD
      * description:     Load current reference error
      *  dsp module:     DSP_Error
@@ -458,36 +437,18 @@ static void init_controller(void)
      * description:     Capacitor bank voltage PI controller
      *  dsp module:     DSP_PI
      *          in:     I_LOAD_ERROR
-     *         out:     net_signals[6]
+     *         out:     DUTY_I_LOAD_PI
      */
 
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR,
-                &g_controller_ctom.net_signals[6].f);
-
-    /**
-     *        name:     IIR_2P2Z_CONTROLLER_I_LOAD
-     * description:     Load current IIR 2P2Z controller
-     *  dsp module:     DSP_IIR_2P2Z
-     *          in:     I_LOAD_ERROR
-     *         out:     net_signals[6]
-     */
-
-    init_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_I_LOAD,
-                      IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.b0,
-                      IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.b1,
-                      IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.b2,
-                      IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.a1,
-                      IIR_2P2Z_CONTROLLER_I_LOAD_COEFFS.a2,
-                      PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR,
-                      &g_controller_ctom.net_signals[6].f);
+                PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_I_LOAD_PI);
 
     /**
      *        name:     IIR_2P2Z_REFERENCE_FEEDFORWARD
      * description:     Load current IIR 2P2Z controller
      *  dsp module:     DSP_IIR_2P2Z
      *          in:     I_LOAD_REFERENCE
-     *         out:     net_signals[7]
+     *         out:     DUTY_REF_FF
      */
 
     init_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD,
@@ -497,7 +458,7 @@ static void init_controller(void)
                       IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS.a1,
                       IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS.a2,
                       PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_REFERENCE,
-                      &g_controller_ctom.net_signals[7].f);
+                      &DUTY_REF_FF);
 
     /**********************************************************/
     /** INITIALIZATION OF CAPACITOR BANK VOLTAGE FEEDFORWARD **/
@@ -508,7 +469,7 @@ static void init_controller(void)
      * description:     Capacitor bank voltage low-pass filter
      *    DP class:     ELP_IIR_2P2Z
      *          in:     V_CAPBANK
-     *         out:     net_signals[9]
+     *         out:     V_CAPBANK_FILTERED
      */
 
     init_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK,
@@ -517,21 +478,19 @@ static void init_controller(void)
                       IIR_2P2Z_LPF_V_CAPBANK_COEFFS.b2,
                       IIR_2P2Z_LPF_V_CAPBANK_COEFFS.a1,
                       IIR_2P2Z_LPF_V_CAPBANK_COEFFS.a2,
-                      FLT_MAX, -FLT_MAX, &V_CAPBANK,
-                      &g_controller_ctom.net_signals[9].f);
+                      FLT_MAX, -FLT_MAX, &V_CAPBANK, &V_CAPBANK_FILTERED);
 
     /**
      *        name:     FF_V_CAPBANK
      * description:     Capacitor bank voltage feed-forward
      *    DP class:     DSP_VdcLink_FeedForward
-     *    vdc_meas:     net_signals[9]
-     *          in:     net_signals[8]
+     *    vdc_meas:     V_CAPBANK_FILTERED
+     *          in:     IN_FF_V_CAPBANK
      *         out:     DUTY_CYCLE
      */
 
     init_dsp_vdclink_ff(FF_V_CAPBANK, NOM_V_CAPBANK_FF, MIN_V_CAPBANK_FF,
-                        &g_controller_ctom.net_signals[9].f,
-                        &g_controller_ctom.net_signals[8].f, &DUTY_CYCLE);
+                        &V_CAPBANK_FILTERED, &IN_FF_V_CAPBANK, &DUTY_CYCLE);
 
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
@@ -569,13 +528,10 @@ static void reset_controller(void)
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
 
-    reset_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
-    reset_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
 
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
-    reset_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_I_LOAD);
 
     reset_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
@@ -585,6 +541,8 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
     disable_siggen(&SIGGEN);
+
+    reset_wfmref(&WFMREF);
 
     reset_timeslicers();
 }
@@ -718,43 +676,9 @@ static interrupt void isr_controller(void)
                 break;
             }
             case RmpWfm:
-            {
-                switch(WFMREF.sync_mode)
-                {
-                    case OneShot:
-                    {   /*********************************************/
-                        RUN_TIMESLICER(TIMESLICER_WFMREF)
-                            if( WFMREF.wfmref_data.p_buf_idx <=
-                                WFMREF.wfmref_data.p_buf_end)
-                            {
-                                I_LOAD_REFERENCE_WFMREF =
-                                            *(WFMREF.wfmref_data.p_buf_idx++) *
-                                             (WFMREF.gain) + WFMREF.offset;
-                            }
-                        END_TIMESLICER(TIMESLICER_WFMREF)
-                        /*********************************************/
-                        break;
-                    }
-
-                    case SampleBySample:
-                    case SampleBySample_OneCycle:
-                    {
-                        if(WFMREF.wfmref_data.p_buf_idx <= WFMREF.wfmref_data.p_buf_end)
-                        {
-                            I_LOAD_REFERENCE_WFMREF =
-                                              *(WFMREF.wfmref_data.p_buf_idx) *
-                                               (WFMREF.gain) + WFMREF.offset;
-                        }
-                        break;
-                    }
-                }
-
-                //run_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
-                run_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
-                break;
-            }
             case MigWfm:
             {
+                run_wfmref(&WFMREF);
                 break;
             }
             default:
@@ -776,11 +700,9 @@ static interrupt void isr_controller(void)
             SATURATE(I_LOAD_REFERENCE, MAX_REF, MIN_REF);
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
-            //run_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_I_LOAD);
             run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
-            g_controller_ctom.net_signals[8].f = g_controller_ctom.net_signals[6].f +
-                                               g_controller_ctom.net_signals[7].f;
+            IN_FF_V_CAPBANK = DUTY_I_LOAD_PI + DUTY_REF_FF;
 
             run_dsp_vdclink_ff(FF_V_CAPBANK);
 
@@ -790,10 +712,16 @@ static interrupt void isr_controller(void)
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1, DUTY_CYCLE);
     }
 
+    WFMREF_IDX = (float) (WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_idx -
+                          WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_start);
+
+    g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
+
     /*********************************************/
     RUN_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
+        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF1);
+        //insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF2);
     /*********************************************/
     END_TIMESLICER(TIMESLICER_BUFFER)
     /*********************************************/

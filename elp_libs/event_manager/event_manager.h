@@ -20,7 +20,7 @@
  *      2. Alarms, in general caused by unusual operation values
  *      3. Commands received via communication interfaces, such as turn on/off,
  *         selection of operation mode, open/close control loop, changes on
- *         setpoint or other operation paramenters, etc. Usually is done by BSMP
+ *         setpoint or other operation parameters, etc. Usually is done by BSMP
  *         functions or HMI operation.
  *
  * Current version implements only interlocks management, including debouncing
@@ -44,7 +44,7 @@
  *  disabled, interlock variables still indicate which interlock has occured,
  *  but the power supply can still operate normally
  */
-//#define USE_ITLK
+#define USE_ITLK
 
 #define NUM_MAX_EVENT_COUNTER       32
 
