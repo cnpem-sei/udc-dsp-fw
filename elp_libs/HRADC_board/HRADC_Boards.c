@@ -107,20 +107,9 @@ void Init_HRADC_Info(volatile HRADC_struct *hradcPtr, Uint16 ID, Uint16 buffer_s
 	}
 
     hradcPtr->BoardData.t.gain_Vin_bipolar *= 		transducer_gain * HRADC_VIN_BI_P_GAIN;
-    //hradcPtr->BoardData.t.gain_Vin_bipolar = ( transducer_gain * HRADC_VIN_BI_P_GAIN ) / hradcPtr->BoardData.t.gain_Vin_bipolar;
     hradcPtr->BoardData.t.offset_Vin_bipolar -= 	hradcPtr->BoardData.t.gain_Vin_bipolar*HRADC_BI_OFFSET;
 
-    #if (HRADC_v2_0)
-        hradcPtr->BoardData.t.gain_Iin_bipolar *= -transducer_gain *
-                (1.0/(hradcPtr->BoardData.t.Rburden * HRADC_BI_OFFSET));
-    #endif
-    #if (HRADC_v2_1)
-        hradcPtr->BoardData.t.gain_Iin_bipolar *= transducer_gain *
-                        (1.0/(hradcPtr->BoardData.t.Rburden * HRADC_BI_OFFSET));
-    #endif
-
-
-    //hradcPtr->BoardData.t.gain_Iin_bipolar = ( transducer_gain * (1.0/(hradcPtr->BoardData.t.Rburden * HRADC_BI_OFFSET)) ) / hradcPtr->BoardData.t.gain_Iin_bipolar;
+    hradcPtr->BoardData.t.gain_Iin_bipolar   *= transducer_gain * (1.0/(hradcPtr->BoardData.t.Rburden * HRADC_BI_OFFSET));
     hradcPtr->BoardData.t.offset_Iin_bipolar -=		hradcPtr->BoardData.t.gain_Iin_bipolar*HRADC_BI_OFFSET;
 
     hradcPtr->gain = hradcPtr->BoardData.t.gain_Vin_bipolar;

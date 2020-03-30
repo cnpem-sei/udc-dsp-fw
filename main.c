@@ -36,12 +36,12 @@
 #include "ps_modules/fac_2s_dcdc.h"
 #include "ps_modules/fac_2p4s_acdc.h"
 #include "ps_modules/fac_2p4s_dcdc.h"
+#include "ps_modules/fac_2p_acdc_imas.h"
+#include "ps_modules/fac_2p_dcdc_imas.h"
 #include "ps_modules/fap.h"
 #include "ps_modules/fap_4p.h"
 #include "ps_modules/fac_dcdc_ema.h"
 #include "ps_modules/fap_2p2s.h"
-#include "ps_modules/fac_2p_acdc_imas.h"
-#include "ps_modules/fac_2p_dcdc_imas.h"
 
 /**
  * @brief Main function
@@ -172,7 +172,7 @@ void main(void)
 
             case FAC_DCDC_EMA:
             {
-                //main_fac_dcdc_ema();
+                main_fac_dcdc_ema();
                 break;
             }
 
@@ -182,15 +182,21 @@ void main(void)
                 break;
             }
 
+            case FAP_IMAS:
+            {
+                //main_fap_imas();
+                break;
+            }
+
             case FAC_2P_ACDC_IMAS:
             {
-                main_fac_2p_acdc_imas();
+                //main_fac_2p_acdc_imas();
                 break;
             }
 
             case FAC_2P_DCDC_IMAS:
             {
-                main_fac_2p_dcdc_imas();
+                //main_fac_2p_dcdc_imas();
                 break;
             }
 
