@@ -28,7 +28,10 @@
 #define SIZE_WFMREF             4096
 #define SIZE_WFMREF_FBP         SIZE_WFMREF/4
 #define NUM_WFMREF_CURVES       2
+
 //#define WFMREF                  g_ipc_ctom.wfmref
+#define TIMESLICER_WFMREF       0
+#define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
 
 #define INTERPOLATE(a, b, f)    (a * (1.0 - f)) + (b * f)
 

@@ -89,10 +89,6 @@
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
 
-#define TIMESLICER_BUFFER       1
-#define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
-#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
 /**
  * HRADC parameters
  */
@@ -246,17 +242,16 @@
 #define FF_V_CAPBANK_ARM_2_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[1].coeffs.s
 
 /// PWM Modulators
-#define PWM_MODULATOR_Q1_MOD_1_5          g_pwm_modules.pwm_regs[0]
-#define PWM_MODULATOR_Q2_MOD_1_5          g_pwm_modules.pwm_regs[1]
-#define PWM_MODULATOR_Q1_MOD_2_6          g_pwm_modules.pwm_regs[2]
-#define PWM_MODULATOR_Q2_MOD_2_6          g_pwm_modules.pwm_regs[3]
-#define PWM_MODULATOR_Q1_MOD_3_7          g_pwm_modules.pwm_regs[4]
-#define PWM_MODULATOR_Q2_MOD_3_7          g_pwm_modules.pwm_regs[5]
-#define PWM_MODULATOR_Q1_MOD_4_8          g_pwm_modules.pwm_regs[6]
-#define PWM_MODULATOR_Q2_MOD_4_8          g_pwm_modules.pwm_regs[7]
+#define PWM_MODULATOR_Q1_MOD_1_5        g_pwm_modules.pwm_regs[0]
+#define PWM_MODULATOR_Q2_MOD_1_5        g_pwm_modules.pwm_regs[1]
+#define PWM_MODULATOR_Q1_MOD_2_6        g_pwm_modules.pwm_regs[2]
+#define PWM_MODULATOR_Q2_MOD_2_6        g_pwm_modules.pwm_regs[3]
+#define PWM_MODULATOR_Q1_MOD_3_7        g_pwm_modules.pwm_regs[4]
+#define PWM_MODULATOR_Q2_MOD_3_7        g_pwm_modules.pwm_regs[5]
+#define PWM_MODULATOR_Q1_MOD_4_8        g_pwm_modules.pwm_regs[6]
+#define PWM_MODULATOR_Q2_MOD_4_8        g_pwm_modules.pwm_regs[7]
 
-/// Samples Buffer
-#define BUF_SAMPLES                     &g_ipc_ctom.buf_samples[0]
+#define SCOPE                           SCOPE_CTOM[0]
 
 /**
  * Digital I/O's status
@@ -546,10 +541,10 @@ static void init_controller(void)
 
     init_ipc();
 
-    init_wfmref(&WFMREF, g_ipc_mtoc.wfmref[0].wfmref_selected,
-                g_ipc_mtoc.wfmref[0].sync_mode, ISR_CONTROL_FREQ,
-                WFMREF_FREQ, g_ipc_mtoc.wfmref[0].gain,
-                g_ipc_mtoc.wfmref[0].offset, &g_wfmref_data.data,
+    init_wfmref(&WFMREF, WFMREF_MTOC[0].wfmref_selected,
+                WFMREF_MTOC[0].sync_mode, ISR_CONTROL_FREQ,
+                WFMREF_FREQ, WFMREF_MTOC[0].gain,
+                WFMREF_MTOC[0].offset, &g_wfmref_data.data,
                 SIZE_WFMREF, &I_LOAD_REFERENCE);
 
     /***********************************************/
@@ -723,25 +718,18 @@ static void init_controller(void)
                         &V_CAPBANK_ARM_2_FILTERED, &IN_FF_V_CAPBANK_ARM_2,
                         &DUTY_CYCLE_MOD_5);
 
-    /************************************/
-    /** INITIALIZATION OF TIME SLICERS **/
-    /************************************/
 
-    /**
-     * Time-slicer for WfmRef sweep decimation
-     */
-    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
+    /******************************/
+    /** INITIALIZATION OF SCOPES **/
+    /******************************/
 
-    /**
-     * Time-slicer for SamplesBuffer
-     */
-    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
+    //init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+    //           g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM, &I_LOAD_REFERENCE,
+    //           &run_scope_shared_ram);
 
-    /**
-     * Samples buffer initialization
-     */
-    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
-    enable_buffer(BUF_SAMPLES);
+    init_scope(&SCOPE, ISR_CONTROL_FREQ, 48000,
+                   g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM, &I_LOAD_REFERENCE,
+                   &run_scope_shared_ram);
 
     /**
      * Reset all internal variables
@@ -788,8 +776,6 @@ static void reset_controller(void)
     disable_siggen(&SIGGEN);
 
     reset_wfmref(&WFMREF);
-
-    reset_timeslicers();
 }
 
 /**
@@ -882,8 +868,9 @@ static interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
-    CLEAR_DEBUG_GPIO1;
-    SET_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
+    SET_DEBUG_GPIO0;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -1040,14 +1027,8 @@ static interrupt void isr_controller(void)
 
     g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
 
-    /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF1);
-        //insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF2);
-    /*********************************************/
-    END_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
+    RUN_SCOPE(SCOPE);
+    //CLEAR_DEBUG_GPIO1;
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
 
@@ -1058,7 +1039,8 @@ static interrupt void isr_controller(void)
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO0;
+    //CLEAR_DEBUG_GPIO1;
 }
 
 /**

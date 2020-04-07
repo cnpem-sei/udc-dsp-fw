@@ -25,10 +25,7 @@
 #include "common/structs.h"
 #include "common/timeslicer.h"
 #include "control/control.h"
-#include "ipc.h"
-
-#define WFMREF_CTOM     g_ipc_ctom.wfmref
-#define WFMREF_MTOC     g_ipc_mtoc.wfmref
+#include "ipc/ipc.h"
 
 //#pragma DATA_SECTION(g_wfmref,"SHARERAMS23")
 //volatile float g_wfmref[SIZE_WFMREF];
@@ -305,17 +302,32 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 break;
             }
 
-            case Cfg_Buf_Samples:
+            case Cfg_Source_Scope:
             {
-                /**
-                 * TODO: implement cfg_buf_samples
-                 */
+                cfg_source_scope(&SCOPE_CTOM[msg_id],
+                                 SCOPE_MTOC[msg_id].p_source);
                 break;
             }
 
-            case Enable_Buf_Samples:
+            case Cfg_Freq_Scope:
             {
-                enable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                cfg_freq_scope(&SCOPE_CTOM[msg_id],
+                               SCOPE_MTOC[msg_id].timeslicer.freq_sampling);
+                break;
+            }
+
+            case Cfg_Duration_Scope:
+            {
+                cfg_duration_scope(&SCOPE_CTOM[msg_id],
+                                   SCOPE_MTOC[msg_id].duration);
+                break;
+            }
+
+
+            case Enable_Scope:
+            {
+                enable_scope(&SCOPE_CTOM[msg_id]);
+                //enable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
                 /*enable_buffer(&g_ipc_ctom.buf_samples[0]);
                 enable_buffer(&g_ipc_ctom.buf_samples[1]);
                 enable_buffer(&g_ipc_ctom.buf_samples[2]);
@@ -323,18 +335,25 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 break;
             }
 
-            case Disable_Buf_Samples:
+            case Disable_Scope:
             {
                 /**
                  * TODO: It sets as Postmortem to wait buffer complete. Maybe
                  * it's better to create a postmortem BSMP function
                  */
-                postmortem_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                disable_scope(&SCOPE_CTOM[msg_id]);
+                //postmortem_buffer(&g_ipc_ctom.buf_samples[msg_id]);
                 /*postmortem_buffer(&g_ipc_ctom.buf_samples[0]);
                 postmortem_buffer(&g_ipc_ctom.buf_samples[1]);
                 postmortem_buffer(&g_ipc_ctom.buf_samples[2]);
                 postmortem_buffer(&g_ipc_ctom.buf_samples[3]);*/
                 //disable_buffer(&g_ipc_ctom.buf_samples[msg_id]);
+                break;
+            }
+
+            case Reset_Scope:
+            {
+                reset_scope(&SCOPE_CTOM[msg_id]);
                 break;
             }
 
@@ -424,6 +443,13 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 break;
             }
 
+            case Reset_Counters:
+            {
+                g_ipc_ctom.counter_set_slowref =  0;
+                g_ipc_ctom.counter_sync_pulse =  0;
+                break;
+            }
+
             case Set_Param:
             {
                 break;
@@ -433,13 +459,6 @@ interrupt void isr_ipc_lowpriority_msg(void)
             {
                 set_dsp_coeffs(g_ipc_mtoc.dsp_module.dsp_class,
                                g_ipc_mtoc.dsp_module.id);
-                break;
-            }
-
-            case Reset_Counters:
-            {
-                g_ipc_ctom.counter_set_slowref =  0;
-                g_ipc_ctom.counter_sync_pulse =  0;
                 break;
             }
 
@@ -470,7 +489,7 @@ interrupt void isr_ipc_sync_pulse(void)
 {
     uint16_t i;
 
-    //SET_DEBUG_GPIO1;
+    SET_DEBUG_GPIO1;
 
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
     {
@@ -496,84 +515,6 @@ interrupt void isr_ipc_sync_pulse(void)
                 case MigWfm:
                 {
                     sync_wfmref(&WFMREF_CTOM[i], &WFMREF_MTOC[i]);
-                    /*
-                    static uint16_t sel;
-
-                    sel = WFMREF_CTOM[i].wfmref_selected;
-
-                    switch(WFMREF_CTOM[i].sync_mode)
-                    {
-                        case SampleBySample:
-                        {
-                            if(WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx++ >=
-                               WFMREF_CTOM[i].wfmref_data[sel].p_buf_end)
-                            {
-                                WFMREF_CTOM[i].wfmref_selected = WFMREF_MTOC[i].wfmref_selected;
-                                sel = WFMREF_CTOM[i].wfmref_selected;
-
-                                WFMREF_CTOM[i].wfmref_data[sel] = WFMREF_MTOC[i].wfmref_data[sel];
-
-                                WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
-                                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_start;
-
-                                WFMREF_CTOM[i].gain = WFMREF_MTOC[i].gain;
-                                WFMREF_CTOM[i].offset = WFMREF_MTOC[i].offset;
-                                WFMREF_CTOM[i].sync_mode = WFMREF_MTOC[i].sync_mode;
-                            }
-
-                            break;
-                        }
-
-                        case SampleBySample_OneCycle:
-                        {
-                            if(WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx++ ==
-                               WFMREF_CTOM[i].wfmref_data[sel].p_buf_end)
-                            {
-                                WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
-                                        WFMREF_CTOM[i].wfmref_data[sel].p_buf_end;
-                            }
-                            else if(WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx >
-                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_end)
-                            {
-                                WFMREF_CTOM[i].wfmref_selected = WFMREF_MTOC[i].wfmref_selected;
-                                sel = WFMREF_CTOM[i].wfmref_selected;
-
-                                WFMREF_CTOM[i].wfmref_data[sel] = WFMREF_MTOC[i].wfmref_data[sel];
-
-                                WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
-                                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_start;
-
-                                WFMREF_CTOM[i].gain = WFMREF_MTOC[i].gain;
-                                WFMREF_CTOM[i].offset = WFMREF_MTOC[i].offset;
-                                WFMREF_CTOM[i].sync_mode = WFMREF_MTOC[i].sync_mode;
-                            }
-                            else
-                            {
-                                //WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx++;
-                            }
-
-                            break;
-                        }
-
-                        case OneShot:
-                        {
-                            WFMREF_CTOM[i].wfmref_selected = WFMREF_MTOC[i].wfmref_selected;
-                            sel = WFMREF_CTOM[i].wfmref_selected;
-
-                            WFMREF_CTOM[i].wfmref_data[sel] = WFMREF_MTOC[i].wfmref_data[sel];
-
-                            WFMREF_CTOM[i].wfmref_data[sel].p_buf_idx =
-                                                    WFMREF_CTOM[i].wfmref_data[sel].p_buf_start;
-
-                            WFMREF_CTOM[i].gain = WFMREF_MTOC[i].gain;
-                            WFMREF_CTOM[i].offset = WFMREF_MTOC[i].offset;
-                            WFMREF_CTOM[i].sync_mode = WFMREF_MTOC[i].sync_mode;
-
-                            break;
-                        }
-                    }
-
-                    WFMREF_CTOM[i].lerp.counter = 0;*/
                     break;
                 }
 
@@ -587,12 +528,20 @@ interrupt void isr_ipc_sync_pulse(void)
 
     g_ipc_ctom.counter_sync_pulse++;
 
-    if(g_ipc_ctom.buf_samples[0].status == Idle)
+    /*if(g_ipc_ctom.buf_samples[0].status == Idle)
     {
         g_ipc_ctom.buf_samples[0].status = Postmortem;
         g_ipc_ctom.buf_samples[1].status = Postmortem;
         g_ipc_ctom.buf_samples[2].status = Postmortem;
         g_ipc_ctom.buf_samples[3].status = Postmortem;
+    }*/
+
+    if(SCOPE_CTOM[0].buffer.status == Idle)
+    {
+        SCOPE_CTOM[0].buffer.status = Postmortem;
+        SCOPE_CTOM[1].buffer.status = Postmortem;
+        SCOPE_CTOM[2].buffer.status = Postmortem;
+        SCOPE_CTOM[3].buffer.status = Postmortem;
     }
 
     CtoMIpcRegs.MTOCIPCACK.all = SYNC_PULSE;

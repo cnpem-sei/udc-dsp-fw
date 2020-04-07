@@ -24,27 +24,33 @@
 #define TIMESLICER_H_
 
 #include <stdint.h>
+//#include "ipc/ipc.h"
 
 #define NUM_MAX_TIMESLICERS     4
-#define RUN_TIMESLICER(id)      if(g_timeslicers.counter[id]++ == g_timeslicers.freq_ratio[id]){
-#define END_TIMESLICER(id)      g_timeslicers.counter[id] = 1;}
 
-/**
- * Fixed timeslicers
- */
-#define TIMESLICER_WFMREF       0
-#define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
-#define WFMREF_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / WFMREF_FREQ)
+#define RUN_TIMESLICER(timeslicer)
+#define END_TIMESLICER(timeslicer)
+
+#define RUN_TIMESLICER_NEW(timeslicer)  if(timeslicer.counter++ == timeslicer.freq_ratio){
+#define END_TIMESLICER_NEW(timeslicer)  timeslicer.counter = 1;}
+
+#define RESET_TIMESLICER(timeslicer)    timeslicer.counter = timeslicer.ratio
 
 typedef volatile struct
 {
-    uint16_t  freq_ratio[NUM_MAX_TIMESLICERS];
-    uint16_t  counter[NUM_MAX_TIMESLICERS];
+    float     freq_base;
+    float     freq_sampling;
+    uint16_t  freq_ratio;
+    uint16_t  counter;
 } timeslicer_t;
 
-extern timeslicer_t g_timeslicers;
+typedef volatile struct
+{
+    timeslicer_t timeslicer[NUM_MAX_TIMESLICERS];
+} timeslicers_t;
 
-extern void reset_timeslicers(void);
-extern void cfg_timeslicer(uint16_t id, uint16_t ratio);
+extern void init_timeslicer(timeslicer_t *p_ts, float freq_base);
+extern void cfg_timeslicer(timeslicer_t *p_ts, float freq_sampling);
+extern void reset_timeslicer(timeslicer_t *p_ts);
 
 #endif /* TIMESLICER_H_ */
