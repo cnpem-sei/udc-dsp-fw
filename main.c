@@ -190,13 +190,13 @@ void main(void)
 
             case FAC_2P_ACDC_IMAS:
             {
-                //main_fac_2p_acdc_imas();
+                main_fac_2p_acdc_imas();
                 break;
             }
 
             case FAC_2P_DCDC_IMAS:
             {
-                //main_fac_2p_dcdc_imas();
+                main_fac_2p_dcdc_imas();
                 break;
             }
 

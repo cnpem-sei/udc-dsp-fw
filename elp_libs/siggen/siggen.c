@@ -61,7 +61,7 @@ void init_siggen(siggen_t *p_siggen, float freq_sampling, volatile float *p_out)
 	if(p_siggen->enable == 0)
 	{
 	    p_siggen->freq_sampling = freq_sampling;
-	    cfg_siggen(p_siggen,Sine,1,1.0,1.0,0.0, default_aux_param);
+	    cfg_siggen(p_siggen, Sine, 1, 1.0, 1.0, 0.0, default_aux_param);
         p_siggen->p_out = p_out;
 	}
 }

@@ -28,11 +28,8 @@
 
 #define NUM_MAX_TIMESLICERS     4
 
-#define RUN_TIMESLICER(timeslicer)
-#define END_TIMESLICER(timeslicer)
-
-#define RUN_TIMESLICER_NEW(timeslicer)  if(timeslicer.counter++ == timeslicer.freq_ratio){
-#define END_TIMESLICER_NEW(timeslicer)  timeslicer.counter = 1;}
+#define RUN_TIMESLICER(timeslicer)  if(timeslicer.counter++ == timeslicer.freq_ratio){
+#define END_TIMESLICER(timeslicer)  timeslicer.counter = 1;}
 
 #define RESET_TIMESLICER(timeslicer)    timeslicer.counter = timeslicer.ratio
 
@@ -43,11 +40,6 @@ typedef volatile struct
     uint16_t  freq_ratio;
     uint16_t  counter;
 } timeslicer_t;
-
-typedef volatile struct
-{
-    timeslicer_t timeslicer[NUM_MAX_TIMESLICERS];
-} timeslicers_t;
 
 extern void init_timeslicer(timeslicer_t *p_ts, float freq_base);
 extern void cfg_timeslicer(timeslicer_t *p_ts, float freq_sampling);

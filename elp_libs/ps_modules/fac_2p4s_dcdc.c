@@ -718,18 +718,13 @@ static void init_controller(void)
                         &V_CAPBANK_ARM_2_FILTERED, &IN_FF_V_CAPBANK_ARM_2,
                         &DUTY_CYCLE_MOD_5);
 
-
     /******************************/
     /** INITIALIZATION OF SCOPES **/
     /******************************/
 
-    //init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
-    //           g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM, &I_LOAD_REFERENCE,
-    //           &run_scope_shared_ram);
-
-    init_scope(&SCOPE, ISR_CONTROL_FREQ, 48000,
-                   g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM, &I_LOAD_REFERENCE,
-                   &run_scope_shared_ram);
+    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+               g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM, &I_LOAD_REFERENCE,
+               &run_scope_shared_ram);
 
     /**
      * Reset all internal variables
@@ -869,7 +864,7 @@ static interrupt void isr_controller(void)
     static uint16_t i;
 
     //CLEAR_DEBUG_GPIO1;
-    //SET_DEBUG_GPIO1;
+    SET_DEBUG_GPIO1;
     SET_DEBUG_GPIO0;
 
     temp[0] = 0.0;
@@ -1040,7 +1035,7 @@ static interrupt void isr_controller(void)
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
     //CLEAR_DEBUG_GPIO0;
-    //CLEAR_DEBUG_GPIO1;
+    CLEAR_DEBUG_GPIO1;
 }
 
 /**
