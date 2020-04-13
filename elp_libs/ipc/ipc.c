@@ -195,7 +195,7 @@ void send_ipc_lowpriority_msg(uint16_t msg_id, ipc_ctom_lowpriority_msg_t msg)
  */
 interrupt void isr_ipc_lowpriority_msg(void)
 {
-    static uint16_t i, msg_id, sel;
+    static uint16_t i, msg_id;
 
     g_ipc_ctom.msg_mtoc = CtoMIpcRegs.MTOCIPCSTS.all;
     CtoMIpcRegs.MTOCIPCACK.all = g_ipc_ctom.msg_mtoc;

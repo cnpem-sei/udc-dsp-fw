@@ -148,7 +148,7 @@ void main(void)
 
             case FAC_2P4S_ACDC:
             {
-                //main_fac_2p4s_acdc();
+                main_fac_2p4s_acdc();
                 break;
             }
 

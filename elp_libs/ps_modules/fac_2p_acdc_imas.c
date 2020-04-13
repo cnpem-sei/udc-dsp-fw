@@ -158,7 +158,7 @@
 /// PWM modulator for module A
 #define PWM_MODULATOR_MOD_A         g_pwm_modules.pwm_regs[0]
 
-/// Samples buffer for module A
+/// Scope for module A
 #define SCOPE_MOD_A                 SCOPE_CTOM[0]
 
 /**
@@ -203,7 +203,7 @@
 /// PWM modulator for module B
 #define PWM_MODULATOR_MOD_B         g_pwm_modules.pwm_regs[1]
 
-/// Samples buffer for module B
+/// Scope for module B
 #define SCOPE_MOD_B                 SCOPE_CTOM[1]
 
 /**

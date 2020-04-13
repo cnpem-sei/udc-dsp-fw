@@ -29,6 +29,7 @@
 #include "common/timeslicer.h"
 #include "event_manager/event_manager.h"
 #include "ps_modules/ps_modules.h"
+#include "scope/scope.h"
 #include "siggen/siggen.h"
 
 #define NUM_MAX_ANALOG_VAR      64
@@ -185,6 +186,12 @@ typedef struct
     uint32_t    soft_itlks_debounce_time[NUM_MAX_SOFT_INTERLOCKS];
     uint32_t    soft_itlks_reset_time[NUM_MAX_SOFT_INTERLOCKS];
 } param_interlocks_t;
+
+typedef struct
+{
+    float       freq_sampling[NUM_MAX_SCOPES];
+    float       *p_source[NUM_MAX_SCOPES];
+} param_scope_t;
 
 extern volatile param_t g_parameters[NUM_MAX_PARAMETERS];
 
