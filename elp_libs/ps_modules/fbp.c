@@ -61,8 +61,6 @@
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
 #define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
 
-#define BUF_SAMPLES             &g_ipc_ctom.buf_samples
-
 #define SIGGEN                  g_ipc_ctom.siggen
 #define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
 
@@ -135,6 +133,8 @@
 #define PS1_PWM_MODULATOR               g_pwm_modules.pwm_regs[0]
 #define PS1_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[1]
 
+#define PS1_SCOPE                       SCOPE_CTOM[0]
+
 /**
  * Power supply 2 defines
  */
@@ -164,6 +164,8 @@
 
 #define PS2_PWM_MODULATOR               g_pwm_modules.pwm_regs[2]
 #define PS2_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[3]
+
+#define PS2_SCOPE                       SCOPE_CTOM[1]
 
 /**
  * Power supply 3 defines
@@ -195,6 +197,8 @@
 #define PS3_PWM_MODULATOR               g_pwm_modules.pwm_regs[4]
 #define PS3_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[5]
 
+#define PS3_SCOPE                       SCOPE_CTOM[2]
+
 /**
  * Power supply 4 defines
  */
@@ -224,6 +228,8 @@
 
 #define PS4_PWM_MODULATOR               g_pwm_modules.pwm_regs[6]
 #define PS4_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[7]
+
+#define PS4_SCOPE                       SCOPE_CTOM[3]
 
 /**
  * Interlocks defines
@@ -447,6 +453,12 @@ static void init_controller(void)
                     WFMREF_FREQ, g_ipc_mtoc.wfmref[i].gain,
                     g_ipc_mtoc.wfmref[i].offset, &g_wfmref_data.data_fbp[i],
                     SIZE_WFMREF_FBP, &g_ipc_ctom.ps_module[i].ps_reference);
+
+        init_scope(&SCOPE_CTOM[i], ISR_CONTROL_FREQ,
+                   SCOPE_MTOC[i].timeslicer.freq_sampling,
+                   &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM * i /NUM_MAX_PS_MODULES],
+                   SIZE_BUF_SAMPLES_CTOM / NUM_MAX_PS_MODULES,
+                   SCOPE_MTOC[i].p_source, &run_scope_shared_ram);
     }
 
     init_control_framework(&g_controller_ctom);
@@ -567,23 +579,6 @@ static void init_controller(void)
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7].f,
                 &g_controller_ctom.output_signals[3].f);
 
-    /// INITIALIZATION OF TIME SLICERS
-
-    /// 0: Time-slicer for WfmRef sweep decimation
-
-    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
-
-    /// 1: Time-slicer for SamplesBuffer
-    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
-
-    /**
-     * Samples buffer initialization
-     */
-    init_buffer(BUF_SAMPLES[0], &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/4);
-    init_buffer(BUF_SAMPLES[1], &g_buf_samples_ctom[1024], SIZE_BUF_SAMPLES_CTOM/4);
-    init_buffer(BUF_SAMPLES[2], &g_buf_samples_ctom[2048], SIZE_BUF_SAMPLES_CTOM/4);
-    init_buffer(BUF_SAMPLES[3], &g_buf_samples_ctom[3072], SIZE_BUF_SAMPLES_CTOM/4);
-
     /// Reset all internal variables
     reset_controllers();
 }
@@ -606,7 +601,6 @@ static void reset_controller(uint16_t id)
     reset_wfmref(&WFMREF[id]);
 
     disable_siggen(&SIGGEN);
-    reset_timeslicers();
 }
 
 /**
@@ -677,6 +671,7 @@ static interrupt void isr_controller(void)
     static uint16_t i, flag_siggen;
     static float temp[4];
 
+    SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     /// Get HRADC samples
@@ -781,16 +776,10 @@ static interrupt void isr_controller(void)
         /// TODO: save on buffers
     }
 
-    /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
-        insert_buffer(BUF_SAMPLES[0], PS1_NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES[1], PS2_NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES[2], PS3_NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES[3], PS4_NETSIGNAL_CTOM_BUF);
-    /*********************************************/
-    END_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
+    RUN_SCOPE(PS1_SCOPE);
+    RUN_SCOPE(PS2_SCOPE);
+    RUN_SCOPE(PS3_SCOPE);
+    RUN_SCOPE(PS4_SCOPE);
 
     PS1_PWM_MODULATOR->ETCLR.bit.INT = 1;
     PS1_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;

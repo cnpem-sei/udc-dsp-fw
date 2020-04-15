@@ -489,13 +489,13 @@ static void init_controller(void)
     /******************************/
 
     init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
-               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/2, &V_CAPBANK_MOD_A,
-               &run_scope_shared_ram);
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/2,
+               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
 
 
     init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, SCOPE_MTOC[1].timeslicer.freq_sampling,
                &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM/2], SIZE_BUF_SAMPLES_CTOM/2,
-               &V_CAPBANK_MOD_B, &run_scope_shared_ram);
+               SCOPE_MTOC[1].p_source, &run_scope_shared_ram);
 
     /**
      * Reset all internal variables
@@ -588,8 +588,8 @@ static interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
-    SET_DEBUG_GPIO1;
     SET_DEBUG_GPIO0;
+    SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;

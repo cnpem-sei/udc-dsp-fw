@@ -171,8 +171,8 @@
 #define PWM_MODULATOR_Q1            g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_Q2            g_pwm_modules.pwm_regs[1]
 
-/// Samples buffer
-#define BUF_SAMPLES                 &g_ipc_ctom.buf_samples[0]
+/// Scope
+#define SCOPE                           SCOPE_CTOM[0]
 
 /**
  * Digital I/O's status
@@ -492,25 +492,13 @@ static void init_controller(void)
     init_dsp_vdclink_ff(FF_V_CAPBANK, NOM_V_CAPBANK_FF, MIN_V_CAPBANK_FF,
                         &V_CAPBANK_FILTERED, &IN_FF_V_CAPBANK, &DUTY_CYCLE);
 
-    /************************************/
-    /** INITIALIZATION OF TIME SLICERS **/
-    /************************************/
+    /******************************/
+    /** INITIALIZATION OF SCOPES **/
+    /******************************/
 
-    /**
-     * Time-slicer for WfmRef sweep decimation
-     */
-    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
-
-    /**
-     * Time-slicer for SamplesBuffer
-     */
-    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
-
-    /**
-     * Samples buffer initialization
-     */
-    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
-    enable_buffer(BUF_SAMPLES);
+    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
+               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
 
     /**
      * Reset all internal variables
@@ -543,8 +531,6 @@ static void reset_controller(void)
     disable_siggen(&SIGGEN);
 
     reset_wfmref(&WFMREF);
-
-    reset_timeslicers();
 }
 
 /**
@@ -598,6 +584,7 @@ static interrupt void isr_controller(void)
     static uint16_t i;
 
     //CLEAR_DEBUG_GPIO1;
+    SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -717,14 +704,7 @@ static interrupt void isr_controller(void)
 
     g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
 
-    /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF1);
-        //insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF2);
-    /*********************************************/
-    END_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
+    RUN_SCOPE(SCOPE);
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
 

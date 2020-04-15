@@ -79,13 +79,9 @@
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
 
-#define TIMESLICER_BUFFER       1
-#define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
-#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
-#define TIMESLICER_I_SHARE_CONTROLLER   2
-#define I_SHARE_CONTROLLER_FREQ_SAMP    g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_I_SHARE_CONTROLLER]
-#define I_SHARE_CONTROLLER_DECIMATION   (uint16_t) roundf(ISR_CONTROL_FREQ / I_SHARE_CONTROLLER_FREQ_SAMP)
+#define TIMESLICER_I_SHARE_CONTROLLER_IDX   2
+#define TIMESLICER_I_SHARE_CONTROLLER       g_controller_ctom.timeslicer[TIMESLICER_I_SHARE_CONTROLLER_IDX]
+#define I_SHARE_CONTROLLER_FREQ_SAMP        g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_I_SHARE_CONTROLLER_IDX]
 
 /**
  * HRADC parameters
@@ -251,8 +247,8 @@
 #define PWM_MODULATOR_IGBT_1_MOD_4          g_pwm_modules.pwm_regs[6]
 #define PWM_MODULATOR_IGBT_2_MOD_4          g_pwm_modules.pwm_regs[7]
 
-/// Samples buufer
-#define BUF_SAMPLES                         &g_ipc_ctom.buf_samples[0]
+/// Scope
+#define SCOPE                           SCOPE_CTOM[0]
 
 /**
  * Digital I/O's status
@@ -676,25 +672,18 @@ static void init_controller(void)
     /************************************/
 
     /**
-     * Time-slicer for WfmRef sweep decimation
-     */
-    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
-
-    /**
-     * Time-slicer for SamplesBuffer
-     */
-    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
-
-    /**
      * Time-slicer for IGBT current share controller
      */
-    cfg_timeslicer(TIMESLICER_I_SHARE_CONTROLLER, I_SHARE_CONTROLLER_DECIMATION);
+    init_timeslicer(&TIMESLICER_I_SHARE_CONTROLLER, ISR_CONTROL_FREQ);
+    cfg_timeslicer(&TIMESLICER_I_SHARE_CONTROLLER, I_SHARE_CONTROLLER_FREQ_SAMP);
 
-    /**
-     * Samples buffer initialization
-     */
-    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
-    enable_buffer(BUF_SAMPLES);
+    /******************************/
+    /** INITIALIZATION OF SCOPES **/
+    /******************************/
+
+    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
+               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
 
     /**
      * Reset all internal variables
@@ -737,8 +726,6 @@ static void reset_controller(void)
     disable_siggen(&SIGGEN);
 
     reset_wfmref(&WFMREF);
-
-    reset_timeslicers();
 }
 
 /**
@@ -792,6 +779,7 @@ static interrupt void isr_controller(void)
     static uint16_t i;
 
     //CLEAR_DEBUG_GPIO1;
+    SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -966,14 +954,7 @@ static interrupt void isr_controller(void)
         set_pwm_duty_chA(PWM_MODULATOR_IGBT_2_MOD_4, DUTY_CYCLE_IGBT_2_MOD_4);
     }
 
-    /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
-        //insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
-    /*********************************************/
-    END_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
+    RUN_SCOPE(SCOPE);
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
 

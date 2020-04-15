@@ -469,14 +469,14 @@ static void init_controller(void)
     /** INITIALIZATION OF SCOPES **/
     /******************************/
 
-    init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, g_ipc_mtoc.scope[0].timeslicer.freq_sampling,
-                   &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/2,
-                   g_ipc_mtoc.scope[0].p_source, &run_scope_shared_ram);
+    init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/2,
+               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
 
 
-    init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, g_ipc_mtoc.scope[1].timeslicer.freq_sampling,
-                   &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM/2], SIZE_BUF_SAMPLES_CTOM/2,
-                   g_ipc_mtoc.scope[1].p_source, &run_scope_shared_ram);
+    init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, SCOPE_MTOC[1].timeslicer.freq_sampling,
+               &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM/2], SIZE_BUF_SAMPLES_CTOM/2,
+               SCOPE_MTOC[1].p_source, &run_scope_shared_ram);
 
 
     /**

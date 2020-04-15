@@ -251,6 +251,7 @@
 #define PWM_MODULATOR_Q1_MOD_4_8        g_pwm_modules.pwm_regs[6]
 #define PWM_MODULATOR_Q2_MOD_4_8        g_pwm_modules.pwm_regs[7]
 
+/// Scope
 #define SCOPE                           SCOPE_CTOM[0]
 
 /**
@@ -723,8 +724,8 @@ static void init_controller(void)
     /******************************/
 
     init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
-               g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM, &I_LOAD_REFERENCE,
-               &run_scope_shared_ram);
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
+               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
 
     /**
      * Reset all internal variables
@@ -864,8 +865,8 @@ static interrupt void isr_controller(void)
     static uint16_t i;
 
     //CLEAR_DEBUG_GPIO1;
-    SET_DEBUG_GPIO1;
     SET_DEBUG_GPIO0;
+    SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;

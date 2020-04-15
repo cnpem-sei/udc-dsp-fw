@@ -601,8 +601,8 @@ static void init_controller(void)
     /******************************/
 
     init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
-               g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM, &I_LOAD_REFERENCE,
-               &run_scope_shared_ram);
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
+               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
 
     /**
      * Reset all internal variables

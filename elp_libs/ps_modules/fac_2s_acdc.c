@@ -66,9 +66,9 @@
 #define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
 #define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
 
-#define TIMESLICER_CONTROLLER   2
-#define CONTROLLER_FREQ_SAMP    g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_CONTROLLER]
-#define CONTROLLER_DECIMATION   (uint16_t) roundf(ISR_CONTROL_FREQ / CONTROLLER_FREQ_SAMP)
+#define TIMESLICER_CONTROLLER_IDX       2
+#define TIMESLICER_CONTROLLER           g_controller_ctom.timeslicer[TIMESLICER_CONTROLLER_IDX]
+#define CONTROLLER_FREQ_SAMP            g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_CONTROLLER_IDX]
 
 #define SIGGEN                  g_ipc_ctom.siggen
 
@@ -120,8 +120,6 @@
 
 #define NF_ALPHA                        0.99
 
-#define BUF_SAMPLES                     &g_ipc_ctom.buf_samples[0]
-
 /**
  * Defines for AC/DC Module A
  */
@@ -167,6 +165,9 @@
 
 #define PWM_MODULATOR_MOD_A                   g_pwm_modules.pwm_regs[0]
 
+/// Scope for module A
+#define SCOPE_MOD_A                         SCOPE_CTOM[0]
+
 /**
  * Defines for AC/DC Module B
  */
@@ -211,6 +212,10 @@
 #define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[7].coeffs.s
 
 #define PWM_MODULATOR_MOD_B                   g_pwm_modules.pwm_regs[1]
+
+/// Scope for module B
+#define SCOPE_MOD_B                         SCOPE_CTOM[1]
+
 
 /**
  * Interlocks defines
@@ -457,23 +462,24 @@ static void init_controller(void)
     /************************************/
 
     /**
-     * Time-slicer for WfmRef sweep decimation
-     */
-    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
-
-    /**
-     * Time-slicer for SamplesBuffer
-     */
-    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
-
-    /**
      * Time-slicer for controller
      */
-    cfg_timeslicer(TIMESLICER_CONTROLLER,
-                   CONTROLLER_DECIMATION);
+    init_timeslicer(&TIMESLICER_CONTROLLER, ISR_CONTROL_FREQ);
+    cfg_timeslicer(&TIMESLICER_CONTROLLER, CONTROLLER_FREQ_SAMP);
 
-    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
-    enable_buffer(BUF_SAMPLES);
+    /******************************/
+    /** INITIALIZATION OF SCOPES **/
+    /******************************/
+
+    init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/2,
+               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
+
+
+    init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, SCOPE_MTOC[1].timeslicer.freq_sampling,
+               &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM/2], SIZE_BUF_SAMPLES_CTOM/2,
+               SCOPE_MTOC[1].p_source, &run_scope_shared_ram);
+
 
     /**
      * Reset all internal variables
@@ -521,8 +527,6 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
     disable_siggen(&SIGGEN);
-
-    reset_timeslicers();
 }
 
 /**
@@ -572,6 +576,7 @@ static interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
+    SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -696,13 +701,8 @@ static interrupt void isr_controller(void)
     END_TIMESLICER(TIMESLICER_CONTROLLER)
     /*********************************************/
 
-    /******** Timeslicer for samples buffer ******/
-    RUN_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
-    /*********************************************/
-    END_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
+    RUN_SCOPE(SCOPE_MOD_A);
+    RUN_SCOPE(SCOPE_MOD_B);
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
     SET_INTERLOCKS_TIMEBASE_FLAG(1);
