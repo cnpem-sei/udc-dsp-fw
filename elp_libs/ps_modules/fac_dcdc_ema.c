@@ -62,14 +62,6 @@
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
 
-/*#define TIMESLICER_WFMREF       0
-#define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
-#define WFMREF_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / WFMREF_FREQ)*/
-
-#define TIMESLICER_BUFFER       1
-#define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
-#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
 /**
  * HRADC parameters
  */
@@ -164,8 +156,8 @@
 #define PWM_MODULATOR_Q1            g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_Q2            g_pwm_modules.pwm_regs[1]
 
-/// Samples buffer
-#define BUF_SAMPLES                 &g_ipc_ctom.buf_samples[0]
+/// Scope
+#define SCOPE                           SCOPE_CTOM[0]
 
 /**
  * Digital I/O's status
@@ -545,11 +537,13 @@ static void init_controller(void)
      */
     cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
 
-    /**
-     * Samples buffer initialization
-     */
-    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
-    enable_buffer(BUF_SAMPLES);
+    /******************************/
+    /** INITIALIZATION OF SCOPES **/
+    /******************************/
+
+    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
+               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
 
     /**
      * Reset all internal variables
@@ -584,8 +578,6 @@ static void reset_controller(void)
     disable_siggen(&SIGGEN);
 
     reset_wfmref(&WFMREF);
-
-    reset_timeslicers();
 }
 
 /**
@@ -639,6 +631,7 @@ static interrupt void isr_controller(void)
     static uint16_t i;
 
     //CLEAR_DEBUG_GPIO1;
+    SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -735,13 +728,7 @@ static interrupt void isr_controller(void)
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1, DUTY_CYCLE);
     }
 
-    /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
-    /*********************************************/
-    END_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
+    RUN_SCOPE(SCOPE);
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
 

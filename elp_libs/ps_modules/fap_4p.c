@@ -78,10 +78,6 @@
 #define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
 
-#define TIMESLICER_BUFFER       1
-#define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
-#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
 #define TIMESLICER_I_SHARE_CONTROLLER_IDX   2
 #define TIMESLICER_I_SHARE_CONTROLLER       g_controller_ctom.timeslicer[TIMESLICER_I_SHARE_CONTROLLER_IDX]
 #define I_SHARE_CONTROLLER_FREQ_SAMP        g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_I_SHARE_CONTROLLER_IDX]
