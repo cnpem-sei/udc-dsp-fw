@@ -87,7 +87,8 @@ PAGE 1 :   /* Data Memory */
    RAMM1       : origin = 0x000400, length = 0x000400     /* on-chip RAM block M1 */
    //RAML2       : origin = 0x00A000, length = 0x001000     /* on-chip RAM block L2 */
    RAML3       : origin = 0x00B000, length = 0x001000     /* on-chip RAM block L3 */
-   RAMS0       : origin = 0x00C000, length = 0x001000     /* on-chip Shared RAM block S0 */
+   RAMS0_0     : origin = 0x00C000, length = 0x000800     /* on-chip Shared RAM block S0 */
+   RAMS0_1     : origin = 0x00C800, length = 0x000800     /* on-chip Shared RAM block S0 */
    RAMS1_0     : origin = 0x00D000, length = 0x000800     /* on-chip Shared RAM block S1 - bank 0 */
    RAMS1_1     : origin = 0x00D800, length = 0x000800     /* on-chip Shared RAM block S1 - bank 1 */
    //RAMS2       : origin = 0x00E000, length = 0x001000     /* on-chip Shared RAM block S2 */
@@ -153,22 +154,23 @@ SECTIONS
        PUTREADIDX :   TYPE = DSECT
    }
 
-   SHARERAMS0          : > RAMS0,        PAGE = 1		// g_controller_mtoc
-   SHARERAMS1_0        : > RAMS1_0,        PAGE = 1		// g_controller_ctom
-   SHARERAMS1_1        : > RAMS1_1,        PAGE = 1		// HRADCs_Info
+   SHARERAMS0_0        : > RAMS0_0,        PAGE = 1     // g_controller_mtoc
+   SHARERAMS0_1        : > RAMS0_1,        PAGE = 1     // g_param_bank
+   SHARERAMS1_0        : > RAMS1_0,        PAGE = 1     // g_controller_ctom
+   SHARERAMS1_1        : > RAMS1_1,        PAGE = 1     // HRADCs_Info
    //SHARERAMS2          : > RAMS2,        PAGE = 1
    //SHARERAMS3          : > RAMS3,        PAGE = 1
    //SHARERAMS4          : > RAMS4,        PAGE = 1
    //SHARERAMS5          : > RAMS5,        PAGE = 1
    //SHARERAMS6          : > RAMS6,        PAGE = 1
    //SHARERAMS7          : > RAMS7,        PAGE = 1
-   //SHARERAMS23         : > RAMS23,       PAGE = 1		// g_wfmref
-   //SHARERAMS45         : > RAMS45,       PAGE = 1		// g_buf_samples_ctom
+   //SHARERAMS23         : > RAMS23,       PAGE = 1     // g_wfmref
+   //SHARERAMS45         : > RAMS45,       PAGE = 1     // g_buf_samples_ctom
    SHARERAMS2345       : > RAMS2345,       PAGE = 1     // g_wfmref
-   SHARERAMS67         : > RAMS67,       PAGE = 1		// g_buf_samples_ctom
+   SHARERAMS67         : > RAMS67,       PAGE = 1       // g_buf_samples_ctom
    
-   MTOC_MSG_RAM		   : > MTOCRAM,		PAGE = 1		// g_ipc_mtoc
-   CTOM_MSG_RAM		   : > CTOMRAM,		PAGE = 1		// g_ipc_ctom
+   MTOC_MSG_RAM		   : > MTOCRAM,		PAGE = 1        // g_ipc_mtoc
+   CTOM_MSG_RAM		   : > CTOMRAM,		PAGE = 1        // g_ipc_ctom
 
    /* Allocate uninitalized data sections: */
    .stack              : > RAMM0       PAGE = 1

@@ -27,15 +27,8 @@
 #include "control/control.h"
 #include "ipc/ipc.h"
 
-//#pragma DATA_SECTION(g_wfmref,"SHARERAMS23")
-//volatile float g_wfmref[SIZE_WFMREF];
-
-//#pragma DATA_SECTION(g_buf_samples_ctom,"SHARERAMS45")
 #pragma DATA_SECTION(g_buf_samples_ctom,"SHARERAMS67")
 volatile float g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM];
-
-//#pragma DATA_SECTION(g_buf_samples_mtoc,"SHARERAMS67")
-//volatile float g_buf_samples_mtoc[SIZE_BUF_SAMPLES_MTOC];
 
 #pragma DATA_SECTION(g_ipc_ctom,"CTOM_MSG_RAM");
 #pragma DATA_SECTION(g_ipc_mtoc,"MTOC_MSG_RAM");
@@ -73,8 +66,6 @@ void init_ipc(void)
     g_ipc_ctom.error_mtoc = No_Error_MtoC;
     g_ipc_ctom.counter_set_slowref =  0;
     g_ipc_ctom.counter_sync_pulse =  0;
-
-    //WFMREF = g_ipc_mtoc.wfmref;
 
     EALLOW;
 
@@ -256,7 +247,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
                         case Cycle:
                         {
-                            disable_siggen(&g_ipc_ctom.siggen);
+                            disable_siggen(&SIGGEN_CTOM[msg_id]);
                         }
 
                         case RmpWfm:
@@ -416,30 +407,31 @@ interrupt void isr_ipc_lowpriority_msg(void)
 
             case Cfg_SigGen:
             {
-                cfg_siggen(&g_ipc_ctom.siggen,g_ipc_mtoc.siggen.type,
-                           g_ipc_mtoc.siggen.num_cycles,
-                           g_ipc_mtoc.siggen.freq,
-                           g_ipc_mtoc.siggen.amplitude,
-                           g_ipc_mtoc.siggen.offset,
-                           g_ipc_mtoc.siggen.aux_param);
+                cfg_siggen(&SIGGEN_CTOM[msg_id],
+                           SIGGEN_MTOC[msg_id].type,
+                           SIGGEN_MTOC[msg_id].num_cycles,
+                           SIGGEN_MTOC[msg_id].freq,
+                           SIGGEN_MTOC[msg_id].amplitude,
+                           SIGGEN_MTOC[msg_id].offset,
+                           SIGGEN_MTOC[msg_id].aux_param);
                 break;
             }
 
             case Set_SigGen:
             {
-                set_siggen_freq(&g_ipc_ctom.siggen, g_ipc_mtoc.siggen.freq);
+                set_siggen_freq(&SIGGEN_CTOM[msg_id], SIGGEN_MTOC[msg_id].freq);
                 break;
             }
 
             case Enable_SigGen:
             {
-                enable_siggen(&g_ipc_ctom.siggen);
+                enable_siggen(&SIGGEN_CTOM[msg_id]);
                 break;
             }
 
             case Disable_SigGen:
             {
-                disable_siggen(&g_ipc_ctom.siggen);
+                disable_siggen(&SIGGEN_CTOM[msg_id]);
                 break;
             }
 
@@ -507,7 +499,7 @@ interrupt void isr_ipc_sync_pulse(void)
 
                 case Cycle:
                 {
-                    enable_siggen(&g_ipc_ctom.siggen);
+                    enable_siggen(&SIGGEN_CTOM[i]);
                     break;
                 }
 

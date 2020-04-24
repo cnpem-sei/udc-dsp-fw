@@ -51,11 +51,6 @@
 #define NUM_MAX_HARD_INTERLOCKS     32
 #define NUM_MAX_SOFT_INTERLOCKS     32
 
-#define HARD_INTERLOCKS_DEBOUNCE_TIME   g_ipc_mtoc.interlocks.hard_itlks_debounce_time
-#define HARD_INTERLOCKS_RESET_TIME      g_ipc_mtoc.interlocks.hard_itlks_reset_time
-#define SOFT_INTERLOCKS_DEBOUNCE_TIME   g_ipc_mtoc.interlocks.soft_itlks_debounce_time
-#define SOFT_INTERLOCKS_RESET_TIME      g_ipc_mtoc.interlocks.soft_itlks_reset_time
-
 /**
  * This define must be included inside the time-base routine (for example, a
  * control ISR).

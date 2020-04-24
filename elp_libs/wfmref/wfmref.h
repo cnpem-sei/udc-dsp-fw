@@ -31,7 +31,7 @@
 
 //#define WFMREF                  g_ipc_ctom.wfmref
 #define TIMESLICER_WFMREF       0
-#define WFMREF_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_WFMREF]
+#define WFMREF_FREQ             TIMESLICER_FREQ[TIMESLICER_WFMREF]
 
 #define INTERPOLATE(a, b, f)    (a * (1.0 - f)) + (b * f)
 

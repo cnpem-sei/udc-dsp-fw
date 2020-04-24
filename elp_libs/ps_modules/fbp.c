@@ -18,7 +18,9 @@
  * @date 23/11/2017
  *
  */
-
+/**
+ * Control paramters
+ */
 #include <float.h>
 
 #include "boards/udc_c28.h"
@@ -33,47 +35,16 @@
 #include "fbp.h"
 
 /**
- * PWM parameters
- */
-#define PWM_FREQ                g_ipc_mtoc.pwm.freq_pwm
-#define PWM_DEAD_TIME           g_ipc_mtoc.pwm.dead_time
-#define PWM_MAX_DUTY            g_ipc_mtoc.pwm.max_duty
-#define PWM_MIN_DUTY            g_ipc_mtoc.pwm.min_duty
-#define PWM_MAX_DUTY_OL         g_ipc_mtoc.pwm.max_duty_openloop
-#define PWM_MIN_DUTY_OL         g_ipc_mtoc.pwm.min_duty_openloop
-
-/**
- * Control parameters
- */
-#define MAX_REF                 g_ipc_mtoc.control.max_ref
-#define MIN_REF                 g_ipc_mtoc.control.min_ref
-#define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
-#define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
-#define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
-
-#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
-
-#define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
-#define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
-#define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/ISR_CONTROL_FREQ)
-
-#define SIGGEN                  g_ipc_ctom.siggen
-#define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
-
-#define WFMREF                  g_ipc_ctom.wfmref
-#define WFMREF_OUTPUT           g_controller_ctom.net_signals[13].f
-
-/**
  * Analog variables parameters
  */
-#define MAX_ILOAD               g_ipc_mtoc.analog_vars.max[0]
-#define MAX_VLOAD               g_ipc_mtoc.analog_vars.max[1]
-#define MIN_DCLINK              g_ipc_mtoc.analog_vars.min[2]
-#define MAX_DCLINK              g_ipc_mtoc.analog_vars.max[2]
-#define MAX_TEMP                g_ipc_mtoc.analog_vars.max[3]
+#define MAX_ILOAD               ANALOG_VARS_MAX[0]
+#define MAX_VLOAD               ANALOG_VARS_MAX[1]
+#define MIN_DCLINK              ANALOG_VARS_MIN[2]
+#define MAX_DCLINK              ANALOG_VARS_MAX[2]
+#define MAX_TEMP                ANALOG_VARS_MAX[3]
 
-#define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[4]
-#define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[4]
+#define NETSIGNAL_ELEM_CTOM_BUF ANALOG_VARS_MAX[4]
+#define NETSIGNAL_ELEM_MTOC_BUF ANALOG_VARS_MIN[4]
 
 #define PS1_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
 #define PS2_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 1].f
@@ -83,21 +54,20 @@
 #define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
 
 /**
- * HRADC parameters
- */
-#define TRANSDUCER_OUTPUT_TYPE  g_ipc_mtoc.hradc.type_transducer_output[0]
-#if (HRADC_v2_0)
-    #define TRANSDUCER_GAIN     -g_ipc_mtoc.hradc.gain_transducer[0]
-#endif
-#if (HRADC_v2_1)
-    #define TRANSDUCER_GAIN     g_ipc_mtoc.hradc.gain_transducer[0]
-#endif
-
-/**
  * All power supplies defines
  *
  */
-#define PS_ALL_ID   0x000F
+
+#define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/ISR_CONTROL_FREQ)
+
+#define SIGGEN                  SIGGEN_CTOM
+#define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
+
+#define WFMREF                  g_ipc_ctom.wfmref
+#define WFMREF_OUTPUT           g_controller_ctom.net_signals[13].f
+
+#define PS_SETPOINT(i)          g_ipc_ctom.ps_module[i].ps_setpoint
+#define PS_REFERENCE(i)         g_ipc_ctom.ps_module[i].ps_reference
 
 /**
  * Power supply 1 defines
@@ -336,7 +306,7 @@ static void init_peripherals_drivers(void)
 
     HRADCs_Info.enable_Sampling = 0;
 
-    Init_DMA_McBSP_nBuffers(g_ipc_mtoc.num_ps_modules, DECIMATION_FACTOR, HRADC_SPI_CLK);
+    Init_DMA_McBSP_nBuffers(NUM_PS_MODULES, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
     Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
@@ -346,15 +316,15 @@ static void init_peripherals_drivers(void)
     send_ipc_lowpriority_msg(0,Enable_HRADC_Boards);
     DELAY_US(2000000);
 
-    for(i = 0; i < g_ipc_mtoc.num_ps_modules; i++)
+    for(i = 0; i < NUM_PS_MODULES; i++)
     {
         Init_HRADC_Info(&HRADCs_Info.HRADC_boards[i], i, DECIMATION_FACTOR,
-                        buffers_HRADC[i], TRANSDUCER_GAIN);
-        Config_HRADC_board(&HRADCs_Info.HRADC_boards[i], Iin_bipolar,
-                           HEATER_DISABLE, RAILS_DISABLE);
+                        buffers_HRADC[i], TRANSDUCER_GAIN[i]);
+        Config_HRADC_board(&HRADCs_Info.HRADC_boards[i], TRANSDUCER_OUTPUT_TYPE[i],
+                           HRADC_HEATER_ENABLE[i], HRADC_MONITOR_ENABLE[i]);
     }
 
-    HRADCs_Info.n_HRADC_boards = g_ipc_mtoc.num_ps_modules;
+    HRADCs_Info.n_HRADC_boards = NUM_PS_MODULES;
 
     Config_HRADC_SoC(HRADC_FREQ_SAMP);
 
@@ -444,29 +414,30 @@ static void init_controller(void)
             g_ipc_ctom.ps_module[i].ps_status.bit.active = 0;
         }
 
-        init_wfmref(&WFMREF[i], g_ipc_mtoc.wfmref[i].wfmref_selected,
-                    g_ipc_mtoc.wfmref[i].sync_mode, ISR_CONTROL_FREQ,
-                    WFMREF_FREQ, g_ipc_mtoc.wfmref[i].gain,
-                    g_ipc_mtoc.wfmref[i].offset, &g_wfmref_data.data_fbp[i],
-                    SIZE_WFMREF_FBP, &g_ipc_ctom.ps_module[i].ps_reference);
+        init_wfmref(&WFMREF[i], WFMREF_SELECTED_PARAM, WFMREF_SYNC_MODE_PARAM,
+                    ISR_CONTROL_FREQ, WFMREF_FREQ, WFMREF_GAIN_PARAM,
+                    WFMREF_OFFSET_PARAM, &g_wfmref_data.data_fbp[i],
+                    SIZE_WFMREF_FBP, &PS_REFERENCE(i));
 
         init_scope(&SCOPE_CTOM[i], ISR_CONTROL_FREQ,
                    SCOPE_MTOC[i].timeslicer.freq_sampling,
                    &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM * i /NUM_MAX_PS_MODULES],
                    SIZE_BUF_SAMPLES_CTOM / NUM_MAX_PS_MODULES,
                    SCOPE_MTOC[i].p_source, &run_scope_shared_ram);
+
+        /// Initialization of signal generator module
+        disable_siggen(&SIGGEN[i]);
+
+        init_siggen(&SIGGEN[i], ISR_CONTROL_FREQ, &PS_REFERENCE(i));
+
+        cfg_siggen(&SIGGEN[i], SIGGEN_TYPE_PARAM, SIGGEN_NUM_CYCLES_PARAM,
+                   SIGGEN_FREQ_PARAM, SIGGEN_AMP_PARAM,
+                   SIGGEN_OFFSET_PARAM, SIGGEN_AUX_PARAM);
     }
 
     init_control_framework(&g_controller_ctom);
 
     init_ipc();
-
-    /// Initialization of signal generator module
-    disable_siggen(&SIGGEN);
-    init_siggen(&SIGGEN, ISR_CONTROL_FREQ, &SIGGEN_OUTPUT);
-    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen.type, g_ipc_mtoc.siggen.num_cycles,
-               g_ipc_mtoc.siggen.freq, g_ipc_mtoc.siggen.amplitude,
-               g_ipc_mtoc.siggen.offset, g_ipc_mtoc.siggen.aux_param);
 
     /**
      * TODO: initialize WfmRef and Samples Buffer
@@ -588,15 +559,15 @@ static void reset_controller(uint16_t id)
 {
     set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[id*2], 0.0);
 
-    g_ipc_ctom.ps_module[id].ps_setpoint = 0.0;
-    g_ipc_ctom.ps_module[id].ps_reference = 0.0;
+    PS_SETPOINT(id) = 0.0;
+    PS_REFERENCE(id) = 0.0;
 
     reset_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[id]);
     reset_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[id]);
 
     reset_wfmref(&WFMREF[id]);
 
-    disable_siggen(&SIGGEN);
+    disable_siggen(&SIGGEN[id]);
 }
 
 /**
@@ -606,7 +577,7 @@ static void reset_controllers(void)
 {
     uint16_t i;
 
-    for(i = 0; i < g_ipc_mtoc.num_ps_modules; i++)
+    for(i = 0; i < NUM_PS_MODULES; i++)
     {
         reset_controller(i);
     }
@@ -708,8 +679,7 @@ static interrupt void isr_controller(void)
                     case SlowRef:
                     case SlowRefSync:
                     {
-                        g_ipc_ctom.ps_module[i].ps_reference =
-                        g_ipc_ctom.ps_module[i].ps_setpoint;
+                        PS_REFERENCE(i) = PS_SETPOINT(i);
                         break;
                     }
                     case RmpWfm:
@@ -720,16 +690,21 @@ static interrupt void isr_controller(void)
                     }
                     case Cycle:
                     {
+                        SIGGEN[i].amplitude = SIGGEN_MTOC[i].amplitude;
+                        SIGGEN[i].offset = SIGGEN_MTOC[i].offset;
+                        SIGGEN[i].p_run_siggen(&SIGGEN[i]);
+
+                        /*
                         if(!flag_siggen)
                         {
-                            SIGGEN.amplitude = g_ipc_mtoc.siggen.amplitude;
+                            SIGGEN.amplitude = SIGGEN_MTOC[0].amplitude;
                             SIGGEN.offset = g_ipc_mtoc.siggen.offset;
                             SIGGEN.p_run_siggen(&SIGGEN);
                             flag_siggen = 1;
                         }
 
-                        g_ipc_ctom.ps_module[i].ps_reference = SIGGEN_OUTPUT;
-
+                        PS_REFERENCE(i) = SIGGEN_OUTPUT;
+                        */
                         break;
                     }
                     default:
@@ -741,8 +716,7 @@ static interrupt void isr_controller(void)
                 /// Open-loop
                 if(g_ipc_ctom.ps_module[i].ps_status.bit.openloop)
                 {
-                    g_controller_ctom.output_signals[i].f =
-                            0.01 * g_ipc_ctom.ps_module[i].ps_reference;
+                    g_controller_ctom.output_signals[i].f = 0.01 * PS_REFERENCE(i);
 
                     SATURATE(g_controller_ctom.output_signals[i].f,
                              PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
@@ -750,7 +724,7 @@ static interrupt void isr_controller(void)
                 /// Closed-loop
                 else
                 {
-                    SATURATE(g_ipc_ctom.ps_module[i].ps_reference, MAX_REF, MIN_REF);
+                    SATURATE(PS_REFERENCE(i), MAX_REF[i], MIN_REF[i]);
 
                     //run_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[i]);
 

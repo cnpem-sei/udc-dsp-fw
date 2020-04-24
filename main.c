@@ -27,6 +27,7 @@
 #include <string.h>
 #include "boards/udc_c28.h"
 #include "ipc/ipc.h"
+#include "parameters/parameters.h"
 
 #include "ps_modules/fbp.h"
 #include "ps_modules/fbp_dclink.h"
@@ -101,14 +102,14 @@ void main(void)
      *  TODO: Make sure ARM is already initialized to continue from here
      */
     init_gpios();
-    init_buzzer(g_ipc_mtoc.communication.buzzer_volume);
+    init_buzzer(BUZZER_VOLUME);
 
     while(1)
     {
         /**
          * Select power supply module
          */
-        switch(g_ipc_mtoc.ps_module[0].ps_status.bit.model)
+        switch(PS_MODEL)
         {
             case FBP:
             {

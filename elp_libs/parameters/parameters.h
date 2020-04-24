@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include <math.h>
+#include "boards/udc_c28.h"
 #include "common/structs.h"
 #include "common/timeslicer.h"
 #include "event_manager/event_manager.h"
@@ -32,15 +33,125 @@
 #include "scope/scope.h"
 #include "siggen/siggen.h"
 
+/// Different Size due to 32 bits definition
+#define SIZE_PS_NAME            16
+
+#define NUM_MAX_TIMESLICERS     4
+
 #define NUM_MAX_ANALOG_VAR      64
 #define NUM_MAX_DIGITAL_VAR     12
 #define NUM_MAX_HRADC           4
 
+#define NUM_MAX_HARD_INTERLOCKS     32
+#define NUM_MAX_SOFT_INTERLOCKS     32
+
+#define NUM_PARAMETERS          54
 #define NUM_MAX_PARAMETERS      64
 #define NUM_MAX_FLOATS          200
 
+/**
+ * General info
+ */
+#define PS_NAME                 g_param_bank.ps_name
+#define PS_MODEL                g_param_bank.ps_model
+#define NUM_PS_MODULES          g_param_bank.num_ps_modules
+
+/**
+ * Communication parameters
+ */
+#define RS485_BAUDRATE          g_param_bank.communication.rs485_baud
+#define RS485_ADDRESS           g_param_bank.communication.rs485_address
+#define RS485_TERMINATION       g_param_bank.communication.rs485_termination
+#define UDCNET_ADDRESS          g_param_bank.communication.udcnet_address
+#define ETHERNET_IP             g_param_bank.communication.ethernet_ip
+#define ETHERNET_MASK           g_param_bank.communication.ethernet_mask
+#define BUZZER_VOLUME           g_param_bank.communication.buzzer_volume
+#define COMMAND_INTERFACE       g_param_bank.communication.command_interface
+
+/**
+ * Control parameters
+ */
+#define ISR_CONTROL_FREQ            g_param_bank.control.freq_isr_control
+#define TIMESLICER_FREQ             g_param_bank.control.freq_timeslicer
+
+#define MAX_REF                     g_param_bank.control.max_ref
+#define MIN_REF                     g_param_bank.control.min_ref
+#define MAX_REF_OL                  g_param_bank.control.max_ref_openloop
+#define MIN_REF_OL                  g_param_bank.control.min_ref_openloop
+#define MAX_SLEWRATE_SLOWREF        g_param_bank.control.slewrate_slowref
+#define MAX_SLEWRATE_SIGGEN_AMP     g_param_bank.control.slewrate_siggen_amp
+#define MAX_SLEWRATE_SIGGEN_OFFSET  g_param_bank.control.slewrate_siggen_offset
+#define MAX_SLEWRATE_WFMREF         g_param_bank.control.slewrate_wfmref
+
+/**
+ * PWM parameters
+ */
+#define PWM_FREQ                    g_param_bank.pwm.freq_pwm
+#define PWM_DEAD_TIME               g_param_bank.pwm.dead_time
+#define PWM_MAX_DUTY                g_param_bank.pwm.max_duty
+#define PWM_MIN_DUTY                g_param_bank.pwm.min_duty
+#define PWM_MAX_DUTY_OL             g_param_bank.pwm.max_duty_openloop
+#define PWM_MIN_DUTY_OL             g_param_bank.pwm.min_duty_openloop
+#define PWM_LIM_DUTY_SHARE          g_param_bank.pwm.lim_duty_share
+
+/**
+ * HRADC parameters
+ */
+#define HRADC_FREQ_SAMP             g_param_bank.hradc.freq_hradc_sampling
+#define HRADC_SPI_CLK               g_param_bank.hradc.freq_spiclk
+#define NUM_HRADC_BOARDS            g_param_bank.hradc.num_hradc
+
+#define HRADC_HEATER_ENABLE         g_param_bank.hradc.enable_heater
+#define HRADC_MONITOR_ENABLE        g_param_bank.hradc.enable_monitor
+#define TRANSDUCER_OUTPUT_TYPE      g_param_bank.hradc.type_transducer_output
+#if (HRADC_v2_0)
+    #define TRANSDUCER_GAIN     -g_p_bank.hradc.gain_transducer
+#endif
+#if (HRADC_v2_1)
+    #define TRANSDUCER_GAIN         g_param_bank.hradc.gain_transducer
+#endif
+
+/**
+ * SigGen parameters
+ */
+#define SIGGEN_TYPE_PARAM           g_param_bank.siggen.type
+#define SIGGEN_NUM_CYCLES_PARAM     g_param_bank.siggen.num_cycles
+#define SIGGEN_FREQ_PARAM           g_param_bank.siggen.freq
+#define SIGGEN_AMP_PARAM            g_param_bank.siggen.amplitude
+#define SIGGEN_OFFSET_PARAM         g_param_bank.siggen.offset
+#define SIGGEN_AUX_PARAM            g_param_bank.siggen.aux_param
+
+/**
+ * WfmRef parameters
+ */
+#define WFMREF_SELECTED_PARAM       g_param_bank.wfmref.selected
+#define WFMREF_SYNC_MODE_PARAM      g_param_bank.wfmref.sync_mode
+#define WFMREF_GAIN_PARAM           g_param_bank.wfmref.gain
+#define WFMREF_OFFSET_PARAM         g_param_bank.wfmref.offset
+
+/**
+ * Analog Variables parameters
+ */
+#define ANALOG_VARS_MAX             g_param_bank.analog_vars.max
+#define ANALOG_VARS_MIN             g_param_bank.analog_vars.min
+
+/**
+ * Interlocks parameters
+ */
+#define HARD_INTERLOCKS_DEBOUNCE_TIME   g_param_bank.interlocks.hard_itlks_debounce_time
+#define HARD_INTERLOCKS_RESET_TIME      g_param_bank.interlocks.hard_itlks_reset_time
+#define SOFT_INTERLOCKS_DEBOUNCE_TIME   g_param_bank.interlocks.soft_itlks_debounce_time
+#define SOFT_INTERLOCKS_RESET_TIME      g_param_bank.interlocks.soft_itlks_reset_time
+
+/**
+ * Scope parameters
+ */
+#define SCOPE_FREQ_SAMPLING_PARAM   g_param_bank.scope.freq_sampling
+#define SCOPE_SOURCE_PARAM          g_param_bank.scope.p_source
+
 typedef enum
 {
+    PS_Name,
     PS_Model,
     Num_PS_Modules,
 
@@ -88,7 +199,7 @@ typedef enum
     SigGen_Offset,
     SigGen_Aux_Param,
 
-    WfmRef_ID_WfmRef,
+    WfmRef_Selected,
     WfmRef_SyncMode,
     WfmRef_Gain,
     WfmRef_Offset,
@@ -99,7 +210,10 @@ typedef enum
     Hard_Interlocks_Debounce_Time,
     Hard_Interlocks_Reset_Time,
     Soft_Interlocks_Debounce_Time,
-    Soft_Interlocks_Reset_Time
+    Soft_Interlocks_Reset_Time,
+
+    Scope_Sampling_Frequency,
+    Scope_Source
 } param_id_t;
 
 typedef enum
@@ -140,10 +254,10 @@ typedef struct
 {
     float   freq_isr_control;
     float   freq_timeslicer[NUM_MAX_TIMESLICERS];
-    float   max_ref;
-    float   min_ref;
-    float   max_ref_openloop;
-    float   min_ref_openloop;
+    float   max_ref[NUM_MAX_PS_MODULES];
+    float   min_ref[NUM_MAX_PS_MODULES];
+    float   max_ref_openloop[NUM_MAX_PS_MODULES];
+    float   min_ref_openloop[NUM_MAX_PS_MODULES];
     float   slewrate_slowref;
     float   slewrate_siggen_amp;
     float   slewrate_siggen_offset;
@@ -189,11 +303,49 @@ typedef struct
 
 typedef struct
 {
-    float       freq_sampling[NUM_MAX_SCOPES];
-    float       *p_source[NUM_MAX_SCOPES];
+    uint16_t  type;
+    uint16_t  num_cycles;
+    float     freq;
+    float     amplitude;
+    float     offset;
+    float     aux_param[NUM_SIGGEN_AUX_PARAM];
+} param_siggen_t;
+
+typedef struct
+{
+    float     selected;
+    float     sync_mode;
+    float     gain;
+    float     offset;
+} param_wfmref_t;
+
+
+typedef struct
+{
+    float   freq_sampling[NUM_MAX_SCOPES];
+    float   *p_source[NUM_MAX_SCOPES];
 } param_scope_t;
 
-extern volatile param_t g_parameters[NUM_MAX_PARAMETERS];
+typedef struct
+{
+    param_t                 param_info[NUM_MAX_PARAMETERS];
+    uint32_t                ps_name[SIZE_PS_NAME];
+    uint16_t                ps_model;
+    uint16_t                num_ps_modules;
+    param_communication_t   communication;
+    param_control_t         control;
+    param_pwm_t             pwm;
+    param_hradc_t           hradc;
+    param_siggen_t          siggen;
+    param_wfmref_t          wfmref;
+    param_analog_vars_t     analog_vars;
+    param_interlocks_t      interlocks;
+    param_scope_t           scope;
+} param_bank_t;
+
+//extern volatile param_t g_parameters[NUM_MAX_PARAMETERS];
+
+extern volatile param_bank_t g_param_bank;
 
 extern void init_param(param_id_t id, param_type_t type, uint16_t num_elements,
                        uint16_t *p_param);

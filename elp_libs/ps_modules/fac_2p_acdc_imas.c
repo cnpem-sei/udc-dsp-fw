@@ -36,65 +36,33 @@
 #include "fac_2p_acdc_imas.h"
 
 /**
- * PWM parameters
- */
-#define PWM_FREQ                g_ipc_mtoc.pwm.freq_pwm
-#define PWM_DEAD_TIME           g_ipc_mtoc.pwm.dead_time
-#define PWM_MAX_DUTY            g_ipc_mtoc.pwm.max_duty
-#define PWM_MIN_DUTY            g_ipc_mtoc.pwm.min_duty
-#define PWM_MAX_DUTY_OL         g_ipc_mtoc.pwm.max_duty_openloop
-#define PWM_MIN_DUTY_OL         g_ipc_mtoc.pwm.min_duty_openloop
-
-/**
  * Control parameters
  */
-#define MAX_REF                 g_ipc_mtoc.control.max_ref
-#define MIN_REF                 g_ipc_mtoc.control.min_ref
-#define MAX_REF_OL              g_ipc_mtoc.control.max_ref_openloop
-#define MIN_REF_OL              g_ipc_mtoc.control.min_ref_openloop
-#define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
-#define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
-#define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
-
-#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
-
-#define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
-#define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
-#define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
-
 #define TIMESLICER_CONTROLLER_IDX       2
 #define TIMESLICER_CONTROLLER           g_controller_ctom.timeslicer[TIMESLICER_CONTROLLER_IDX]
-#define CONTROLLER_FREQ_SAMP            g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_CONTROLLER_IDX]
-
-/**
- * HRADC parameters
- */
-#define HRADC_HEATER_ENABLE     g_ipc_mtoc.hradc.enable_heater
-#define HRADC_MONITOR_ENABLE    g_ipc_mtoc.hradc.enable_monitor
-#define TRANSDUCER_OUTPUT_TYPE  g_ipc_mtoc.hradc.type_transducer_output
-#define TRANSDUCER_GAIN         g_ipc_mtoc.hradc.gain_transducer
+#define CONTROLLER_FREQ_SAMP            TIMESLICER_FREQ[TIMESLICER_CONTROLLER_IDX]
 
 /**
  * Analog variables parameters
  */
-#define MAX_V_CAPBANK           g_ipc_mtoc.analog_vars.max[0]
+#define MAX_V_CAPBANK                           ANALOG_VARS_MAX[0]
 
-#define MAX_IOUT_RECT           g_ipc_mtoc.analog_vars.max[1]
+#define MAX_IOUT_RECT                           ANALOG_VARS_MAX[1]
 
-#define MAX_IOUT_RECT_REF       g_ipc_mtoc.analog_vars.max[2]
-#define MIN_IOUT_RECT_REF       g_ipc_mtoc.analog_vars.min[2]
+#define MAX_IOUT_RECT_REF                       ANALOG_VARS_MAX[2]
+#define MIN_IOUT_RECT_REF                       ANALOG_VARS_MIN[2]
 
-#define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS    g_ipc_mtoc.analog_vars.max[3]
-#define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS    g_ipc_mtoc.analog_vars.max[4]
+#define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS    ANALOG_VARS_MAX[3]
+#define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS    ANALOG_VARS_MAX[4]
 
-#define NETSIGNAL_ELEM_CTOM_BUF_A               g_ipc_mtoc.analog_vars.max[5]
-#define NETSIGNAL_ELEM_CTOM_BUF_B               g_ipc_mtoc.analog_vars.min[5]
+#define NETSIGNAL_ELEM_CTOM_BUF_A               ANALOG_VARS_MAX[5]
+#define NETSIGNAL_ELEM_CTOM_BUF_B               ANALOG_VARS_MIN[5]
 
 #define NETSIGNAL_CTOM_BUF_A    g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF_A].f
 #define NETSIGNAL_CTOM_BUF_B    g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF_B].f
 
-#define HRADC_R_BURDEN_1        g_ipc_mtoc.analog_vars.max[6]
-#define HRADC_R_BURDEN_3        g_ipc_mtoc.analog_vars.max[7]
+#define HRADC_R_BURDEN_1                        ANALOG_VARS_MAX[6]
+#define HRADC_R_BURDEN_3                        ANALOG_VARS_MAX[7]
 
 /**
  * Controller defines
@@ -112,7 +80,7 @@
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
 
-#define SIGGEN                          g_ipc_ctom.siggen
+#define SIGGEN                          SIGGEN_CTOM[0]
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
 
@@ -431,7 +399,7 @@ static void init_controller(void)
      *         out:     V_CAPBANK_REFERENCE
      */
 
-    init_dsp_srlim(SRLIM_V_CAPBANK_REFERENCE, MAX_REF_SLEWRATE,
+    init_dsp_srlim(SRLIM_V_CAPBANK_REFERENCE, MAX_SLEWRATE_SLOWREF,
                    CONTROLLER_FREQ_SAMP, &V_CAPBANK_SETPOINT,
                    &V_CAPBANK_REFERENCE);
 
@@ -446,33 +414,33 @@ static void init_controller(void)
 
     init_siggen(&SIGGEN, CONTROLLER_FREQ_SAMP, &V_CAPBANK_REFERENCE);
 
-    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen.type, g_ipc_mtoc.siggen.num_cycles,
-               g_ipc_mtoc.siggen.freq, g_ipc_mtoc.siggen.amplitude,
-               g_ipc_mtoc.siggen.offset, g_ipc_mtoc.siggen.aux_param);
+    cfg_siggen(&SIGGEN, SIGGEN_TYPE_PARAM, SIGGEN_NUM_CYCLES_PARAM,
+               SIGGEN_FREQ_PARAM, SIGGEN_AMP_PARAM,
+               SIGGEN_OFFSET_PARAM, SIGGEN_AUX_PARAM);
 
     /**
      *        name:     SRLIM_SIGGEN_AMP
      * description:     Signal generator amplitude slew-rate limiter
      *    DP class:     DSP_SRLim
-     *          in:     g_ipc_mtoc.siggen.amplitude
-     *         out:     g_ipc_ctom.siggen.amplitude
+     *          in:     SIGGEN_MTOC[0].amplitude
+     *         out:     SIGGEN_CTOM[0].amplitude
      */
 
-    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SR_SIGGEN_AMP,
-                   CONTROLLER_FREQ_SAMP, &g_ipc_mtoc.siggen.amplitude,
-                   &g_ipc_ctom.siggen.amplitude);
+    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SLEWRATE_SIGGEN_AMP,
+                   CONTROLLER_FREQ_SAMP, &SIGGEN_MTOC[0].amplitude,
+                   &SIGGEN.amplitude);
 
     /**
      *        name:     SRLIM_SIGGEN_OFFSET
      * description:     Signal generator offset slew-rate limiter
      *    DP class:     DSP_SRLim
-     *          in:     g_ipc_mtoc.siggen.offset
-     *         out:     g_ipc_ctom.siggen.offset
+     *          in:     SIGGEN_MTOC[0].offset
+     *         out:     SIGGEN_CTOM[0].offset
      */
 
-    init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SR_SIGGEN_OFFSET,
-                   CONTROLLER_FREQ_SAMP, &g_ipc_mtoc.siggen.offset,
-                   &g_ipc_ctom.siggen.offset);
+    init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SLEWRATE_SIGGEN_OFFSET,
+                   CONTROLLER_FREQ_SAMP, &SIGGEN_MTOC[0].offset,
+                   &SIGGEN_CTOM[0].offset);
 
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
@@ -673,7 +641,7 @@ static interrupt void isr_controller(void)
             /// Open-loop
             if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
             {
-                SATURATE(V_CAPBANK_REFERENCE, MAX_REF_OL, MIN_REF_OL);
+                SATURATE(V_CAPBANK_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0]);
                 DUTY_CYCLE_MOD_A = 0.01 * V_CAPBANK_REFERENCE;
                 SATURATE(DUTY_CYCLE_MOD_A, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
                 DUTY_CYCLE_MOD_B = DUTY_CYCLE_MOD_A;
@@ -682,7 +650,7 @@ static interrupt void isr_controller(void)
             else
             {
                 /// Run capacitor banks voltages control laws
-                SATURATE(g_ipc_ctom.ps_module[0].ps_reference, MAX_REF, MIN_REF);
+                SATURATE(g_ipc_ctom.ps_module[0].ps_reference, MAX_REF[0], MIN_REF[0]);
 
                 run_dsp_error(ERROR_V_CAPBANK_MOD_A);
                 run_dsp_pi(PI_CONTROLLER_V_CAPBANK_MOD_A);
