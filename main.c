@@ -201,6 +201,15 @@ void main(void)
                 break;
             }
 
+            case Uninitialized:
+            {
+                init_ps_module(&g_ipc_ctom.ps_module[0],
+                               g_ipc_mtoc.ps_module[0].ps_status.bit.model,
+                               NULL, NULL, NULL, NULL, NULL);
+                init_ipc();
+                while(1);
+                break;
+            }
             default:
             {
                 break;
