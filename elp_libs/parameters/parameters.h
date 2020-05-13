@@ -54,6 +54,7 @@ typedef enum
 
     Freq_ISR_Controller,
     Freq_TimeSlicer,
+    Control_Loop_State,
     Max_Ref,
     Min_Ref,
     Max_Ref_OpenLoop,
@@ -139,6 +140,7 @@ typedef struct
 {
     float   freq_isr_control;
     float   freq_timeslicer[NUM_MAX_TIMESLICERS];
+    uint16_t loop_state;
     float   max_ref;
     float   min_ref;
     float   max_ref_openloop;
