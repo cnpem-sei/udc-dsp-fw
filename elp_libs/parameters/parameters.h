@@ -138,9 +138,9 @@ typedef struct
 
 typedef struct
 {
+    uint16_t loop_state;
     float   freq_isr_control;
     float   freq_timeslicer[NUM_MAX_TIMESLICERS];
-    uint16_t loop_state;
     float   max_ref;
     float   min_ref;
     float   max_ref_openloop;
