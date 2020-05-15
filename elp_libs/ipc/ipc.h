@@ -76,6 +76,7 @@ typedef enum
     Reset_Counters,
     Set_Param,
     Set_DSP_Coeffs,
+    Set_Command_Interface,
     CtoM_Message_Error
 } ipc_mtoc_lowpriority_msg_t;
 
