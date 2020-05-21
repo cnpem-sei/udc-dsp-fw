@@ -454,6 +454,13 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 break;
             }
 
+            case Set_Command_Interface:
+            {
+                g_ipc_ctom.ps_module[msg_id].ps_status.bit.interface =
+                        g_ipc_mtoc.ps_module[msg_id].ps_status.bit.interface;
+                break;
+            }
+
             case CtoM_Message_Error:
             {
                 /**

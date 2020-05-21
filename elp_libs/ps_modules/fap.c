@@ -224,6 +224,7 @@ void main_fap(void)
     init_controller();
     init_peripherals_drivers();
     init_interruptions();
+    reset_controller();
     enable_controller();
 
     /// TODO: check why first sync_pulse occurs
@@ -316,6 +317,8 @@ static void init_controller(void)
                    g_ipc_mtoc.ps_module[0].ps_status.bit.model,
                    &turn_on, &turn_off, &isr_soft_interlock,
                    &isr_hard_interlock, &reset_interlocks);
+
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
 
     g_ipc_ctom.ps_module[1].ps_status.all = 0;
     g_ipc_ctom.ps_module[2].ps_status.all = 0;
@@ -514,6 +517,8 @@ static void reset_controller(void)
 {
     set_pwm_duty_chA(PWM_MODULATOR_IGBT_1, 0.0);
     set_pwm_duty_chA(PWM_MODULATOR_IGBT_2, 0.0);
+
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
 
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
@@ -823,9 +828,9 @@ static void turn_on(uint16_t dummy)
             {
             #endif
 
-                reset_controller();
+                //reset_controller();
 
-                g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
+                //g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
                 g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
                 enable_pwm_output(0);
                 enable_pwm_output(1);

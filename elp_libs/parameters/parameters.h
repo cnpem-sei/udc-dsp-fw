@@ -73,6 +73,7 @@
  */
 #define ISR_CONTROL_FREQ            g_param_bank.control.freq_isr_control
 #define TIMESLICER_FREQ             g_param_bank.control.freq_timeslicer
+#define LOOP_STATE                  g_param_bank.control.loop_state
 
 #define MAX_REF                     g_param_bank.control.max_ref
 #define MIN_REF                     g_param_bank.control.min_ref
@@ -166,6 +167,7 @@ typedef enum
 
     Freq_ISR_Controller,
     Freq_TimeSlicer,
+    Control_Loop_State,
     Max_Ref,
     Min_Ref,
     Max_Ref_OpenLoop,
@@ -252,6 +254,7 @@ typedef struct
 
 typedef struct
 {
+    uint16_t loop_state;
     float   freq_isr_control;
     float   freq_timeslicer[NUM_MAX_TIMESLICERS];
     float   max_ref[NUM_MAX_PS_MODULES];

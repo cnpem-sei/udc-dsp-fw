@@ -43,6 +43,7 @@
 #include "ps_modules/fap_4p.h"
 #include "ps_modules/fac_dcdc_ema.h"
 #include "ps_modules/fap_2p2s.h"
+#include "ps_modules/uninitialized.h"
 
 /**
  * @brief Main function
@@ -203,11 +204,7 @@ void main(void)
 
             case Uninitialized:
             {
-                init_ps_module(&g_ipc_ctom.ps_module[0],
-                               g_ipc_mtoc.ps_module[0].ps_status.bit.model,
-                               NULL, NULL, NULL, NULL, NULL);
-                init_ipc();
-                while(1);
+                main_uninitialized();
                 break;
             }
             default:

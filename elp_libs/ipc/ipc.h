@@ -88,6 +88,7 @@ typedef enum
     Set_Param,
     Set_DSP_Coeffs,
     Cfg_TimeSlicer,
+    Set_Command_Interface,
     CtoM_Message_Error
 } ipc_mtoc_lowpriority_msg_t;
 

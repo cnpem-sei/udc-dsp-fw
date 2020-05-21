@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2018 by LNLS - Brazilian Synchrotron Light Laboratory
+ * Copyright (C) 2020 by LNLS - Brazilian Synchrotron Light Laboratory
  *
  * Redistribution, modification or use of this software in source or binary
  * forms is permitted as long as the files maintain this copyright. LNLS and
@@ -9,17 +9,19 @@
  *****************************************************************************/
 
 /**
- * @file version.c
- * @brief Firmware version module
+ * @file uninitialized.h
+ * @brief Uninitialized module
  * 
- * This module contains information about current build version of UDC C28 core.
+ * Module for operation of controller under uninitialized parameters
  *
  * @author gabriel.brunheira
- * @date 08/02/2018
+ * @date 21/05/2020
  *
  */
 
-#include "version.h"
+#ifndef UNINITIALIZED_H_
+#define UNINITIALIZED_H_
 
-const char * udc_c28_version = "V0.40u2020-05-21";
+extern void main_uninitialized(void);
 
+#endif /* UNINITIALIZED_H_ */
