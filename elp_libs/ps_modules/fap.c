@@ -318,8 +318,6 @@ static void init_controller(void)
                    &turn_on, &turn_off, &isr_soft_interlock,
                    &isr_hard_interlock, &reset_interlocks);
 
-    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
-
     g_ipc_ctom.ps_module[1].ps_status.all = 0;
     g_ipc_ctom.ps_module[2].ps_status.all = 0;
     g_ipc_ctom.ps_module[3].ps_status.all = 0;

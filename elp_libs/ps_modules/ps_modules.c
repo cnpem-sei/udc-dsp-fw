@@ -21,6 +21,7 @@
  */
 
 #include "ps_modules.h"
+#include "parameters/parameters.h"
 
 /**
  * TODO: Put here your defines. Just what is local. If you don't
@@ -57,8 +58,8 @@ void init_ps_module(ps_module_t *p_ps_module, ps_model_t model,
                     void (*reset_interlocks)(uint16_t id))
 {
     p_ps_module->ps_status.bit.state        = Off;
-    p_ps_module->ps_status.bit.openloop     = OPEN_LOOP;
-    p_ps_module->ps_status.bit.interface    = Remote;
+    p_ps_module->ps_status.bit.openloop     = get_param(Control_Loop_State,0);
+    p_ps_module->ps_status.bit.interface    = get_param(Command_Interface,0);
     p_ps_module->ps_status.bit.active       = ACTIVE;
     p_ps_module->ps_status.bit.model        = model;
     p_ps_module->ps_status.bit.unlocked     = LOCKED;
