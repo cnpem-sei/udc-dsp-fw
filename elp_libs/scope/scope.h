@@ -30,8 +30,8 @@
 #define NUM_MAX_SCOPES      4
 
 #define RUN_SCOPE(scp)  RUN_TIMESLICER(scp.timeslicer)  \
-                            scp.p_run_scope(&scp);          \
-                            CLEAR_DEBUG_GPIO0;              \
+                            scp.p_run_scope(&scp);      \
+                            CLEAR_DEBUG_GPIO0;          \
                         END_TIMESLICER(scp.timeslicer)
 
 typedef volatile struct scope_t scope_t;

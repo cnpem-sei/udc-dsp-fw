@@ -86,6 +86,11 @@
 #define V_CAPBANK_REFERENCE             g_ipc_ctom.ps_module[0].ps_reference
 
 #define SRLIM_V_CAPBANK_REFERENCE       &g_controller_ctom.dsp_modules.dsp_srlim[0]
+
+#define MAX_SLEWRATE_SLOWREF            g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
+
 #define ERROR_V_CAPBANK                 &g_controller_ctom.dsp_modules.dsp_error[0]
 
 #define PI_CONTROLLER_V_CAPBANK         &g_controller_ctom.dsp_modules.dsp_pi[0]
@@ -512,9 +517,9 @@ static void init_controller(void)
     /** INITIALIZATION OF SCOPES **/
     /******************************/
 
-    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[0],
                &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
-               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
+               SCOPE_SOURCE_PARAM[0], &run_scope_shared_ram);
 
 
     /**

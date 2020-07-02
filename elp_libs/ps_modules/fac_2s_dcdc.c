@@ -124,6 +124,10 @@
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
 
+#define MAX_SLEWRATE_SLOWREF            g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
+
 /// Load current controller
 #define ERROR_I_LOAD                        &g_controller_ctom.dsp_modules.dsp_error[0]
 
@@ -379,9 +383,9 @@ static void init_controller(void)
 
     init_ipc();
 
-    init_wfmref(&WFMREF, WFMREF_SELECTED_PARAM, WFMREF_SYNC_MODE_PARAM,
-                ISR_CONTROL_FREQ, WFMREF_FREQ, WFMREF_GAIN_PARAM,
-                WFMREF_OFFSET_PARAM, &g_wfmref_data.data, SIZE_WFMREF,
+    init_wfmref(&WFMREF, WFMREF_SELECTED_PARAM[0], WFMREF_SYNC_MODE_PARAM[0],
+                ISR_CONTROL_FREQ, WFMREF_FREQUENCY_PARAM[0], WFMREF_GAIN_PARAM[0],
+                WFMREF_OFFSET_PARAM[0], &g_wfmref_data.data, SIZE_WFMREF,
                 &I_LOAD_REFERENCE);
 
     /***********************************************/
@@ -569,10 +573,9 @@ static void init_controller(void)
     /** INITIALIZATION OF SCOPES **/
     /******************************/
 
-    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[0],
                &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
-               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
-
+               SCOPE_SOURCE_PARAM[0], &run_scope_shared_ram);
     /**
      * Reset all internal variables
      */

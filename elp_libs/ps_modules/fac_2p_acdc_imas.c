@@ -55,12 +55,6 @@
 #define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS    ANALOG_VARS_MAX[3]
 #define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS    ANALOG_VARS_MAX[4]
 
-#define NETSIGNAL_ELEM_CTOM_BUF_A               ANALOG_VARS_MAX[5]
-#define NETSIGNAL_ELEM_CTOM_BUF_B               ANALOG_VARS_MIN[5]
-
-#define NETSIGNAL_CTOM_BUF_A    g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF_A].f
-#define NETSIGNAL_CTOM_BUF_B    g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF_B].f
-
 #define HRADC_R_BURDEN_1                        ANALOG_VARS_MAX[6]
 #define HRADC_R_BURDEN_3                        ANALOG_VARS_MAX[7]
 
@@ -77,12 +71,13 @@
 
 #define SRLIM_V_CAPBANK_REFERENCE       &g_controller_ctom.dsp_modules.dsp_srlim[0]
 
-#define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
-#define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
-
 #define SIGGEN                          SIGGEN_CTOM[0]
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+#define MAX_SLEWRATE_SLOWREF            g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
 
 /**
  * Defines for AC/DC Module A
@@ -456,14 +451,13 @@ static void init_controller(void)
     /** INITIALIZATION OF SCOPES **/
     /******************************/
 
-    init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+    init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[0],
                &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/2,
-               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
+               SCOPE_SOURCE_PARAM[0], &run_scope_shared_ram);
 
-
-    init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, SCOPE_MTOC[1].timeslicer.freq_sampling,
+    init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[1],
                &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM/2], SIZE_BUF_SAMPLES_CTOM/2,
-               SCOPE_MTOC[1].p_source, &run_scope_shared_ram);
+               SCOPE_SOURCE_PARAM[1], &run_scope_shared_ram);
 
     /**
      * Reset all internal variables

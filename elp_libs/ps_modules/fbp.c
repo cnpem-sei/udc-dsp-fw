@@ -37,22 +37,11 @@
 /**
  * Analog variables parameters
  */
-#define MAX_ILOAD               ANALOG_VARS_MAX[0]
-#define MAX_VLOAD               ANALOG_VARS_MAX[1]
-#define MIN_DCLINK              ANALOG_VARS_MIN[2]
-#define MAX_DCLINK              ANALOG_VARS_MAX[2]
-#define MAX_TEMP                ANALOG_VARS_MAX[3]
-
-#define NETSIGNAL_ELEM_CTOM_BUF ANALOG_VARS_MAX[4]
-#define NETSIGNAL_ELEM_MTOC_BUF ANALOG_VARS_MIN[4]
-
-#define PS1_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define PS2_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 1].f
-#define PS3_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 2].f
-#define PS4_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 3].f
-
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
-
+#define MAX_ILOAD(id)           ANALOG_VARS_MAX[0+id]
+#define MAX_VLOAD(id)           ANALOG_VARS_MAX[4+id]
+#define MIN_DCLINK(id)          ANALOG_VARS_MIN[8+id]
+#define MAX_DCLINK(id)          ANALOG_VARS_MAX[8+id]
+#define MAX_TEMP(id)            ANALOG_VARS_MAX[12+id]
 /**
  * All power supplies defines
  *
@@ -414,16 +403,16 @@ static void init_controller(void)
             g_ipc_ctom.ps_module[i].ps_status.bit.active = 0;
         }
 
-        init_wfmref(&WFMREF[i], WFMREF_SELECTED_PARAM, WFMREF_SYNC_MODE_PARAM,
-                    ISR_CONTROL_FREQ, WFMREF_FREQ, WFMREF_GAIN_PARAM,
-                    WFMREF_OFFSET_PARAM, &g_wfmref_data.data_fbp[i],
+        init_wfmref(&WFMREF[i], WFMREF_SELECTED_PARAM[i], WFMREF_SYNC_MODE_PARAM[i],
+                    ISR_CONTROL_FREQ, WFMREF_FREQUENCY_PARAM[i], WFMREF_GAIN_PARAM[i],
+                    WFMREF_OFFSET_PARAM[i], &g_wfmref_data.data_fbp[i],
                     SIZE_WFMREF_FBP, &PS_REFERENCE(i));
 
         init_scope(&SCOPE_CTOM[i], ISR_CONTROL_FREQ,
-                   SCOPE_MTOC[i].timeslicer.freq_sampling,
-                   &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM * i /NUM_MAX_PS_MODULES],
+                   SCOPE_FREQ_SAMPLING_PARAM[i],
+                   &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM * i / NUM_MAX_PS_MODULES],
                    SIZE_BUF_SAMPLES_CTOM / NUM_MAX_PS_MODULES,
-                   SCOPE_MTOC[i].p_source, &run_scope_shared_ram);
+                   SCOPE_SOURCE_PARAM[i], &run_scope_shared_ram);
 
         /// Initialization of signal generator module
         disable_siggen(&SIGGEN[i]);
@@ -831,7 +820,7 @@ static void turn_on(uint16_t id)
         if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
         #endif
         {
-            if(fabs(g_controller_mtoc.net_signals[id].f) < MIN_DCLINK)
+            if(fabs(g_controller_mtoc.net_signals[id].f) < MIN_DCLINK(id))
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(id, DCLink_Undervoltage);
                 set_hard_interlock(id, DCLink_Undervoltage);
@@ -1025,22 +1014,22 @@ static void close_relay(uint16_t id)
  */
 static void check_interlocks_ps_module(uint16_t id)
 {
-    if(fabs(g_controller_ctom.net_signals[id].f) > MAX_ILOAD)
+    if(fabs(g_controller_ctom.net_signals[id].f) > MAX_ILOAD(id))
     {
         set_hard_interlock(id, Load_Overcurrent);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id].f) > MAX_DCLINK)
+    if(fabs(g_controller_mtoc.net_signals[id].f) > MAX_DCLINK(id))
     {
         set_hard_interlock(id, DCLink_Overvoltage);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id+4].f) > MAX_VLOAD)
+    if(fabs(g_controller_mtoc.net_signals[id+4].f) > MAX_VLOAD(id))
     {
         set_hard_interlock(id, Load_Overvoltage);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id+8].f) > MAX_TEMP)
+    if(fabs(g_controller_mtoc.net_signals[id+8].f) > MAX_TEMP(id))
     {
         set_soft_interlock(id, Heatsink_Overtemperature);
     }
@@ -1074,7 +1063,7 @@ static void check_interlocks_ps_module(uint16_t id)
                     set_hard_interlock(0, DCLink_Fuse_Fault);
                 }
 
-                if(fabs(g_controller_mtoc.net_signals[0].f) < MIN_DCLINK)
+                if(fabs(g_controller_mtoc.net_signals[0].f) < MIN_DCLINK(0))
                 {
                     set_hard_interlock(0, DCLink_Undervoltage);
                 }
@@ -1110,7 +1099,7 @@ static void check_interlocks_ps_module(uint16_t id)
                     set_hard_interlock(1, DCLink_Fuse_Fault);
                 }
 
-                if(fabs(g_controller_mtoc.net_signals[1].f) < MIN_DCLINK)
+                if(fabs(g_controller_mtoc.net_signals[1].f) < MIN_DCLINK(1))
                 {
                     set_hard_interlock(1, DCLink_Undervoltage);
                 }
@@ -1145,7 +1134,7 @@ static void check_interlocks_ps_module(uint16_t id)
                     set_hard_interlock(2, DCLink_Fuse_Fault);
                 }
 
-                if(fabs(g_controller_mtoc.net_signals[2].f) < MIN_DCLINK)
+                if(fabs(g_controller_mtoc.net_signals[2].f) < MIN_DCLINK(2))
                 {
                     set_hard_interlock(2, DCLink_Undervoltage);
                 }
@@ -1181,7 +1170,7 @@ static void check_interlocks_ps_module(uint16_t id)
                     set_hard_interlock(3, DCLink_Fuse_Fault);
                 }
 
-                if(fabs(g_controller_mtoc.net_signals[3].f) < MIN_DCLINK)
+                if(fabs(g_controller_mtoc.net_signals[3].f) < MIN_DCLINK(3))
                 {
                     set_hard_interlock(3, DCLink_Undervoltage);
                 }

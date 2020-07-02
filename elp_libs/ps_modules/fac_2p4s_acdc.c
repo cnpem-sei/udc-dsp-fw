@@ -42,8 +42,6 @@
 #define TIMESLICER_CONTROLLER           g_controller_ctom.timeslicer[TIMESLICER_CONTROLLER_IDX]
 #define CONTROLLER_FREQ_SAMP            TIMESLICER_FREQ[TIMESLICER_CONTROLLER_IDX]
 
-#define SIGGEN                          SIGGEN_CTOM[0]
-
 /**
  * Analog variables parameters
  */
@@ -71,11 +69,15 @@
  */
 #define V_CAPBANK_SETPOINT              g_ipc_ctom.ps_module[0].ps_setpoint
 #define V_CAPBANK_REFERENCE             g_ipc_ctom.ps_module[0].ps_reference
-
 #define SRLIM_V_CAPBANK_REFERENCE       &g_controller_ctom.dsp_modules.dsp_srlim[0]
 
+#define SIGGEN                          SIGGEN_CTOM[0]
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+#define MAX_SLEWRATE_SLOWREF            g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
 
 #define NF_ALPHA                        0.99
 
@@ -432,15 +434,13 @@ static void init_controller(void)
     /** INITIALIZATION OF SCOPES **/
     /******************************/
 
-    init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, SCOPE_MTOC[0].timeslicer.freq_sampling,
+    init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[0],
                &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/2,
-               SCOPE_MTOC[0].p_source, &run_scope_shared_ram);
+               SCOPE_SOURCE_PARAM[0], &run_scope_shared_ram);
 
-
-    init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, SCOPE_MTOC[1].timeslicer.freq_sampling,
+    init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[1],
                &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM/2], SIZE_BUF_SAMPLES_CTOM/2,
-               SCOPE_MTOC[1].p_source, &run_scope_shared_ram);
-
+               SCOPE_SOURCE_PARAM[1], &run_scope_shared_ram);
 
     /**
      * Reset all internal variables

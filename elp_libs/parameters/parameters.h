@@ -79,10 +79,10 @@
 #define MIN_REF                     g_param_bank.control.min_ref
 #define MAX_REF_OL                  g_param_bank.control.max_ref_openloop
 #define MIN_REF_OL                  g_param_bank.control.min_ref_openloop
-#define MAX_SLEWRATE_SLOWREF        g_param_bank.control.slewrate_slowref
+/*#define MAX_SLEWRATE_SLOWREF        g_param_bank.control.slewrate_slowref
 #define MAX_SLEWRATE_SIGGEN_AMP     g_param_bank.control.slewrate_siggen_amp
 #define MAX_SLEWRATE_SIGGEN_OFFSET  g_param_bank.control.slewrate_siggen_offset
-#define MAX_SLEWRATE_WFMREF         g_param_bank.control.slewrate_wfmref
+#define MAX_SLEWRATE_WFMREF         g_param_bank.control.slewrate_wfmref*/
 
 /**
  * PWM parameters
@@ -127,6 +127,7 @@
  */
 #define WFMREF_SELECTED_PARAM       g_param_bank.wfmref.selected
 #define WFMREF_SYNC_MODE_PARAM      g_param_bank.wfmref.sync_mode
+#define WFMREF_FREQUENCY_PARAM      g_param_bank.wfmref.frequency
 #define WFMREF_GAIN_PARAM           g_param_bank.wfmref.gain
 #define WFMREF_OFFSET_PARAM         g_param_bank.wfmref.offset
 
@@ -172,10 +173,10 @@ typedef enum
     Min_Ref,
     Max_Ref_OpenLoop,
     Min_Ref_OpenLoop,
-    Max_SlewRate_SlowRef,
-    Max_SlewRate_SigGen_Amp,
-    Max_SlewRate_SigGen_Offset,
-    Max_SlewRate_WfmRef,
+    //Max_SlewRate_SlowRef,
+    //Max_SlewRate_SigGen_Amp,
+    //Max_SlewRate_SigGen_Offset,
+    //Max_SlewRate_WfmRef,
 
     PWM_Freq,
     PWM_DeadTime,
@@ -203,6 +204,7 @@ typedef enum
 
     WfmRef_Selected,
     WfmRef_SyncMode,
+    WfmRef_Frequency,
     WfmRef_Gain,
     WfmRef_Offset,
 
@@ -316,10 +318,11 @@ typedef struct
 
 typedef struct
 {
-    float     selected;
-    float     sync_mode;
-    float     gain;
-    float     offset;
+    uint16_t  selected[NUM_MAX_PS_MODULES];
+    uint16_t  sync_mode[NUM_MAX_PS_MODULES];
+    float     frequency[NUM_MAX_PS_MODULES];
+    float     gain[NUM_MAX_PS_MODULES];
+    float     offset[NUM_MAX_PS_MODULES];
 } param_wfmref_t;
 
 
