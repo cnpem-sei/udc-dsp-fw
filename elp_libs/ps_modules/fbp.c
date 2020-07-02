@@ -548,6 +548,8 @@ static void reset_controller(uint16_t id)
 {
     set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[id*2], 0.0);
 
+    g_ipc_ctom.ps_module[id].ps_status.bit.openloop = LOOP_STATE;
+
     PS_SETPOINT(id) = 0.0;
     PS_REFERENCE(id) = 0.0;
 
@@ -875,15 +877,21 @@ static void turn_on(uint16_t id)
             if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
             #endif
             {
-                reset_controller(id);
+                //reset_controller(id);
                 close_relay(id);
 
-                g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
+                //g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
                 g_ipc_ctom.ps_module[id].ps_status.bit.state = SlowRef;
 
                 enable_pwm_output(2*id);
                 enable_pwm_output((2*id)+1);
             }
+
+            else if(g_ipc_ctom.ps_module[id].ps_status.bit.state == Interlock)
+            {
+                reset_controller(id);
+            }
+
         }
     }
 }
