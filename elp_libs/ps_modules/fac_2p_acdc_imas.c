@@ -807,9 +807,9 @@ static void reset_interlocks(uint16_t dummy)
     {
         g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Off;
         g_ipc_ctom.ps_module[MOD_B_ID].ps_status.bit.state = Off;
-    }
 
-    PIN_CLEAR_ACDC_INTERLOCK;
+        PIN_CLEAR_ACDC_INTERLOCK;
+    }
 }
 
 /**

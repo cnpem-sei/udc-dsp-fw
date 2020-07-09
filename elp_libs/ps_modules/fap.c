@@ -830,9 +830,6 @@ static void turn_on(uint16_t dummy)
             {
             #endif
 
-                //reset_controller();
-
-                //g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
                 g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
                 enable_pwm_output(0);
                 enable_pwm_output(1);
@@ -872,19 +869,19 @@ static void turn_off(uint16_t dummy)
  */
 static void reset_interlocks(uint16_t dummy)
 {
-    if(PIN_STATUS_DCLINK_CONTACTOR)
-    {
-        PIN_CLOSE_DCLINK_CONTACTOR;
-        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-        PIN_OPEN_DCLINK_CONTACTOR;
-        DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
-    }
-
     g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[0].ps_soft_interlock = 0;
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
+        if(PIN_STATUS_DCLINK_CONTACTOR)
+        {
+            PIN_CLOSE_DCLINK_CONTACTOR;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+            PIN_OPEN_DCLINK_CONTACTOR;
+            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
+        }
+
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
     }
 }
