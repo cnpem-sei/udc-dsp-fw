@@ -136,7 +136,8 @@ typedef enum
     Rectifier_Overvoltage,
     Rectifier_Undervoltage,
     Rectifier_Overcurrent,
-    AC_Mains_Contactor_Fault,
+    Welded_Contactor_Fault,
+    Opened_Contactor_Fault,
     IGBT_Driver_Fault,
     IIB_Itlk
 } hard_interlocks_t;
@@ -790,7 +791,7 @@ static void turn_on(uint16_t dummy)
 
         if(!PIN_STATUS_AC_MAINS_CONTACTOR)
         {
-            set_hard_interlock(0, AC_Mains_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Fault);
         }
         #ifdef USE_ITLK
         else
@@ -861,13 +862,13 @@ static inline void check_interlocks(void)
     if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
          (PIN_STATUS_AC_MAINS_CONTACTOR) )
     {
-        set_hard_interlock(0, AC_Mains_Contactor_Fault);
+        set_hard_interlock(0, Welded_Contactor_Fault);
     }
 
     else if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
               && (!PIN_STATUS_AC_MAINS_CONTACTOR) )
     {
-        set_hard_interlock(0, AC_Mains_Contactor_Fault);
+        set_hard_interlock(0, Opened_Contactor_Fault);
     }
 
     EINT;

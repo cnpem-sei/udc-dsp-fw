@@ -195,9 +195,10 @@ typedef enum
     Load_Overvoltage,
     DCLink_Overvoltage,
     DCLink_Undervoltage,
-    DCLink_Relay_Fault,
+    Opened_Relay_Fault,
     DCLink_Fuse_Fault,
-    MOSFETs_Driver_Fault
+    MOSFETs_Driver_Fault,
+    Welded_Relay_Fault
 } hard_interlocks_t;
 
 typedef enum
@@ -685,17 +686,6 @@ static interrupt void isr_controller(void)
                         SIGGEN[i].offset = SIGGEN_MTOC[i].offset;
                         SIGGEN[i].p_run_siggen(&SIGGEN[i]);
 
-                        /*
-                        if(!flag_siggen)
-                        {
-                            SIGGEN.amplitude = SIGGEN_MTOC[0].amplitude;
-                            SIGGEN.offset = g_ipc_mtoc.siggen.offset;
-                            SIGGEN.p_run_siggen(&SIGGEN);
-                            flag_siggen = 1;
-                        }
-
-                        PS_REFERENCE(i) = SIGGEN_OUTPUT;
-                        */
                         break;
                     }
                     default:
@@ -1054,14 +1044,14 @@ static void check_interlocks_ps_module(uint16_t id)
             if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
                  (PIN_STATUS_PS1_DCLINK_RELAY) )
             {
-                set_hard_interlock(0, DCLink_Relay_Fault);
+                set_hard_interlock(0, Welded_Relay_Fault);
             }
 
             else if (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
             {
                 if(!PIN_STATUS_PS1_DCLINK_RELAY)
                 {
-                    set_hard_interlock(0, DCLink_Relay_Fault);
+                    set_hard_interlock(0, Opened_Relay_Fault);
                 }
 
                 if(!PIN_STATUS_PS1_FUSE)
@@ -1090,14 +1080,14 @@ static void check_interlocks_ps_module(uint16_t id)
             if ( (g_ipc_ctom.ps_module[1].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS2_DCLINK_RELAY))
             {
-                set_hard_interlock(1, DCLink_Relay_Fault);
+                set_hard_interlock(1, Welded_Relay_Fault);
             }
 
             else if (g_ipc_ctom.ps_module[1].ps_status.bit.state > Interlock)
             {
                 if(!PIN_STATUS_PS2_DCLINK_RELAY)
                 {
-                    set_hard_interlock(1, DCLink_Relay_Fault);
+                    set_hard_interlock(1, Opened_Relay_Fault);
                 }
 
                 if(!PIN_STATUS_PS2_FUSE)
@@ -1125,14 +1115,14 @@ static void check_interlocks_ps_module(uint16_t id)
 
             if ( (g_ipc_ctom.ps_module[2].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS3_DCLINK_RELAY)) {
-                set_hard_interlock(2, DCLink_Relay_Fault);
+                set_hard_interlock(2, Welded_Relay_Fault);
             }
 
             else if (g_ipc_ctom.ps_module[2].ps_status.bit.state > Interlock)
             {
                 if(!PIN_STATUS_PS3_DCLINK_RELAY)
                 {
-                    set_hard_interlock(2, DCLink_Relay_Fault);
+                    set_hard_interlock(2, Opened_Relay_Fault);
                 }
 
                 if(!PIN_STATUS_PS3_FUSE)
@@ -1161,14 +1151,14 @@ static void check_interlocks_ps_module(uint16_t id)
 
             if ( (g_ipc_ctom.ps_module[3].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS4_DCLINK_RELAY)) {
-                set_hard_interlock(3, DCLink_Relay_Fault);
+                set_hard_interlock(3, Welded_Relay_Fault);
             }
 
             else if (g_ipc_ctom.ps_module[3].ps_status.bit.state > Interlock)
             {
                 if(!PIN_STATUS_PS4_DCLINK_RELAY)
                 {
-                    set_hard_interlock(3, DCLink_Relay_Fault);
+                    set_hard_interlock(3, Opened_Relay_Fault);
                 }
 
                 if(!PIN_STATUS_PS4_FUSE)

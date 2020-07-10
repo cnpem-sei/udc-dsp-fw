@@ -52,6 +52,8 @@ typedef volatile struct
 {
     uint16_t        counter;
     uint16_t        max_count;
+    float           freq_lerp;
+    float           freq_base;
     float           inv_decimation;
     float           fraction;
     float           out;
@@ -156,6 +158,7 @@ extern void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
                         sync_mode_t sync_mode, float freq_lerp, float freq_wfmref,
                         float gain, float offset, float *p_start, uint16_t size,
                         float *p_out);
+extern void cfg_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
 extern void reset_wfmref(wfmref_t *p_wfmref);
 extern void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
 extern void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);

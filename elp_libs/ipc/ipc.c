@@ -395,14 +395,22 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 break;
             }
 
+            case Cfg_WfmRef:
+            {
+                cfg_wfmref(&WFMREF_CTOM[msg_id],&WFMREF_MTOC[msg_id]);
+                break;
+            }
+
             case Update_WfmRef:
             {
                 update_wfmref(&WFMREF_CTOM[msg_id],&WFMREF_MTOC[msg_id]);
+                break;
             }
 
             case Reset_WfmRef:
             {
                 reset_wfmref(&WFMREF_CTOM[msg_id]);
+                break;
             }
 
             case Cfg_SigGen:

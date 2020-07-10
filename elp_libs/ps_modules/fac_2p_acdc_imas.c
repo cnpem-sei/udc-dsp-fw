@@ -188,7 +188,8 @@ typedef enum
 {
     CapBank_Overvoltage,
     Rectifier_Overcurrent,
-    AC_Mains_Contactor_Fault,
+    Welded_Contactor_Fault,
+    Opened_Contactor_Fault,
     Module_A_Interlock,
     Module_B_Interlock,
     DCDC_Interlock
@@ -747,11 +748,11 @@ static void turn_on(uint16_t dummy)
         {
             PIN_SET_ACDC_INTERLOCK;
 
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_A_ID, AC_Mains_Contactor_Fault);
-            set_hard_interlock(MOD_A_ID, AC_Mains_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_A_ID, Opened_Contactor_Fault);
+            set_hard_interlock(MOD_A_ID, Opened_Contactor_Fault);
 
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_B_ID, AC_Mains_Contactor_Fault);
-            set_hard_interlock(MOD_B_ID, AC_Mains_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_B_ID, Opened_Contactor_Fault);
+            set_hard_interlock(MOD_B_ID, Opened_Contactor_Fault);
         }
 
         if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state == Initializing)
@@ -853,16 +854,16 @@ static inline void check_interlocks(void)
          (PIN_STATUS_AC_MAINS_CONTACTOR) )
     {
         PIN_SET_ACDC_INTERLOCK;
-        set_hard_interlock(MOD_A_ID, AC_Mains_Contactor_Fault);
-        set_hard_interlock(MOD_B_ID, AC_Mains_Contactor_Fault);
+        set_hard_interlock(MOD_A_ID, Welded_Contactor_Fault);
+        set_hard_interlock(MOD_B_ID, Welded_Contactor_Fault);
     }
 
     else if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
               && (!PIN_STATUS_AC_MAINS_CONTACTOR) )
     {
         PIN_SET_ACDC_INTERLOCK;
-        set_hard_interlock(MOD_A_ID, AC_Mains_Contactor_Fault);
-        set_hard_interlock(MOD_B_ID, AC_Mains_Contactor_Fault);
+        set_hard_interlock(MOD_A_ID, Opened_Contactor_Fault);
+        set_hard_interlock(MOD_B_ID, Opened_Contactor_Fault);
     }
 
     EINT;

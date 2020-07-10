@@ -266,10 +266,14 @@ typedef enum
     IGBT_2_Mod_3_Overcurrent,
     IGBT_1_Mod_4_Overcurrent,
     IGBT_2_Mod_4_Overcurrent,
-    DCLink_Mod_1_Contactor_Fault,
-    DCLink_Mod_2_Contactor_Fault,
-    DCLink_Mod_3_Contactor_Fault,
-    DCLink_Mod_4_Contactor_Fault,
+    Welded_Contactor_Mod_1_Fault,
+    Welded_Contactor_Mod_2_Fault,
+    Welded_Contactor_Mod_3_Fault,
+    Welded_Contactor_Mod_4_Fault,
+    Opened_Contactor_Mod_1_Fault,
+    Opened_Contactor_Mod_2_Fault,
+    Opened_Contactor_Mod_3_Fault,
+    Opened_Contactor_Mod_4_Fault,
     DCLink_Mod_1_Overvoltage,
     DCLink_Mod_2_Overvoltage,
     DCLink_Mod_3_Overvoltage,
@@ -1031,26 +1035,26 @@ static void turn_on(uint16_t dummy)
 
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Contactor_Fault);
-            set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_1_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_1_Fault);
         }
 
         else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Contactor_Fault);
-            set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_2_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_2_Fault);
         }
 
         else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Contactor_Fault);
-            set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_3_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_3_Fault);
         }
 
         else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Contactor_Fault);
-            set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_4_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_4_Fault);
         }
 
         #ifdef USE_ITLK
@@ -1286,44 +1290,44 @@ static inline void check_interlocks(void)
     {
         if(PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
         {
-            set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_Mod_1_Fault);
         }
 
         if(PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
         {
-            set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_Mod_2_Fault);
         }
 
         if(PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
         {
-            set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_Mod_3_Fault);
         }
 
         if(PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
         {
-            set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_Mod_4_Fault);
         }
     }
     else
     {
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
         {
-            set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_1_Fault);
         }
 
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
         {
-            set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_2_Fault);
         }
 
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
         {
-            set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_3_Fault);
         }
 
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
         {
-            set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_4_Fault);
         }
 
         if(V_DCLINK_MOD_1 < MIN_V_DCLINK)

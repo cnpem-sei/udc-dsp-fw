@@ -186,7 +186,8 @@ typedef enum
     Rectifier_Overvoltage,
     Rectifier_Undervoltage,
     Rectifier_Overcurrent,
-    AC_Mains_Contactor_Fault,
+    Welded_Contactor_Fault,
+    Opened_Contactor_Fault,
     IGBT_Driver_Fault,
     IIB_1_Itlk,
     IIB_2_Itlk,
@@ -737,14 +738,14 @@ static void turn_on(uint16_t dummy)
 
         if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_A_ID, AC_Mains_Contactor_Fault);
-            set_hard_interlock(MOD_A_ID, AC_Mains_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_A_ID, Opened_Contactor_Fault);
+            set_hard_interlock(MOD_A_ID, Opened_Contactor_Fault);
         }
 
         if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_B_ID, AC_Mains_Contactor_Fault);
-            set_hard_interlock(MOD_B_ID, AC_Mains_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_B_ID, Opened_Contactor_Fault);
+            set_hard_interlock(MOD_B_ID, Opened_Contactor_Fault);
             #ifdef USE_ITLK
             g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Interlock;
             #endif
@@ -835,25 +836,25 @@ static inline void check_interlocks(void)
     if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
          (PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A) )
     {
-        set_hard_interlock(MOD_A_ID, AC_Mains_Contactor_Fault);
+        set_hard_interlock(MOD_A_ID, Welded_Contactor_Fault);
     }
 
     else if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
               && (!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A) )
     {
-        set_hard_interlock(MOD_A_ID, AC_Mains_Contactor_Fault);
+        set_hard_interlock(MOD_A_ID, Opened_Contactor_Fault);
     }
 
     if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
          (PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B) )
     {
-        set_hard_interlock(MOD_B_ID, AC_Mains_Contactor_Fault);
+        set_hard_interlock(MOD_B_ID, Welded_Contactor_Fault);
     }
 
     else if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
               && (!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B) )
     {
-        set_hard_interlock(MOD_B_ID, AC_Mains_Contactor_Fault);
+        set_hard_interlock(MOD_B_ID, Opened_Contactor_Fault);
     }
     EINT;
 

@@ -169,7 +169,8 @@ typedef enum
     Load_Overvoltage,
     DCLink_Overvoltage,
     DCLink_Undervoltage,
-    DCLink_Contactor_Fault,
+    Welded_Contactor_Fault,
+    Opened_Contactor_Fault,
     IGBT_1_Overcurrent,
     IGBT_2_Overcurrent,
     IIB_Itlk
@@ -821,8 +822,8 @@ static void turn_on(uint16_t dummy)
 
             if(!PIN_STATUS_DCLINK_CONTACTOR)
             {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Contactor_Fault);
-                set_hard_interlock(0, DCLink_Contactor_Fault);
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Fault);
+                set_hard_interlock(0, Opened_Contactor_Fault);
             }
 
             #ifdef USE_ITLK
@@ -972,14 +973,14 @@ static inline void check_interlocks(void)
     {
         if(PIN_STATUS_DCLINK_CONTACTOR)
         {
-            set_hard_interlock(0, DCLink_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_Fault);
         }
     }
     else
     {
         if(!PIN_STATUS_DCLINK_CONTACTOR)
         {
-            set_hard_interlock(0, DCLink_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Fault);
         }
 
         if(V_DCLINK < MIN_V_DCLINK)
