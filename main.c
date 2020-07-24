@@ -126,7 +126,7 @@ void main(void)
 
             case FAC_ACDC:
             {
-                //main_fac_acdc();
+                main_fac_acdc();
                 break;
             }
 
@@ -175,6 +175,7 @@ void main(void)
             case FAC_DCDC_EMA:
             {
                 //main_fac_dcdc_ema();
+                main_uninitialized();
                 break;
             }
 
@@ -187,18 +188,21 @@ void main(void)
             case FAP_IMAS:
             {
                 //main_fap_imas();
+                main_uninitialized();
                 break;
             }
 
             case FAC_2P_ACDC_IMAS:
             {
-                main_fac_2p_acdc_imas();
+                //main_fac_2p_acdc_imas();
+                main_uninitialized();
                 break;
             }
 
             case FAC_2P_DCDC_IMAS:
             {
-                main_fac_2p_dcdc_imas();
+                //main_fac_2p_dcdc_imas();
+                main_uninitialized();
                 break;
             }
 

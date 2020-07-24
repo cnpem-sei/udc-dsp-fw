@@ -103,6 +103,8 @@
 #define I_IGBT_1                g_controller_mtoc.net_signals[0].f  // ANI0
 #define I_IGBT_2                g_controller_mtoc.net_signals[1].f  // ANI1
 
+#define V_LOAD                  g_controller_mtoc.net_signals[2]
+
 /// Reference
 #define I_LOAD_SETPOINT             g_ipc_ctom.ps_module[0].ps_setpoint
 #define I_LOAD_REFERENCE            g_ipc_ctom.ps_module[0].ps_reference
@@ -133,7 +135,7 @@
 #define KP_I_SHARE                      PI_CONTROLLER_I_SHARE_COEFFS.kp
 #define KI_I_SHARE                      PI_CONTROLLER_I_SHARE_COEFFS.ki
 
-/// Cap-bank voltage feedforward controller
+/// DC-link voltage feedforward controller
 #define IIR_2P2Z_LPF_V_DCLINK           &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
 #define IIR_2P2Z_LPF_V_DCLINK_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 

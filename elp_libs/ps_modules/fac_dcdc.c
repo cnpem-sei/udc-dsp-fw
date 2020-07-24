@@ -53,13 +53,7 @@
 #define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[7]
 #define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[7]
 
-#define NETSIGNAL_ELEM_CTOM_BUF1    ANALOG_VARS_MAX[8]
-#define NETSIGNAL_ELEM_CTOM_BUF2    ANALOG_VARS_MIN[8]
-
-#define NETSIGNAL_CTOM_BUF1      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF1].f
-#define NETSIGNAL_CTOM_BUF2      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF2].f
-
-#define NUM_DCCTs               ANALOG_VARS_MAX[9]
+#define NUM_DCCTs               ANALOG_VARS_MAX[8]
 
 /**
  * Controller defines
@@ -156,7 +150,6 @@ typedef enum
     Load_Overvoltage,
     CapBank_Overvoltage,
     CapBank_Undervoltage,
-    IGBT_Driver_Fault,
     IIB_Itlk,
     External_Interlock,
     Rack_Interlock
@@ -164,13 +157,11 @@ typedef enum
 
 typedef enum
 {
-    Inductors_Overtemperature,
-    IGBT_Overtemperature,
     DCCT_1_Fault,
     DCCT_2_Fault,
     DCCT_High_Difference,
     Load_Feedback_1_Fault,
-    Load_Feedback_2_Fault,
+    Load_Feedback_2_Fault
 } soft_interlocks_t;
 
 #define NUM_HARD_INTERLOCKS     Rack_Interlock + 1
@@ -471,6 +462,8 @@ static void reset_controller(void)
 {
     set_pwm_duty_hbridge(PWM_MODULATOR_Q1, 0.0);
 
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
+
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
 
@@ -741,14 +734,13 @@ static void turn_on(uint16_t dummy)
         else
         {
         #endif
-            reset_controller();
 
-            g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
             g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
             enable_pwm_output(0);
             enable_pwm_output(1);
 
             PIN_PS_TURN_ON;
+
         #ifdef USE_ITLK
         }
         #endif
