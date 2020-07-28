@@ -42,18 +42,12 @@
 #define MAX_V_CAPBANK           ANALOG_VARS_MAX[2]
 #define MIN_V_CAPBANK           ANALOG_VARS_MIN[2]
 
-#define NOM_V_CAPBANK_FF        ANALOG_VARS_MAX[3]
-#define MIN_V_CAPBANK_FF        ANALOG_VARS_MIN[3]
+#define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[3]
 
-#define MAX_TEMP_INDUCTORS      ANALOG_VARS_MAX[4]
-#define MAX_TEMP_IGBT           ANALOG_VARS_MAX[5]
+#define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[4]
+#define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[4]
 
-#define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[6]
-
-#define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[7]
-#define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[7]
-
-#define NUM_DCCTs               ANALOG_VARS_MAX[8]
+#define NUM_DCCTs               ANALOG_VARS_MAX[5]
 
 /**
  * Controller defines
@@ -64,18 +58,16 @@
 #define I_LOAD_2                    g_controller_ctom.net_signals[1].f  // HRADC1
 #define V_CAPBANK                   g_controller_ctom.net_signals[2].f  // HRADC2
 
-#define I_LOAD_REFERENCE_WFMREF     g_controller_ctom.net_signals[3].f
+#define I_LOAD_MEAN                 g_controller_ctom.net_signals[3].f
+#define I_LOAD_ERROR                g_controller_ctom.net_signals[4].f
 
-#define I_LOAD_MEAN                 g_controller_ctom.net_signals[4].f
-#define I_LOAD_ERROR                g_controller_ctom.net_signals[5].f
+#define DUTY_I_LOAD_PI              g_controller_ctom.net_signals[5].f
+#define DUTY_REF_FF                 g_controller_ctom.net_signals[6].f
 
-#define DUTY_I_LOAD_PI              g_controller_ctom.net_signals[6].f
-#define DUTY_REF_FF                 g_controller_ctom.net_signals[7].f
+#define IN_FF_V_CAPBANK             g_controller_ctom.net_signals[7].f
+#define V_CAPBANK_FILTERED          g_controller_ctom.net_signals[8].f
 
-#define IN_FF_V_CAPBANK             g_controller_ctom.net_signals[8].f
-#define V_CAPBANK_FILTERED          g_controller_ctom.net_signals[9].f
-
-#define I_LOAD_DIFF                 g_controller_ctom.net_signals[10].f
+#define I_LOAD_DIFF                 g_controller_ctom.net_signals[9].f
 
 #define WFMREF_IDX                  g_controller_ctom.net_signals[30].f
 
@@ -110,15 +102,17 @@
 #define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
 
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
 /// Cap-bank voltage feedforward controller
-#define IIR_2P2Z_LPF_V_CAPBANK          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
-#define IIR_2P2Z_LPF_V_CAPBANK_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+#define IIR_2P2Z_LPF_V_CAPBANK          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define IIR_2P2Z_LPF_V_CAPBANK_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
 
 #define FF_V_CAPBANK                    &g_controller_ctom.dsp_modules.dsp_ff[0]
-#define FF_V_CAPBANK_COEFFS             g_controller_ctom.dsp_modules.dsp_ff[0].coeffs.s
+#define FF_V_CAPBANK_COEFFS             g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
+#define NOM_V_CAPBANK_FF                FF_V_CAPBANK_COEFFS.vdc_nom
+#define MIN_V_CAPBANK_FF                FF_V_CAPBANK_COEFFS.vdc_min
 
 /// PWM modulators
 #define PWM_MODULATOR_Q1            g_pwm_modules.pwm_regs[0]

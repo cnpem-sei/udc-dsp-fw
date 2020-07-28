@@ -37,7 +37,7 @@
 /**
  * Control parameters
  */
-#define TIMESLICER_CONTROLLER_IDX       2
+#define TIMESLICER_CONTROLLER_IDX       0
 #define TIMESLICER_CONTROLLER           g_controller_ctom.timeslicer[TIMESLICER_CONTROLLER_IDX]
 #define CONTROLLER_FREQ_SAMP            TIMESLICER_FREQ[TIMESLICER_CONTROLLER_IDX]
 
@@ -95,13 +95,10 @@
 #define U_MAX_V_CAPBANK                         PI_CONTROLLER_V_CAPBANK_COEFFS.u_max
 #define U_MIN_V_CAPBANK                         PI_CONTROLLER_V_CAPBANK_COEFFS.u_min
 
-#define IIR_2P2Z_CONTROLLER_V_CAPBANK           &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
-#define IIR_2P2Z_CONTROLLER_V_CAPBANK_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
-
 #define NOTCH_FILT_2HZ_V_CAPBANK                &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define NOTCH_FILT_2HZ_V_CAPBANK_COEFFS         g_controller_ctom.dsp_modules.dsp_iir_2p2z[0].coeffs.s
+#define NOTCH_FILT_2HZ_V_CAPBANK_COEFFS         g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 #define NOTCH_FILT_4HZ_V_CAPBANK                &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
-#define NOTCH_FILT_4HZ_V_CAPBANK_COEFFS         g_controller_ctom.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+#define NOTCH_FILT_4HZ_V_CAPBANK_COEFFS         g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
 #define NF_ALPHA                                0.99
 
 /// Rectifier current controller
@@ -111,11 +108,11 @@
 #define KP_IOUT_RECT                            PI_CONTROLLER_IOUT_RECT_COEFFS.kp
 #define KI_IOUT_RECT                            PI_CONTROLLER_IOUT_RECT_COEFFS.ki
 
-#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
-#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
 
-#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT           &g_controller_ctom.dsp_modules.dsp_iir_2p2z[4]
-#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[4].coeffs.s
+#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT           &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
+#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
 
 /// PWM modulators
 #define PWM_MODULATOR                   g_pwm_modules.pwm_regs[0]
@@ -338,24 +335,6 @@ static void init_controller(void)
                 &V_CAPBANK_ERROR, &IOUT_RECT_REF);
 
     /**
-     *        name:     IIR_2P2Z_CONTROLLER_V_CAPBANK
-     * description:     Cap bank voltage IIR 2P2Z controller
-     *    DP class:     DSP_IIR_2P2Z
-     *          in:     V_CAPBANK_ERROR
-     *         out:     IOUT_RECT_REF
-     */
-
-    init_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_V_CAPBANK,
-                      IIR_2P2Z_CONTROLLER_V_CAPBANK_COEFFS.b0,
-                      IIR_2P2Z_CONTROLLER_V_CAPBANK_COEFFS.b1,
-                      IIR_2P2Z_CONTROLLER_V_CAPBANK_COEFFS.b2,
-                      IIR_2P2Z_CONTROLLER_V_CAPBANK_COEFFS.a1,
-                      IIR_2P2Z_CONTROLLER_V_CAPBANK_COEFFS.a2,
-                      IIR_2P2Z_CONTROLLER_V_CAPBANK_COEFFS.u_max,
-                      IIR_2P2Z_CONTROLLER_V_CAPBANK_COEFFS.u_min,
-                      &V_CAPBANK_ERROR, &IOUT_RECT_REF);
-
-    /**
      *        name:     NOTCH_FILT_2HZ_V_CAPBANK
      * description:     Cap bank voltage notch filter (Fcut = 2 Hz)
      *    DP class:     DSP_IIR_2P2Z
@@ -500,7 +479,6 @@ static void reset_controller(void)
     reset_dsp_pi(PI_CONTROLLER_V_CAPBANK);
     reset_dsp_iir_2p2z(NOTCH_FILT_2HZ_V_CAPBANK);
     reset_dsp_iir_2p2z(NOTCH_FILT_4HZ_V_CAPBANK);
-    reset_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_V_CAPBANK);
 
     /// Reset rectifier output current controller
     reset_dsp_error(ERROR_IOUT_RECT);
@@ -651,7 +629,6 @@ static interrupt void isr_controller(void)
                 SATURATE(V_CAPBANK_REFERENCE, MAX_REF[0], MIN_REF[0]);
                 run_dsp_error(ERROR_V_CAPBANK);
                 run_dsp_pi(PI_CONTROLLER_V_CAPBANK);
-                //run_dsp_iir_2p2z(IIR_2P2Z_CONTROLLER_V_CAPBANK);
 
                 /// Run rectifier output current control law
                 run_dsp_error(ERROR_IOUT_RECT);
