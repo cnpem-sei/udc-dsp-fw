@@ -289,7 +289,8 @@ typedef enum
     Load_Feedback_1_Fault,
     Load_Feedback_2_Fault,
     Arms_High_Difference,
-    IGBTs_Current_High_Difference
+    IGBTs_Current_High_Difference,
+    Complementary_PS_Itlk,
 } soft_interlocks_t;
 
 #define NUM_HARD_INTERLOCKS             ARM_2_Overcurrent + 1
