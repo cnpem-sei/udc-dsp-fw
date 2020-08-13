@@ -57,7 +57,7 @@
 /**
  * Control parameters
  */
-#define TIMESLICER_I_SHARE_CONTROLLER_IDX   2
+#define TIMESLICER_I_SHARE_CONTROLLER_IDX   0
 #define TIMESLICER_I_SHARE_CONTROLLER       g_controller_ctom.timeslicer[TIMESLICER_I_SHARE_CONTROLLER_IDX]
 #define I_SHARE_CONTROLLER_FREQ_SAMP        TIMESLICER_FREQ[TIMESLICER_I_SHARE_CONTROLLER_IDX]
 
@@ -82,18 +82,14 @@
 #define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[7]
 #define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[8]
 
-#define NETSIGNAL_ELEM_CTOM_BUF                 ANALOG_VARS_MAX[9]
-#define NETSIGNAL_ELEM_MTOC_BUF                 ANALOG_VARS_MIN[9]
+#define NUM_DCCTs                               ANALOG_VARS_MAX[9]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+#define MAX_I_ARM                               ANALOG_VARS_MAX[10]
+#define I_ARMS_DIFF_MODE                        ANALOG_VARS_MAX[11]
 
-#define NUM_DCCTs                               ANALOG_VARS_MAX[10]
+#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[12]
 
-#define MAX_I_ARM                               ANALOG_VARS_MAX[11]
-#define I_ARMS_DIFF_MODE                        ANALOG_VARS_MAX[12]
-
-#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[13]
+#define ENABLE_COMPLEMENTARY_PS_INTERLOCK       ANALOG_VARS_MAX[13]
 
 /**
  * Controller defines
@@ -238,6 +234,11 @@
 #define PIN_CLOSE_DCLINK_CONTACTOR_MOD_4    SET_GPDO4;
 #define PIN_STATUS_DCLINK_CONTACTOR_MOD_4   GET_GPDI15
 
+#define PIN_SET_UDC_INTERLOCK               CLEAR_EPWMSYNCO;
+#define PIN_CLEAR_UDC_INTERLOCK             SET_EPWMSYNCO;
+
+#define PIN_STATUS_COMPLEMENTARY_PS_INTERLOCK   (!GET_INT_ARM && ENABLE_COMPLEMENTARY_PS_INTERLOCK)
+
 #define PIN_STATUS_DCCT_1_STATUS            GET_GPDI9
 #define PIN_STATUS_DCCT_1_ACTIVE            GET_GPDI10
 #define PIN_STATUS_DCCT_2_STATUS            GET_GPDI11
@@ -290,7 +291,7 @@ typedef enum
     Load_Feedback_2_Fault,
     Arms_High_Difference,
     IGBTs_Current_High_Difference,
-    Complementary_PS_Itlk,
+    Complementary_PS_Itlk
 } soft_interlocks_t;
 
 #define NUM_HARD_INTERLOCKS             ARM_2_Overcurrent + 1
@@ -452,6 +453,10 @@ static void init_peripherals_drivers(void)
     InitCpuTimers();
     ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
     CpuTimer0Regs.TCR.bit.TIE = 0;
+
+    /// Configure EPWMSYNCO as GPDO for complementary PS interlock
+    PIN_CLEAR_UDC_INTERLOCK;
+    cfg_epwmsynco_gpdo();
 }
 
 static void term_peripherals_drivers(void)
@@ -751,8 +756,8 @@ static interrupt void isr_controller(void)
     static uint16_t i;
 
     //CLEAR_DEBUG_GPIO1;
-    SET_DEBUG_GPIO0;
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO0;
+    //SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -935,7 +940,7 @@ static interrupt void isr_controller(void)
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -995,85 +1000,96 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     #endif
     {
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
-
-        PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
-        DELAY_US(250000);
-        PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
-        DELAY_US(250000);
-        PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
-        DELAY_US(250000);
-        PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
-
-        DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
-
-        if(V_DCLINK_MOD_1 < MIN_V_DCLINK)
+        if(PIN_STATUS_COMPLEMENTARY_PS_INTERLOCK)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Undervoltage);
-            set_hard_interlock(0, DCLink_Mod_1_Undervoltage);
-        }
-
-        if(V_DCLINK_MOD_2 < MIN_V_DCLINK)
-        {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Undervoltage);
-            set_hard_interlock(0, DCLink_Mod_2_Undervoltage);
-        }
-
-        if(V_DCLINK_MOD_3 < MIN_V_DCLINK)
-        {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Undervoltage);
-            set_hard_interlock(0, DCLink_Mod_3_Undervoltage);
-        }
-
-        if(V_DCLINK_MOD_4 < MIN_V_DCLINK)
-        {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Undervoltage);
-            set_hard_interlock(0, DCLink_Mod_4_Undervoltage);
-        }
-
-        if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
-        {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_1_Fault);
-            set_hard_interlock(0, Opened_Contactor_Mod_1_Fault);
-        }
-
-        else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
-        {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_2_Fault);
-            set_hard_interlock(0, Opened_Contactor_Mod_2_Fault);
-        }
-
-        else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
-        {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_3_Fault);
-            set_hard_interlock(0, Opened_Contactor_Mod_3_Fault);
-        }
-
-        else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
-        {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_4_Fault);
-            set_hard_interlock(0, Opened_Contactor_Mod_4_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Complementary_PS_Itlk);
+            set_soft_interlock(0, Complementary_PS_Itlk);
         }
 
         #ifdef USE_ITLK
-        if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
+        else
         {
         #endif
-            reset_controller();
+            g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
 
-            g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
-            g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
+            DELAY_US(250000);
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
+            DELAY_US(250000);
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
+            DELAY_US(250000);
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
 
-            enable_pwm_output(0);
-            enable_pwm_output(1);
-            enable_pwm_output(2);
-            enable_pwm_output(3);
-            enable_pwm_output(4);
-            enable_pwm_output(5);
-            enable_pwm_output(6);
-            enable_pwm_output(7);
+            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
 
-        #ifdef USE_ITLK
+            if(V_DCLINK_MOD_1 < MIN_V_DCLINK)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Undervoltage);
+                set_hard_interlock(0, DCLink_Mod_1_Undervoltage);
+            }
+
+            if(V_DCLINK_MOD_2 < MIN_V_DCLINK)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Undervoltage);
+                set_hard_interlock(0, DCLink_Mod_2_Undervoltage);
+            }
+
+            if(V_DCLINK_MOD_3 < MIN_V_DCLINK)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Undervoltage);
+                set_hard_interlock(0, DCLink_Mod_3_Undervoltage);
+            }
+
+            if(V_DCLINK_MOD_4 < MIN_V_DCLINK)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Undervoltage);
+                set_hard_interlock(0, DCLink_Mod_4_Undervoltage);
+            }
+
+            if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_1_Fault);
+                set_hard_interlock(0, Opened_Contactor_Mod_1_Fault);
+            }
+
+            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_2_Fault);
+                set_hard_interlock(0, Opened_Contactor_Mod_2_Fault);
+            }
+
+            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_3_Fault);
+                set_hard_interlock(0, Opened_Contactor_Mod_3_Fault);
+            }
+
+            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_4_Fault);
+                set_hard_interlock(0, Opened_Contactor_Mod_4_Fault);
+            }
+
+            #ifdef USE_ITLK
+            if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
+            {
+            #endif
+                reset_controller();
+
+                g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
+                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+
+                enable_pwm_output(0);
+                enable_pwm_output(1);
+                enable_pwm_output(2);
+                enable_pwm_output(3);
+                enable_pwm_output(4);
+                enable_pwm_output(5);
+                enable_pwm_output(6);
+                enable_pwm_output(7);
+
+            #ifdef USE_ITLK
+            }
         }
         #endif
     }
@@ -1156,6 +1172,8 @@ static void reset_interlocks(uint16_t dummy)
 
         DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
 
+        PIN_CLEAR_UDC_INTERLOCK;
+
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
     }
 }
@@ -1165,7 +1183,7 @@ static void reset_interlocks(uint16_t dummy)
  */
 static inline void check_interlocks(void)
 {
-    //SET_DEBUG_GPIO1;
+    SET_DEBUG_GPIO1;
 
     if(fabs(I_LOAD_MEAN) > MAX_I_LOAD)
     {
@@ -1321,6 +1339,11 @@ static inline void check_interlocks(void)
     }
     else
     {
+        if(PIN_STATUS_COMPLEMENTARY_PS_INTERLOCK)
+        {
+            set_soft_interlock(0, Complementary_PS_Itlk);
+        }
+
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
         {
             set_hard_interlock(0, Opened_Contactor_Mod_1_Fault);
@@ -1368,4 +1391,17 @@ static inline void check_interlocks(void)
     //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
     CLEAR_DEBUG_GPIO1;
+
+    //if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+    if(g_ipc_ctom.ps_module[0].ps_hard_interlock || g_ipc_ctom.ps_module[0].ps_soft_interlock)
+    {
+        if(GET_EPWMSYNCO)
+        {
+            PIN_SET_UDC_INTERLOCK;
+        }
+        else
+        {
+            PIN_CLEAR_UDC_INTERLOCK;
+        }
+    }
 }

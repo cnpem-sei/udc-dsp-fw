@@ -56,7 +56,7 @@
 /**
  * Control parameters
  */
-#define TIMESLICER_I_SHARE_CONTROLLER_IDX   2
+#define TIMESLICER_I_SHARE_CONTROLLER_IDX   0
 #define TIMESLICER_I_SHARE_CONTROLLER       g_controller_ctom.timeslicer[TIMESLICER_I_SHARE_CONTROLLER_IDX]
 #define I_SHARE_CONTROLLER_FREQ_SAMP        TIMESLICER_FREQ[TIMESLICER_I_SHARE_CONTROLLER_IDX]
 
@@ -65,7 +65,6 @@
  */
 #define MAX_I_LOAD                              ANALOG_VARS_MAX[0]
 #define MAX_V_LOAD                              ANALOG_VARS_MAX[1]
-#define MIN_V_LOAD                              ANALOG_VARS_MIN[1]
 
 #define MAX_DCCTS_DIFF                          ANALOG_VARS_MAX[2]
 
@@ -83,13 +82,9 @@
 #define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[8]
 #define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[9]
 
-#define NETSIGNAL_ELEM_CTOM_BUF                 ANALOG_VARS_MAX[10]
-#define NETSIGNAL_ELEM_MTOC_BUF                 ANALOG_VARS_MIN[10]
+#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[10]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
-
-#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[11]
+#define NUM_DCCTs                               ANALOG_VARS_MAX[11]
 
 /**
  * Controller defines
@@ -782,12 +777,24 @@ static interrupt void isr_controller(void)
     temp[3] *= HRADCs_Info.HRADC_boards[3].gain * decimation_coeff;
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
-    I_LOAD_1 = temp[0];
-    I_LOAD_2 = temp[1];
-    V_LOAD   = temp[2];
+    if(NUM_DCCTs)
+    {
+        I_LOAD_1 = temp[0];
+        I_LOAD_2 = temp[1];
+        V_LOAD   = temp[2];
 
-    I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
-    I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
+        I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
+        I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
+    }
+    else
+    {
+        I_LOAD_1 = temp[0];
+        I_LOAD_2 = 0.0;
+        V_LOAD   = temp[1];
+
+        I_LOAD_MEAN = I_LOAD_1;
+        I_LOAD_DIFF = 0;
+    }
 
     /// Check whether power supply is ON
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
@@ -1249,7 +1256,7 @@ static inline void check_interlocks(void)
         set_soft_interlock(0, DCCT_1_Fault);
     }
 
-    if(!PIN_STATUS_DCCT_2_STATUS)
+    if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
     {
         set_soft_interlock(0, DCCT_2_Fault);
     }
@@ -1269,18 +1276,21 @@ static inline void check_interlocks(void)
         }
     }
 
-    if(PIN_STATUS_DCCT_2_ACTIVE)
+    if(NUM_DCCTs)
     {
-        if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
+        if(PIN_STATUS_DCCT_2_ACTIVE)
         {
-            set_soft_interlock(0, Load_Feedback_2_Fault);
+            if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
+            {
+                set_soft_interlock(0, Load_Feedback_2_Fault);
+            }
         }
-    }
-    else
-    {
-        if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
+        else
         {
-            set_soft_interlock(0, Load_Feedback_2_Fault);
+            if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
+            {
+                set_soft_interlock(0, Load_Feedback_2_Fault);
+            }
         }
     }
 
