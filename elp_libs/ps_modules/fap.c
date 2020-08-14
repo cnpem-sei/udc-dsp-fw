@@ -37,7 +37,7 @@
 /**
  * Control parameters
  */
-#define TIMESLICER_I_SHARE_CONTROLLER_IDX   2
+#define TIMESLICER_I_SHARE_CONTROLLER_IDX   0
 #define TIMESLICER_I_SHARE_CONTROLLER       g_controller_ctom.timeslicer[TIMESLICER_I_SHARE_CONTROLLER_IDX]
 #define I_SHARE_CONTROLLER_FREQ_SAMP        TIMESLICER_FREQ[TIMESLICER_I_SHARE_CONTROLLER_IDX]
 
@@ -66,15 +66,9 @@
 #define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[9]
 #define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[10]
 
-#define NETSIGNAL_ELEM_CTOM_BUF                 ANALOG_VARS_MAX[11]
-#define NETSIGNAL_ELEM_MTOC_BUF                 ANALOG_VARS_MIN[11]
+#define NUM_DCCTs                               ANALOG_VARS_MAX[11]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
-
-#define NUM_DCCTs                               ANALOG_VARS_MAX[12]
-
-#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[13]
+#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[12]
 
 /**
  * Controller defines
