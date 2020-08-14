@@ -1392,8 +1392,11 @@ static inline void check_interlocks(void)
     run_interlocks_debouncing(0);
     CLEAR_DEBUG_GPIO1;
 
-    //if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+    #ifdef USE_ITLK
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+    #else
     if(g_ipc_ctom.ps_module[0].ps_hard_interlock || g_ipc_ctom.ps_module[0].ps_soft_interlock)
+    #endif
     {
         if(GET_EPWMSYNCO)
         {
