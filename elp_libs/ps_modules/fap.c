@@ -53,22 +53,19 @@
 #define MAX_V_DCLINK            ANALOG_VARS_MAX[4]
 #define MIN_V_DCLINK            ANALOG_VARS_MIN[4]
 
-#define NOM_V_DCLINK_FF         ANALOG_VARS_MAX[5]
-#define MIN_V_DCLINK_FF         ANALOG_VARS_MIN[5]
+#define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[5]
 
-#define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[6]
+#define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[6]
+#define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[6]
 
-#define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[7]
-#define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[7]
+#define I_IGBT_DIFF_MODE        ANALOG_VARS_MAX[7]
 
-#define I_IGBT_DIFF_MODE        ANALOG_VARS_MAX[8]
+#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[8]
+#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[9]
 
-#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[9]
-#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[10]
+#define NUM_DCCTs                               ANALOG_VARS_MAX[10]
 
-#define NUM_DCCTs                               ANALOG_VARS_MAX[11]
-
-#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[12]
+#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[11]
 
 /**
  * Controller defines
@@ -134,7 +131,14 @@
 #define IIR_2P2Z_LPF_V_DCLINK_COEFFS    g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
 #define FF_V_DCLINK_IGBT_1              &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_DCLINK_IGBT_1_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
+#define NOM_V_DCLINK_FF_IGBT_1          FF_V_DCLINK_IGBT_1_COEFFS.vdc_nom
+#define MIN_V_DCLINK_FF_IGBT_1          FF_V_DCLINK_IGBT_1_COEFFS.vdc_min
+
 #define FF_V_DCLINK_IGBT_2              &g_controller_ctom.dsp_modules.dsp_ff[1]
+#define FF_V_DCLINK_IGBT_2_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[1].coeffs.s
+#define NOM_V_DCLINK_FF_IGBT_2          FF_V_DCLINK_IGBT_2_COEFFS.vdc_nom
+#define MIN_V_DCLINK_FF_IGBT_2          FF_V_DCLINK_IGBT_2_COEFFS.vdc_min
 
 /// PWM modulators
 #define PWM_MODULATOR_IGBT_1            g_pwm_modules.pwm_regs[0]
@@ -468,7 +472,8 @@ static void init_controller(void)
      *         out:     output_signals[0]
      */
 
-    init_dsp_vdclink_ff(FF_V_DCLINK_IGBT_1, NOM_V_DCLINK_FF, MIN_V_DCLINK_FF,
+    init_dsp_vdclink_ff(FF_V_DCLINK_IGBT_1, NOM_V_DCLINK_FF_IGBT_1,
+                        MIN_V_DCLINK_FF_IGBT_1,
                         &V_DCLINK_FILTERED, &g_controller_ctom.net_signals[8].f,
                         &g_controller_ctom.output_signals[0].f);
 
@@ -481,7 +486,8 @@ static void init_controller(void)
      *         out:     output_signals[1]
      */
 
-    init_dsp_vdclink_ff(FF_V_DCLINK_IGBT_2, NOM_V_DCLINK_FF, MIN_V_DCLINK_FF,
+    init_dsp_vdclink_ff(FF_V_DCLINK_IGBT_2, NOM_V_DCLINK_FF_IGBT_2,
+                        MIN_V_DCLINK_FF_IGBT_2,
                         &V_DCLINK_FILTERED, &g_controller_ctom.net_signals[9].f,
                         &g_controller_ctom.output_signals[1].f);
 

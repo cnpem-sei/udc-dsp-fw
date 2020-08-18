@@ -39,6 +39,7 @@
  */
 #define MAX_ILOAD               ANALOG_VARS_MAX[0]
 #define MAX_VLOAD               ANALOG_VARS_MAX[1]
+
 #define MAX_V_CAPBANK           ANALOG_VARS_MAX[2]
 #define MIN_V_CAPBANK           ANALOG_VARS_MIN[2]
 
