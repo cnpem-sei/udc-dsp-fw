@@ -682,6 +682,8 @@ static void reset_controller(void)
     set_pwm_duty_chA(PWM_MODULATOR_IGBT_1_MOD_4, 0.0);
     set_pwm_duty_chA(PWM_MODULATOR_IGBT_2_MOD_4, 0.0);
 
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
+
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
 
@@ -1074,9 +1076,7 @@ static void turn_on(uint16_t dummy)
             if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
             {
             #endif
-                reset_controller();
 
-                g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
                 g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
 
                 enable_pwm_output(0);
