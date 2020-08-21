@@ -50,27 +50,21 @@
 /**
  * Analog variables parameters
  */
-#define MAX_ILOAD               ANALOG_VARS_MAX[0]
-#define MAX_VLOAD               ANALOG_VARS_MAX[1]
+#define MAX_I_LOAD              ANALOG_VARS_MAX[0]
+#define MAX_V_LOAD              ANALOG_VARS_MAX[1]
+
 #define MAX_V_CAPBANK           ANALOG_VARS_MAX[2]
 #define MIN_V_CAPBANK           ANALOG_VARS_MIN[2]
 
-#define NOM_V_CAPBANK_FF        ANALOG_VARS_MAX[3]
-#define MIN_V_CAPBANK_FF        ANALOG_VARS_MIN[3]
+#define MAX_V_OUT_MODULE        ANALOG_VARS_MAX[3]
 
-#define MAX_VOUT_MODULE         ANALOG_VARS_MAX[4]
+#define MAX_V_OUT_DIFF          ANALOG_VARS_MAX[4]
 
 #define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[5]
 
 #define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[6]
 #define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[6]
-#define NETSIGNAL_ELEM_CTOM_BUF1    ANALOG_VARS_MAX[7]
-#define NETSIGNAL_ELEM_CTOM_BUF2    ANALOG_VARS_MIN[7]
-
-#define NETSIGNAL_CTOM_BUF1      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF1].f
-#define NETSIGNAL_CTOM_BUF2      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF2].f
-
-#define NUM_DCCTs               ANALOG_VARS_MAX[8]
+#define NUM_DCCTs               ANALOG_VARS_MAX[7]
 
 /**
  * Controller defines
@@ -82,26 +76,24 @@
 #define V_CAPBANK_MOD_1                 g_controller_ctom.net_signals[2].f  // HRADC2
 #define V_CAPBANK_MOD_2                 g_controller_ctom.net_signals[3].f  // HRADC3
 
-#define I_LOAD_REFERENCE_WFMREF         g_controller_ctom.net_signals[4].f
+#define I_LOAD_MEAN                     g_controller_ctom.net_signals[4].f
+#define I_LOAD_ERROR                    g_controller_ctom.net_signals[5].f
 
-#define I_LOAD_MEAN                     g_controller_ctom.net_signals[5].f
-#define I_LOAD_ERROR                    g_controller_ctom.net_signals[6].f
+#define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[6].f
+#define DUTY_REF_FF                     g_controller_ctom.net_signals[7].f
+#define DUTY_MEAN                       g_controller_ctom.net_signals[8].f
 
-#define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[7].f
-#define DUTY_REF_FF                     g_controller_ctom.net_signals[8].f
-#define DUTY_MEAN                       g_controller_ctom.net_signals[9].f
+#define V_OUT_DIFF                      g_controller_ctom.net_signals[9].f
+#define DUTY_DIFF                       g_controller_ctom.net_signals[10].f
 
-#define V_OUT_DIFF                      g_controller_ctom.net_signals[10].f
-#define DUTY_DIFF                       g_controller_ctom.net_signals[11].f
+#define V_CAPBANK_MOD_1_FILTERED        g_controller_ctom.net_signals[11].f
+#define V_CAPBANK_MOD_2_FILTERED        g_controller_ctom.net_signals[12].f
 
-#define V_CAPBANK_MOD_1_FILTERED        g_controller_ctom.net_signals[12].f
-#define V_CAPBANK_MOD_2_FILTERED        g_controller_ctom.net_signals[13].f
+#define IN_FF_V_CAPBANK_MOD_1           g_controller_ctom.net_signals[13].f
+#define IN_FF_V_CAPBANK_MOD_2           g_controller_ctom.net_signals[14].f
 
-#define IN_FF_V_CAPBANK_MOD_1           g_controller_ctom.net_signals[14].f
-#define IN_FF_V_CAPBANK_MOD_2           g_controller_ctom.net_signals[15].f
-
-#define I_LOAD_DIFF                     g_controller_ctom.net_signals[16].f
-#define V_LOAD                          g_controller_ctom.net_signals[17].f
+#define I_LOAD_DIFF                     g_controller_ctom.net_signals[15].f
+#define V_LOAD                          g_controller_ctom.net_signals[16].f
 
 #define WFMREF_IDX                      g_controller_ctom.net_signals[30].f
 
@@ -156,9 +148,13 @@
 
 #define FF_V_CAPBANK_MOD_1              &g_controller_ctom.dsp_modules.dsp_ff[0]
 #define FF_V_CAPBANK_MOD_1_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
+#define NOM_V_CAPBANK_FF_MOD_1          FF_V_CAPBANK_MOD_1_COEFFS.vdc_nom
+#define MIN_V_CAPBANK_FF_MOD_1          FF_V_CAPBANK_MOD_1_COEFFS.vdc_min
 
 #define FF_V_CAPBANK_MOD_2              &g_controller_ctom.dsp_modules.dsp_ff[1]
 #define FF_V_CAPBANK_MOD_2_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[1].coeffs.s
+#define NOM_V_CAPBANK_FF_MOD_2          FF_V_CAPBANK_MOD_2_COEFFS.vdc_nom
+#define MIN_V_CAPBANK_FF_MOD_2          FF_V_CAPBANK_MOD_2_COEFFS.vdc_min
 
 /// PWM modulators
 #define PWM_MODULATOR_Q1_MOD_1          g_pwm_modules.pwm_regs[0]
@@ -195,8 +191,8 @@ typedef enum
     Module_2_CapBank_Undervoltage,
     Module_1_Output_Overvoltage,
     Module_2_Output_Overvoltage,
-    IIB_1_Itlk,
-    IIB_2_Itlk,
+    IIB_Mod_1_Itlk,
+    IIB_Mod_2_Itlk,
     External_Interlock,
     Rack_Interlock
 } hard_interlocks_t;
@@ -207,11 +203,12 @@ typedef enum
     DCCT_2_Fault,
     DCCT_High_Difference,
     Load_Feedback_1_Fault,
-    Load_Feedback_2_Fault
+    Load_Feedback_2_Fault,
+    Modules_Output_High_Difference
 } soft_interlocks_t;
 
 #define NUM_HARD_INTERLOCKS     Rack_Interlock + 1
-#define NUM_SOFT_INTERLOCKS     Load_Feedback_2_Fault + 1
+#define NUM_SOFT_INTERLOCKS     Modules_Output_High_Difference + 1
 
 /**
  *  Private variables
@@ -533,10 +530,9 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE_MOD_1
      */
 
-    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1, FF_V_CAPBANK_MOD_1_COEFFS.vdc_nom,
-                        FF_V_CAPBANK_MOD_1_COEFFS.vdc_min,
-                        &V_CAPBANK_MOD_1_FILTERED, &IN_FF_V_CAPBANK_MOD_1,
-                        &DUTY_CYCLE_MOD_1);
+    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1, NOM_V_CAPBANK_FF_MOD_1,
+                        MIN_V_CAPBANK_FF_MOD_1, &V_CAPBANK_MOD_1_FILTERED,
+                        &IN_FF_V_CAPBANK_MOD_1, &DUTY_CYCLE_MOD_1);
 
     /**
      *        name:     IIR_2P2Z_LPF_V_CAPBANK_MOD_2
@@ -564,10 +560,9 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE_MOD_2
      */
 
-    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2, FF_V_CAPBANK_MOD_2_COEFFS.vdc_nom,
-                        FF_V_CAPBANK_MOD_2_COEFFS.vdc_min,
-                        &V_CAPBANK_MOD_2_FILTERED, &IN_FF_V_CAPBANK_MOD_2,
-                        &DUTY_CYCLE_MOD_2);
+    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2, NOM_V_CAPBANK_FF_MOD_2,
+                        MIN_V_CAPBANK_FF_MOD_2, &V_CAPBANK_MOD_2_FILTERED,
+                        &IN_FF_V_CAPBANK_MOD_2, &DUTY_CYCLE_MOD_2);
 
     /******************************/
     /** INITIALIZATION OF SCOPES **/
@@ -590,9 +585,10 @@ static void reset_controller(void)
     set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_1, 50.0);
     set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_2, 50.0);
 
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
+
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
-    I_LOAD_REFERENCE_WFMREF = 0.0;
 
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
 
@@ -843,8 +839,6 @@ static interrupt void isr_controller(void)
     WFMREF_IDX = (float) (WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_idx -
                           WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_start);
 
-    g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
-
     RUN_SCOPE(SCOPE);
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
@@ -910,9 +904,7 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     #endif
     {
-        reset_controller();
 
-        g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
         g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
         enable_pwm_output(0);
         enable_pwm_output(1);
@@ -964,9 +956,29 @@ static void reset_interlocks(uint16_t dummy)
  */
 static inline void check_interlocks(void)
 {
-    if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
+    if(fabs(I_LOAD_MEAN) > MAX_I_LOAD)
     {
         set_hard_interlock(0, Load_Overcurrent);
+    }
+
+    if(fabs(V_LOAD) > MAX_V_LOAD)
+    {
+        set_hard_interlock(0, Load_Overvoltage);
+    }
+
+    if(fabs(V_OUT_MOD_1) > MAX_V_OUT_MODULE)
+    {
+        set_hard_interlock(0, Module_1_Output_Overvoltage);
+    }
+
+    if(fabs(V_OUT_MOD_2) > MAX_V_OUT_MODULE)
+    {
+        set_hard_interlock(0, Module_2_Output_Overvoltage);
+    }
+
+    if(fabs(V_OUT_DIFF) > MAX_V_OUT_DIFF)
+    {
+        set_hard_interlock(0, Modules_Output_High_Difference);
     }
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
