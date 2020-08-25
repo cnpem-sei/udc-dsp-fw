@@ -33,14 +33,6 @@
 #define TIMEOUT_DCLINK_RELAY    1000000
 
 /**
- * Control parameters
- */
-#define MAX_REF                 g_ipc_mtoc.control.max_ref
-#define MIN_REF                 g_ipc_mtoc.control.min_ref
-#define MAX_REF_OL              g_ipc_mtoc.control.max_ref_openloop
-#define MIN_REF_OL              g_ipc_mtoc.control.min_ref_openloop
-
-/**
  * Digital I/O's operations and status
  */
 #define PIN_OPEN_DCLINK_RELAY           CLEAR_GPDO1
@@ -68,17 +60,17 @@
 /**
  * Analog variables parameters
  */
-#define MAX_V_ALL_PS                    g_ipc_mtoc.analog_vars.max[0]
-#define MIN_V_ALL_PS                    g_ipc_mtoc.analog_vars.min[0]
+#define MAX_V_ALL_PS                    ANALOG_VARS_MAX[0]
+#define MIN_V_ALL_PS                    ANALOG_VARS_MIN[0]
 
-#define MAX_V_PS1                       g_ipc_mtoc.analog_vars.max[1]
-#define MIN_V_PS1                       g_ipc_mtoc.analog_vars.min[1]
+#define MAX_V_PS1                       ANALOG_VARS_MAX[1]
+#define MIN_V_PS1                       ANALOG_VARS_MIN[1]
 
-#define MAX_V_PS2                       g_ipc_mtoc.analog_vars.max[2]
-#define MIN_V_PS2                       g_ipc_mtoc.analog_vars.min[2]
+#define MAX_V_PS2                       ANALOG_VARS_MAX[2]
+#define MIN_V_PS2                       ANALOG_VARS_MIN[2]
 
-#define MAX_V_PS3                       g_ipc_mtoc.analog_vars.max[3]
-#define MIN_V_PS3                       g_ipc_mtoc.analog_vars.min[3]
+#define MAX_V_PS3                       ANALOG_VARS_MAX[3]
+#define MIN_V_PS3                       ANALOG_VARS_MIN[3]
 
 /**
  * Interlocks defines
@@ -154,7 +146,7 @@ void main_fbp_dclink(void)
                                   (PIN_STATUS_POWER_MODULE_3_FAULT << 2) ) & 0x00000007;
 
         /// Check interlocks for specified power module
-        for(i = 0; i < g_ipc_mtoc.num_ps_modules; i++)
+        for(i = 0; i < NUM_PS_MODULES; i++)
         {
             check_interlocks_ps_module(i);
         }
@@ -162,14 +154,14 @@ void main_fbp_dclink(void)
         /// Saturate and reference
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
-            SATURATE(g_ipc_ctom.ps_module[0].ps_setpoint, MAX_REF_OL, MIN_REF_OL);
+            SATURATE(g_ipc_ctom.ps_module[0].ps_setpoint, MAX_REF_OL[0], MIN_REF_OL[0]);
         }
         else
         {
             /// TODO: After implementation of closed loop, remove first line
             /// below and un-comment second line
             open_loop(&g_ipc_ctom.ps_module[0]);
-            ///SATURATE(g_ipc_ctom.ps_module[0].ps_setpoint, MAX_REF, MIN_REF);
+            ///SATURATE(g_ipc_ctom.ps_module[0].ps_setpoint, MAX_REF[0], MIN_REF[0]);
         }
 
         g_ipc_ctom.ps_module[0].ps_reference = g_ipc_ctom.ps_module[0].ps_setpoint;

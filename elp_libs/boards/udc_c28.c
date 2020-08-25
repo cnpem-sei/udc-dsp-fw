@@ -148,6 +148,21 @@ void init_gpios(void)
     GpioG2DataRegs.GPGCLEAR.bit.GPIO199 = 1;
     GpioG2CtrlRegs.GPGDIR.bit.GPIO199 = 0;
 
+    /// INT_ARM <=> UDC_GPIO28
+    GpioCtrlRegs.GPAMUX2.bit.GPIO28 = 0;
+    GpioDataRegs.GPACLEAR.bit.GPIO28 = 1;
+    GpioCtrlRegs.GPADIR.bit.GPIO28 = 0;
+
+    /// INT_C28 <=> UDC_GPIO29
+    GpioCtrlRegs.GPAMUX2.bit.GPIO29 = 0;
+    GpioDataRegs.GPACLEAR.bit.GPIO29 = 1;
+    GpioCtrlRegs.GPADIR.bit.GPIO29 = 0;
+
+    /// INT_GENERAL / SYNC_IN <=> UDC_GPIO55
+    GpioCtrlRegs.GPBMUX2.bit.GPIO55 = 0;
+    GpioDataRegs.GPBCLEAR.bit.GPIO55 = 1;
+    GpioCtrlRegs.GPBDIR.bit.GPIO55 = 0;
+
     /// GPIO0 Debug GPIO 0 <=> UDC_GPIO46
     GpioCtrlRegs.GPBMUX1.bit.GPIO46 = 0;
     GpioDataRegs.GPBCLEAR.bit.GPIO46 = 1;
@@ -219,6 +234,39 @@ void init_buzzer(float volume)
 #endif
 }
 
+/**
+ * Initialization of EPWMSYNCI as general purpose digital input
+ */
+void cfg_epwmsynci_gpdi(void)
+{
+    EALLOW;
+
+    #if UDC_V2_1
+        GpioCtrlRegs.GPBMUX1.bit.GPIO38 = 0;
+        GpioDataRegs.GPBCLEAR.bit.GPIO38 = 1;
+        GpioCtrlRegs.GPBDIR.bit.GPIO38 = 0;
+    #elif
+        GpioCtrlRegs.GPBMUX1.bit.GPIO32 = 0;
+        GpioDataRegs.GPBCLEAR.bit.GPIO32 = 1;
+        GpioCtrlRegs.GPBDIR.bit.GPIO32 = 0;
+    #endif
+
+    EDIS;
+}
+
+/**
+ * Initialization of EPWMSYNCO as general purpose digital output
+ */
+void cfg_epwmsynco_gpdo(void)
+{
+    EALLOW;
+
+    GpioCtrlRegs.GPBMUX1.bit.GPIO33 = 0;
+    GpioDataRegs.GPBCLEAR.bit.GPIO33 = 1;
+    GpioCtrlRegs.GPBDIR.bit.GPIO33 = 1;
+
+    EDIS;
+}
 
 /**
  * TODO: Put here the implementation for your private functions.

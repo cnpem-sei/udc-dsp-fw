@@ -18,7 +18,9 @@
  * @date 23/11/2017
  *
  */
-
+/**
+ * Control paramters
+ */
 #include <float.h>
 
 #include "boards/udc_c28.h"
@@ -33,77 +35,28 @@
 #include "fbp.h"
 
 /**
- * PWM parameters
+ * Analog variables parameters
  */
-#define PWM_FREQ                g_ipc_mtoc.pwm.freq_pwm
-#define PWM_DEAD_TIME           g_ipc_mtoc.pwm.dead_time
-#define PWM_MAX_DUTY            g_ipc_mtoc.pwm.max_duty
-#define PWM_MIN_DUTY            g_ipc_mtoc.pwm.min_duty
-#define PWM_MAX_DUTY_OL         g_ipc_mtoc.pwm.max_duty_openloop
-#define PWM_MIN_DUTY_OL         g_ipc_mtoc.pwm.min_duty_openloop
-
+#define MAX_ILOAD(id)           ANALOG_VARS_MAX[0+id]
+#define MAX_VLOAD(id)           ANALOG_VARS_MAX[4+id]
+#define MIN_DCLINK(id)          ANALOG_VARS_MIN[8+id]
+#define MAX_DCLINK(id)          ANALOG_VARS_MAX[8+id]
+#define MAX_TEMP(id)            ANALOG_VARS_MAX[12+id]
 /**
- * Control parameters
+ * All power supplies defines
+ *
  */
-#define MAX_REF                 g_ipc_mtoc.control.max_ref
-#define MIN_REF                 g_ipc_mtoc.control.min_ref
-#define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
-#define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
-#define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
 
-#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
-
-#define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
-#define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
 #define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/ISR_CONTROL_FREQ)
 
-#define TIMESLICER_BUFFER       1
-#define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
-#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
-#define BUF_SAMPLES             &g_ipc_ctom.buf_samples
-
-#define SIGGEN                  g_ipc_ctom.siggen
+#define SIGGEN                  SIGGEN_CTOM
 #define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
 
 #define WFMREF                  g_ipc_ctom.wfmref
 #define WFMREF_OUTPUT           g_controller_ctom.net_signals[13].f
 
-/**
- * Analog variables parameters
- */
-#define MAX_ILOAD               g_ipc_mtoc.analog_vars.max[0]
-#define MAX_VLOAD               g_ipc_mtoc.analog_vars.max[1]
-#define MIN_DCLINK              g_ipc_mtoc.analog_vars.min[2]
-#define MAX_DCLINK              g_ipc_mtoc.analog_vars.max[2]
-#define MAX_TEMP                g_ipc_mtoc.analog_vars.max[3]
-
-#define NETSIGNAL_ELEM_CTOM_BUF g_ipc_mtoc.analog_vars.max[4]
-#define NETSIGNAL_ELEM_MTOC_BUF g_ipc_mtoc.analog_vars.min[4]
-
-#define PS1_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define PS2_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 1].f
-#define PS3_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 2].f
-#define PS4_NETSIGNAL_CTOM_BUF  g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF + 3].f
-
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
-
-/**
- * HRADC parameters
- */
-#define TRANSDUCER_OUTPUT_TYPE  g_ipc_mtoc.hradc.type_transducer_output[0]
-#if (HRADC_v2_0)
-    #define TRANSDUCER_GAIN     -g_ipc_mtoc.hradc.gain_transducer[0]
-#endif
-#if (HRADC_v2_1)
-    #define TRANSDUCER_GAIN     g_ipc_mtoc.hradc.gain_transducer[0]
-#endif
-
-/**
- * All power supplies defines
- *
- */
-#define PS_ALL_ID   0x000F
+#define PS_SETPOINT(i)          g_ipc_ctom.ps_module[i].ps_setpoint
+#define PS_REFERENCE(i)         g_ipc_ctom.ps_module[i].ps_reference
 
 /**
  * Power supply 1 defines
@@ -135,6 +88,8 @@
 #define PS1_PWM_MODULATOR               g_pwm_modules.pwm_regs[0]
 #define PS1_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[1]
 
+#define PS1_SCOPE                       SCOPE_CTOM[0]
+
 /**
  * Power supply 2 defines
  */
@@ -164,6 +119,8 @@
 
 #define PS2_PWM_MODULATOR               g_pwm_modules.pwm_regs[2]
 #define PS2_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[3]
+
+#define PS2_SCOPE                       SCOPE_CTOM[1]
 
 /**
  * Power supply 3 defines
@@ -195,6 +152,8 @@
 #define PS3_PWM_MODULATOR               g_pwm_modules.pwm_regs[4]
 #define PS3_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[5]
 
+#define PS3_SCOPE                       SCOPE_CTOM[2]
+
 /**
  * Power supply 4 defines
  */
@@ -225,6 +184,8 @@
 #define PS4_PWM_MODULATOR               g_pwm_modules.pwm_regs[6]
 #define PS4_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[7]
 
+#define PS4_SCOPE                       SCOPE_CTOM[3]
+
 /**
  * Interlocks defines
  */
@@ -234,9 +195,10 @@ typedef enum
     Load_Overvoltage,
     DCLink_Overvoltage,
     DCLink_Undervoltage,
-    DCLink_Relay_Fault,
+    Opened_Relay_Fault,
     DCLink_Fuse_Fault,
-    MOSFETs_Driver_Fault
+    MOSFETs_Driver_Fault,
+    Welded_Relay_Fault
 } hard_interlocks_t;
 
 typedef enum
@@ -334,7 +296,7 @@ static void init_peripherals_drivers(void)
 
     HRADCs_Info.enable_Sampling = 0;
 
-    Init_DMA_McBSP_nBuffers(g_ipc_mtoc.num_ps_modules, DECIMATION_FACTOR, HRADC_SPI_CLK);
+    Init_DMA_McBSP_nBuffers(NUM_PS_MODULES, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
     Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
@@ -344,15 +306,15 @@ static void init_peripherals_drivers(void)
     send_ipc_lowpriority_msg(0,Enable_HRADC_Boards);
     DELAY_US(2000000);
 
-    for(i = 0; i < g_ipc_mtoc.num_ps_modules; i++)
+    for(i = 0; i < NUM_PS_MODULES; i++)
     {
         Init_HRADC_Info(&HRADCs_Info.HRADC_boards[i], i, DECIMATION_FACTOR,
-                        buffers_HRADC[i], TRANSDUCER_GAIN);
-        Config_HRADC_board(&HRADCs_Info.HRADC_boards[i], Iin_bipolar,
-                           HEATER_DISABLE, RAILS_DISABLE);
+                        buffers_HRADC[i], TRANSDUCER_GAIN[i]);
+        Config_HRADC_board(&HRADCs_Info.HRADC_boards[i], TRANSDUCER_OUTPUT_TYPE[i],
+                           HRADC_HEATER_ENABLE[i], HRADC_MONITOR_ENABLE[i]);
     }
 
-    HRADCs_Info.n_HRADC_boards = g_ipc_mtoc.num_ps_modules;
+    HRADCs_Info.n_HRADC_boards = NUM_PS_MODULES;
 
     Config_HRADC_SoC(HRADC_FREQ_SAMP);
 
@@ -442,23 +404,30 @@ static void init_controller(void)
             g_ipc_ctom.ps_module[i].ps_status.bit.active = 0;
         }
 
-        init_wfmref(&WFMREF[i], g_ipc_mtoc.wfmref[i].wfmref_selected,
-                    g_ipc_mtoc.wfmref[i].sync_mode, ISR_CONTROL_FREQ,
-                    WFMREF_FREQ, g_ipc_mtoc.wfmref[i].gain,
-                    g_ipc_mtoc.wfmref[i].offset, &g_wfmref_data.data_fbp[i],
-                    SIZE_WFMREF_FBP, &g_ipc_ctom.ps_module[i].ps_reference);
+        init_wfmref(&WFMREF[i], WFMREF_SELECTED_PARAM[i], WFMREF_SYNC_MODE_PARAM[i],
+                    ISR_CONTROL_FREQ, WFMREF_FREQUENCY_PARAM[i], WFMREF_GAIN_PARAM[i],
+                    WFMREF_OFFSET_PARAM[i], &g_wfmref_data.data_fbp[i],
+                    SIZE_WFMREF_FBP, &PS_REFERENCE(i));
+
+        init_scope(&SCOPE_CTOM[i], ISR_CONTROL_FREQ,
+                   SCOPE_FREQ_SAMPLING_PARAM[i],
+                   &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM * i / NUM_MAX_PS_MODULES],
+                   SIZE_BUF_SAMPLES_CTOM / NUM_MAX_PS_MODULES,
+                   SCOPE_SOURCE_PARAM[i], &run_scope_shared_ram);
+
+        /// Initialization of signal generator module
+        disable_siggen(&SIGGEN[i]);
+
+        init_siggen(&SIGGEN[i], ISR_CONTROL_FREQ, &PS_REFERENCE(i));
+
+        cfg_siggen(&SIGGEN[i], SIGGEN_TYPE_PARAM, SIGGEN_NUM_CYCLES_PARAM,
+                   SIGGEN_FREQ_PARAM, SIGGEN_AMP_PARAM,
+                   SIGGEN_OFFSET_PARAM, SIGGEN_AUX_PARAM);
     }
 
     init_control_framework(&g_controller_ctom);
 
     init_ipc();
-
-    /// Initialization of signal generator module
-    disable_siggen(&SIGGEN);
-    init_siggen(&SIGGEN, ISR_CONTROL_FREQ, &SIGGEN_OUTPUT);
-    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen.type, g_ipc_mtoc.siggen.num_cycles,
-               g_ipc_mtoc.siggen.freq, g_ipc_mtoc.siggen.amplitude,
-               g_ipc_mtoc.siggen.offset, g_ipc_mtoc.siggen.aux_param);
 
     /**
      * TODO: initialize WfmRef and Samples Buffer
@@ -567,23 +536,6 @@ static void init_controller(void)
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7].f,
                 &g_controller_ctom.output_signals[3].f);
 
-    /// INITIALIZATION OF TIME SLICERS
-
-    /// 0: Time-slicer for WfmRef sweep decimation
-
-    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
-
-    /// 1: Time-slicer for SamplesBuffer
-    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
-
-    /**
-     * Samples buffer initialization
-     */
-    init_buffer(BUF_SAMPLES[0], &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/4);
-    init_buffer(BUF_SAMPLES[1], &g_buf_samples_ctom[1024], SIZE_BUF_SAMPLES_CTOM/4);
-    init_buffer(BUF_SAMPLES[2], &g_buf_samples_ctom[2048], SIZE_BUF_SAMPLES_CTOM/4);
-    init_buffer(BUF_SAMPLES[3], &g_buf_samples_ctom[3072], SIZE_BUF_SAMPLES_CTOM/4);
-
     /// Reset all internal variables
     reset_controllers();
 }
@@ -597,16 +549,17 @@ static void reset_controller(uint16_t id)
 {
     set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[id*2], 0.0);
 
-    g_ipc_ctom.ps_module[id].ps_setpoint = 0.0;
-    g_ipc_ctom.ps_module[id].ps_reference = 0.0;
+    g_ipc_ctom.ps_module[id].ps_status.bit.openloop = LOOP_STATE;
+
+    PS_SETPOINT(id) = 0.0;
+    PS_REFERENCE(id) = 0.0;
 
     reset_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[id]);
     reset_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[id]);
 
     reset_wfmref(&WFMREF[id]);
 
-    disable_siggen(&SIGGEN);
-    reset_timeslicers();
+    disable_siggen(&SIGGEN[id]);
 }
 
 /**
@@ -616,7 +569,7 @@ static void reset_controllers(void)
 {
     uint16_t i;
 
-    for(i = 0; i < g_ipc_mtoc.num_ps_modules; i++)
+    for(i = 0; i < NUM_PS_MODULES; i++)
     {
         reset_controller(i);
     }
@@ -677,6 +630,7 @@ static interrupt void isr_controller(void)
     static uint16_t i, flag_siggen;
     static float temp[4];
 
+    SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     /// Get HRADC samples
@@ -717,8 +671,7 @@ static interrupt void isr_controller(void)
                     case SlowRef:
                     case SlowRefSync:
                     {
-                        g_ipc_ctom.ps_module[i].ps_reference =
-                        g_ipc_ctom.ps_module[i].ps_setpoint;
+                        PS_REFERENCE(i) = PS_SETPOINT(i);
                         break;
                     }
                     case RmpWfm:
@@ -729,15 +682,9 @@ static interrupt void isr_controller(void)
                     }
                     case Cycle:
                     {
-                        if(!flag_siggen)
-                        {
-                            SIGGEN.amplitude = g_ipc_mtoc.siggen.amplitude;
-                            SIGGEN.offset = g_ipc_mtoc.siggen.offset;
-                            SIGGEN.p_run_siggen(&SIGGEN);
-                            flag_siggen = 1;
-                        }
-
-                        g_ipc_ctom.ps_module[i].ps_reference = SIGGEN_OUTPUT;
+                        SIGGEN[i].amplitude = SIGGEN_MTOC[i].amplitude;
+                        SIGGEN[i].offset = SIGGEN_MTOC[i].offset;
+                        SIGGEN[i].p_run_siggen(&SIGGEN[i]);
 
                         break;
                     }
@@ -750,8 +697,7 @@ static interrupt void isr_controller(void)
                 /// Open-loop
                 if(g_ipc_ctom.ps_module[i].ps_status.bit.openloop)
                 {
-                    g_controller_ctom.output_signals[i].f =
-                            0.01 * g_ipc_ctom.ps_module[i].ps_reference;
+                    g_controller_ctom.output_signals[i].f = 0.01 * PS_REFERENCE(i);
 
                     SATURATE(g_controller_ctom.output_signals[i].f,
                              PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
@@ -759,7 +705,7 @@ static interrupt void isr_controller(void)
                 /// Closed-loop
                 else
                 {
-                    SATURATE(g_ipc_ctom.ps_module[i].ps_reference, MAX_REF, MIN_REF);
+                    SATURATE(PS_REFERENCE(i), MAX_REF[i], MIN_REF[i]);
 
                     //run_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[i]);
 
@@ -781,16 +727,10 @@ static interrupt void isr_controller(void)
         /// TODO: save on buffers
     }
 
-    /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
-        insert_buffer(BUF_SAMPLES[0], PS1_NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES[1], PS2_NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES[2], PS3_NETSIGNAL_CTOM_BUF);
-        insert_buffer(BUF_SAMPLES[3], PS4_NETSIGNAL_CTOM_BUF);
-    /*********************************************/
-    END_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
+    RUN_SCOPE(PS1_SCOPE);
+    RUN_SCOPE(PS2_SCOPE);
+    RUN_SCOPE(PS3_SCOPE);
+    RUN_SCOPE(PS4_SCOPE);
 
     PS1_PWM_MODULATOR->ETCLR.bit.INT = 1;
     PS1_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
@@ -872,7 +812,7 @@ static void turn_on(uint16_t id)
         if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
         #endif
         {
-            if(fabs(g_controller_mtoc.net_signals[id].f) < MIN_DCLINK)
+            if(fabs(g_controller_mtoc.net_signals[id].f) < MIN_DCLINK(id))
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(id, DCLink_Undervoltage);
                 set_hard_interlock(id, DCLink_Undervoltage);
@@ -927,15 +867,19 @@ static void turn_on(uint16_t id)
             if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
             #endif
             {
-                reset_controller(id);
                 close_relay(id);
 
-                g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
                 g_ipc_ctom.ps_module[id].ps_status.bit.state = SlowRef;
 
                 enable_pwm_output(2*id);
                 enable_pwm_output((2*id)+1);
             }
+
+            else if(g_ipc_ctom.ps_module[id].ps_status.bit.state == Interlock)
+            {
+                reset_controller(id);
+            }
+
         }
     }
 }
@@ -1066,22 +1010,22 @@ static void close_relay(uint16_t id)
  */
 static void check_interlocks_ps_module(uint16_t id)
 {
-    if(fabs(g_controller_ctom.net_signals[id].f) > MAX_ILOAD)
+    if(fabs(g_controller_ctom.net_signals[id].f) > MAX_ILOAD(id))
     {
         set_hard_interlock(id, Load_Overcurrent);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id].f) > MAX_DCLINK)
+    if(fabs(g_controller_mtoc.net_signals[id].f) > MAX_DCLINK(id))
     {
         set_hard_interlock(id, DCLink_Overvoltage);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id+4].f) > MAX_VLOAD)
+    if(fabs(g_controller_mtoc.net_signals[id+4].f) > MAX_VLOAD(id))
     {
         set_hard_interlock(id, Load_Overvoltage);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id+8].f) > MAX_TEMP)
+    if(fabs(g_controller_mtoc.net_signals[id+8].f) > MAX_TEMP(id))
     {
         set_soft_interlock(id, Heatsink_Overtemperature);
     }
@@ -1100,14 +1044,14 @@ static void check_interlocks_ps_module(uint16_t id)
             if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
                  (PIN_STATUS_PS1_DCLINK_RELAY) )
             {
-                set_hard_interlock(0, DCLink_Relay_Fault);
+                set_hard_interlock(0, Welded_Relay_Fault);
             }
 
             else if (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
             {
                 if(!PIN_STATUS_PS1_DCLINK_RELAY)
                 {
-                    set_hard_interlock(0, DCLink_Relay_Fault);
+                    set_hard_interlock(0, Opened_Relay_Fault);
                 }
 
                 if(!PIN_STATUS_PS1_FUSE)
@@ -1115,7 +1059,7 @@ static void check_interlocks_ps_module(uint16_t id)
                     set_hard_interlock(0, DCLink_Fuse_Fault);
                 }
 
-                if(fabs(g_controller_mtoc.net_signals[0].f) < MIN_DCLINK)
+                if(fabs(g_controller_mtoc.net_signals[0].f) < MIN_DCLINK(0))
                 {
                     set_hard_interlock(0, DCLink_Undervoltage);
                 }
@@ -1136,14 +1080,14 @@ static void check_interlocks_ps_module(uint16_t id)
             if ( (g_ipc_ctom.ps_module[1].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS2_DCLINK_RELAY))
             {
-                set_hard_interlock(1, DCLink_Relay_Fault);
+                set_hard_interlock(1, Welded_Relay_Fault);
             }
 
             else if (g_ipc_ctom.ps_module[1].ps_status.bit.state > Interlock)
             {
                 if(!PIN_STATUS_PS2_DCLINK_RELAY)
                 {
-                    set_hard_interlock(1, DCLink_Relay_Fault);
+                    set_hard_interlock(1, Opened_Relay_Fault);
                 }
 
                 if(!PIN_STATUS_PS2_FUSE)
@@ -1151,7 +1095,7 @@ static void check_interlocks_ps_module(uint16_t id)
                     set_hard_interlock(1, DCLink_Fuse_Fault);
                 }
 
-                if(fabs(g_controller_mtoc.net_signals[1].f) < MIN_DCLINK)
+                if(fabs(g_controller_mtoc.net_signals[1].f) < MIN_DCLINK(1))
                 {
                     set_hard_interlock(1, DCLink_Undervoltage);
                 }
@@ -1171,14 +1115,14 @@ static void check_interlocks_ps_module(uint16_t id)
 
             if ( (g_ipc_ctom.ps_module[2].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS3_DCLINK_RELAY)) {
-                set_hard_interlock(2, DCLink_Relay_Fault);
+                set_hard_interlock(2, Welded_Relay_Fault);
             }
 
             else if (g_ipc_ctom.ps_module[2].ps_status.bit.state > Interlock)
             {
                 if(!PIN_STATUS_PS3_DCLINK_RELAY)
                 {
-                    set_hard_interlock(2, DCLink_Relay_Fault);
+                    set_hard_interlock(2, Opened_Relay_Fault);
                 }
 
                 if(!PIN_STATUS_PS3_FUSE)
@@ -1186,7 +1130,7 @@ static void check_interlocks_ps_module(uint16_t id)
                     set_hard_interlock(2, DCLink_Fuse_Fault);
                 }
 
-                if(fabs(g_controller_mtoc.net_signals[2].f) < MIN_DCLINK)
+                if(fabs(g_controller_mtoc.net_signals[2].f) < MIN_DCLINK(2))
                 {
                     set_hard_interlock(2, DCLink_Undervoltage);
                 }
@@ -1207,14 +1151,14 @@ static void check_interlocks_ps_module(uint16_t id)
 
             if ( (g_ipc_ctom.ps_module[3].ps_status.bit.state <= Interlock) &&
                 (PIN_STATUS_PS4_DCLINK_RELAY)) {
-                set_hard_interlock(3, DCLink_Relay_Fault);
+                set_hard_interlock(3, Welded_Relay_Fault);
             }
 
             else if (g_ipc_ctom.ps_module[3].ps_status.bit.state > Interlock)
             {
                 if(!PIN_STATUS_PS4_DCLINK_RELAY)
                 {
-                    set_hard_interlock(3, DCLink_Relay_Fault);
+                    set_hard_interlock(3, Opened_Relay_Fault);
                 }
 
                 if(!PIN_STATUS_PS4_FUSE)
@@ -1222,7 +1166,7 @@ static void check_interlocks_ps_module(uint16_t id)
                     set_hard_interlock(3, DCLink_Fuse_Fault);
                 }
 
-                if(fabs(g_controller_mtoc.net_signals[3].f) < MIN_DCLINK)
+                if(fabs(g_controller_mtoc.net_signals[3].f) < MIN_DCLINK(3))
                 {
                     set_hard_interlock(3, DCLink_Undervoltage);
                 }

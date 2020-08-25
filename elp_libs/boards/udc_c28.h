@@ -69,6 +69,9 @@
 #define SET_ALL_GPDO            GpioDataRegs.GPCSET.all = 0x0000000F;
 #define CLEAR_ALL_GPDO          GpioDataRegs.GPCCLEAR.all = 0x0000000F;
 
+#define SET_EPWMSYNCO           GpioDataRegs.GPBCLEAR.bit.GPIO33 = 1;
+#define CLEAR_EPWMSYNCO         GpioDataRegs.GPBSET.bit.GPIO33 = 1;
+
 #define GET_GPDI1               GpioDataRegs.GPDDAT.bit.GPIO126
 #define GET_GPDI2               GpioDataRegs.GPDDAT.bit.GPIO127
 #define GET_GPDI3               GpioDataRegs.GPDDAT.bit.GPIO124
@@ -81,9 +84,11 @@
 #if UDC_V2_1
 #define GET_GPDI9               GpioDataRegs.GPDDAT.bit.GPIO109
 #define GET_GPDI10              GpioDataRegs.GPDDAT.bit.GPIO110
+#define GET_EPWMSYNCI           GpioDataRegs.GPBDAT.bit.GPIO38
 #elif UDC_V2_0
 #define GET_GPDI9               GpioDataRegs.GPDDAT.bit.GPIO115
 #define GET_GPDI10              GpioDataRegs.GPDDAT.bit.GPIO114
+#define GET_EPWMSYNCI           GpioDataRegs.GPBDAT.bit.GPIO32
 #endif
 
 #define GET_GPDI11              GpioDataRegs.GPDDAT.bit.GPIO113
@@ -92,6 +97,13 @@
 #define GET_GPDI14              GpioG2DataRegs.GPGDAT.bit.GPIO196
 #define GET_GPDI15              GpioG2DataRegs.GPGDAT.bit.GPIO198
 #define GET_GPDI16              GpioG2DataRegs.GPGDAT.bit.GPIO199
+
+#define GET_INT_ARM             (!GpioDataRegs.GPADAT.bit.GPIO28)
+#define GET_INT_C28             (!GpioDataRegs.GPADAT.bit.GPIO29)
+#define GET_INT_GENERAL         (!GpioDataRegs.GPBDAT.bit.GPIO55)
+#define GET_SYNC_IN             (!GpioDataRegs.GPBDAT.bit.GPIO55)
+
+#define GET_EPWMSYNCO           (!GpioDataRegs.GPBDAT.bit.GPIO33)
 
 
 /**
@@ -107,5 +119,14 @@ extern void init_gpios(void);
 */
 extern void init_buzzer(float volume);
 
+/**
+ * Initialization of EPWMSYNCI as general purpose digital input
+ */
+extern void cfg_epwmsynci_gpdi(void);
+
+/**
+ * Initialization of EPWMSYNCO as general purpose digital output
+ */
+extern void cfg_epwmsynco_gpdo(void);
 
 #endif /* UDC_C28_H_ */

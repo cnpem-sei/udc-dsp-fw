@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 #include "dsp/dsp.h"
+#include "common/timeslicer.h"
 
 /* Library-wide limits */
 
@@ -39,6 +40,7 @@
 #define NUM_MAX_DSP_VDCLINK_FF      2
 #define NUM_MAX_DSP_VECT_PRODUCT    2
 
+#define NUM_MAX_TIMESLICERS         4
 
 /**
  * Collection of DSP modules used by Control Framework
@@ -79,7 +81,7 @@ typedef volatile struct
     } output_signals[NUM_MAX_OUTPUT_SIGNALS];
 
     dsp_modules_t   dsp_modules;
-
+    timeslicer_t    timeslicer[NUM_MAX_TIMESLICERS];
 } control_framework_t;
 
 

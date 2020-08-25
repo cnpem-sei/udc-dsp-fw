@@ -24,41 +24,42 @@
 #include "parameters.h"
 #include "ipc/ipc.h"
 
-volatile param_t g_parameters[NUM_MAX_PARAMETERS];
+#pragma DATA_SECTION(g_param_bank,"SHARERAMS0_1");
+volatile param_bank_t g_param_bank;
 
 void init_param(param_id_t id, param_type_t type, uint16_t num_elements,
                 uint16_t *p_param)
 {
     if(num_elements > 0)
     {
-        g_parameters[id].id = id;
-        g_parameters[id].type = type;
-        g_parameters[id].num_elements = num_elements;
-        g_parameters[id].p_val.u16 = p_param;
+        g_param_bank.param_info[id].id = id;
+        g_param_bank.param_info[id].type = type;
+        g_param_bank.param_info[id].num_elements = num_elements;
+        g_param_bank.param_info[id].p_val.u16 = p_param;
     }
 }
 
 uint16_t set_param(param_id_t id, uint16_t n, float val)
 {
-    if(n < g_parameters[id].num_elements)
+    if(n < g_param_bank.param_info[id].num_elements)
     {
-        switch(g_parameters[id].type)
+        switch(g_param_bank.param_info[id].type)
         {
             case is_uint16_t:
             {
-                *(g_parameters[id].p_val.u16 + n) = (uint16_t) val;
+                *(g_param_bank.param_info[id].p_val.u16 + n) = (uint16_t) val;
                 break;
             }
 
             case is_uint32_t:
             {
-                *(g_parameters[id].p_val.u32 + n) = (uint32_t) val;
+                *(g_param_bank.param_info[id].p_val.u32 + n) = (uint32_t) val;
                 break;
             }
 
             case is_float:
             {
-                *(g_parameters[id].p_val.f + n) = val;
+                *(g_param_bank.param_info[id].p_val.f + n) = val;
                 break;
             }
 
@@ -78,23 +79,23 @@ uint16_t set_param(param_id_t id, uint16_t n, float val)
 
 float get_param(param_id_t id, uint16_t n)
 {
-    if(n < g_parameters[id].num_elements)
+    if(n < g_param_bank.param_info[id].num_elements)
     {
-        switch(g_parameters[id].type)
+        switch(g_param_bank.param_info[id].type)
         {
             case is_uint16_t:
             {
-                return (float) *(g_parameters[id].p_val.u16 + n);
+                return (float) *(g_param_bank.param_info[id].p_val.u16 + n);
             }
 
             case is_uint32_t:
             {
-                return (float) *(g_parameters[id].p_val.u32 + n);
+                return (float) *(g_param_bank.param_info[id].p_val.u32 + n);
             }
 
             case is_float:
             {
-                return *(g_parameters[id].p_val.f + n);
+                return *(g_param_bank.param_info[id].p_val.f + n);
             }
 
             default:

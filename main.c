@@ -27,6 +27,7 @@
 #include <string.h>
 #include "boards/udc_c28.h"
 #include "ipc/ipc.h"
+#include "parameters/parameters.h"
 
 #include "ps_modules/fbp.h"
 #include "ps_modules/fbp_dclink.h"
@@ -42,6 +43,7 @@
 #include "ps_modules/fap_4p.h"
 #include "ps_modules/fac_dcdc_ema.h"
 #include "ps_modules/fap_2p2s.h"
+#include "ps_modules/uninitialized.h"
 
 /**
  * @brief Main function
@@ -101,14 +103,14 @@ void main(void)
      *  TODO: Make sure ARM is already initialized to continue from here
      */
     init_gpios();
-    init_buzzer(g_ipc_mtoc.communication.buzzer_volume);
+    init_buzzer(BUZZER_VOLUME);
 
     while(1)
     {
         /**
          * Select power supply module
          */
-        switch(g_ipc_mtoc.ps_module[0].ps_status.bit.model)
+        switch(PS_MODEL)
         {
             case FBP:
             {
@@ -124,7 +126,7 @@ void main(void)
 
             case FAC_ACDC:
             {
-                //main_fac_acdc();
+                main_fac_acdc();
                 break;
             }
 
@@ -172,7 +174,8 @@ void main(void)
 
             case FAC_DCDC_EMA:
             {
-                main_fac_dcdc_ema();
+                //main_fac_dcdc_ema();
+                main_uninitialized();
                 break;
             }
 
@@ -185,21 +188,29 @@ void main(void)
             case FAP_IMAS:
             {
                 //main_fap_imas();
+                main_uninitialized();
                 break;
             }
 
             case FAC_2P_ACDC_IMAS:
             {
                 //main_fac_2p_acdc_imas();
+                main_uninitialized();
                 break;
             }
 
             case FAC_2P_DCDC_IMAS:
             {
                 //main_fac_2p_dcdc_imas();
+                main_uninitialized();
                 break;
             }
 
+            case Uninitialized:
+            {
+                main_uninitialized();
+                break;
+            }
             default:
             {
                 break;

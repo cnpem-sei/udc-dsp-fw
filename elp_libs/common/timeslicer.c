@@ -20,28 +20,33 @@
  *
  */
 
+#include <math.h>
+#include "common/timeslicer.h"
 
-/**
- * TODO: Put here your includes
- */
-
-#include "timeslicer.h"
-
-timeslicer_t g_timeslicers;
-
-void reset_timeslicers(void)
+void init_timeslicer(timeslicer_t *p_ts, float freq_base)
 {
-    uint16_t i;
-
-    for(i = 0; i < NUM_MAX_TIMESLICERS; i++)
-    {
-        g_timeslicers.counter[i] = g_timeslicers.freq_ratio[i];
-    }
+    p_ts->freq_base = freq_base;
+    p_ts->freq_sampling = freq_base;
+    p_ts->freq_ratio = 1;
+    p_ts->counter = 1;
 }
 
-void cfg_timeslicer(uint16_t id, uint16_t ratio)
+void cfg_timeslicer(timeslicer_t *p_ts, float freq_sampling)
 {
-    g_timeslicers.freq_ratio[id]  = ratio;
-    g_timeslicers.counter[id]     = ratio;
+    p_ts->freq_ratio = (uint16_t) roundf(p_ts->freq_base / freq_sampling);
+
+    /**
+     *  TODO: Investigate one-bit accuracy-error in some cases, like:
+     *          freq_base = 48000.0
+     *          freq_ratio = 480
+     *          freq_sampling = 100.000008
+     */
+    p_ts->freq_sampling = p_ts->freq_base / ((float) p_ts->freq_ratio);
+
+    p_ts->counter = p_ts->freq_ratio;
 }
 
+void reset_timeslicer(timeslicer_t *p_ts)
+{
+    p_ts->counter = p_ts->freq_ratio;
+}

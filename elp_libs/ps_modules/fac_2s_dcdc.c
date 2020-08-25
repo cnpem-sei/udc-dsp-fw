@@ -48,75 +48,23 @@
 #include "fac_2s_dcdc.h"
 
 /**
- * PWM parameters
- */
-#define PWM_FREQ                g_ipc_mtoc.pwm.freq_pwm
-#define PWM_DEAD_TIME           g_ipc_mtoc.pwm.dead_time
-#define PWM_MAX_DUTY            g_ipc_mtoc.pwm.max_duty
-#define PWM_MIN_DUTY            g_ipc_mtoc.pwm.min_duty
-#define PWM_MAX_DUTY_OL         g_ipc_mtoc.pwm.max_duty_openloop
-#define PWM_MIN_DUTY_OL         g_ipc_mtoc.pwm.min_duty_openloop
-#define PWM_LIM_DUTY_SHARE      g_ipc_mtoc.pwm.lim_duty_share
-
-/**
- * Control parameters
- */
-#define MAX_REF                 g_ipc_mtoc.control.max_ref
-#define MIN_REF                 g_ipc_mtoc.control.min_ref
-#define MAX_REF                 g_ipc_mtoc.control.max_ref
-#define MAX_REF_OL              g_ipc_mtoc.control.max_ref_openloop
-#define MIN_REF_OL              g_ipc_mtoc.control.min_ref_openloop
-#define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
-#define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
-#define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
-
-#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
-
-#define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
-#define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
-#define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
-
-#define TIMESLICER_BUFFER       1
-#define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
-#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
-/**
- * HRADC parameters
- */
-#define HRADC_HEATER_ENABLE     g_ipc_mtoc.hradc.enable_heater
-#define HRADC_MONITOR_ENABLE    g_ipc_mtoc.hradc.enable_monitor
-#define TRANSDUCER_OUTPUT_TYPE  g_ipc_mtoc.hradc.type_transducer_output
-#if (HRADC_v2_0)
-    #define TRANSDUCER_GAIN     -g_ipc_mtoc.hradc.gain_transducer
-#endif
-#if (HRADC_v2_1)
-    #define TRANSDUCER_GAIN     g_ipc_mtoc.hradc.gain_transducer
-#endif
-
-/**
  * Analog variables parameters
  */
-#define MAX_ILOAD               g_ipc_mtoc.analog_vars.max[0]
-#define MAX_VLOAD               g_ipc_mtoc.analog_vars.max[1]
-#define MAX_V_CAPBANK           g_ipc_mtoc.analog_vars.max[2]
-#define MIN_V_CAPBANK           g_ipc_mtoc.analog_vars.min[2]
+#define MAX_I_LOAD              ANALOG_VARS_MAX[0]
+#define MAX_V_LOAD              ANALOG_VARS_MAX[1]
 
-#define NOM_V_CAPBANK_FF        g_ipc_mtoc.analog_vars.max[3]
-#define MIN_V_CAPBANK_FF        g_ipc_mtoc.analog_vars.min[3]
+#define MAX_V_CAPBANK           ANALOG_VARS_MAX[2]
+#define MIN_V_CAPBANK           ANALOG_VARS_MIN[2]
 
-#define MAX_VOUT_MODULE         g_ipc_mtoc.analog_vars.max[4]
+#define MAX_V_OUT_MODULE        ANALOG_VARS_MAX[3]
 
-#define MAX_DCCTS_DIFF          g_ipc_mtoc.analog_vars.max[5]
+#define MAX_V_OUT_DIFF          ANALOG_VARS_MAX[4]
 
-#define MAX_I_IDLE_DCCT         g_ipc_mtoc.analog_vars.max[6]
-#define MIN_I_ACTIVE_DCCT       g_ipc_mtoc.analog_vars.min[6]
-#define NETSIGNAL_ELEM_CTOM_BUF1    g_ipc_mtoc.analog_vars.max[7]
-#define NETSIGNAL_ELEM_CTOM_BUF2    g_ipc_mtoc.analog_vars.min[7]
+#define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[5]
 
-#define NETSIGNAL_CTOM_BUF1      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF1].f
-#define NETSIGNAL_CTOM_BUF2      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF2].f
-
-#define NUM_DCCTs               g_ipc_mtoc.analog_vars.max[8]
+#define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[6]
+#define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[6]
+#define NUM_DCCTs               ANALOG_VARS_MAX[7]
 
 /**
  * Controller defines
@@ -128,26 +76,24 @@
 #define V_CAPBANK_MOD_1                 g_controller_ctom.net_signals[2].f  // HRADC2
 #define V_CAPBANK_MOD_2                 g_controller_ctom.net_signals[3].f  // HRADC3
 
-#define I_LOAD_REFERENCE_WFMREF         g_controller_ctom.net_signals[4].f
+#define I_LOAD_MEAN                     g_controller_ctom.net_signals[4].f
+#define I_LOAD_ERROR                    g_controller_ctom.net_signals[5].f
 
-#define I_LOAD_MEAN                     g_controller_ctom.net_signals[5].f
-#define I_LOAD_ERROR                    g_controller_ctom.net_signals[6].f
+#define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[6].f
+#define DUTY_REF_FF                     g_controller_ctom.net_signals[7].f
+#define DUTY_MEAN                       g_controller_ctom.net_signals[8].f
 
-#define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[7].f
-#define DUTY_REF_FF                     g_controller_ctom.net_signals[8].f
-#define DUTY_MEAN                       g_controller_ctom.net_signals[9].f
+#define V_OUT_DIFF                      g_controller_ctom.net_signals[9].f
+#define DUTY_DIFF                       g_controller_ctom.net_signals[10].f
 
-#define V_OUT_DIFF                      g_controller_ctom.net_signals[10].f
-#define DUTY_DIFF                       g_controller_ctom.net_signals[11].f
+#define V_CAPBANK_MOD_1_FILTERED        g_controller_ctom.net_signals[11].f
+#define V_CAPBANK_MOD_2_FILTERED        g_controller_ctom.net_signals[12].f
 
-#define V_CAPBANK_MOD_1_FILTERED        g_controller_ctom.net_signals[12].f
-#define V_CAPBANK_MOD_2_FILTERED        g_controller_ctom.net_signals[13].f
+#define IN_FF_V_CAPBANK_MOD_1           g_controller_ctom.net_signals[13].f
+#define IN_FF_V_CAPBANK_MOD_2           g_controller_ctom.net_signals[14].f
 
-#define IN_FF_V_CAPBANK_MOD_1           g_controller_ctom.net_signals[14].f
-#define IN_FF_V_CAPBANK_MOD_2           g_controller_ctom.net_signals[15].f
-
-#define I_LOAD_DIFF                     g_controller_ctom.net_signals[16].f
-#define V_LOAD                          g_controller_ctom.net_signals[17].f
+#define I_LOAD_DIFF                     g_controller_ctom.net_signals[15].f
+#define V_LOAD                          g_controller_ctom.net_signals[16].f
 
 #define WFMREF_IDX                      g_controller_ctom.net_signals[30].f
 
@@ -166,9 +112,13 @@
 
 #define WFMREF                          g_ipc_ctom.wfmref[0]
 
-#define SIGGEN                          g_ipc_ctom.siggen
+#define SIGGEN                          SIGGEN_CTOM[0]
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+#define MAX_SLEWRATE_SLOWREF            g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
 
 /// Load current controller
 #define ERROR_I_LOAD                        &g_controller_ctom.dsp_modules.dsp_error[0]
@@ -198,9 +148,13 @@
 
 #define FF_V_CAPBANK_MOD_1              &g_controller_ctom.dsp_modules.dsp_ff[0]
 #define FF_V_CAPBANK_MOD_1_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
+#define NOM_V_CAPBANK_FF_MOD_1          FF_V_CAPBANK_MOD_1_COEFFS.vdc_nom
+#define MIN_V_CAPBANK_FF_MOD_1          FF_V_CAPBANK_MOD_1_COEFFS.vdc_min
 
 #define FF_V_CAPBANK_MOD_2              &g_controller_ctom.dsp_modules.dsp_ff[1]
 #define FF_V_CAPBANK_MOD_2_COEFFS       g_controller_mtoc.dsp_modules.dsp_ff[1].coeffs.s
+#define NOM_V_CAPBANK_FF_MOD_2          FF_V_CAPBANK_MOD_2_COEFFS.vdc_nom
+#define MIN_V_CAPBANK_FF_MOD_2          FF_V_CAPBANK_MOD_2_COEFFS.vdc_min
 
 /// PWM modulators
 #define PWM_MODULATOR_Q1_MOD_1          g_pwm_modules.pwm_regs[0]
@@ -208,8 +162,7 @@
 #define PWM_MODULATOR_Q1_MOD_2          g_pwm_modules.pwm_regs[2]
 #define PWM_MODULATOR_Q2_MOD_2          g_pwm_modules.pwm_regs[3]
 
-/// Samples buffer
-#define BUF_SAMPLES                     &g_ipc_ctom.buf_samples[0]
+#define SCOPE                           SCOPE_CTOM[0]
 
 /**
  * Digital I/O's status
@@ -238,8 +191,8 @@ typedef enum
     Module_2_CapBank_Undervoltage,
     Module_1_Output_Overvoltage,
     Module_2_Output_Overvoltage,
-    IIB_1_Itlk,
-    IIB_2_Itlk,
+    IIB_Mod_1_Itlk,
+    IIB_Mod_2_Itlk,
     External_Interlock,
     Rack_Interlock
 } hard_interlocks_t;
@@ -250,11 +203,12 @@ typedef enum
     DCCT_2_Fault,
     DCCT_High_Difference,
     Load_Feedback_1_Fault,
-    Load_Feedback_2_Fault
+    Load_Feedback_2_Fault,
+    Modules_Output_High_Difference
 } soft_interlocks_t;
 
 #define NUM_HARD_INTERLOCKS     Rack_Interlock + 1
-#define NUM_SOFT_INTERLOCKS     Load_Feedback_2_Fault + 1
+#define NUM_SOFT_INTERLOCKS     Modules_Output_High_Difference + 1
 
 /**
  *  Private variables
@@ -426,11 +380,10 @@ static void init_controller(void)
 
     init_ipc();
 
-    init_wfmref(&WFMREF, g_ipc_mtoc.wfmref[0].wfmref_selected,
-                g_ipc_mtoc.wfmref[0].sync_mode, ISR_CONTROL_FREQ,
-                WFMREF_FREQ, g_ipc_mtoc.wfmref[0].gain,
-                g_ipc_mtoc.wfmref[0].offset, &g_wfmref_data.data,
-                SIZE_WFMREF, &I_LOAD_REFERENCE);
+    init_wfmref(&WFMREF, WFMREF_SELECTED_PARAM[0], WFMREF_SYNC_MODE_PARAM[0],
+                ISR_CONTROL_FREQ, WFMREF_FREQUENCY_PARAM[0], WFMREF_GAIN_PARAM[0],
+                WFMREF_OFFSET_PARAM[0], &g_wfmref_data.data, SIZE_WFMREF,
+                &I_LOAD_REFERENCE);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -440,32 +393,32 @@ static void init_controller(void)
 
     init_siggen(&SIGGEN, ISR_CONTROL_FREQ, &I_LOAD_REFERENCE);
 
-    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen.type, g_ipc_mtoc.siggen.num_cycles,
-               g_ipc_mtoc.siggen.freq, g_ipc_mtoc.siggen.amplitude,
-               g_ipc_mtoc.siggen.offset, g_ipc_mtoc.siggen.aux_param);
+    cfg_siggen(&SIGGEN, SIGGEN_TYPE_PARAM, SIGGEN_NUM_CYCLES_PARAM,
+               SIGGEN_FREQ_PARAM, SIGGEN_AMP_PARAM,
+               SIGGEN_OFFSET_PARAM, SIGGEN_AUX_PARAM);
 
     /**
      *        name:     SRLIM_SIGGEN_AMP
      * description:     Signal generator amplitude slew-rate limiter
      *    DP class:     DSP_SRLim
-     *          in:     g_ipc_mtoc.siggen.amplitude
-     *         out:     g_ipc_ctom.siggen.amplitude
+     *          in:     SIGGEN_MTOC[0].amplitude
+     *         out:     SIGGEN_CTOM[0].amplitude
      */
 
-    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SR_SIGGEN_AMP, ISR_CONTROL_FREQ,
-                   &g_ipc_mtoc.siggen.amplitude, &g_ipc_ctom.siggen.amplitude);
+    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SLEWRATE_SIGGEN_AMP, ISR_CONTROL_FREQ,
+                   &SIGGEN_MTOC[0].amplitude, &SIGGEN.amplitude);
 
     /**
      *        name:     SRLIM_SIGGEN_OFFSET
      * description:     Signal generator offset slew-rate limiter
      *    DP class:     DSP_SRLim
-     *          in:     g_ipc_mtoc.siggen.offset
-     *         out:     g_ipc_ctom.siggen.offset
+     *          in:     SIGGEN_MTOC[0].offset
+     *         out:     SIGGEN_CTOM[0].offset
      */
 
-    init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SR_SIGGEN_OFFSET,
-                   ISR_CONTROL_FREQ, &g_ipc_mtoc.siggen.offset,
-                   &g_ipc_ctom.siggen.offset);
+    init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SLEWRATE_SIGGEN_OFFSET,
+                   ISR_CONTROL_FREQ, &SIGGEN_MTOC[0].offset,
+                   &SIGGEN_CTOM[0].offset);
 
     /*************************************************/
     /** INITIALIZATION OF LOAD CURRENT CONTROL LOOP **/
@@ -479,7 +432,7 @@ static void init_controller(void)
      *         out:     I_LOAD_REFERENCE
      */
 
-    init_dsp_srlim(SRLIM_I_LOAD_REFERENCE, MAX_REF_SLEWRATE, ISR_CONTROL_FREQ,
+    init_dsp_srlim(SRLIM_I_LOAD_REFERENCE, MAX_SLEWRATE_SLOWREF, ISR_CONTROL_FREQ,
                    &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
 
     /**
@@ -577,10 +530,9 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE_MOD_1
      */
 
-    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1, FF_V_CAPBANK_MOD_1_COEFFS.vdc_nom,
-                        FF_V_CAPBANK_MOD_1_COEFFS.vdc_min,
-                        &V_CAPBANK_MOD_1_FILTERED, &IN_FF_V_CAPBANK_MOD_1,
-                        &DUTY_CYCLE_MOD_1);
+    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1, NOM_V_CAPBANK_FF_MOD_1,
+                        MIN_V_CAPBANK_FF_MOD_1, &V_CAPBANK_MOD_1_FILTERED,
+                        &IN_FF_V_CAPBANK_MOD_1, &DUTY_CYCLE_MOD_1);
 
     /**
      *        name:     IIR_2P2Z_LPF_V_CAPBANK_MOD_2
@@ -608,31 +560,17 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE_MOD_2
      */
 
-    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2, FF_V_CAPBANK_MOD_2_COEFFS.vdc_nom,
-                        FF_V_CAPBANK_MOD_2_COEFFS.vdc_min,
-                        &V_CAPBANK_MOD_2_FILTERED, &IN_FF_V_CAPBANK_MOD_2,
-                        &DUTY_CYCLE_MOD_2);
+    init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2, NOM_V_CAPBANK_FF_MOD_2,
+                        MIN_V_CAPBANK_FF_MOD_2, &V_CAPBANK_MOD_2_FILTERED,
+                        &IN_FF_V_CAPBANK_MOD_2, &DUTY_CYCLE_MOD_2);
 
-    /************************************/
-    /** INITIALIZATION OF TIME SLICERS **/
-    /************************************/
+    /******************************/
+    /** INITIALIZATION OF SCOPES **/
+    /******************************/
 
-    /**
-     * Time-slicer for WfmRef sweep decimation
-     */
-    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
-
-    /**
-     * Time-slicer for SamplesBuffer
-     */
-    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
-
-    /**
-     * Samples buffer initialization
-     */
-    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
-    enable_buffer(BUF_SAMPLES);
-
+    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[0],
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
+               SCOPE_SOURCE_PARAM[0], &run_scope_shared_ram);
     /**
      * Reset all internal variables
      */
@@ -647,9 +585,10 @@ static void reset_controller(void)
     set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_1, 50.0);
     set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_2, 50.0);
 
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
+
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
-    I_LOAD_REFERENCE_WFMREF = 0.0;
 
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
 
@@ -672,8 +611,6 @@ static void reset_controller(void)
     disable_siggen(&SIGGEN);
 
     reset_wfmref(&WFMREF);
-
-    reset_timeslicers();
 }
 
 /**
@@ -765,7 +702,8 @@ static interrupt void isr_controller(void)
     static float temp[4];
     static uint16_t i;
 
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
+    SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -861,7 +799,7 @@ static interrupt void isr_controller(void)
         /// Open-loop
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
-            SATURATE(I_LOAD_REFERENCE, MAX_REF_OL, MIN_REF_OL);
+            SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0]);
             DUTY_CYCLE_MOD_1 = 0.01 * I_LOAD_REFERENCE;
             SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
 
@@ -870,7 +808,7 @@ static interrupt void isr_controller(void)
         /// Closed-loop
         else
         {
-            SATURATE(I_LOAD_REFERENCE, MAX_REF, MIN_REF);
+            SATURATE(I_LOAD_REFERENCE, MAX_REF[0], MIN_REF[0]);
 
             /// Load current controller
             run_dsp_error(ERROR_I_LOAD);
@@ -901,16 +839,7 @@ static interrupt void isr_controller(void)
     WFMREF_IDX = (float) (WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_idx -
                           WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_start);
 
-    g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
-
-    /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF1);
-        //insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF2);
-    /*********************************************/
-    END_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
+    RUN_SCOPE(SCOPE);
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
 
@@ -975,9 +904,7 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     #endif
     {
-        reset_controller();
 
-        g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
         g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
         enable_pwm_output(0);
         enable_pwm_output(1);
@@ -1029,9 +956,29 @@ static void reset_interlocks(uint16_t dummy)
  */
 static inline void check_interlocks(void)
 {
-    if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
+    if(fabs(I_LOAD_MEAN) > MAX_I_LOAD)
     {
         set_hard_interlock(0, Load_Overcurrent);
+    }
+
+    if(fabs(V_LOAD) > MAX_V_LOAD)
+    {
+        set_hard_interlock(0, Load_Overvoltage);
+    }
+
+    if(fabs(V_OUT_MOD_1) > MAX_V_OUT_MODULE)
+    {
+        set_hard_interlock(0, Module_1_Output_Overvoltage);
+    }
+
+    if(fabs(V_OUT_MOD_2) > MAX_V_OUT_MODULE)
+    {
+        set_hard_interlock(0, Module_2_Output_Overvoltage);
+    }
+
+    if(fabs(V_OUT_DIFF) > MAX_V_OUT_DIFF)
+    {
+        set_hard_interlock(0, Modules_Output_High_Difference);
     }
 
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)

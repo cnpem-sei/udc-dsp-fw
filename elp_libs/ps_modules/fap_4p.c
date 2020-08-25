@@ -52,84 +52,39 @@
  * PWM parameters
  */
 #define NUM_PWM_MODULES         8
-#define PWM_FREQ                g_ipc_mtoc.pwm.freq_pwm
-#define PWM_DEAD_TIME           g_ipc_mtoc.pwm.dead_time
-#define PWM_MAX_DUTY            g_ipc_mtoc.pwm.max_duty
-#define PWM_MIN_DUTY            g_ipc_mtoc.pwm.min_duty
-#define PWM_MAX_DUTY_OL         g_ipc_mtoc.pwm.max_duty_openloop
-#define PWM_MIN_DUTY_OL         g_ipc_mtoc.pwm.min_duty_openloop
-#define PWM_LIM_DUTY_SHARE      g_ipc_mtoc.pwm.lim_duty_share
 
 /**
  * Control parameters
  */
-#define MAX_REF                 g_ipc_mtoc.control.max_ref
-#define MIN_REF                 g_ipc_mtoc.control.min_ref
-#define MAX_REF                 g_ipc_mtoc.control.max_ref
-#define MAX_REF_OL              g_ipc_mtoc.control.max_ref_openloop
-#define MIN_REF_OL              g_ipc_mtoc.control.min_ref_openloop
-#define MAX_REF_SLEWRATE        g_ipc_mtoc.control.slewrate_slowref
-#define MAX_SR_SIGGEN_OFFSET    g_ipc_mtoc.control.slewrate_siggen_offset
-#define MAX_SR_SIGGEN_AMP       g_ipc_mtoc.control.slewrate_siggen_amp
-
-#define ISR_CONTROL_FREQ        g_ipc_mtoc.control.freq_isr_control
-
-#define HRADC_FREQ_SAMP         g_ipc_mtoc.hradc.freq_hradc_sampling
-#define HRADC_SPI_CLK           g_ipc_mtoc.hradc.freq_spiclk
-#define NUM_HRADC_BOARDS        g_ipc_mtoc.hradc.num_hradc
-
-#define TIMESLICER_BUFFER       1
-#define BUFFER_FREQ             g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_BUFFER]
-#define BUFFER_DECIMATION       (uint16_t) roundf(ISR_CONTROL_FREQ / BUFFER_FREQ)
-
-#define TIMESLICER_I_SHARE_CONTROLLER   2
-#define I_SHARE_CONTROLLER_FREQ_SAMP    g_ipc_mtoc.control.freq_timeslicer[TIMESLICER_I_SHARE_CONTROLLER]
-#define I_SHARE_CONTROLLER_DECIMATION   (uint16_t) roundf(ISR_CONTROL_FREQ / I_SHARE_CONTROLLER_FREQ_SAMP)
-
-/**
- * HRADC parameters
- */
-#define HRADC_HEATER_ENABLE     g_ipc_mtoc.hradc.enable_heater
-#define HRADC_MONITOR_ENABLE    g_ipc_mtoc.hradc.enable_monitor
-#define TRANSDUCER_OUTPUT_TYPE  g_ipc_mtoc.hradc.type_transducer_output
-#if (HRADC_v2_0)
-    #define TRANSDUCER_GAIN     -g_ipc_mtoc.hradc.gain_transducer
-#endif
-#if (HRADC_v2_1)
-    #define TRANSDUCER_GAIN     g_ipc_mtoc.hradc.gain_transducer
-#endif
+#define TIMESLICER_I_SHARE_CONTROLLER_IDX   0
+#define TIMESLICER_I_SHARE_CONTROLLER       g_controller_ctom.timeslicer[TIMESLICER_I_SHARE_CONTROLLER_IDX]
+#define I_SHARE_CONTROLLER_FREQ_SAMP        TIMESLICER_FREQ[TIMESLICER_I_SHARE_CONTROLLER_IDX]
 
 /**
  * Analog variables parameters
  */
-#define MAX_I_LOAD                              g_ipc_mtoc.analog_vars.max[0]
-#define MAX_V_LOAD                              g_ipc_mtoc.analog_vars.max[1]
-#define MIN_V_LOAD                              g_ipc_mtoc.analog_vars.min[1]
+#define MAX_I_LOAD                              ANALOG_VARS_MAX[0]
+#define MAX_V_LOAD                              ANALOG_VARS_MAX[1]
 
-#define MAX_DCCTS_DIFF                          g_ipc_mtoc.analog_vars.max[2]
+#define MAX_DCCTS_DIFF                          ANALOG_VARS_MAX[2]
 
-#define MAX_I_IDLE_DCCT                         g_ipc_mtoc.analog_vars.max[3]
-#define MIN_I_ACTIVE_DCCT                       g_ipc_mtoc.analog_vars.min[3]
+#define MAX_I_IDLE_DCCT                         ANALOG_VARS_MAX[3]
+#define MIN_I_ACTIVE_DCCT                       ANALOG_VARS_MIN[3]
 
-#define MAX_I_IGBT                              g_ipc_mtoc.analog_vars.max[4]
-#define MAX_IGBT_DIFF                           g_ipc_mtoc.analog_vars.max[5]
+#define MAX_I_IGBT                              ANALOG_VARS_MAX[4]
+#define MAX_IGBT_DIFF                           ANALOG_VARS_MAX[5]
 
-#define I_IGBT_SHARE_MODE                       (uint16_t) g_ipc_mtoc.analog_vars.max[6]
+#define I_IGBT_SHARE_MODE                       (uint16_t) ANALOG_VARS_MAX[6]
 
-#define MAX_V_DCLINK                            g_ipc_mtoc.analog_vars.max[7]
-#define MIN_V_DCLINK                            g_ipc_mtoc.analog_vars.min[7]
+#define MAX_V_DCLINK                            ANALOG_VARS_MAX[7]
+#define MIN_V_DCLINK                            ANALOG_VARS_MIN[7]
 
-#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      g_ipc_mtoc.analog_vars.max[8]
-#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      g_ipc_mtoc.analog_vars.max[9]
+#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[8]
+#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[9]
 
-#define NETSIGNAL_ELEM_CTOM_BUF                 g_ipc_mtoc.analog_vars.max[10]
-#define NETSIGNAL_ELEM_MTOC_BUF                 g_ipc_mtoc.analog_vars.min[10]
+#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[10]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
-
-#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    g_ipc_mtoc.analog_vars.max[11]
-
+#define NUM_DCCTs                               ANALOG_VARS_MAX[11]
 
 /**
  * Controller defines
@@ -205,9 +160,13 @@
 
 #define WFMREF                      g_ipc_mtoc.wfmref[0]
 
-#define SIGGEN                      g_ipc_ctom.siggen
+#define SIGGEN                      SIGGEN_CTOM[0]
 #define SRLIM_SIGGEN_AMP            &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET         &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+#define MAX_SLEWRATE_SLOWREF            g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
 
 /// Load current controller
 #define ERROR_I_LOAD                        &g_controller_ctom.dsp_modules.dsp_error[0]
@@ -260,8 +219,8 @@
 #define PWM_MODULATOR_IGBT_1_MOD_4          g_pwm_modules.pwm_regs[6]
 #define PWM_MODULATOR_IGBT_2_MOD_4          g_pwm_modules.pwm_regs[7]
 
-/// Samples buffer
-#define BUF_SAMPLES                         &g_ipc_ctom.buf_samples[0]
+/// Scope
+#define SCOPE                               SCOPE_CTOM[0]
 
 /**
  * Digital I/O's status
@@ -302,10 +261,14 @@ typedef enum
     IGBT_2_Mod_3_Overcurrent,
     IGBT_1_Mod_4_Overcurrent,
     IGBT_2_Mod_4_Overcurrent,
-    DCLink_Mod_1_Contactor_Fault,
-    DCLink_Mod_2_Contactor_Fault,
-    DCLink_Mod_3_Contactor_Fault,
-    DCLink_Mod_4_Contactor_Fault,
+    Welded_Contactor_Mod_1_Fault,
+    Welded_Contactor_Mod_2_Fault,
+    Welded_Contactor_Mod_3_Fault,
+    Welded_Contactor_Mod_4_Fault,
+    Opened_Contactor_Mod_1_Fault,
+    Opened_Contactor_Mod_2_Fault,
+    Opened_Contactor_Mod_3_Fault,
+    Opened_Contactor_Mod_4_Fault,
     DCLink_Mod_1_Overvoltage,
     DCLink_Mod_2_Overvoltage,
     DCLink_Mod_3_Overvoltage,
@@ -528,11 +491,10 @@ static void init_controller(void)
 
     init_ipc();
 
-    init_wfmref(&WFMREF, g_ipc_mtoc.wfmref[0].wfmref_selected,
-                g_ipc_mtoc.wfmref[0].sync_mode, ISR_CONTROL_FREQ,
-                WFMREF_FREQ, g_ipc_mtoc.wfmref[0].gain,
-                g_ipc_mtoc.wfmref[0].offset, &g_wfmref_data.data,
-                SIZE_WFMREF, &I_LOAD_REFERENCE);
+    init_wfmref(&WFMREF, WFMREF_SELECTED_PARAM[0], WFMREF_SYNC_MODE_PARAM[0],
+                ISR_CONTROL_FREQ, WFMREF_FREQUENCY_PARAM[0], WFMREF_GAIN_PARAM[0],
+                WFMREF_OFFSET_PARAM[0], &g_wfmref_data.data, SIZE_WFMREF,
+                &I_LOAD_REFERENCE);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -543,32 +505,32 @@ static void init_controller(void)
     init_siggen(&SIGGEN, ISR_CONTROL_FREQ,
                 &g_ipc_ctom.ps_module[0].ps_reference);
 
-    cfg_siggen(&SIGGEN, g_ipc_mtoc.siggen.type, g_ipc_mtoc.siggen.num_cycles,
-               g_ipc_mtoc.siggen.freq, g_ipc_mtoc.siggen.amplitude,
-               g_ipc_mtoc.siggen.offset, g_ipc_mtoc.siggen.aux_param);
+    cfg_siggen(&SIGGEN, SIGGEN_TYPE_PARAM, SIGGEN_NUM_CYCLES_PARAM,
+               SIGGEN_FREQ_PARAM, SIGGEN_AMP_PARAM,
+               SIGGEN_OFFSET_PARAM, SIGGEN_AUX_PARAM);
 
     /**
      *        name:     SRLIM_SIGGEN_AMP
      * description:     Signal generator amplitude slew-rate limiter
      *    DP class:     DSP_SRLim
-     *          in:     g_ipc_mtoc.siggen.amplitude
-     *         out:     g_ipc_ctom.siggen.amplitude
+     *          in:     SIGGEN_MTOC[0].amplitude
+     *         out:     SIGGEN_CTOM[0].amplitude
      */
 
-    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SR_SIGGEN_AMP, ISR_CONTROL_FREQ,
-                   &g_ipc_mtoc.siggen.amplitude, &g_ipc_ctom.siggen.amplitude);
+    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SLEWRATE_SIGGEN_AMP, ISR_CONTROL_FREQ,
+                   &SIGGEN_MTOC[0].amplitude, &SIGGEN.amplitude);
 
     /**
      *        name:     SRLIM_SIGGEN_OFFSET
      * description:     Signal generator offset slew-rate limiter
      *    DP class:     DSP_SRLim
-     *          in:     g_ipc_mtoc.siggen.offset
-     *         out:     g_ipc_ctom.siggen.offset
+     *          in:     SIGGEN_MTOC[0].offset
+     *         out:     SIGGEN_CTOM[0].offset
      */
 
-    init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SR_SIGGEN_OFFSET,
-                   ISR_CONTROL_FREQ, &g_ipc_mtoc.siggen.offset,
-                   &g_ipc_ctom.siggen.offset);
+    init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SLEWRATE_SIGGEN_OFFSET,
+                   ISR_CONTROL_FREQ, &SIGGEN_MTOC[0].offset,
+                   &SIGGEN_CTOM[0].offset);
 
     /*************************************************/
     /** INITIALIZATION OF LOAD CURRENT CONTROL LOOP **/
@@ -582,7 +544,7 @@ static void init_controller(void)
      *         out:     I_LOAD_REFERENCE
      */
 
-    init_dsp_srlim(SRLIM_I_LOAD_REFERENCE, MAX_REF_SLEWRATE, ISR_CONTROL_FREQ,
+    init_dsp_srlim(SRLIM_I_LOAD_REFERENCE, MAX_SLEWRATE_SLOWREF, ISR_CONTROL_FREQ,
                    &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
 
     /**
@@ -677,26 +639,18 @@ static void init_controller(void)
     /************************************/
 
     /**
-     * Time-slicer for WfmRef sweep decimation
-     */
-    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
-
-    /**
-     * Time-slicer for SamplesBuffer
-     */
-    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
-
-    /**
      * Time-slicer for IGBT current share controller
      */
-    cfg_timeslicer(TIMESLICER_I_SHARE_CONTROLLER, I_SHARE_CONTROLLER_DECIMATION);
+    init_timeslicer(&TIMESLICER_I_SHARE_CONTROLLER, ISR_CONTROL_FREQ);
+    cfg_timeslicer(&TIMESLICER_I_SHARE_CONTROLLER, I_SHARE_CONTROLLER_FREQ_SAMP);
 
-    /**
-     * Samples buffer initialization
-     */
-    init_buffer(BUF_SAMPLES, &g_buf_samples_ctom, SIZE_BUF_SAMPLES_CTOM);
-    enable_buffer(BUF_SAMPLES);
+    /******************************/
+    /** INITIALIZATION OF SCOPES **/
+    /******************************/
 
+    init_scope(&SCOPE, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[0],
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
+               SCOPE_SOURCE_PARAM[0], &run_scope_shared_ram);
     /**
      * Reset all internal variables
      */
@@ -717,6 +671,8 @@ static void reset_controller(void)
     set_pwm_duty_chA(PWM_MODULATOR_IGBT_1_MOD_4, 0.0);
     set_pwm_duty_chA(PWM_MODULATOR_IGBT_2_MOD_4, 0.0);
 
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
+
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
 
@@ -734,8 +690,6 @@ static void reset_controller(void)
     disable_siggen(&SIGGEN);
 
     reset_wfmref(&WFMREF);
-
-    reset_timeslicers();
 }
 
 /**
@@ -789,6 +743,7 @@ static interrupt void isr_controller(void)
     static uint16_t i;
 
     //CLEAR_DEBUG_GPIO1;
+    SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -824,12 +779,24 @@ static interrupt void isr_controller(void)
     temp[3] *= HRADCs_Info.HRADC_boards[3].gain * decimation_coeff;
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
-    I_LOAD_1 = temp[0];
-    I_LOAD_2 = temp[1];
-    V_LOAD   = temp[2];
+    if(NUM_DCCTs)
+    {
+        I_LOAD_1 = temp[0];
+        I_LOAD_2 = temp[1];
+        V_LOAD   = temp[2];
 
-    I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
-    I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
+        I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
+        I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
+    }
+    else
+    {
+        I_LOAD_1 = temp[0];
+        I_LOAD_2 = 0.0;
+        V_LOAD   = temp[1];
+
+        I_LOAD_MEAN = I_LOAD_1;
+        I_LOAD_DIFF = 0;
+    }
 
     /// Check whether power supply is ON
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
@@ -865,7 +832,7 @@ static interrupt void isr_controller(void)
         /// Open-loop
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
-            SATURATE(I_LOAD_REFERENCE, MAX_REF_OL, MIN_REF_OL);
+            SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0]);
             DUTY_CYCLE_IGBT_1_MOD_1 = 0.01 * I_LOAD_REFERENCE;
             SATURATE(DUTY_CYCLE_IGBT_1_MOD_1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
 
@@ -880,7 +847,7 @@ static interrupt void isr_controller(void)
         /// Closed-loop
         else
         {
-            SATURATE(I_LOAD_REFERENCE, MAX_REF, MIN_REF);
+            SATURATE(I_LOAD_REFERENCE, MAX_REF[0], MIN_REF[0]);
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
 
@@ -970,14 +937,7 @@ static interrupt void isr_controller(void)
         set_pwm_duty_chA(PWM_MODULATOR_IGBT_2_MOD_4, DUTY_CYCLE_IGBT_2_MOD_4);
     }
 
-    /*********************************************/
-    RUN_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
-        insert_buffer(BUF_SAMPLES, NETSIGNAL_CTOM_BUF);
-        //insert_buffer(BUF_SAMPLES, NETSIGNAL_MTOC_BUF);
-    /*********************************************/
-    END_TIMESLICER(TIMESLICER_BUFFER)
-    /*********************************************/
+    RUN_SCOPE(SCOPE);
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
 
@@ -1084,35 +1044,33 @@ static void turn_on(uint16_t dummy)
 
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Contactor_Fault);
-            set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_1_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_1_Fault);
         }
 
         else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Contactor_Fault);
-            set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_2_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_2_Fault);
         }
 
         else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Contactor_Fault);
-            set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_3_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_3_Fault);
         }
 
         else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Contactor_Fault);
-            set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_4_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_4_Fault);
         }
 
         #ifdef USE_ITLK
         if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
         {
         #endif
-            reset_controller();
 
-            g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
             g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
 
             enable_pwm_output(0);
@@ -1168,45 +1126,45 @@ static void turn_off(uint16_t dummy)
  */
 static void reset_interlocks(uint16_t dummy)
 {
-    if(PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
-    {
-        PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
-        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-        PIN_OPEN_DCLINK_CONTACTOR_MOD_1;
-        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-    }
-
-    if(PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
-    {
-        PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
-        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-        PIN_OPEN_DCLINK_CONTACTOR_MOD_2;
-        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-    }
-
-    if(PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
-    {
-        PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
-        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-        PIN_OPEN_DCLINK_CONTACTOR_MOD_3;
-        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-    }
-
-    if(PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
-    {
-        PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
-        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-        PIN_OPEN_DCLINK_CONTACTOR_MOD_4;
-        DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-    }
-
-    DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
-
     g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[0].ps_soft_interlock = 0;
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
+        if(PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
+        {
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+            PIN_OPEN_DCLINK_CONTACTOR_MOD_1;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+        }
+
+        if(PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
+        {
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+            PIN_OPEN_DCLINK_CONTACTOR_MOD_2;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+        }
+
+        if(PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
+        {
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+            PIN_OPEN_DCLINK_CONTACTOR_MOD_3;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+        }
+
+        if(PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
+        {
+            PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+            PIN_OPEN_DCLINK_CONTACTOR_MOD_4;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+        }
+
+        DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
+
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
     }
 }
@@ -1298,7 +1256,7 @@ static inline void check_interlocks(void)
         set_soft_interlock(0, DCCT_1_Fault);
     }
 
-    if(!PIN_STATUS_DCCT_2_STATUS)
+    if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
     {
         set_soft_interlock(0, DCCT_2_Fault);
     }
@@ -1318,18 +1276,21 @@ static inline void check_interlocks(void)
         }
     }
 
-    if(PIN_STATUS_DCCT_2_ACTIVE)
+    if(NUM_DCCTs)
     {
-        if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
+        if(PIN_STATUS_DCCT_2_ACTIVE)
         {
-            set_soft_interlock(0, Load_Feedback_2_Fault);
+            if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
+            {
+                set_soft_interlock(0, Load_Feedback_2_Fault);
+            }
         }
-    }
-    else
-    {
-        if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
+        else
         {
-            set_soft_interlock(0, Load_Feedback_2_Fault);
+            if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
+            {
+                set_soft_interlock(0, Load_Feedback_2_Fault);
+            }
         }
     }
 
@@ -1339,44 +1300,44 @@ static inline void check_interlocks(void)
     {
         if(PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
         {
-            set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_Mod_1_Fault);
         }
 
         if(PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
         {
-            set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_Mod_2_Fault);
         }
 
         if(PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
         {
-            set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_Mod_3_Fault);
         }
 
         if(PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
         {
-            set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_Mod_4_Fault);
         }
     }
     else
     {
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
         {
-            set_hard_interlock(0, DCLink_Mod_1_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_1_Fault);
         }
 
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
         {
-            set_hard_interlock(0, DCLink_Mod_2_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_2_Fault);
         }
 
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
         {
-            set_hard_interlock(0, DCLink_Mod_3_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_3_Fault);
         }
 
         if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
         {
-            set_hard_interlock(0, DCLink_Mod_4_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_Mod_4_Fault);
         }
 
         if(V_DCLINK_MOD_1 < MIN_V_DCLINK)

@@ -31,6 +31,7 @@
 #include "wfmref/wfmref.h"
 #include "control/control.h"
 #include "parameters/parameters.h"
+#include "scope/scope.h"
 
 /**
  * Shared resources defines
@@ -39,7 +40,14 @@
 #define SIZE_BUF_SAMPLES_CTOM   4096
 #define SIZE_BUF_SAMPLES_MTOC   4096
 
-#define SIZE_PS_NAME            16
+#define SIGGEN_CTOM     g_ipc_ctom.siggen
+#define SIGGEN_MTOC     g_ipc_mtoc.siggen
+
+#define WFMREF_CTOM     g_ipc_ctom.wfmref
+#define WFMREF_MTOC     g_ipc_mtoc.wfmref
+
+#define SCOPE_CTOM      g_ipc_ctom.scope
+#define SCOPE_MTOC      g_ipc_mtoc.scope
 
 /**
  * IPC Message Defines
@@ -61,9 +69,12 @@ typedef enum
     Reset_Interlocks,
     Unlock_UDC,
     Lock_UDC,
-    Cfg_Buf_Samples,
-    Enable_Buf_Samples,
-    Disable_Buf_Samples,
+    Cfg_Source_Scope,
+    Cfg_Freq_Scope,
+    Cfg_Duration_Scope,
+    Enable_Scope,
+    Disable_Scope,
+    Reset_Scope,
     Set_SlowRef,
     Set_SlowRef_All_PS,
     Cfg_WfmRef,
@@ -76,6 +87,8 @@ typedef enum
     Reset_Counters,
     Set_Param,
     Set_DSP_Coeffs,
+    Cfg_TimeSlicer,
+    Set_Command_Interface,
     CtoM_Message_Error
 } ipc_mtoc_lowpriority_msg_t;
 
@@ -117,9 +130,9 @@ typedef struct
     uint32_t        counter_set_slowref;
     uint32_t        counter_sync_pulse;
     ps_module_t     ps_module[NUM_MAX_PS_MODULES];
-    siggen_t        siggen;
+    siggen_t        siggen[NUM_MAX_PS_MODULES];
     wfmref_t        wfmref[NUM_MAX_PS_MODULES];
-    buf_t           buf_samples[NUM_MAX_PS_MODULES];
+    scope_t         scope[NUM_MAX_SCOPES];
 } ipc_ctom_t;
 
 typedef struct
@@ -131,19 +144,18 @@ typedef struct
     ps_model_t              ps_model;
     uint16_t                num_ps_modules;
     ps_module_t             ps_module[NUM_MAX_PS_MODULES];
-    siggen_t                siggen;
+    siggen_t                siggen[NUM_MAX_PS_MODULES];
     wfmref_t                wfmref[NUM_MAX_PS_MODULES];
-    buf_t                   buf_samples[NUM_MAX_PS_MODULES];
+    scope_t                 scope[NUM_MAX_SCOPES];
     dsp_module_t            dsp_module;
-    param_control_t         control;
-    param_pwm_t             pwm;
-    param_hradc_t           hradc;
-    param_analog_vars_t     analog_vars;
-    param_communication_t   communication;
-    param_interlocks_t      interlocks;
+    //param_control_t         control;
+    //param_pwm_t             pwm;
+    //param_hradc_t           hradc;
+    //param_analog_vars_t     analog_vars;
+    //param_communication_t   communication;
+    //param_interlocks_t      interlocks;
 } ipc_mtoc_t;
 
-extern volatile float g_wfmref[SIZE_WFMREF];
 extern volatile float g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM];
 extern volatile float g_buf_samples_mtoc[SIZE_BUF_SAMPLES_MTOC];
 

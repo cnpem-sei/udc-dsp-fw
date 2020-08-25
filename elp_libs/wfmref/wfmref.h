@@ -28,7 +28,10 @@
 #define SIZE_WFMREF             4096
 #define SIZE_WFMREF_FBP         SIZE_WFMREF/4
 #define NUM_WFMREF_CURVES       2
+
 //#define WFMREF                  g_ipc_ctom.wfmref
+#define TIMESLICER_WFMREF       0
+#define WFMREF_FREQ             TIMESLICER_FREQ[TIMESLICER_WFMREF]
 
 #define INTERPOLATE(a, b, f)    (a * (1.0 - f)) + (b * f)
 
@@ -49,6 +52,8 @@ typedef volatile struct
 {
     uint16_t        counter;
     uint16_t        max_count;
+    float           freq_lerp;
+    float           freq_base;
     float           inv_decimation;
     float           fraction;
     float           out;
@@ -153,6 +158,7 @@ extern void init_wfmref(wfmref_t *p_wfmref, uint16_t wfmref_selected,
                         sync_mode_t sync_mode, float freq_lerp, float freq_wfmref,
                         float gain, float offset, float *p_start, uint16_t size,
                         float *p_out);
+extern void cfg_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
 extern void reset_wfmref(wfmref_t *p_wfmref);
 extern void update_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);
 extern void sync_wfmref(wfmref_t *p_wfmref, wfmref_t *p_wfmref_new);

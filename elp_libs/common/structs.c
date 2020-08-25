@@ -93,8 +93,8 @@ void postmortem_buffer(buf_t *p_buf)
  */
 uint16_t size_buffer(buf_t *p_buf)
 {
-    uint16_t size;
-    size = p_buf->p_buf_start - p_buf->p_buf_end;
+    static uint16_t size;
+    size = p_buf->p_buf_end - p_buf->p_buf_start;
     return size;
 }
 
