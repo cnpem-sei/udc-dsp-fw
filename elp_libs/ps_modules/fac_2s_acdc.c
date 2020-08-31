@@ -45,28 +45,26 @@
 /**
  * Analog variables parameters
  */
-#define MAX_V_CAPBANK           ANALOG_VARS_MAX[0]
+#define MAX_V_CAPBANK                           ANALOG_VARS_MAX[0]
 
-#define MAX_VOUT_RECT           ANALOG_VARS_MAX[1]
-#define MAX_IOUT_RECT           ANALOG_VARS_MAX[2]
-#define MAX_IOUT_RECT_REF       ANALOG_VARS_MAX[3]
-#define MIN_IOUT_RECT_REF       ANALOG_VARS_MIN[3]
+#define MAX_VOUT_RECT                           ANALOG_VARS_MAX[1]
+#define MAX_IOUT_RECT                           ANALOG_VARS_MAX[2]
+#define MAX_IOUT_RECT_REF                       ANALOG_VARS_MAX[3]
+#define MIN_IOUT_RECT_REF                       ANALOG_VARS_MIN[3]
 
-#define MAX_TEMP_HEATSINK       ANALOG_VARS_MAX[4]
-#define MAX_TEMP_INDUCTORS      ANALOG_VARS_MAX[5]
+#define MAX_TEMP_HEATSINK                       ANALOG_VARS_MAX[4]
+#define MAX_TEMP_INDUCTORS                      ANALOG_VARS_MAX[5]
 
-#define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS   ANALOG_VARS_MAX[6]
-#define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS   ANALOG_VARS_MAX[7]
+#define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS    ANALOG_VARS_MAX[6]
+#define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS    ANALOG_VARS_MAX[7]
 
-#define NETSIGNAL_ELEM_CTOM_BUF     ANALOG_VARS_MAX[8]
-#define NETSIGNAL_ELEM_MTOC_BUF     ANALOG_VARS_MIN[8]
+#define NETSIGNAL_ELEM_CTOM_BUF                 ANALOG_VARS_MAX[8]
+#define NETSIGNAL_ELEM_MTOC_BUF                 ANALOG_VARS_MIN[8]
 
 #define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
 #define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
 
-/**
- * Shared defines between both modules
- */
+/// Reference
 #define V_CAPBANK_SETPOINT              g_ipc_ctom.ps_module[0].ps_setpoint
 #define V_CAPBANK_REFERENCE             g_ipc_ctom.ps_module[0].ps_reference
 
@@ -80,27 +78,29 @@
 #define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
 #define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
 
-#define NF_ALPHA                        0.99
-
 /**
- * Defines for AC/DC Module A
+ * Controller defines
  */
-#define MOD_A_ID        0x0
 
-#define PIN_OPEN_AC_MAINS_CONTACTOR_MOD_A       CLEAR_GPDO1;
-#define PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_A      SET_GPDO1;
-#define PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A     GET_GPDI5
-
+/// DSP Net Signals
 #define V_CAPBANK_MOD_A                 g_controller_ctom.net_signals[0].f  // HRADC0
 #define IOUT_RECT_MOD_A                 g_controller_ctom.net_signals[1].f  // HRADC1
-
-#define VOUT_RECT_MOD_A                 g_controller_mtoc.net_signals[0].f
-#define TEMP_HEATSINK_MOD_A             g_controller_mtoc.net_signals[1].f
-#define TEMP_INDUCTORS_MOD_A            g_controller_mtoc.net_signals[2].f
+#define V_CAPBANK_MOD_B                 g_controller_ctom.net_signals[2].f  // HRADC2
+#define IOUT_RECT_MOD_B                 g_controller_ctom.net_signals[3].f  // HRADC3
 
 #define DUTY_CYCLE_MOD_A                g_controller_ctom.output_signals[0].f
+#define DUTY_CYCLE_MOD_B                g_controller_ctom.output_signals[1].f
 
-#define ERROR_V_CAPBANK_MOD_A           &g_controller_ctom.dsp_modules.dsp_error[0]
+/// ARM Net Signals
+#define VOUT_RECT_MOD_A                 g_controller_mtoc.net_signals[0].f
+#define VOUT_RECT_MOD_B                 g_controller_mtoc.net_signals[1].f
+
+/**
+ * Controller defines for module A
+ */
+#define MOD_A_ID    0x0
+
+#define ERROR_V_CAPBANK_MOD_A                    &g_controller_ctom.dsp_modules.dsp_error[0]
 
 #define PI_CONTROLLER_V_CAPBANK_MOD_A           &g_controller_ctom.dsp_modules.dsp_pi[0]
 #define PI_CONTROLLER_V_CAPBANK_MOD_A_COEFFS    g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
@@ -125,30 +125,12 @@
 #define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
 #define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
 
-#define PWM_MODULATOR_MOD_A                   g_pwm_modules.pwm_regs[0]
-
-/// Scope for module A
-#define SCOPE_MOD_A                         SCOPE_CTOM[0]
-
 /**
- * Defines for AC/DC Module B
+ * Controller defines for module B
  */
-#define MOD_B_ID        0x1
+#define MOD_B_ID    0x1
 
-#define PIN_OPEN_AC_MAINS_CONTACTOR_MOD_B       CLEAR_GPDO2;
-#define PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_B      SET_GPDO2;
-#define PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B     GET_GPDI7
-
-#define V_CAPBANK_MOD_B                 g_controller_ctom.net_signals[2].f  // HRADC2
-#define IOUT_RECT_MOD_B                 g_controller_ctom.net_signals[3].f  // HRADC3
-
-#define VOUT_RECT_MOD_B                 g_controller_mtoc.net_signals[3].f
-#define TEMP_HEATSINK_MOD_B             g_controller_mtoc.net_signals[4].f
-#define TEMP_INDUCTORS_MOD_B            g_controller_mtoc.net_signals[5].f
-
-#define DUTY_CYCLE_MOD_B                g_controller_ctom.output_signals[1].f
-
-#define ERROR_V_CAPBANK_MOD_B           &g_controller_ctom.dsp_modules.dsp_error[2]
+#define ERROR_V_CAPBANK_MOD_B                   &g_controller_ctom.dsp_modules.dsp_error[2]
 
 #define PI_CONTROLLER_V_CAPBANK_MOD_B           &g_controller_ctom.dsp_modules.dsp_pi[2]
 #define PI_CONTROLLER_V_CAPBANK_MOD_B_COEFFS    g_controller_mtoc.dsp_modules.dsp_pi[2].coeffs.s
@@ -173,11 +155,28 @@
 #define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[7]
 #define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[7].coeffs.s
 
+/// PWM modulators
+#define PWM_MODULATOR_MOD_A                   g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_MOD_B                   g_pwm_modules.pwm_regs[1]
 
-/// Scope for module B
+/// Scopes
+#define SCOPE_MOD_A                         SCOPE_CTOM[0]
 #define SCOPE_MOD_B                         SCOPE_CTOM[1]
 
+/// Notch filters alpha coefficient
+#define NF_ALPHA                            0.99
+
+/**
+ * Digital I/O's status
+ */
+
+#define PIN_OPEN_AC_MAINS_CONTACTOR_MOD_A       CLEAR_GPDO1;
+#define PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_A      SET_GPDO1;
+#define PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A     GET_GPDI5
+
+#define PIN_OPEN_AC_MAINS_CONTACTOR_MOD_B       CLEAR_GPDO2;
+#define PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_B      SET_GPDO2;
+#define PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B     GET_GPDI7
 
 /**
  * Interlocks defines
@@ -185,30 +184,29 @@
 typedef enum
 {
     CapBank_Overvoltage,
+    Rectifier_Overvoltage,
+    Rectifier_Undervoltage,
     Rectifier_Overcurrent,
     Welded_Contactor_Fault,
     Opened_Contactor_Fault,
-    IIB_1_Itlk,
-    IIB_2_Itlk,
-    IIB_3_Itlk,
-    IIB_4_Itlk
+    IIB_IS_Itlk_Mod_A,
+    IIB_IS_Itlk_Mod_B,
+    IIB_Cmd_Itlk_Mod_A,
+    IIB_Cmd_Itlk_Mod_B
 } hard_interlocks_t;
 
-typedef enum
+/*typedef enum
 {
-    Heatsink_Overtemperature,
-    Inductors_Overtemperature
-} soft_interlocks_t;
+} soft_interlocks_t;*/
 
-#define NUM_HARD_INTERLOCKS     IIB_4_Itlk + 1
-#define NUM_SOFT_INTERLOCKS     Inductors_Overtemperature + 1
+#define NUM_HARD_INTERLOCKS     IIB_Cmd_Itlk_Mod_B + 1
+#define NUM_SOFT_INTERLOCKS     0
 
 /**
  *  Private variables
  */
 static float decimation_factor;
 static float decimation_coeff;
-
 
 /**
  * Private functions
