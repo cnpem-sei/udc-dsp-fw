@@ -38,7 +38,7 @@
 /**
  * Control parameters
  */
-#define TIMESLICER_CONTROLLER_IDX       2
+#define TIMESLICER_CONTROLLER_IDX       0
 #define TIMESLICER_CONTROLLER           g_controller_ctom.timeslicer[TIMESLICER_CONTROLLER_IDX]
 #define CONTROLLER_FREQ_SAMP            TIMESLICER_FREQ[TIMESLICER_CONTROLLER_IDX]
 
@@ -47,53 +47,67 @@
  */
 #define MAX_V_CAPBANK                           ANALOG_VARS_MAX[0]
 
-#define MAX_VOUT_RECT                           ANALOG_VARS_MAX[1]
-#define MAX_IOUT_RECT                           ANALOG_VARS_MAX[2]
-#define MAX_IOUT_RECT_REF                       ANALOG_VARS_MAX[3]
-#define MIN_IOUT_RECT_REF                       ANALOG_VARS_MIN[3]
+#define MAX_V_OUT_RECT                          ANALOG_VARS_MAX[1]
+#define MIN_V_OUT_RECT                          ANALOG_VARS_MIN[1]
 
-#define MAX_TEMP_HEATSINK                       ANALOG_VARS_MAX[4]
-#define MAX_TEMP_INDUCTORS                      ANALOG_VARS_MAX[5]
+#define MAX_I_OUT_RECT                          ANALOG_VARS_MAX[2]
+
+//#define MAX_I_OUT_RECT_REF                       ANALOG_VARS_MAX[3]
+//#define MIN_IOUT_RECT_REF                       ANALOG_VARS_MIN[3]
+
+//#define MAX_TEMP_HEATSINK                       ANALOG_VARS_MAX[4]
+//#define MAX_TEMP_INDUCTORS                      ANALOG_VARS_MAX[5]
 
 #define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS    ANALOG_VARS_MAX[6]
 #define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS    ANALOG_VARS_MAX[7]
 
-#define NETSIGNAL_ELEM_CTOM_BUF                 ANALOG_VARS_MAX[8]
-#define NETSIGNAL_ELEM_MTOC_BUF                 ANALOG_VARS_MIN[8]
+//#define NETSIGNAL_ELEM_CTOM_BUF                 ANALOG_VARS_MAX[8]
+//#define NETSIGNAL_ELEM_MTOC_BUF                 ANALOG_VARS_MIN[8]
 
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+//#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
+//#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
 
 /// Reference
 #define V_CAPBANK_SETPOINT              g_ipc_ctom.ps_module[0].ps_setpoint
 #define V_CAPBANK_REFERENCE             g_ipc_ctom.ps_module[0].ps_reference
 
 #define SRLIM_V_CAPBANK_REFERENCE       &g_controller_ctom.dsp_modules.dsp_srlim[0]
-
-#define SIGGEN                          SIGGEN_CTOM[0]
-#define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
-#define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
-
 #define MAX_SLEWRATE_SLOWREF            g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
-#define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
-#define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
 
 /**
  * Controller defines
  */
 
 /// DSP Net Signals
-#define V_CAPBANK_MOD_A                 g_controller_ctom.net_signals[0].f  // HRADC0
-#define IOUT_RECT_MOD_A                 g_controller_ctom.net_signals[1].f  // HRADC1
-#define V_CAPBANK_MOD_B                 g_controller_ctom.net_signals[2].f  // HRADC2
-#define IOUT_RECT_MOD_B                 g_controller_ctom.net_signals[3].f  // HRADC3
+#define V_CAPBANK_MOD_A                     g_controller_ctom.net_signals[0].f  // HRADC0
+#define I_OUT_RECT_MOD_A                    g_controller_ctom.net_signals[1].f  // HRADC1
+#define V_CAPBANK_MOD_B                     g_controller_ctom.net_signals[2].f  // HRADC2
+#define I_OUT_RECT_MOD_B                    g_controller_ctom.net_signals[3].f  // HRADC3
 
-#define DUTY_CYCLE_MOD_A                g_controller_ctom.output_signals[0].f
-#define DUTY_CYCLE_MOD_B                g_controller_ctom.output_signals[1].f
+#define V_CAPBANK_FILTERED_2HZ_MOD_A        g_controller_ctom.net_signals[4].f
+#define V_CAPBANK_FILTERED_2Hz_4HZ_MOD_A    g_controller_ctom.net_signals[5].f
+#define V_CAPBANK_ERROR_MOD_A               g_controller_ctom.net_signals[6].f
+
+#define I_OUT_RECT_REF_MOD_A                g_controller_ctom.net_signals[7].f
+#define I_OUT_RECT_ERROR_MOD_A              g_controller_ctom.net_signals[8].f
+#define I_OUT_RECT_RESS_2HZ_MOD_A           g_controller_ctom.net_signals[9].f
+#define I_OUT_RECT_RESS_2HZ_4HZ_MOD_A       g_controller_ctom.net_signals[10].f
+
+#define V_CAPBANK_FILTERED_2HZ_MOD_B        g_controller_ctom.net_signals[11].f
+#define V_CAPBANK_FILTERED_2Hz_4HZ_MOD_B    g_controller_ctom.net_signals[12].f
+#define V_CAPBANK_ERROR_MOD_B               g_controller_ctom.net_signals[13].f
+
+#define I_OUT_RECT_REF_MOD_B                g_controller_ctom.net_signals[14].f
+#define I_OUT_RECT_ERROR_MOD_B              g_controller_ctom.net_signals[15].f
+#define I_OUT_RECT_RESS_2HZ_MOD_B           g_controller_ctom.net_signals[16].f
+#define I_OUT_RECT_RESS_2HZ_4HZ_MOD_B       g_controller_ctom.net_signals[17].f
+
+#define DUTY_CYCLE_MOD_A                    g_controller_ctom.output_signals[0].f
+#define DUTY_CYCLE_MOD_B                    g_controller_ctom.output_signals[1].f
 
 /// ARM Net Signals
-#define VOUT_RECT_MOD_A                 g_controller_mtoc.net_signals[0].f
-#define VOUT_RECT_MOD_B                 g_controller_mtoc.net_signals[1].f
+#define V_OUT_RECT_MOD_A                    g_controller_mtoc.net_signals[0].f
+#define V_OUT_RECT_MOD_B                    g_controller_mtoc.net_signals[1].f
 
 /**
  * Controller defines for module A
@@ -106,24 +120,26 @@
 #define PI_CONTROLLER_V_CAPBANK_MOD_A_COEFFS    g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
 #define KP_V_CAPBANK_MOD_A                      PI_CONTROLLER_V_CAPBANK_MOD_A_COEFFS.kp
 #define KI_V_CAPBANK_MOD_A                      PI_CONTROLLER_V_CAPBANK_MOD_A_COEFFS.ki
+#define U_MAX_V_CAPBANK_MOD_A                   PI_CONTROLLER_V_CAPBANK_MOD_A_COEFFS.u_max
+#define U_MIN_V_CAPBANK_MOD_A                   PI_CONTROLLER_V_CAPBANK_MOD_A_COEFFS.u_min
 
-#define NOTCH_FILT_2HZ_V_CAPBANK_MOD_A                  &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define NOTCH_FILT_2HZ_V_CAPBANK_MOD_A_COEFFS           g_controller_ctom.dsp_modules.dsp_iir_2p2z[0].coeffs.s
-#define NOTCH_FILT_4HZ_V_CAPBANK_MOD_A                  &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
-#define NOTCH_FILT_4HZ_V_CAPBANK_MOD_A_COEFFS           g_controller_ctom.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+#define NOTCH_FILT_2HZ_V_CAPBANK_MOD_A          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define NOTCH_FILT_2HZ_V_CAPBANK_MOD_A_COEFFS   g_controller_ctom.dsp_modules.dsp_iir_2p2z[0].coeffs.s
+#define NOTCH_FILT_4HZ_V_CAPBANK_MOD_A          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define NOTCH_FILT_4HZ_V_CAPBANK_MOD_A_COEFFS   g_controller_ctom.dsp_modules.dsp_iir_2p2z[1].coeffs.s
 
-#define ERROR_IOUT_RECT_MOD_A                           &g_controller_ctom.dsp_modules.dsp_error[1]
+#define ERROR_I_OUT_RECT_MOD_A                  &g_controller_ctom.dsp_modules.dsp_error[1]
 
-#define PI_CONTROLLER_IOUT_RECT_MOD_A                   &g_controller_ctom.dsp_modules.dsp_pi[1]
-#define PI_CONTROLLER_IOUT_RECT_MOD_A_COEFFS            g_controller_mtoc.dsp_modules.dsp_pi[1].coeffs.s
-#define KP_IOUT_RECT_MOD_A                              PI_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.kp
-#define KI_IOUT_RECT_MOD_A                              PI_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.ki
+#define PI_CONTROLLER_I_OUT_RECT_MOD_A          &g_controller_ctom.dsp_modules.dsp_pi[1]
+#define PI_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS   g_controller_mtoc.dsp_modules.dsp_pi[1].coeffs.s
+#define KP_I_OUT_RECT_MOD_A                     PI_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.kp
+#define KI_I_OUT_RECT_MOD_A                     PI_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.ki
 
-#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
-#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+#define RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
 
-#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
-#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+#define RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
+#define RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
 
 /**
  * Controller defines for module B
@@ -136,40 +152,41 @@
 #define PI_CONTROLLER_V_CAPBANK_MOD_B_COEFFS    g_controller_mtoc.dsp_modules.dsp_pi[2].coeffs.s
 #define KP_V_CAPBANK_MOD_B                      PI_CONTROLLER_V_CAPBANK_MOD_B_COEFFS.kp
 #define KI_V_CAPBANK_MOD_B                      PI_CONTROLLER_V_CAPBANK_MOD_B_COEFFS.ki
+#define U_MAX_V_CAPBANK_MOD_B                   PI_CONTROLLER_V_CAPBANK_MOD_B_COEFFS.u_max
+#define U_MIN_V_CAPBANK_MOD_B                   PI_CONTROLLER_V_CAPBANK_MOD_B_COEFFS.u_min
 
-#define NOTCH_FILT_2HZ_V_CAPBANK_MOD_B                  &g_controller_ctom.dsp_modules.dsp_iir_2p2z[4]
-#define NOTCH_FILT_2HZ_V_CAPBANK_MOD_B_COEFFS           g_controller_ctom.dsp_modules.dsp_iir_2p2z[4].coeffs.s
-#define NOTCH_FILT_4HZ_V_CAPBANK_MOD_B                  &g_controller_ctom.dsp_modules.dsp_iir_2p2z[5]
-#define NOTCH_FILT_4HZ_V_CAPBANK_MOD_B_COEFFS           g_controller_ctom.dsp_modules.dsp_iir_2p2z[5].coeffs.s
+#define NOTCH_FILT_2HZ_V_CAPBANK_MOD_B          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[4]
+#define NOTCH_FILT_2HZ_V_CAPBANK_MOD_B_COEFFS   g_controller_ctom.dsp_modules.dsp_iir_2p2z[4].coeffs.s
+#define NOTCH_FILT_4HZ_V_CAPBANK_MOD_B          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[5]
+#define NOTCH_FILT_4HZ_V_CAPBANK_MOD_B_COEFFS   g_controller_ctom.dsp_modules.dsp_iir_2p2z[5].coeffs.s
 
-#define ERROR_IOUT_RECT_MOD_B                           &g_controller_ctom.dsp_modules.dsp_error[3]
+#define ERROR_I_OUT_RECT_MOD_B                  &g_controller_ctom.dsp_modules.dsp_error[3]
 
-#define PI_CONTROLLER_IOUT_RECT_MOD_B                   &g_controller_ctom.dsp_modules.dsp_pi[3]
-#define PI_CONTROLLER_IOUT_RECT_MOD_B_COEFFS            g_controller_mtoc.dsp_modules.dsp_pi[3].coeffs.s
-#define KP_IOUT_RECT_MOD_B                              PI_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.kp
-#define KI_IOUT_RECT_MOD_B                              PI_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.ki
+#define PI_CONTROLLER_I_OUT_RECT_MOD_B          &g_controller_ctom.dsp_modules.dsp_pi[3]
+#define PI_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS   g_controller_mtoc.dsp_modules.dsp_pi[3].coeffs.s
+#define KP_I_OUT_RECT_MOD_B                     PI_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.kp
+#define KI_I_OUT_RECT_MOD_B                     PI_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.ki
 
-#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[6]
-#define RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[6].coeffs.s
+#define RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[6]
+#define RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[6].coeffs.s
 
-#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[7]
-#define RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[7].coeffs.s
+#define RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[7]
+#define RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[7].coeffs.s
 
 /// PWM modulators
-#define PWM_MODULATOR_MOD_A                   g_pwm_modules.pwm_regs[0]
-#define PWM_MODULATOR_MOD_B                   g_pwm_modules.pwm_regs[1]
+#define PWM_MODULATOR_MOD_A         g_pwm_modules.pwm_regs[0]
+#define PWM_MODULATOR_MOD_B         g_pwm_modules.pwm_regs[1]
 
 /// Scopes
-#define SCOPE_MOD_A                         SCOPE_CTOM[0]
-#define SCOPE_MOD_B                         SCOPE_CTOM[1]
+#define SCOPE_MOD_A                 SCOPE_CTOM[0]
+#define SCOPE_MOD_B                 SCOPE_CTOM[1]
 
 /// Notch filters alpha coefficient
-#define NF_ALPHA                            0.99
+#define NF_ALPHA                    0.99
 
 /**
  * Digital I/O's status
  */
-
 #define PIN_OPEN_AC_MAINS_CONTACTOR_MOD_A       CLEAR_GPDO1;
 #define PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_A      SET_GPDO1;
 #define PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A     GET_GPDI5
@@ -361,11 +378,12 @@ static void init_controller(void)
                        &SOFT_INTERLOCKS_RESET_TIME);
 
     init_ipc();
-    init_control_framework(&g_controller_ctom);
 
     /*************************************/
     /** INITIALIZATION OF DSP FRAMEWORK **/
     /*************************************/
+
+    init_control_framework(&g_controller_ctom);
 
     /**
      *        name:     SRLIM_V_CAPBANK_REFERENCE
@@ -382,42 +400,6 @@ static void init_controller(void)
     init_controller_module_A();
     init_controller_module_B();
 
-    /***********************************************/
-    /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
-    /***********************************************/
-
-    disable_siggen(&SIGGEN);
-
-    init_siggen(&SIGGEN, CONTROLLER_FREQ_SAMP, &V_CAPBANK_REFERENCE);
-
-    cfg_siggen(&SIGGEN, SIGGEN_TYPE_PARAM, SIGGEN_NUM_CYCLES_PARAM,
-               SIGGEN_FREQ_PARAM, SIGGEN_AMP_PARAM,
-               SIGGEN_OFFSET_PARAM, SIGGEN_AUX_PARAM);
-
-    /**
-     *        name:     SRLIM_SIGGEN_AMP
-     * description:     Signal generator amplitude slew-rate limiter
-     *    DP class:     DSP_SRLim
-     *          in:     SIGGEN_MTOC[0].amplitude
-     *         out:     SIGGEN_CTOM[0].amplitude
-     */
-
-    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SLEWRATE_SIGGEN_AMP,
-                   CONTROLLER_FREQ_SAMP, &SIGGEN_MTOC[0].amplitude,
-                   &SIGGEN_CTOM[0].amplitude);
-
-    /**
-     *        name:     SRLIM_SIGGEN_OFFSET
-     * description:     Signal generator offset slew-rate limiter
-     *    DP class:     DSP_SRLim
-     *          in:     SIGGEN_MTOC[0].offset
-     *         out:     SIGGEN_CTOM[0].offset
-     */
-
-    init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SLEWRATE_SIGGEN_OFFSET,
-                   CONTROLLER_FREQ_SAMP, &SIGGEN_MTOC[0].offset,
-                   &SIGGEN_CTOM[0].offset);
-
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
     /************************************/
@@ -432,13 +414,13 @@ static void init_controller(void)
     /** INITIALIZATION OF SCOPES **/
     /******************************/
 
-    init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[0],
+    init_scope(&SCOPE_MOD_A, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[MOD_A_ID],
                &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM/2,
-               SCOPE_SOURCE_PARAM[0], &run_scope_shared_ram);
+               SCOPE_SOURCE_PARAM[MOD_A_ID], &run_scope_shared_ram);
 
-    init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[1],
+    init_scope(&SCOPE_MOD_B, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[MOD_B_ID],
                &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM/2], SIZE_BUF_SAMPLES_CTOM/2,
-               SCOPE_SOURCE_PARAM[1], &run_scope_shared_ram);
+               SCOPE_SOURCE_PARAM[MOD_B_ID], &run_scope_shared_ram);
 
     /**
      * Reset all internal variables
@@ -454,6 +436,8 @@ static void reset_controller(void)
     set_pwm_duty_chA(PWM_MODULATOR_MOD_A, 0.0);
     set_pwm_duty_chA(PWM_MODULATOR_MOD_B, 0.0);
 
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
+
     g_ipc_ctom.ps_module[0].ps_setpoint = 0.0;
     g_ipc_ctom.ps_module[0].ps_reference = 0.0;
 
@@ -466,10 +450,10 @@ static void reset_controller(void)
     reset_dsp_iir_2p2z(NOTCH_FILT_4HZ_V_CAPBANK_MOD_A);
 
     /// Reset rectifier output current controller for module A
-    reset_dsp_error(ERROR_IOUT_RECT_MOD_A);
-    reset_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A);
-    reset_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A);
-    reset_dsp_pi(PI_CONTROLLER_IOUT_RECT_MOD_A);
+    reset_dsp_error(ERROR_I_OUT_RECT_MOD_A);
+    reset_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A);
+    reset_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A);
+    reset_dsp_pi(PI_CONTROLLER_I_OUT_RECT_MOD_A);
 
     /// Reset capacitor bank voltage controller for module B
     reset_dsp_error(ERROR_V_CAPBANK_MOD_B);
@@ -478,14 +462,10 @@ static void reset_controller(void)
     reset_dsp_iir_2p2z(NOTCH_FILT_4HZ_V_CAPBANK_MOD_B);
 
     /// Reset rectifier output current controller for module B
-    reset_dsp_error(ERROR_IOUT_RECT_MOD_B);
-    reset_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B);
-    reset_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B);
-    reset_dsp_pi(PI_CONTROLLER_IOUT_RECT_MOD_B);
-
-    reset_dsp_srlim(SRLIM_SIGGEN_AMP);
-    reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
-    disable_siggen(&SIGGEN);
+    reset_dsp_error(ERROR_I_OUT_RECT_MOD_B);
+    reset_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B);
+    reset_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B);
+    reset_dsp_pi(PI_CONTROLLER_I_OUT_RECT_MOD_B);
 }
 
 /**
@@ -572,9 +552,9 @@ static interrupt void isr_controller(void)
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
     V_CAPBANK_MOD_A = temp[0];
-    IOUT_RECT_MOD_A = temp[1];
+    I_OUT_RECT_MOD_A = temp[1];
     V_CAPBANK_MOD_B = temp[2];
-    IOUT_RECT_MOD_B = temp[3];
+    I_OUT_RECT_MOD_B = temp[3];
 
     /******** Timeslicer for controllers *********/
     RUN_TIMESLICER(TIMESLICER_CONTROLLER)
@@ -639,16 +619,16 @@ static interrupt void isr_controller(void)
 
 
                 /// Run rectifier output current control law
-                run_dsp_error(ERROR_IOUT_RECT_MOD_A);
-                run_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A);
-                run_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A);
-                run_dsp_pi(PI_CONTROLLER_IOUT_RECT_MOD_A);
+                run_dsp_error(ERROR_I_OUT_RECT_MOD_A);
+                run_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A);
+                run_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A);
+                run_dsp_pi(PI_CONTROLLER_I_OUT_RECT_MOD_A);
                 SATURATE(DUTY_CYCLE_MOD_A, PWM_MAX_DUTY, PWM_MIN_DUTY);
 
-                run_dsp_error(ERROR_IOUT_RECT_MOD_B);
-                run_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B);
-                run_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B);
-                run_dsp_pi(PI_CONTROLLER_IOUT_RECT_MOD_B);
+                run_dsp_error(ERROR_I_OUT_RECT_MOD_B);
+                run_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B);
+                run_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B);
+                run_dsp_pi(PI_CONTROLLER_I_OUT_RECT_MOD_B);
                 SATURATE(DUTY_CYCLE_MOD_B, PWM_MAX_DUTY, PWM_MIN_DUTY);
             }
 
@@ -724,37 +704,62 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state <= Interlock)
     #endif
     {
-        reset_controller();
-
         g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Initializing;
 
-        PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_A;
-        PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_B;
-
-        DELAY_US(TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS*1000);
-
-        if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A)
+        if(V_OUT_RECT_MOD_A < MIN_V_OUT_RECT)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_A_ID, Opened_Contactor_Fault);
-            set_hard_interlock(MOD_A_ID, Opened_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_A_ID, Rectifier_Undervoltage);
+            set_hard_interlock(MOD_A_ID, Rectifier_Undervoltage);
         }
 
-        if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B)
+        if(V_OUT_RECT_MOD_B < MIN_V_OUT_RECT)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_B_ID, Opened_Contactor_Fault);
-            set_hard_interlock(MOD_B_ID, Opened_Contactor_Fault);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_B_ID, Rectifier_Undervoltage);
+            set_hard_interlock(MOD_B_ID, Rectifier_Undervoltage);
             #ifdef USE_ITLK
             g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Interlock;
             #endif
         }
 
+        #ifdef USE_ITLK
         if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state == Initializing)
         {
-            g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.openloop = OPEN_LOOP;
-            g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = SlowRef;
-            enable_pwm_output(MOD_A_ID);
-            enable_pwm_output(MOD_B_ID);
+        #endif
+
+            PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_A;
+            PIN_CLOSE_AC_MAINS_CONTACTOR_MOD_B;
+
+            DELAY_US(TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS*1000);
+
+            if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_A_ID, Opened_Contactor_Fault);
+                set_hard_interlock(MOD_A_ID, Opened_Contactor_Fault);
+            }
+
+            if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(MOD_B_ID, Opened_Contactor_Fault);
+                set_hard_interlock(MOD_B_ID, Opened_Contactor_Fault);
+                #ifdef USE_ITLK
+                g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = Interlock;
+                #endif
+            }
+
+            #ifdef USE_ITLK
+            if(g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state == Initializing)
+            {
+            #endif
+
+                g_ipc_ctom.ps_module[MOD_A_ID].ps_status.bit.state = SlowRef;
+
+                enable_pwm_output(MOD_A_ID);
+                enable_pwm_output(MOD_B_ID);
+
+            #ifdef USE_ITLK
+            }
         }
+        #endif
     }
 }
 
@@ -818,41 +823,64 @@ static inline void check_interlocks(void)
         set_hard_interlock(MOD_B_ID, CapBank_Overvoltage);
     }
 
-    if(fabs(IOUT_RECT_MOD_A) > MAX_IOUT_RECT)
+    if(fabs(I_OUT_RECT_MOD_A) > MAX_I_OUT_RECT)
     {
         set_hard_interlock(MOD_A_ID, Rectifier_Overcurrent);
     }
 
-    if(fabs(IOUT_RECT_MOD_B) > MAX_IOUT_RECT)
+    if(fabs(I_OUT_RECT_MOD_B) > MAX_I_OUT_RECT)
     {
         set_hard_interlock(MOD_B_ID, Rectifier_Overcurrent);
     }
 
+    if(fabs(V_OUT_RECT_MOD_A) > MAX_V_OUT_RECT)
+    {
+        set_hard_interlock(MOD_A_ID, Rectifier_Overvoltage);
+    }
+
+    if(fabs(V_OUT_RECT_MOD_B) > MAX_V_OUT_RECT)
+    {
+        set_hard_interlock(MOD_B_ID, Rectifier_Overvoltage);
+    }
+
     DINT;
 
-    if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
-         (PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A) )
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     {
-        set_hard_interlock(MOD_A_ID, Welded_Contactor_Fault);
+        if(PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A)
+        {
+            set_hard_interlock(MOD_A_ID, Welded_Contactor_Fault);
+        }
+
+        if(PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B)
+        {
+            set_hard_interlock(MOD_B_ID, Welded_Contactor_Fault);
+        }
     }
 
-    else if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
-              && (!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A) )
+    else
     {
-        set_hard_interlock(MOD_A_ID, Opened_Contactor_Fault);
+        if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_A)
+        {
+            set_hard_interlock(MOD_A_ID, Opened_Contactor_Fault);
+        }
+
+        if(!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B)
+        {
+            set_hard_interlock(MOD_B_ID, Opened_Contactor_Fault);
+        }
+
+        if(V_OUT_RECT_MOD_A < MIN_V_OUT_RECT)
+        {
+            set_hard_interlock(MOD_A_ID, Rectifier_Undervoltage);
+        }
+
+        if(V_OUT_RECT_MOD_B < MIN_V_OUT_RECT)
+        {
+            set_hard_interlock(MOD_B_ID, Rectifier_Undervoltage);
+        }
     }
 
-    if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
-         (PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B) )
-    {
-        set_hard_interlock(MOD_B_ID, Welded_Contactor_Fault);
-    }
-
-    else if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
-              && (!PIN_STATUS_AC_MAINS_CONTACTOR_MOD_B) )
-    {
-        set_hard_interlock(MOD_B_ID, Opened_Contactor_Fault);
-    }
     EINT;
 
     if(g_ipc_ctom.ps_module[MOD_B_ID].ps_status.bit.state == Interlock)
@@ -877,38 +905,37 @@ static void init_controller_module_A(void)
      * description:     Capacitor bank voltage reference error for module A
      *  dsp module:     DSP_Error
      *           +:     ps_module[0].ps_reference
-     *           -:     net_signals[5]
-     *         out:     net_signals[6]
+     *           -:     V_CAPBANK_FILTERED_2Hz_4HZ_MOD_A
+     *         out:     V_CAPBANK_ERROR_MOD_A
      */
 
     init_dsp_error(ERROR_V_CAPBANK_MOD_A, &V_CAPBANK_REFERENCE,
-                   &g_controller_ctom.net_signals[5].f,
-                   &g_controller_ctom.net_signals[6].f);
+                   &V_CAPBANK_FILTERED_2Hz_4HZ_MOD_A, &V_CAPBANK_ERROR_MOD_A);
 
     /**
      *        name:     PI_CONTROLLER_V_CAPBANK_MOD_A
      * description:     Capacitor bank voltage PI controller for module A
      *  dsp module:     DSP_PI
-     *          in:     net_signals[6]
-     *         out:     net_signals[7]
+     *          in:     V_CAPBANK_ERROR_MOD_A
+     *         out:     I_OUT_RECT_REF_MOD_A
      */
 
     init_dsp_pi(PI_CONTROLLER_V_CAPBANK_MOD_A, KP_V_CAPBANK_MOD_A,
-                KI_V_CAPBANK_MOD_A, CONTROLLER_FREQ_SAMP, MAX_IOUT_RECT_REF,
-                MIN_IOUT_RECT_REF, &g_controller_ctom.net_signals[6].f,
-                &g_controller_ctom.net_signals[7].f);
+                KI_V_CAPBANK_MOD_A, CONTROLLER_FREQ_SAMP, U_MAX_V_CAPBANK_MOD_A,
+                U_MIN_V_CAPBANK_MOD_A, &V_CAPBANK_ERROR_MOD_A,
+                &I_OUT_RECT_REF_MOD_A);
 
     /**
      *        name:     NOTCH_FILT_2HZ_V_CAPBANK_MOD_A
      * description:     Cap bank voltage notch filter (fcut = 2 Hz) for module A
      *    DP class:     DSP_IIR_2P2Z
-     *          in:     net_signals[0]
-     *         out:     net_signals[4]
+     *          in:     V_CAPBANK_MOD_A
+     *         out:     V_CAPBANK_FILTERED_2HZ_MOD_A
      */
 
     init_dsp_notch_2p2z(NOTCH_FILT_2HZ_V_CAPBANK_MOD_A, NF_ALPHA, 2.0,
                         CONTROLLER_FREQ_SAMP, FLT_MAX, -FLT_MAX,
-                        &V_CAPBANK_MOD_A, &g_controller_ctom.net_signals[4].f);
+                        &V_CAPBANK_MOD_A, &V_CAPBANK_FILTERED_2HZ_MOD_A);
 
     /*init_dsp_iir_2p2z(NOTCH_FILT_2HZ_V_CAPBANK_MOD_A,
                       NOTCH_FILT_2HZ_V_CAPBANK_MOD_A_COEFFS.b0,
@@ -917,20 +944,20 @@ static void init_controller_module_A(void)
                       NOTCH_FILT_2HZ_V_CAPBANK_MOD_A_COEFFS.a1,
                       NOTCH_FILT_2HZ_V_CAPBANK_MOD_A_COEFFS.a2,
                       FLT_MAX, -FLT_MAX,
-                      &V_CAPBANK_MOD_A, &g_controller_ctom.net_signals[4].f);*/
+                      &V_CAPBANK_MOD_A, &V_CAPBANK_FILTERED_2HZ_MOD_A);*/
 
     /**
      *        name:     NOTCH_FILT_4HZ_V_CAPBANK_MOD_A
      * description:     Cap bank voltage notch filter (fcut = 4 Hz) for module A
      *    DP class:     DSP_IIR_2P2Z
-     *          in:     net_signals[4]
-     *         out:     net_signals[5]
+     *          in:     V_CAPBANK_FILTERED_2HZ_MOD_A
+     *         out:     V_CAPBANK_FILTERED_2Hz_4HZ_MOD_A
      */
 
     init_dsp_notch_2p2z(NOTCH_FILT_4HZ_V_CAPBANK_MOD_A, NF_ALPHA, 4.0,
                         CONTROLLER_FREQ_SAMP, FLT_MAX, -FLT_MAX,
-                        &g_controller_ctom.net_signals[4].f,
-                        &g_controller_ctom.net_signals[5].f);
+                        &V_CAPBANK_FILTERED_2HZ_MOD_A,
+                        &V_CAPBANK_FILTERED_2Hz_4HZ_MOD_A);
 
     /*init_dsp_iir_2p2z(NOTCH_FILT_4HZ_V_CAPBANK_MOD_A,
                       NOTCH_FILT_4HZ_V_CAPBANK_MOD_A_COEFFS.b0,
@@ -939,71 +966,69 @@ static void init_controller_module_A(void)
                       NOTCH_FILT_4HZ_V_CAPBANK_MOD_A_COEFFS.a1,
                       NOTCH_FILT_4HZ_V_CAPBANK_MOD_A_COEFFS.a2,
                       FLT_MAX, -FLT_MAX,
-                      &g_controller_ctom.net_signals[4].f,
-                      &g_controller_ctom.net_signals[5].f);*/
+                      &V_CAPBANK_FILTERED_2HZ_MOD_A,
+                      &V_CAPBANK_FILTERED_2Hz_4HZ_MOD_A);*/
 
     /**************************************************************************/
     /** INITIALIZATION OF RECTIFIER OUTPUT CURRENT CONTROL LOOP FOR MODULE A **/
     /**************************************************************************/
 
     /**
-     *        name:     ERROR_IOUT_RECT_MOD_A
+     *        name:     ERROR_I_OUT_RECT_MOD_A
      * description:     Rectifier output current reference error for module A
      *    DP class:     DSP_Error
-     *           +:     net_signals[7]
-     *           -:     net_signals[1]
-     *         out:     net_signals[8]
+     *           +:     I_OUT_RECT_REF_MOD_A
+     *           -:     I_OUT_RECT_MOD_A
+     *         out:     I_OUT_RECT_ERROR_MOD_A
      */
 
-    init_dsp_error(ERROR_IOUT_RECT_MOD_A, &g_controller_ctom.net_signals[7].f,
-                   &IOUT_RECT_MOD_A, &g_controller_ctom.net_signals[8].f);
+    init_dsp_error(ERROR_I_OUT_RECT_MOD_A, &I_OUT_RECT_REF_MOD_A,
+                   &I_OUT_RECT_MOD_A, &I_OUT_RECT_ERROR_MOD_A);
 
     /**
-     *        name:     RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A
+     *        name:     RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A
      * description:     Rectifier output current 2 Hz ressonant controller for module A
      *    DP class:     ELP_IIR_2P2Z
-     *          in:     net_signals[8]
-     *         out:     net_signals[9]
+     *          in:     I_OUT_RECT_ERROR_MOD_A
+     *         out:     I_OUT_RECT_RESS_2HZ_MOD_A
      */
 
-    init_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.b0,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.b1,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.b2,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.a1,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.a2,
+    init_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.b0,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.b1,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.b2,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.a1,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.a2,
                       FLT_MAX, -FLT_MAX,
-                      &g_controller_ctom.net_signals[8].f,
-                      &g_controller_ctom.net_signals[9].f);
+                      &I_OUT_RECT_ERROR_MOD_A, &I_OUT_RECT_RESS_2HZ_MOD_A);
 
     /**
-     *        name:     RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A
+     *        name:     RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A
      * description:     Rectifier output current 4 Hz ressonant controller for module A
      *    DP class:     ELP_IIR_2P2Z
-     *          in:     net_signals[9]
-     *         out:     net_signals[10]
+     *          in:     I_OUT_RECT_RESS_2HZ_MOD_A
+     *         out:     I_OUT_RECT_RESS_2HZ_4HZ_MOD_A
      */
 
-    init_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.b0,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.b1,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.b2,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.a1,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_A_COEFFS.a2,
+    init_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.b0,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.b1,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.b2,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.a1,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_A_COEFFS.a2,
                       FLT_MAX, -FLT_MAX,
-                      &g_controller_ctom.net_signals[9].f,
-                      &g_controller_ctom.net_signals[10].f);
+                      &I_OUT_RECT_RESS_2HZ_MOD_A, &I_OUT_RECT_RESS_2HZ_4HZ_MOD_A);
 
     /**
-     *        name:     PI_CONTROLLER_IOUT_RECT_MOD_A
+     *        name:     PI_CONTROLLER_I_OUT_RECT_MOD_A
      * description:     Rectifier output current PI controller for module A
      *    DP class:     DSP_PI
-     *          in:     net_signals[10]
-     *         out:     output_signals[0]
+     *          in:     I_OUT_RECT_RESS_2HZ_4HZ_MOD_A
+     *         out:     DUTY_CYCLE_MOD_A
      */
-    init_dsp_pi(PI_CONTROLLER_IOUT_RECT_MOD_A, KP_IOUT_RECT_MOD_A,
-                KI_IOUT_RECT_MOD_A, CONTROLLER_FREQ_SAMP, PWM_MAX_DUTY,
-                PWM_MIN_DUTY, &g_controller_ctom.net_signals[10].f,
+    init_dsp_pi(PI_CONTROLLER_I_OUT_RECT_MOD_A, KP_I_OUT_RECT_MOD_A,
+                KI_I_OUT_RECT_MOD_A, CONTROLLER_FREQ_SAMP, PWM_MAX_DUTY,
+                PWM_MIN_DUTY, &I_OUT_RECT_RESS_2HZ_4HZ_MOD_A,
                 &DUTY_CYCLE_MOD_A);
 }
 
@@ -1018,38 +1043,37 @@ static void init_controller_module_B(void)
      * description:     Capacitor bank voltage reference error for module B
      *  dsp module:     DSP_Error
      *           +:     ps_module[0].ps_reference
-     *           -:     net_signals[12]
-     *         out:     net_signals[13]
+     *           -:     V_CAPBANK_FILTERED_2Hz_4HZ_MOD_B
+     *         out:     V_CAPBANK_ERROR_MOD_B
      */
 
     init_dsp_error(ERROR_V_CAPBANK_MOD_B, &V_CAPBANK_REFERENCE,
-                   &g_controller_ctom.net_signals[12].f,
-                   &g_controller_ctom.net_signals[13].f);
+                   &V_CAPBANK_FILTERED_2Hz_4HZ_MOD_B, &V_CAPBANK_ERROR_MOD_B);
 
     /**
      *        name:     PI_CONTROLLER_V_CAPBANK_MOD_B
      * description:     Capacitor bank voltage PI controller for module B
      *  dsp module:     DSP_PI
-     *          in:     net_signals[13]
-     *         out:     net_signals[14]
+     *          in:     V_CAPBANK_ERROR_MOD_B
+     *         out:     I_OUT_RECT_REF_MOD_B
      */
 
     init_dsp_pi(PI_CONTROLLER_V_CAPBANK_MOD_B, KP_V_CAPBANK_MOD_B,
-                KI_V_CAPBANK_MOD_B, CONTROLLER_FREQ_SAMP, MAX_IOUT_RECT_REF,
-                MIN_IOUT_RECT_REF, &g_controller_ctom.net_signals[13].f,
-                &g_controller_ctom.net_signals[14].f);
+                KI_V_CAPBANK_MOD_B, CONTROLLER_FREQ_SAMP, U_MAX_V_CAPBANK_MOD_B,
+                U_MIN_V_CAPBANK_MOD_B, &V_CAPBANK_ERROR_MOD_B,
+                &I_OUT_RECT_REF_MOD_B);
 
     /**
      *        name:     NOTCH_FILT_2HZ_V_CAPBANK_MOD_B
      * description:     Cap bank voltage notch filter (fcut = 2 Hz) for module B
      *    DP class:     DSP_IIR_2P2Z
-     *          in:     net_signals[2]
-     *         out:     net_signals[11]
+     *          in:     V_CAPBANK_MOD_B
+     *         out:     V_CAPBANK_FILTERED_2HZ_MOD_B
      */
 
     init_dsp_notch_2p2z(NOTCH_FILT_2HZ_V_CAPBANK_MOD_B, NF_ALPHA, 2.0,
                         CONTROLLER_FREQ_SAMP, FLT_MAX, -FLT_MAX,
-                        &V_CAPBANK_MOD_B, &g_controller_ctom.net_signals[11].f);
+                        &V_CAPBANK_MOD_B, &V_CAPBANK_FILTERED_2HZ_MOD_B);
 
     /*init_dsp_iir_2p2z(NOTCH_FILT_2HZ_V_CAPBANK_MOD_B,
                       NOTCH_FILT_2HZ_V_CAPBANK_MOD_B_COEFFS.b0,
@@ -1058,20 +1082,20 @@ static void init_controller_module_B(void)
                       NOTCH_FILT_2HZ_V_CAPBANK_MOD_B_COEFFS.a1,
                       NOTCH_FILT_2HZ_V_CAPBANK_MOD_B_COEFFS.a2,
                       FLT_MAX, -FLT_MAX,
-                      &V_CAPBANK_MOD_B, &g_controller_ctom.net_signals[11].f);*/
+                      &V_CAPBANK_MOD_B, &V_CAPBANK_FILTERED_2HZ_MOD_B);*/
 
     /**
      *        name:     NOTCH_FILT_4HZ_V_CAPBANK_MOD_B
      * description:     Cap bank voltage notch filter (fcut = 4 Hz) for module B
      *    DP class:     DSP_IIR_2P2Z
-     *          in:     net_signals[11]
-     *         out:     net_signals[12]
+     *          in:     V_CAPBANK_FILTERED_2HZ_MOD_B
+     *         out:     V_CAPBANK_FILTERED_2Hz_4HZ_MOD_B
      */
 
     init_dsp_notch_2p2z(NOTCH_FILT_4HZ_V_CAPBANK_MOD_B, NF_ALPHA, 4.0,
                         CONTROLLER_FREQ_SAMP, FLT_MAX, -FLT_MAX,
-                        &g_controller_ctom.net_signals[11].f,
-                        &g_controller_ctom.net_signals[12].f);
+                        &V_CAPBANK_FILTERED_2HZ_MOD_B,
+                        &V_CAPBANK_FILTERED_2Hz_4HZ_MOD_B);
 
     /*init_dsp_iir_2p2z(NOTCH_FILT_4HZ_V_CAPBANK_MOD_B,
                       NOTCH_FILT_4HZ_V_CAPBANK_MOD_B_COEFFS.b0,
@@ -1080,70 +1104,68 @@ static void init_controller_module_B(void)
                       NOTCH_FILT_4HZ_V_CAPBANK_MOD_B_COEFFS.a1,
                       NOTCH_FILT_4HZ_V_CAPBANK_MOD_B_COEFFS.a2,
                       FLT_MAX, -FLT_MAX,
-                      &g_controller_ctom.net_signals[11].f,
-                      &g_controller_ctom.net_signals[12].f);*/
+                      &V_CAPBANK_FILTERED_2HZ_MOD_B,
+                      &V_CAPBANK_FILTERED_2Hz_4HZ_MOD_B);*/
 
     /**************************************************************************/
     /** INITIALIZATION OF RECTIFIER OUTPUT CURRENT CONTROL LOOP FOR MODULE B **/
     /**************************************************************************/
 
     /**
-     *        name:     ERROR_IOUT_RECT_MOD_B
+     *        name:     ERROR_I_OUT_RECT_MOD_B
      * description:     Rectifier output current reference error for module B
      *    DP class:     DSP_Error
-     *           +:     net_signals[14]
-     *           -:     net_signals[3]
-     *         out:     net_signals[15]
+     *           +:     I_OUT_RECT_REF_MOD_B
+     *           -:     I_OUT_RECT_MOD_B
+     *         out:     I_OUT_RECT_ERROR_MOD_B
      */
 
-    init_dsp_error(ERROR_IOUT_RECT_MOD_B, &g_controller_ctom.net_signals[14].f,
-                   &IOUT_RECT_MOD_B, &g_controller_ctom.net_signals[15].f);
+    init_dsp_error(ERROR_I_OUT_RECT_MOD_B, &I_OUT_RECT_REF_MOD_B,
+                   &I_OUT_RECT_MOD_B, &I_OUT_RECT_ERROR_MOD_B);
 
     /**
-     *        name:     RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B
+     *        name:     RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B
      * description:     Rectifier output current 2 Hz ressonant controller for module B
      *    DP class:     ELP_IIR_2P2Z
-     *          in:     net_signals[15]
-     *         out:     net_signals[16]
+     *          in:     I_OUT_RECT_ERROR_MOD_B
+     *         out:     I_OUT_RECT_RESS_2HZ_MOD_B
      */
 
-    init_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.b0,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.b1,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.b2,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.a1,
-                      RESSONANT_2HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.a2,
+    init_dsp_iir_2p2z(RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.b0,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.b1,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.b2,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.a1,
+                      RESSONANT_2HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.a2,
                       FLT_MAX, -FLT_MAX,
-                      &g_controller_ctom.net_signals[15].f,
-                      &g_controller_ctom.net_signals[16].f);
+                      &I_OUT_RECT_ERROR_MOD_B, &I_OUT_RECT_RESS_2HZ_MOD_B);
 
     /**
-     *        name:     RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B
+     *        name:     RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B
      * description:     Rectifier output current 4 Hz ressonant controller for module B
      *    DP class:     ELP_IIR_2P2Z
-     *          in:     net_signals[16]
-     *         out:     net_signals[17]
+     *          in:     I_OUT_RECT_RESS_2HZ_MOD_B
+     *         out:     I_OUT_RECT_RESS_2HZ_4HZ_MOD_B
      */
 
-    init_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.b0,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.b1,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.b2,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.a1,
-                      RESSONANT_4HZ_CONTROLLER_IOUT_RECT_MOD_B_COEFFS.a2,
+    init_dsp_iir_2p2z(RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.b0,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.b1,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.b2,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.a1,
+                      RESSONANT_4HZ_CONTROLLER_I_OUT_RECT_MOD_B_COEFFS.a2,
                       FLT_MAX, -FLT_MAX,
-                      &g_controller_ctom.net_signals[16].f,
-                      &g_controller_ctom.net_signals[17].f);
+                      &I_OUT_RECT_RESS_2HZ_MOD_B, &I_OUT_RECT_RESS_2HZ_4HZ_MOD_B);
 
     /**
-     *        name:     PI_CONTROLLER_IOUT_RECT_MOD_B
+     *        name:     PI_CONTROLLER_I_OUT_RECT_MOD_B
      * description:     Rectifier output current PI controller for module B
      *    DP class:     DSP_PI
-     *          in:     net_signals[17]
-     *         out:     output_signals[1]
+     *          in:     I_OUT_RECT_RESS_2HZ_4HZ_MOD_B
+     *         out:     DUTY_CYCLE_MOD_B
      */
-    init_dsp_pi(PI_CONTROLLER_IOUT_RECT_MOD_B, KP_IOUT_RECT_MOD_B,
-                KI_IOUT_RECT_MOD_B, CONTROLLER_FREQ_SAMP, PWM_MAX_DUTY,
-                PWM_MIN_DUTY, &g_controller_ctom.net_signals[17].f,
+    init_dsp_pi(PI_CONTROLLER_I_OUT_RECT_MOD_B, KP_I_OUT_RECT_MOD_B,
+                KI_I_OUT_RECT_MOD_B, CONTROLLER_FREQ_SAMP, PWM_MAX_DUTY,
+                PWM_MIN_DUTY, &I_OUT_RECT_RESS_2HZ_4HZ_MOD_B,
                 &DUTY_CYCLE_MOD_B);
 }
