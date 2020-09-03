@@ -52,20 +52,8 @@
 
 #define MAX_I_OUT_RECT                          ANALOG_VARS_MAX[2]
 
-//#define MAX_I_OUT_RECT_REF                       ANALOG_VARS_MAX[3]
-//#define MIN_IOUT_RECT_REF                       ANALOG_VARS_MIN[3]
-
-//#define MAX_TEMP_HEATSINK                       ANALOG_VARS_MAX[4]
-//#define MAX_TEMP_INDUCTORS                      ANALOG_VARS_MAX[5]
-
-#define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS    ANALOG_VARS_MAX[6]
-#define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS    ANALOG_VARS_MAX[7]
-
-//#define NETSIGNAL_ELEM_CTOM_BUF                 ANALOG_VARS_MAX[8]
-//#define NETSIGNAL_ELEM_MTOC_BUF                 ANALOG_VARS_MIN[8]
-
-//#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-//#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+#define TIMEOUT_AC_MAINS_CONTACTOR_CLOSED_MS    ANALOG_VARS_MAX[3]
+#define TIMEOUT_AC_MAINS_CONTACTOR_OPENED_MS    ANALOG_VARS_MAX[4]
 
 /// Reference
 #define V_CAPBANK_SETPOINT              g_ipc_ctom.ps_module[0].ps_setpoint
@@ -206,17 +194,15 @@ typedef enum
     Rectifier_Overcurrent,
     Welded_Contactor_Fault,
     Opened_Contactor_Fault,
-    IIB_IS_Itlk_Mod_A,
-    IIB_IS_Itlk_Mod_B,
-    IIB_Cmd_Itlk_Mod_A,
-    IIB_Cmd_Itlk_Mod_B
+    IIB_IS_Itlk,
+    IIB_Cmd_Itlk
 } hard_interlocks_t;
 
 /*typedef enum
 {
 } soft_interlocks_t;*/
 
-#define NUM_HARD_INTERLOCKS     IIB_Cmd_Itlk_Mod_B + 1
+#define NUM_HARD_INTERLOCKS     IIB_Cmd_Itlk + 1
 #define NUM_SOFT_INTERLOCKS     0
 
 /**
