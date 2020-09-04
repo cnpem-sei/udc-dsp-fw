@@ -64,35 +64,24 @@
  * Analog variables parameters
  */
 #define MAX_ILOAD               ANALOG_VARS_MAX[0]
-#define MAX_VLOAD               ANALOG_VARS_MAX[1]
-#define MAX_V_CAPBANK           ANALOG_VARS_MAX[2]
-#define MIN_V_CAPBANK           ANALOG_VARS_MIN[2]
 
-#define MAX_TEMP_INDUCTORS      ANALOG_VARS_MAX[3]
-#define MAX_TEMP_IGBT           ANALOG_VARS_MAX[4]
+#define MAX_V_CAPBANK           ANALOG_VARS_MAX[1]
+#define MIN_V_CAPBANK           ANALOG_VARS_MIN[1]
 
-#define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[5]
+#define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[2]
 
-#define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[6]
-#define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[6]
-#define MAX_VOUT_MODULE         ANALOG_VARS_MAX[7]
+#define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[3]
+#define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[3]
+#define NUM_DCCTs               ANALOG_VARS_MAX[4]
 
-#define NETSIGNAL_ELEM_CTOM_BUF1    ANALOG_VARS_MAX[8]
-#define NETSIGNAL_ELEM_CTOM_BUF2    ANALOG_VARS_MIN[8]
+#define DELAY_TIME_INTERLOCK_IDB_US ANALOG_VARS_MAX[5]
 
-#define NETSIGNAL_CTOM_BUF1      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF1].f
-#define NETSIGNAL_CTOM_BUF2      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF2].f
+#define D_DUTY_MAX_POS          ANALOG_VARS_MAX[6]
+#define D_DUTY_MAX_NEG          ANALOG_VARS_MAX[7]
 
-#define NUM_DCCTs               ANALOG_VARS_MAX[9]
-
-#define DELAY_TIME_INTERLOCK_IDB_US ANALOG_VARS_MAX[10]
-
-#define D_DUTY_MAX_POS          ANALOG_VARS_MAX[11]
-#define D_DUTY_MAX_NEG          ANALOG_VARS_MAX[12]
-
-#define MAX_I_ARM               ANALOG_VARS_MAX[13]
-#define MAX_I_ARMS_DIFF         ANALOG_VARS_MAX[14]
-#define I_ARMS_DIFF_MODE        ANALOG_VARS_MAX[15]
+#define MAX_I_ARM               ANALOG_VARS_MAX[8]
+#define MAX_I_ARMS_DIFF         ANALOG_VARS_MAX[9]
+#define I_ARMS_DIFF_MODE        ANALOG_VARS_MAX[10]
 
 /**
  * Controller defines
@@ -104,26 +93,24 @@
 #define I_ARM_1                         g_controller_ctom.net_signals[2].f  // HRADC2
 #define I_ARM_2                         g_controller_ctom.net_signals[3].f  // HRADC3
 
-#define I_LOAD_SETPOINT_FILTERED        g_controller_ctom.net_signals[4].f
+#define I_LOAD_MEAN                     g_controller_ctom.net_signals[4].f
+#define I_LOAD_ERROR                    g_controller_ctom.net_signals[5].f
+#define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[6].f
 
-#define I_LOAD_MEAN                     g_controller_ctom.net_signals[5].f
-#define I_LOAD_ERROR                    g_controller_ctom.net_signals[6].f
-#define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[7].f
+#define I_ARMS_DIFF                     g_controller_ctom.net_signals[7].f
+#define DUTY_DIFF                       g_controller_ctom.net_signals[8].f
 
-#define I_ARMS_DIFF                     g_controller_ctom.net_signals[8].f
-#define DUTY_DIFF                       g_controller_ctom.net_signals[9].f
+#define I_LOAD_DIFF                     g_controller_ctom.net_signals[9].f
 
-#define I_LOAD_DIFF                     g_controller_ctom.net_signals[10].f
+#define DUTY_REF_FF                     g_controller_ctom.net_signals[10].f
 
-#define DUTY_REF_FF                     g_controller_ctom.net_signals[11].f
+#define V_CAPBANK_ARM_1_FILTERED        g_controller_ctom.net_signals[11].f
+#define V_CAPBANK_ARM_2_FILTERED        g_controller_ctom.net_signals[12].f
 
-#define V_CAPBANK_ARM_1_FILTERED        g_controller_ctom.net_signals[12].f
-#define V_CAPBANK_ARM_2_FILTERED        g_controller_ctom.net_signals[13].f
+#define IN_FF_V_CAPBANK_ARM_1           g_controller_ctom.net_signals[13].f
+#define IN_FF_V_CAPBANK_ARM_2           g_controller_ctom.net_signals[14].f
 
-#define IN_FF_V_CAPBANK_ARM_1           g_controller_ctom.net_signals[14].f
-#define IN_FF_V_CAPBANK_ARM_2           g_controller_ctom.net_signals[15].f
-
-#define WFMREF_IDX                      g_controller_ctom.net_signals[30].f
+#define WFMREF_IDX                      g_controller_ctom.net_signals[31].f
 
 #define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
@@ -135,25 +122,14 @@
 #define DUTY_CYCLE_MOD_8                g_controller_ctom.output_signals[7].f
 
 /// ARM Net Signals
-#define V_LOAD                          g_controller_mtoc.net_signals[0].f
-
-#define V_CAPBANK_MOD_1                 g_controller_mtoc.net_signals[1].f
-#define V_CAPBANK_MOD_2                 g_controller_mtoc.net_signals[2].f
-#define V_CAPBANK_MOD_3                 g_controller_mtoc.net_signals[3].f
-#define V_CAPBANK_MOD_4                 g_controller_mtoc.net_signals[4].f
-#define V_CAPBANK_MOD_5                 g_controller_mtoc.net_signals[5].f
-#define V_CAPBANK_MOD_6                 g_controller_mtoc.net_signals[6].f
-#define V_CAPBANK_MOD_7                 g_controller_mtoc.net_signals[7].f
-#define V_CAPBANK_MOD_8                 g_controller_mtoc.net_signals[8].f
-
-#define V_OUT_MOD_1                     g_controller_mtoc.net_signals[9].f
-#define V_OUT_MOD_2                     g_controller_mtoc.net_signals[10].f
-#define V_OUT_MOD_3                     g_controller_mtoc.net_signals[11].f
-#define V_OUT_MOD_4                     g_controller_mtoc.net_signals[12].f
-#define V_OUT_MOD_5                     g_controller_mtoc.net_signals[13].f
-#define V_OUT_MOD_6                     g_controller_mtoc.net_signals[14].f
-#define V_OUT_MOD_7                     g_controller_mtoc.net_signals[15].f
-#define V_OUT_MOD_8                     g_controller_mtoc.net_signals[16].f
+#define V_CAPBANK_MOD_1                 g_controller_mtoc.net_signals[0].f
+#define V_CAPBANK_MOD_2                 g_controller_mtoc.net_signals[1].f
+#define V_CAPBANK_MOD_3                 g_controller_mtoc.net_signals[2].f
+#define V_CAPBANK_MOD_4                 g_controller_mtoc.net_signals[3].f
+#define V_CAPBANK_MOD_5                 g_controller_mtoc.net_signals[4].f
+#define V_CAPBANK_MOD_6                 g_controller_mtoc.net_signals[5].f
+#define V_CAPBANK_MOD_7                 g_controller_mtoc.net_signals[6].f
+#define V_CAPBANK_MOD_8                 g_controller_mtoc.net_signals[7].f
 
 /// Reference
 #define I_LOAD_SETPOINT                 g_ipc_ctom.ps_module[0].ps_setpoint
@@ -222,10 +198,13 @@
 #define PIN_BYPASS_IDB_INTERLOCKS       SET_GPDO1;
 #define PIN_ACTIVE_IDB_INTERLOCKS       CLEAR_GPDO1;
 
-#define PIN_SET_UDC_INTERLOCK           CLEAR_GPDO2;
-#define PIN_CLEAR_UDC_INTERLOCK         SET_GPDO2;
+#define PIN_SET_IDB_INTERLOCK           CLEAR_GPDO2;
+#define PIN_CLEAR_IDB_INTERLOCK         SET_GPDO2;
 
-#define PIN_STATUS_DCLINK_CONTACTOR     GET_GPDI5
+#define PIN_SET_UDC_INTERLOCK               CLEAR_EPWMSYNCO;
+#define PIN_CLEAR_UDC_INTERLOCK             SET_EPWMSYNCO;
+
+#define PIN_STATUS_COMPLEMENTARY_PS_INTERLOCK   (!GET_INT_ARM && ENABLE_COMPLEMENTARY_PS_INTERLOCK)
 
 #define PIN_STATUS_DCCT_1_STATUS        GET_GPDI9
 #define PIN_STATUS_DCCT_1_ACTIVE        GET_GPDI10
@@ -238,7 +217,6 @@
 typedef enum
 {
     Load_Overcurrent,
-    Load_Overvoltage,
     Module_1_CapBank_Overvoltage,
     Module_2_CapBank_Overvoltage,
     Module_3_CapBank_Overvoltage,
@@ -255,28 +233,18 @@ typedef enum
     Module_6_CapBank_Undervoltage,
     Module_7_CapBank_Undervoltage,
     Module_8_CapBank_Undervoltage,
-    Module_1_Output_Overvoltage,
-    Module_2_Output_Overvoltage,
-    Module_3_Output_Overvoltage,
-    Module_4_Output_Overvoltage,
-    Module_5_Output_Overvoltage,
-    Module_6_Output_Overvoltage,
-    Module_7_Output_Overvoltage,
-    Module_8_Output_Overvoltage,
-    IIB_1_Itlk,
-    IIB_2_Itlk,
-    IIB_3_Itlk,
-    IIB_4_Itlk,
-    IIB_5_Itlk,
-    IIB_6_Itlk,
-    IIB_7_Itlk,
-    IIB_8_Itlk
+    IIB_Mod_1_Itlk,
+    IIB_Mod_2_Itlk,
+    IIB_Mod_3_Itlk,
+    IIB_Mod_4_Itlk,
+    IIB_Mod_5_Itlk,
+    IIB_Mod_6_Itlk,
+    IIB_Mod_7_Itlk,
+    IIB_Mod_8_Itlk
 } hard_interlocks_t;
 
 typedef enum
 {
-    Inductors_Overtemperature,
-    IGBT_Overtemperature,
     DCCT_1_Fault,
     DCCT_2_Fault,
     DCCT_High_Difference,
@@ -284,11 +252,12 @@ typedef enum
     Load_Feedback_2_Fault,
     ARM_1_Overcurrent,
     ARM_2_Overcurrent,
-    Arms_High_Difference
+    Arms_High_Difference,
+    Complementary_PS_Itlk
 } soft_interlocks_t;
 
-#define NUM_HARD_INTERLOCKS     IIB_8_Itlk + 1
-#define NUM_SOFT_INTERLOCKS     Arms_High_Difference + 1
+#define NUM_HARD_INTERLOCKS     IIB_Mod_8_Itlk + 1
+#define NUM_SOFT_INTERLOCKS     Complementary_PS_Itlk + 1
 
 /**
  *  Private variables
@@ -343,7 +312,7 @@ void main_fac_2p4s_dcdc(void)
 
 
     /// Initial condition for set of boards to remove them from looped interlock
-    PIN_CLEAR_UDC_INTERLOCK;
+    PIN_CLEAR_IDB_INTERLOCK;
     DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
     PIN_BYPASS_IDB_INTERLOCKS;
     DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
@@ -476,6 +445,10 @@ static void init_peripherals_drivers(void)
     InitCpuTimers();
     ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
     CpuTimer0Regs.TCR.bit.TIE = 0;
+
+    /// Configure EPWMSYNCO as GPDO for complementary PS interlock
+    PIN_CLEAR_UDC_INTERLOCK;
+    cfg_epwmsynco_gpdo();
 }
 
 static void term_peripherals_drivers(void)
@@ -709,6 +682,8 @@ static void reset_controller(void)
 
     set_pwm_duty_chA(PWM_MODULATOR_Q1_MOD_4_8, 50.0);
     set_pwm_duty_chB(PWM_MODULATOR_Q1_MOD_4_8, 50.0);
+
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
 
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
@@ -981,8 +956,6 @@ static interrupt void isr_controller(void)
     WFMREF_IDX = (float) (WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_idx -
                           WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_start);
 
-    g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
-
     RUN_SCOPE(SCOPE);
     //CLEAR_DEBUG_GPIO1;
 
@@ -1038,10 +1011,8 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     #endif
     {
-        reset_controller();
-
-        g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
         g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+
         enable_pwm_output(0);
         enable_pwm_output(1);
         enable_pwm_output(2);
@@ -1091,11 +1062,13 @@ static void reset_interlocks(uint16_t dummy)
     {
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
 
-        PIN_CLEAR_UDC_INTERLOCK;
+        PIN_CLEAR_IDB_INTERLOCK;
         DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
         PIN_BYPASS_IDB_INTERLOCKS;
         DELAY_US(DELAY_TIME_INTERLOCK_IDB_US);
         PIN_ACTIVE_IDB_INTERLOCKS;
+
+        PIN_CLEAR_UDC_INTERLOCK;
     }
 }
 
@@ -1187,9 +1160,22 @@ static inline void check_interlocks(void)
     run_interlocks_debouncing(0);
     //CLEAR_DEBUG_GPIO1;
 
+    #ifdef USE_ITLK
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+    #else
+    if(g_ipc_ctom.ps_module[0].ps_hard_interlock || g_ipc_ctom.ps_module[0].ps_soft_interlock)
+    #endif
     {
-        PIN_SET_UDC_INTERLOCK;
+        PIN_SET_IDB_INTERLOCK;
+
+        if(GET_EPWMSYNCO)
+        {
+            PIN_SET_UDC_INTERLOCK;
+        }
+        else
+        {
+            PIN_CLEAR_UDC_INTERLOCK;
+        }
     }
 }
 

@@ -70,7 +70,7 @@
 
 #define I_LOAD_DIFF                 g_controller_ctom.net_signals[9].f
 
-#define WFMREF_IDX                  g_controller_ctom.net_signals[30].f
+#define WFMREF_IDX                  g_controller_ctom.net_signals[31].f
 
 #define DUTY_CYCLE                  g_controller_ctom.output_signals[0].f
 
@@ -646,8 +646,6 @@ static interrupt void isr_controller(void)
 
     WFMREF_IDX = (float) (WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_idx -
                           WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_start);
-
-    g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
 
     RUN_SCOPE(SCOPE);
 

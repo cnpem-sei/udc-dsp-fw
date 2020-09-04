@@ -102,7 +102,7 @@
 #define IN_FF_V_CAPBANK_MOD_1           g_controller_ctom.net_signals[11].f
 #define IN_FF_V_CAPBANK_MOD_2           g_controller_ctom.net_signals[12].f
 
-#define WFMREF_IDX                      g_controller_ctom.net_signals[30].f
+#define WFMREF_IDX                      g_controller_ctom.net_signals[31].f
 
 #define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
@@ -837,8 +837,6 @@ static interrupt void isr_controller(void)
 
     WFMREF_IDX = (float) (WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_idx -
                           WFMREF.wfmref_data[WFMREF.wfmref_selected].p_buf_start);
-
-    g_controller_ctom.net_signals[31].f = I_LOAD_REFERENCE;
 
     RUN_SCOPE(SCOPE);
 

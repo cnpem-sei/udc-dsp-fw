@@ -85,7 +85,7 @@
 
 #define I_LOAD_DIFF                     g_controller_ctom.net_signals[11].f
 
-#define WFMREF_IDX                      g_controller_ctom.net_signals[30].f
+#define WFMREF_IDX                      g_controller_ctom.net_signals[31].f
 
 #define DUTY_CYCLE_MOD_1                g_controller_ctom.output_signals[0].f
 #define DUTY_CYCLE_MOD_2                g_controller_ctom.output_signals[1].f
