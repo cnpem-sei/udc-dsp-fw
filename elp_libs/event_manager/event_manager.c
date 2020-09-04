@@ -287,8 +287,11 @@ void set_soft_interlock(uint16_t id, uint32_t itlk)
  */
 interrupt void isr_hard_interlock(void)
 {
-    if(!(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock &
-         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock))
+    //if(!(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock &
+    //     g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock))
+    if( (g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock &
+         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock) !=
+         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_hard_interlock )
     {
         #ifdef USE_ITLK
         g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_off(g_ipc_mtoc.msg_id);
@@ -309,8 +312,11 @@ interrupt void isr_hard_interlock(void)
  */
 interrupt void isr_soft_interlock(void)
 {
-    if(!(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock &
-         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock))
+    //if(!(g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock &
+    //     g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock))
+    if( (g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock &
+         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock) !=
+         g_ipc_mtoc.ps_module[g_ipc_mtoc.msg_id].ps_soft_interlock )
     {
         #ifdef USE_ITLK
         g_ipc_ctom.ps_module[g_ipc_mtoc.msg_id].turn_off(g_ipc_mtoc.msg_id);
