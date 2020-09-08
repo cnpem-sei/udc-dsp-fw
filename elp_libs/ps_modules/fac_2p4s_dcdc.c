@@ -63,25 +63,27 @@
 /**
  * Analog variables parameters
  */
-#define MAX_ILOAD               ANALOG_VARS_MAX[0]
+#define MAX_ILOAD                               ANALOG_VARS_MAX[0]
 
-#define MAX_V_CAPBANK           ANALOG_VARS_MAX[1]
-#define MIN_V_CAPBANK           ANALOG_VARS_MIN[1]
+#define MAX_V_CAPBANK                           ANALOG_VARS_MAX[1]
+#define MIN_V_CAPBANK                           ANALOG_VARS_MIN[1]
 
-#define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[2]
+#define MAX_DCCTS_DIFF                          ANALOG_VARS_MAX[2]
 
-#define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[3]
-#define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[3]
-#define NUM_DCCTs               ANALOG_VARS_MAX[4]
+#define MAX_I_IDLE_DCCT                         ANALOG_VARS_MAX[3]
+#define MIN_I_ACTIVE_DCCT                       ANALOG_VARS_MIN[3]
+#define NUM_DCCTs                               ANALOG_VARS_MAX[4]
 
-#define DELAY_TIME_INTERLOCK_IDB_US ANALOG_VARS_MAX[5]
+#define DELAY_TIME_INTERLOCK_IDB_US             ANALOG_VARS_MAX[5]
 
-#define D_DUTY_MAX_POS          ANALOG_VARS_MAX[6]
-#define D_DUTY_MAX_NEG          ANALOG_VARS_MAX[7]
+#define D_DUTY_MAX_POS                          ANALOG_VARS_MAX[6]
+#define D_DUTY_MAX_NEG                          ANALOG_VARS_MAX[7]
 
-#define MAX_I_ARM               ANALOG_VARS_MAX[8]
-#define MAX_I_ARMS_DIFF         ANALOG_VARS_MAX[9]
-#define I_ARMS_DIFF_MODE        ANALOG_VARS_MAX[10]
+#define MAX_I_ARM                               ANALOG_VARS_MAX[8]
+#define MAX_I_ARMS_DIFF                         ANALOG_VARS_MAX[9]
+#define I_ARMS_DIFF_MODE                        ANALOG_VARS_MAX[10]
+
+#define ENABLE_COMPLEMENTARY_PS_INTERLOCK       ANALOG_VARS_MAX[11]
 
 /**
  * Controller defines
