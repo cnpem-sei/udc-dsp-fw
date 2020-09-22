@@ -1005,24 +1005,47 @@ static void disable_controller()
  */
 static void turn_on(uint16_t dummy)
 {
-    check_capbank_undervoltage();
+    g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
 
     #ifdef USE_ITLK
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Off)
     #else
-    if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Initializing)
     #endif
     {
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+        if(PIN_STATUS_COMPLEMENTARY_PS_INTERLOCK)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Complementary_PS_Itlk);
+            set_soft_interlock(0, Complementary_PS_Itlk);
+        }
 
-        enable_pwm_output(0);
-        enable_pwm_output(1);
-        enable_pwm_output(2);
-        enable_pwm_output(3);
-        enable_pwm_output(4);
-        enable_pwm_output(5);
-        enable_pwm_output(6);
-        enable_pwm_output(7);
+        #ifdef USE_ITLK
+        else
+        {
+        #endif
+
+            check_capbank_undervoltage();
+
+            #ifdef USE_ITLK
+            if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
+            {
+            #endif
+
+                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+
+                enable_pwm_output(0);
+                enable_pwm_output(1);
+                enable_pwm_output(2);
+                enable_pwm_output(3);
+                enable_pwm_output(4);
+                enable_pwm_output(5);
+                enable_pwm_output(6);
+                enable_pwm_output(7);
+
+            #ifdef USE_ITLK
+            }
+        }
+        #endif
     }
 }
 
@@ -1154,6 +1177,11 @@ static inline void check_interlocks(void)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
     {
         check_capbank_undervoltage();
+
+        if(PIN_STATUS_COMPLEMENTARY_PS_INTERLOCK)
+        {
+            set_soft_interlock(0, Complementary_PS_Itlk);
+        }
     }
 
     EINT;

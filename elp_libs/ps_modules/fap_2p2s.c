@@ -996,7 +996,7 @@ static void term_interruptions(void)
  */
 static void turn_on(uint16_t dummy)
 {
-#ifdef USE_ITLK
+    #ifdef USE_ITLK
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Off)
     #else
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
