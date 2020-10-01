@@ -84,7 +84,7 @@
 #define I_LOAD_REFERENCE            g_ipc_ctom.ps_module[0].ps_reference
 
 #define WFMREF                      g_ipc_ctom.wfmref[0]
-#define WFMREF_REFERENCE             g_controller_ctom.net_signals[28].f
+#define WFMREF_REFERENCE            g_controller_ctom.net_signals[28].f
 
 #define SIGGEN                      SIGGEN_CTOM[0]
 #define CYCLE_REFERENCE             g_controller_ctom.net_signals[29].f

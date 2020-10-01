@@ -97,14 +97,22 @@
 #define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
 
 #define WFMREF                          g_ipc_ctom.wfmref[0]
+#define WFMREF_REFERENCE                g_controller_ctom.net_signals[28].f
 
 #define SIGGEN                          SIGGEN_CTOM[0]
-#define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
-#define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+#define DUTY_CYCLE_MOD_1_RAW            g_controller_ctom.net_signals[29].f
+#define DUTY_CYCLE_MOD_2_RAW            g_controller_ctom.net_signals[30].f
+
+#define SRLIM_SLOWREF                   &g_controller_ctom.dsp_modules.dsp_srlim[0]
+#define SRLIM_WFMREF                    &g_controller_ctom.dsp_modules.dsp_srlim[1]
+#define SRLIM_DUTY_CYCLE_MOD_1          &g_controller_ctom.dsp_modules.dsp_srlim[2]
+#define SRLIM_DUTY_CYCLE_MOD_2          &g_controller_ctom.dsp_modules.dsp_srlim[3]
 
 #define MAX_SLEWRATE_SLOWREF            g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
-#define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
-#define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_WFMREF             g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_DUTY_CYCLE_MOD_1   g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_DUTY_CYCLE_MOD_2   g_controller_mtoc.dsp_modules.dsp_srlim[3].coeffs.s.max_slewrate
 
 /// Load current controller
 #define ERROR_I_LOAD                        &g_controller_ctom.dsp_modules.dsp_error[0]
@@ -357,7 +365,7 @@ static void init_controller(void)
     init_wfmref(&WFMREF, WFMREF_SELECTED_PARAM[0], WFMREF_SYNC_MODE_PARAM[0],
                 ISR_CONTROL_FREQ, WFMREF_FREQUENCY_PARAM[0], WFMREF_GAIN_PARAM[0],
                 WFMREF_OFFSET_PARAM[0], &g_wfmref_data.data, SIZE_WFMREF,
-                &I_LOAD_REFERENCE);
+                &WFMREF_REFERENCE);
 
     /***********************************************/
     /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
@@ -370,29 +378,6 @@ static void init_controller(void)
     cfg_siggen(&SIGGEN, SIGGEN_TYPE_PARAM, SIGGEN_NUM_CYCLES_PARAM,
                SIGGEN_FREQ_PARAM, SIGGEN_AMP_PARAM,
                SIGGEN_OFFSET_PARAM, SIGGEN_AUX_PARAM);
-
-    /**
-     *        name:     SRLIM_SIGGEN_AMP
-     * description:     Signal generator amplitude slew-rate limiter
-     *    DP class:     DSP_SRLim
-     *          in:     SIGGEN_MTOC[0].amplitude
-     *         out:     SIGGEN_CTOM[0].amplitude
-     */
-
-    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SLEWRATE_SIGGEN_AMP, ISR_CONTROL_FREQ,
-                   &SIGGEN_MTOC[0].amplitude, &SIGGEN.amplitude);
-
-    /**
-     *        name:     SRLIM_SIGGEN_OFFSET
-     * description:     Signal generator offset slew-rate limiter
-     *    DP class:     DSP_SRLim
-     *          in:     SIGGEN_MTOC[0].offset
-     *         out:     SIGGEN_CTOM[0].offset
-     */
-
-    init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SLEWRATE_SIGGEN_OFFSET,
-                   ISR_CONTROL_FREQ, &SIGGEN_MTOC[0].offset,
-                   &SIGGEN_CTOM[0].offset);
 
     /*************************************************/
     /** INITIALIZATION OF LOAD CURRENT CONTROL LOOP **/
@@ -408,6 +393,17 @@ static void init_controller(void)
 
     init_dsp_srlim(SRLIM_I_LOAD_REFERENCE, MAX_SLEWRATE_SLOWREF, ISR_CONTROL_FREQ,
                    &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
+
+    /**
+     *        name:     SRLIM_WFMREF
+     * description:     Load current slew-rate limiter
+     *  dsp module:     DSP_SRLim
+     *          in:     WFMREF_REFERENCE
+     *         out:     I_LOAD_REFERENCE
+     */
+
+    init_dsp_srlim(SRLIM_WFMREF, MAX_SLEWRATE_WFMREF, ISR_CONTROL_FREQ,
+                   &WFMREF_REFERENCE, &I_LOAD_REFERENCE);
 
     /**
      *        name:     ERROR_I_LOAD
@@ -475,12 +471,22 @@ static void init_controller(void)
      *    DP class:     DSP_VdcLink_FeedForward
      *    vdc_meas:     V_CAPBANK_MOD_1_FILTERED
      *          in:     IN_FF_V_CAPBANK
-     *         out:     DUTY_CYCLE_MOD_1
+     *         out:     DUTY_CYCLE_MOD_1_RAW
      */
 
     init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1, NOM_V_CAPBANK_FF_MOD_1,
                         MIN_V_CAPBANK_FF_MOD_1, &V_CAPBANK_MOD_1_FILTERED,
-                        &IN_FF_V_CAPBANK, &DUTY_CYCLE_MOD_1);
+                        &IN_FF_V_CAPBANK, &DUTY_CYCLE_MOD_1_RAW);
+
+    /**
+     * description:     Duty-cycle slew-rate limiter
+     *  dsp module:     DSP_SRLim
+     *          in:     DUTY_CYCLE_MOD_1_RAW
+     *         out:     DUTY_CYCLE_MOD_1
+     */
+
+    init_dsp_srlim(SRLIM_DUTY_CYCLE_MOD_1, MAX_SLEWRATE_DUTY_CYCLE_MOD_1,
+                   ISR_CONTROL_FREQ, &DUTY_CYCLE_MOD_1_RAW, &DUTY_CYCLE_MOD_1);
 
     /**
      *        name:     IIR_2P2Z_LPF_V_CAPBANK_MOD_2
@@ -510,7 +516,17 @@ static void init_controller(void)
 
     init_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2, NOM_V_CAPBANK_FF_MOD_2,
                         MIN_V_CAPBANK_FF_MOD_2, &V_CAPBANK_MOD_2_FILTERED,
-                        &IN_FF_V_CAPBANK, &DUTY_CYCLE_MOD_2);
+                        &IN_FF_V_CAPBANK, &DUTY_CYCLE_MOD_2_RAW);
+
+    /**
+     * description:     Duty-cycle slew-rate limiter
+     *  dsp module:     DSP_SRLim
+     *          in:     DUTY_CYCLE_MOD_2_RAW
+     *         out:     DUTY_CYCLE_MOD_2
+     */
+
+    init_dsp_srlim(SRLIM_DUTY_CYCLE_MOD_2, MAX_SLEWRATE_DUTY_CYCLE_MOD_2,
+                   ISR_CONTROL_FREQ, &DUTY_CYCLE_MOD_2_RAW, &DUTY_CYCLE_MOD_2);
 
     /******************************/
     /** INITIALIZATION OF SCOPES **/
@@ -539,6 +555,9 @@ static void reset_controller(void)
     I_LOAD_REFERENCE = 0.0;
 
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
+    reset_dsp_srlim(SRLIM_WFMREF);
+    reset_dsp_srlim(SRLIM_DUTY_CYCLE_MOD_1);
+    reset_dsp_srlim(SRLIM_DUTY_CYCLE_MOD_2);
 
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
@@ -551,8 +570,6 @@ static void reset_controller(void)
     reset_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1);
     reset_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2);
 
-    reset_dsp_srlim(SRLIM_SIGGEN_AMP);
-    reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
     disable_siggen(&SIGGEN);
 
     reset_wfmref(&WFMREF);
@@ -722,8 +739,8 @@ static interrupt void isr_controller(void)
             }
             case Cycle:
             {
-                run_dsp_srlim(SRLIM_SIGGEN_AMP, USE_MODULE);
-                run_dsp_srlim(SRLIM_SIGGEN_OFFSET, USE_MODULE);
+                SIGGEN.amplitude = SIGGEN_MTOC[0].amplitude;
+                SIGGEN.offset = SIGGEN_MTOC[0].offset;
                 SIGGEN.p_run_siggen(&SIGGEN);
                 break;
             }
@@ -731,6 +748,7 @@ static interrupt void isr_controller(void)
             case MigWfm:
             {
                 run_wfmref(&WFMREF);
+                run_dsp_srlim(SRLIM_WFMREF, USE_MODULE);
                 break;
             }
             default:
@@ -743,7 +761,11 @@ static interrupt void isr_controller(void)
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
             SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0]);
-            DUTY_CYCLE_MOD_1 = 0.01 * I_LOAD_REFERENCE;
+            DUTY_CYCLE_MOD_1_RAW = 0.01 * I_LOAD_REFERENCE;
+
+            run_dsp_srlim(SRLIM_DUTY_CYCLE_MOD_1, USE_MODULE);
+            run_dsp_srlim(SRLIM_DUTY_CYCLE_MOD_2, USE_MODULE);
+
             SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
 
             DUTY_CYCLE_MOD_2 = DUTY_CYCLE_MOD_1;
@@ -763,6 +785,9 @@ static interrupt void isr_controller(void)
             /// Cap-bank voltage feedforward controllers
             run_dsp_vdclink_ff(FF_V_CAPBANK_MOD_1);
             run_dsp_vdclink_ff(FF_V_CAPBANK_MOD_2);
+
+            run_dsp_srlim(SRLIM_DUTY_CYCLE_MOD_1, USE_MODULE);
+            run_dsp_srlim(SRLIM_DUTY_CYCLE_MOD_2, USE_MODULE);
 
             SATURATE(DUTY_CYCLE_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
             SATURATE(DUTY_CYCLE_MOD_2, PWM_MAX_DUTY, PWM_MIN_DUTY);
