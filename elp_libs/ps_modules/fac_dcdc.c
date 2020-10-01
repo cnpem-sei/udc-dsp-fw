@@ -84,18 +84,22 @@
 #define I_LOAD_REFERENCE            g_ipc_ctom.ps_module[0].ps_reference
 
 #define WFMREF                      g_ipc_ctom.wfmref[0]
-#define WFMREF_REFERENCE             g_controller_ctom.net_signals[29].f
+#define WFMREF_REFERENCE             g_controller_ctom.net_signals[28].f
 
 #define SIGGEN                      SIGGEN_CTOM[0]
-#define CYCLE_REFERENCE             g_controller_ctom.net_signals[30].f
+#define CYCLE_REFERENCE             g_controller_ctom.net_signals[29].f
+
+#define DUTY_CYCLE_RAW              g_controller_ctom.net_signals[30].f
 
 #define SRLIM_SLOWREF               &g_controller_ctom.dsp_modules.dsp_srlim[0]
 #define SRLIM_CYCLE                 &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_WFMREF                &g_controller_ctom.dsp_modules.dsp_srlim[2]
+#define SRLIM_DUTY_CYCLE            &g_controller_ctom.dsp_modules.dsp_srlim[3]
 
 #define MAX_SLEWRATE_SLOWREF        g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
 #define MAX_SLEWRATE_CYCLE          g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
 #define MAX_SLEWRATE_WFMREF         g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_DUTY_CYCLE     g_controller_mtoc.dsp_modules.dsp_srlim[3].coeffs.s.max_slewrate
 
 /// Load current controller
 #define ERROR_I_LOAD                        &g_controller_ctom.dsp_modules.dsp_error[0]
@@ -431,11 +435,21 @@ static void init_controller(void)
      *    DP class:     DSP_VdcLink_FeedForward
      *    vdc_meas:     V_CAPBANK_FILTERED
      *          in:     IN_FF_V_CAPBANK
-     *         out:     DUTY_CYCLE
+     *         out:     DUTY_CYCLE_RAW
      */
 
     init_dsp_vdclink_ff(FF_V_CAPBANK, NOM_V_CAPBANK_FF, MIN_V_CAPBANK_FF,
-                        &V_CAPBANK_FILTERED, &IN_FF_V_CAPBANK, &DUTY_CYCLE);
+                        &V_CAPBANK_FILTERED, &IN_FF_V_CAPBANK, &DUTY_CYCLE_RAW);
+
+    /**
+     * description:     Duty-cycle slew-rate limiter
+     *  dsp module:     DSP_SRLim
+     *          in:     DUTY_CYCLE_RAW
+     *         out:     DUTY_CYCLE
+     */
+
+    init_dsp_srlim(SRLIM_DUTY_CYCLE, MAX_SLEWRATE_DUTY_CYCLE, ISR_CONTROL_FREQ,
+                   &DUTY_CYCLE_RAW, &DUTY_CYCLE);
 
     /******************************/
     /** INITIALIZATION OF SCOPES **/
@@ -468,6 +482,7 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_SLOWREF);
     reset_dsp_srlim(SRLIM_CYCLE);
     reset_dsp_srlim(SRLIM_WFMREF);
+    reset_dsp_srlim(SRLIM_DUTY_CYCLE);
 
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
@@ -629,8 +644,8 @@ static interrupt void isr_controller(void)
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
             SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0]);
-            DUTY_CYCLE = 0.01 * I_LOAD_REFERENCE;
-            SATURATE(DUTY_CYCLE, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
+            DUTY_CYCLE_RAW = 0.01 * I_LOAD_REFERENCE;
+            SATURATE(DUTY_CYCLE_RAW, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
         }
         /// Closed-loop
         else
@@ -644,9 +659,10 @@ static interrupt void isr_controller(void)
 
             run_dsp_vdclink_ff(FF_V_CAPBANK);
 
-            SATURATE(DUTY_CYCLE, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_RAW, PWM_MAX_DUTY, PWM_MIN_DUTY);
         }
 
+        run_dsp_srlim(SRLIM_DUTY_CYCLE, USE_MODULE);
         set_pwm_duty_hbridge(PWM_MODULATOR_Q1, DUTY_CYCLE);
     }
 
