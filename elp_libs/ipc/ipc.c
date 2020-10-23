@@ -232,7 +232,7 @@ interrupt void isr_ipc_lowpriority_msg(void)
                 /**
                  * TODO:
                  */
-                if( (g_ipc_ctom.ps_module[msg_id].ps_status.bit.state > Interlock) &&
+                if( (g_ipc_ctom.ps_module[msg_id].ps_status.bit.state > SlowRef) &&
                     (WFMREF_CTOM[msg_id].wfmref_data[WFMREF_CTOM[msg_id].wfmref_selected].p_buf_idx >=
                      WFMREF_CTOM[msg_id].wfmref_data[WFMREF_CTOM[msg_id].wfmref_selected].p_buf_end) )
                 {

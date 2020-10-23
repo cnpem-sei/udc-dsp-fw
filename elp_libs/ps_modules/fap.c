@@ -660,7 +660,7 @@ static interrupt void isr_controller(void)
     run_dsp_iir_2p2z(IIR_2P2Z_LPF_V_DCLINK);
 
     /// Check whether power supply is ON
-    if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state >= SlowRef)
     {
         /// Calculate reference according to operation mode
         switch(g_ipc_ctom.ps_module[0].ps_status.bit.state)
@@ -808,10 +808,10 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     #endif
     {
-        if(V_DCLINK < MIN_V_DCLINK)
+        if(V_DCLINK > MIN_V_DCLINK)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Undervoltage);
-            set_hard_interlock(0, DCLink_Undervoltage);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Overvoltage);
+            set_hard_interlock(0, DCLink_Overvoltage);
         }
 
         #ifdef USE_ITLK
@@ -832,11 +832,7 @@ static void turn_on(uint16_t dummy)
             else
             {
             #endif
-
-                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
-                enable_pwm_output(0);
-                enable_pwm_output(1);
-
+                g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
             #ifdef USE_ITLK
             }
         }
@@ -985,9 +981,19 @@ static inline void check_interlocks(void)
             set_hard_interlock(0, Opened_Contactor_Fault);
         }
 
-        if(V_DCLINK < MIN_V_DCLINK)
+        if( g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing ||
+                    V_DCLINK > MIN_V_DCLINK )
         {
-            set_hard_interlock(0, DCLink_Undervoltage);
+            g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+            enable_pwm_output(0);
+            enable_pwm_output(1);
+        }
+        else
+        {
+            if(V_DCLINK < MIN_V_DCLINK)
+            {
+                set_hard_interlock(0, DCLink_Undervoltage);
+            }
         }
     }
 
