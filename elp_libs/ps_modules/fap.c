@@ -981,14 +981,16 @@ static inline void check_interlocks(void)
             set_hard_interlock(0, Opened_Contactor_Fault);
         }
 
-        if( g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing ||
-                    V_DCLINK > MIN_V_DCLINK )
+        if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
         {
-            g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
-            enable_pwm_output(0);
-            enable_pwm_output(1);
+            if(V_DCLINK > MIN_V_DCLINK)
+            {
+                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+                enable_pwm_output(0);
+                enable_pwm_output(1);
+            }
         }
-        else
+        else /// Power supply ON
         {
             if(V_DCLINK < MIN_V_DCLINK)
             {
