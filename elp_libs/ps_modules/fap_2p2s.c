@@ -1012,83 +1012,77 @@ static void turn_on(uint16_t dummy)
         else
         {
         #endif
-            g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
 
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
-            DELAY_US(250000);
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
-            DELAY_US(250000);
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
-            DELAY_US(250000);
-            PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
-
-            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
-
-            if(V_DCLINK_MOD_1 < MIN_V_DCLINK)
+            if(V_DCLINK_MOD_1 > MIN_V_DCLINK)
             {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Undervoltage);
-                set_hard_interlock(0, DCLink_Mod_1_Undervoltage);
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Overvoltage);
+                set_hard_interlock(0, DCLink_Mod_1_Overvoltage);
             }
 
-            if(V_DCLINK_MOD_2 < MIN_V_DCLINK)
+            if(V_DCLINK_MOD_2 > MIN_V_DCLINK)
             {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Undervoltage);
-                set_hard_interlock(0, DCLink_Mod_2_Undervoltage);
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Overvoltage);
+                set_hard_interlock(0, DCLink_Mod_2_Overvoltage);
             }
 
-            if(V_DCLINK_MOD_3 < MIN_V_DCLINK)
+            if(V_DCLINK_MOD_3 > MIN_V_DCLINK)
             {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Undervoltage);
-                set_hard_interlock(0, DCLink_Mod_3_Undervoltage);
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Overvoltage);
+                set_hard_interlock(0, DCLink_Mod_3_Overvoltage);
             }
 
-            if(V_DCLINK_MOD_4 < MIN_V_DCLINK)
+            if(V_DCLINK_MOD_4 > MIN_V_DCLINK)
             {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Undervoltage);
-                set_hard_interlock(0, DCLink_Mod_4_Undervoltage);
-            }
-
-            if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_1_Fault);
-                set_hard_interlock(0, Opened_Contactor_Mod_1_Fault);
-            }
-
-            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_2_Fault);
-                set_hard_interlock(0, Opened_Contactor_Mod_2_Fault);
-            }
-
-            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_3_Fault);
-                set_hard_interlock(0, Opened_Contactor_Mod_3_Fault);
-            }
-
-            else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_4_Fault);
-                set_hard_interlock(0, Opened_Contactor_Mod_4_Fault);
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Overvoltage);
+                set_hard_interlock(0, DCLink_Mod_4_Overvoltage);
             }
 
             #ifdef USE_ITLK
-            if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
+            if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Off)
             {
             #endif
 
-                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+                PIN_CLOSE_DCLINK_CONTACTOR_MOD_1;
+                DELAY_US(250000);
+                PIN_CLOSE_DCLINK_CONTACTOR_MOD_2;
+                DELAY_US(250000);
+                PIN_CLOSE_DCLINK_CONTACTOR_MOD_3;
+                DELAY_US(250000);
+                PIN_CLOSE_DCLINK_CONTACTOR_MOD_4;
 
-                enable_pwm_output(0);
-                enable_pwm_output(1);
-                enable_pwm_output(2);
-                enable_pwm_output(3);
-                enable_pwm_output(4);
-                enable_pwm_output(5);
-                enable_pwm_output(6);
-                enable_pwm_output(7);
+                DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
 
-            #ifdef USE_ITLK
+                if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_1)
+                {
+                    BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_1_Fault);
+                    set_hard_interlock(0, Opened_Contactor_Mod_1_Fault);
+                }
+
+                else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_2)
+                {
+                    BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_2_Fault);
+                    set_hard_interlock(0, Opened_Contactor_Mod_2_Fault);
+                }
+
+                else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_3)
+                {
+                    BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_3_Fault);
+                    set_hard_interlock(0, Opened_Contactor_Mod_3_Fault);
+                }
+
+                else if(!PIN_STATUS_DCLINK_CONTACTOR_MOD_4)
+                {
+                    BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Mod_4_Fault);
+                    set_hard_interlock(0, Opened_Contactor_Mod_4_Fault);
+                }
+
+                #ifdef USE_ITLK
+                else
+                {
+                #endif
+                    g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
+                #ifdef USE_ITLK
+                }
             }
         }
         #endif
@@ -1364,24 +1358,46 @@ static inline void check_interlocks(void)
             set_hard_interlock(0, Opened_Contactor_Mod_4_Fault);
         }
 
-        if(V_DCLINK_MOD_1 < MIN_V_DCLINK)
+        if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
         {
-            set_hard_interlock(0, DCLink_Mod_1_Undervoltage);
-        }
+            if( (V_DCLINK_MOD_1 > MIN_V_DCLINK) &&
+                (V_DCLINK_MOD_2 > MIN_V_DCLINK) &&
+                (V_DCLINK_MOD_3 > MIN_V_DCLINK) &&
+                (V_DCLINK_MOD_4 > MIN_V_DCLINK) )
+            {
+                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
 
-        if(V_DCLINK_MOD_2 < MIN_V_DCLINK)
-        {
-            set_hard_interlock(0, DCLink_Mod_2_Undervoltage);
+                enable_pwm_output(0);
+                enable_pwm_output(1);
+                enable_pwm_output(2);
+                enable_pwm_output(3);
+                enable_pwm_output(4);
+                enable_pwm_output(5);
+                enable_pwm_output(6);
+                enable_pwm_output(7);
+            }
         }
-
-        if(V_DCLINK_MOD_3 < MIN_V_DCLINK)
+        else if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Initializing) /// Power supply ON
         {
-            set_hard_interlock(0, DCLink_Mod_3_Undervoltage);
-        }
+            if(V_DCLINK_MOD_1 < MIN_V_DCLINK)
+            {
+                set_hard_interlock(0, DCLink_Mod_1_Undervoltage);
+            }
 
-        if(V_DCLINK_MOD_4 < MIN_V_DCLINK)
-        {
-            set_hard_interlock(0, DCLink_Mod_4_Undervoltage);
+            if(V_DCLINK_MOD_2 < MIN_V_DCLINK)
+            {
+                set_hard_interlock(0, DCLink_Mod_2_Undervoltage);
+            }
+
+            if(V_DCLINK_MOD_3 < MIN_V_DCLINK)
+            {
+                set_hard_interlock(0, DCLink_Mod_3_Undervoltage);
+            }
+
+            if(V_DCLINK_MOD_4 < MIN_V_DCLINK)
+            {
+                set_hard_interlock(0, DCLink_Mod_4_Undervoltage);
+            }
         }
     }
 

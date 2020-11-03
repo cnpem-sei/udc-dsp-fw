@@ -990,7 +990,7 @@ static inline void check_interlocks(void)
                 enable_pwm_output(1);
             }
         }
-        else /// Power supply ON
+        else if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Initializing) /// Power supply ON
         {
             if(V_DCLINK < MIN_V_DCLINK)
             {
