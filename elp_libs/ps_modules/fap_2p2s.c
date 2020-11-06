@@ -91,6 +91,8 @@
 
 #define ENABLE_COMPLEMENTARY_PS_INTERLOCK       ANALOG_VARS_MAX[13]
 
+#define MAX_V_DCLINK_TURN_ON                    ANALOG_VARS_MAX[14]
+
 /**
  * Controller defines
  */
@@ -1013,25 +1015,25 @@ static void turn_on(uint16_t dummy)
         {
         #endif
 
-            if(V_DCLINK_MOD_1 > MIN_V_DCLINK)
+            if(V_DCLINK_MOD_1 > MAX_V_DCLINK_TURN_ON)
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_1_Overvoltage);
                 set_hard_interlock(0, DCLink_Mod_1_Overvoltage);
             }
 
-            if(V_DCLINK_MOD_2 > MIN_V_DCLINK)
+            if(V_DCLINK_MOD_2 > MAX_V_DCLINK_TURN_ON)
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_2_Overvoltage);
                 set_hard_interlock(0, DCLink_Mod_2_Overvoltage);
             }
 
-            if(V_DCLINK_MOD_3 > MIN_V_DCLINK)
+            if(V_DCLINK_MOD_3 > MAX_V_DCLINK_TURN_ON)
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_3_Overvoltage);
                 set_hard_interlock(0, DCLink_Mod_3_Overvoltage);
             }
 
-            if(V_DCLINK_MOD_4 > MIN_V_DCLINK)
+            if(V_DCLINK_MOD_4 > MAX_V_DCLINK_TURN_ON)
             {
                 BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Mod_4_Overvoltage);
                 set_hard_interlock(0, DCLink_Mod_4_Overvoltage);

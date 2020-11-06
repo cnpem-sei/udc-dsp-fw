@@ -67,6 +67,7 @@
 
 #define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[11]
 
+#define MAX_V_DCLINK_TURN_ON    ANALOG_VARS_MAX[12]
 /**
  * Controller defines
  */
@@ -808,7 +809,7 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     #endif
     {
-        if(V_DCLINK > MIN_V_DCLINK)
+        if(V_DCLINK > MAX_V_DCLINK_TURN_ON)
         {
             BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Overvoltage);
             set_hard_interlock(0, DCLink_Overvoltage);
