@@ -199,6 +199,8 @@ static void turn_off(uint16_t dummy);
 static void reset_interlocks(uint16_t dummy);
 static inline void check_interlocks(void);
 
+interrupt void isr_trigger_scope(void);
+
 /**
  * Main function for this power supply module
  */
@@ -283,6 +285,17 @@ static void init_peripherals_drivers(void)
     InitCpuTimers();
     ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
     CpuTimer0Regs.TCR.bit.TIE = 0;
+
+    /// Initialization of INT_C28 for Scope trigger ISR
+    EALLOW;
+    //GpioCtrlRegs.GPAQSEL2.bit.GPIO29 = 1;
+    GpioTripRegs.GPTRIP6SEL.bit.GPTRIP6SEL = 29;
+    XIntruptRegs.XINT3CR.bit.ENABLE = 1;
+    XIntruptRegs.XINT3CR.bit.POLARITY = 0;
+    PieVectTable.XINT3 = &isr_trigger_scope;
+    PieCtrlRegs.PIEIER12.bit.INTx1 = 1;               //    XINT3
+    EDIS;
+
 }
 
 static void term_peripherals_drivers(void)
@@ -699,6 +712,7 @@ static void init_interruptions(void)
     IER |= M_INT1;
     IER |= M_INT3;
     IER |= M_INT11;
+    IER |= M_INT12;
 
     /// Enable global interrupts (EINT)
     EINT;
@@ -883,4 +897,13 @@ static inline void check_interlocks(void)
     //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
     //CLEAR_DEBUG_GPIO1;
+}
+
+interrupt void isr_trigger_scope(void)
+{
+    if(SCOPE.buffer.status == Buffering)
+    {
+        trigger_scope(&SCOPE);
+        PieCtrlRegs.PIEACK.all |= M_INT12;
+    }
 }
