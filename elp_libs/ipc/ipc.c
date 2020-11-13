@@ -230,9 +230,11 @@ interrupt void isr_ipc_lowpriority_msg(void)
             case Operating_Mode:
             {
                 /**
-                 * TODO:
+                 * Check whether power supply is on and in case of WfmRef, check
+                 * whether it's at the end of the waveform to avoid
+                 * discontinuities
                  */
-                if( (g_ipc_ctom.ps_module[msg_id].ps_status.bit.state > SlowRef) &&
+                if( (g_ipc_ctom.ps_module[msg_id].ps_status.bit.state >= SlowRef) &&
                     (WFMREF_CTOM[msg_id].wfmref_data[WFMREF_CTOM[msg_id].wfmref_selected].p_buf_idx >=
                      WFMREF_CTOM[msg_id].wfmref_data[WFMREF_CTOM[msg_id].wfmref_selected].p_buf_end) )
                 {
