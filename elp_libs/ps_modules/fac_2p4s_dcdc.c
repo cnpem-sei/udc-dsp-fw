@@ -1005,14 +1005,14 @@ static void disable_controller()
  */
 static void turn_on(uint16_t dummy)
 {
-    g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
-
     #ifdef USE_ITLK
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Off)
     #else
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Initializing)
     #endif
     {
+        g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
+
         if(PIN_STATUS_COMPLEMENTARY_PS_INTERLOCK)
         {
             BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Complementary_PS_Itlk);
