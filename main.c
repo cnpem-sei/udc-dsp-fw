@@ -174,8 +174,8 @@ void main(void)
 
             case FAC_DCDC_EMA:
             {
-                //main_fac_dcdc_ema();
-                main_uninitialized();
+                main_fac_dcdc_ema();
+                //main_uninitialized();
                 break;
             }
 

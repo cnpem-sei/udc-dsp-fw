@@ -37,25 +37,16 @@
 /**
  * Analog variables parameters
  */
-#define MAX_ILOAD                       ANALOG_VARS_MAX[0]
-#define MAX_VLOAD                       ANALOG_VARS_MAX[1]
-#define MAX_V_CAPBANK                   ANALOG_VARS_MAX[2]
-#define MIN_V_CAPBANK                   ANALOG_VARS_MIN[2]
+#define MAX_ILOAD                               ANALOG_VARS_MAX[0]
 
-#define NOM_V_CAPBANK_FF                ANALOG_VARS_MAX[3]
-#define MIN_V_CAPBANK_FF                ANALOG_VARS_MIN[3]
+#define MAX_V_DCLINK                            ANALOG_VARS_MAX[1]
+#define MIN_V_DCLINK                            ANALOG_VARS_MIN[1]
 
-#define MAX_I_IDLE_DCCT                 ANALOG_VARS_MAX[4]
-#define MIN_I_ACTIVE_DCCT               ANALOG_VARS_MIN[4]
+#define MAX_I_IDLE_DCCT                         ANALOG_VARS_MAX[2]
+#define MIN_I_ACTIVE_DCCT                       ANALOG_VARS_MIN[2]
 
-#define TIMEOUT_MAGNAPOWER_COMMAND_PULSE_US     ANALOG_VARS_MAX[5]
-#define TIMEOUT_MAGNAPOWER_POWER_ON_US          ANALOG_VARS_MIN[5]
-
-#define NETSIGNAL_ELEM_CTOM_BUF         ANALOG_VARS_MAX[6]
-#define NETSIGNAL_ELEM_MTOC_BUF         ANALOG_VARS_MIN[6]
-
-#define NETSIGNAL_CTOM_BUF      g_controller_ctom.net_signals[(uint16_t) NETSIGNAL_ELEM_CTOM_BUF].f
-#define NETSIGNAL_MTOC_BUF      g_controller_mtoc.net_signals[(uint16_t) NETSIGNAL_ELEM_MTOC_BUF].f
+#define TIMEOUT_MAGNAPOWER_COMMAND_PULSE_US     ANALOG_VARS_MAX[3]
+#define TIMEOUT_MAGNAPOWER_POWER_ON_US          ANALOG_VARS_MIN[3]
 
 /**
  * Controller defines
@@ -63,16 +54,15 @@
 
 /// DSP Net Signals
 #define I_LOAD                          g_controller_ctom.net_signals[0].f  // HRADC0
-#define V_CAPBANK                       g_controller_ctom.net_signals[1].f  // HRADC1
+#define V_DCLINK                        g_controller_ctom.net_signals[1].f  // HRADC1
 
-#define I_LOAD_REFERENCE_WFMREF         g_controller_ctom.net_signals[2].f
-#define I_LOAD_ERROR                    g_controller_ctom.net_signals[3].f
+#define I_LOAD_ERROR                    g_controller_ctom.net_signals[2].f
 
-#define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[4].f
-#define DUTY_REFERENCE_FF               g_controller_ctom.net_signals[5].f
-#define DUTY_NOMINAL                    g_controller_ctom.net_signals[6].f
+#define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[3].f
+#define DUTY_REF_FF               g_controller_ctom.net_signals[4].f
+#define DUTY_NOMINAL                    g_controller_ctom.net_signals[5].f
 
-#define V_CAPBANK_FILTERED              g_controller_ctom.net_signals[7].f
+#define V_DCLINK_FILTERED               g_controller_ctom.net_signals[6].f
 
 #define DUTY_CYCLE                      g_controller_ctom.output_signals[0].f
 
@@ -95,29 +85,26 @@
 /// Load current controller
 #define ERROR_I_LOAD                    &g_controller_ctom.dsp_modules.dsp_error[0]
 
-#define IIR_2P2Z_WFMREF_FILTER               &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define IIR_2P2Z_WFMREF_FILTER_COEFFS        g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
-
-#define IIR_3P3Z_WFMREF_FILTER               &g_controller_ctom.dsp_modules.dsp_iir_3p3z[0]
-#define IIR_3P3Z_WFMREF_FILTER_COEFFS        g_controller_mtoc.dsp_modules.dsp_iir_3p3z[0].coeffs.s
-
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
-#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
-
 #define PI_CONTROLLER_I_LOAD                &g_controller_ctom.dsp_modules.dsp_pi[0]
 #define PI_CONTROLLER_I_LOAD_COEFFS         g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
 #define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
 
-/// Cap-bank voltage feedforward controllers
-#define IIR_2P2Z_LPF_V_CAPBANK              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
-#define IIR_2P2Z_LPF_V_CAPBANK_COEFFS       g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD          &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS   g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
-#define FF_V_CAPBANK                 &g_controller_ctom.dsp_modules.dsp_ff[0]
+/// DC-Link voltage feedforward controllers
+#define IIR_2P2Z_LPF_V_DCLINK               &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define IIR_2P2Z_LPF_V_DCLINK_COEFFS        g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+
+#define FF_V_DCLINK                         &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_DCLINK_COEFFS                  g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
+#define NOM_V_DCLINK_FF                    FF_V_DCLINK_COEFFS.vdc_nom
+#define MIN_V_DCLINK_FF                    FF_V_DCLINK_COEFFS.vdc_min
 
 /// PWM modulators
-#define PWM_MODULATOR_Q1            g_pwm_modules.pwm_regs[0]
-#define PWM_MODULATOR_Q2            g_pwm_modules.pwm_regs[1]
+#define PWM_MODULATOR_Q1                    g_pwm_modules.pwm_regs[0]
+#define PWM_MODULATOR_Q2                    g_pwm_modules.pwm_regs[1]
 
 /// Scope
 #define SCOPE                           SCOPE_CTOM[0]
@@ -128,6 +115,7 @@
 
 #define PIN_STATUS_DCCT_STATUS          GET_GPDI1
 #define PIN_STATUS_DCCT_ACTIVE          GET_GPDI2
+
 #define PIN_STATUS_EMERGENCY_BUTTON     GET_GPDI3
 #define PIN_STATUS_WATERFLOW_MAGNET     GET_GPDI4
 #define PIN_STATUS_TEMP_MAGNET          GET_GPDI5
@@ -156,8 +144,8 @@
 typedef enum
 {
     Load_Overcurrent,
-    CapBank_Overvoltage,
-    CapBank_Undervoltage,
+    DCLink_Overvoltage,
+    DCLink_Undervoltage,
     Emergency_Button,
     Load_Waterflow,
     Load_Overtemperature,
@@ -291,7 +279,7 @@ static void init_peripherals_drivers(void)
     /// Initialization of timers
     InitCpuTimers();
     ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
-    CpuTimer0Regs.TCR.all = 0x8010;
+    CpuTimer0Regs.TCR.bit.TIE = 0;
 }
 
 static void term_peripherals_drivers(void)
@@ -380,41 +368,6 @@ static void init_controller(void)
                    &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
 
     /**
-     *        name:     IIR_2P2Z_WFMREF_FILTER
-     * description:     Load current reference filter
-     *  dsp module:     DSP_IIR_2P2Z
-     *          in:     I_LOAD_REFERENCE_WFMREF
-     *         out:     I_LOAD_REFERENCE
-     */
-
-    init_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b0,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b1,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.b2,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a1,
-                      IIR_2P2Z_WFMREF_FILTER_COEFFS.a2,
-                      FLT_MAX, -FLT_MAX, &I_LOAD_REFERENCE_WFMREF,
-                      &I_LOAD_REFERENCE);
-
-    /**
-     *        name:     IIR_3P3Z_WFMREF_FILTER
-     * description:     Load current reference filter
-     *  dsp module:     DSP_IIR_3P3Z
-     *          in:     I_LOAD_REFERENCE_WFMREF
-     *         out:     I_LOAD_REFERENCE
-     */
-    init_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b0,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b1,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b2,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.b3,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a1,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a2,
-                      IIR_3P3Z_WFMREF_FILTER_COEFFS.a3,
-                      FLT_MAX, -FLT_MAX, &I_LOAD_REFERENCE_WFMREF,
-                      &I_LOAD_REFERENCE);
-
-    /**
      *        name:     ERROR_I_LOAD
      * description:     Load current reference error
      *  dsp module:     DSP_Error
@@ -441,7 +394,7 @@ static void init_controller(void)
      * description:     Load current IIR 2P2Z controller
      *  dsp module:     DSP_IIR_2P2Z
      *          in:     I_LOAD_REFERENCE
-     *         out:     DUTY_REFERENCE_FF
+     *         out:     DUTY_REF_FF
      */
 
     init_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD,
@@ -451,53 +404,39 @@ static void init_controller(void)
                       IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS.a1,
                       IIR_2P2Z_REFERENCE_FEEDFORWARD_COEFFS.a2,
                       PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_REFERENCE,
-                      &DUTY_REFERENCE_FF);
+                      &DUTY_REF_FF);
 
     /**********************************************************/
     /** INITIALIZATION OF CAPACITOR BANK VOLTAGE FEEDFORWARD **/
     /**********************************************************/
 
     /**
-     *        name:     IIR_2P2Z_LPF_V_CAPBANK
+     *        name:     IIR_2P2Z_LPF_V_DCLINK
      * description:     Capacitor bank voltage low-pass filter
      *    DP class:     ELP_IIR_2P2Z
-     *          in:     V_CAPBANK
-     *         out:     V_CAPBANK_FILTERED
+     *          in:     V_DCLINK
+     *         out:     V_DCLINK_FILTERED
      */
 
-    init_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK,
-                      IIR_2P2Z_LPF_V_CAPBANK_COEFFS.b0,
-                      IIR_2P2Z_LPF_V_CAPBANK_COEFFS.b1,
-                      IIR_2P2Z_LPF_V_CAPBANK_COEFFS.b2,
-                      IIR_2P2Z_LPF_V_CAPBANK_COEFFS.a1,
-                      IIR_2P2Z_LPF_V_CAPBANK_COEFFS.a2,
-                      FLT_MAX, -FLT_MAX, &V_CAPBANK, &V_CAPBANK_FILTERED);
+    init_dsp_iir_2p2z(IIR_2P2Z_LPF_V_DCLINK,
+                      IIR_2P2Z_LPF_V_DCLINK_COEFFS.b0,
+                      IIR_2P2Z_LPF_V_DCLINK_COEFFS.b1,
+                      IIR_2P2Z_LPF_V_DCLINK_COEFFS.b2,
+                      IIR_2P2Z_LPF_V_DCLINK_COEFFS.a1,
+                      IIR_2P2Z_LPF_V_DCLINK_COEFFS.a2,
+                      FLT_MAX, -FLT_MAX, &V_DCLINK, &V_DCLINK_FILTERED);
 
     /**
-     *        name:     FF_V_CAPBANK
+     *        name:     FF_V_DCLINK
      * description:     Capacitor bank voltage feed-forward
      *    DP class:     DSP_VdcLink_FeedForward
-     *    vdc_meas:     V_CAPBANK_FILTERED
+     *    vdc_meas:     V_DCLINK_FILTERED
      *          in:     DUTY_NOMINAL
      *         out:     DUTY_CYCLE
      */
 
-    init_dsp_vdclink_ff(FF_V_CAPBANK, NOM_V_CAPBANK_FF, MIN_V_CAPBANK_FF,
-                        &V_CAPBANK_FILTERED, &DUTY_NOMINAL, &DUTY_CYCLE);
-
-    /************************************/
-    /** INITIALIZATION OF TIME SLICERS **/
-    /************************************/
-
-    /**
-     * Time-slicer for WfmRef sweep decimation
-     */
-    cfg_timeslicer(TIMESLICER_WFMREF, WFMREF_DECIMATION);
-
-    /**
-     * Time-slicer for SamplesBuffer
-     */
-    cfg_timeslicer(TIMESLICER_BUFFER, BUFFER_DECIMATION);
+    init_dsp_vdclink_ff(FF_V_DCLINK, NOM_V_DCLINK_FF, MIN_V_DCLINK_FF,
+                        &V_DCLINK_FILTERED, &DUTY_NOMINAL, &DUTY_CYCLE);
 
     /******************************/
     /** INITIALIZATION OF SCOPES **/
@@ -520,11 +459,11 @@ static void reset_controller(void)
 {
     set_pwm_duty_hbridge(PWM_MODULATOR_Q1, 0.0);
 
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
+
     I_LOAD_SETPOINT = 0.0;
     I_LOAD_REFERENCE = 0.0;
 
-    reset_dsp_iir_2p2z(IIR_2P2Z_WFMREF_FILTER);
-    reset_dsp_iir_3p3z(IIR_3P3Z_WFMREF_FILTER);
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
 
     reset_dsp_error(ERROR_I_LOAD);
@@ -532,8 +471,8 @@ static void reset_controller(void)
 
     reset_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
-    reset_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK);
-    reset_dsp_vdclink_ff(FF_V_CAPBANK);
+    reset_dsp_iir_2p2z(IIR_2P2Z_LPF_V_DCLINK);
+    reset_dsp_vdclink_ff(FF_V_DCLINK);
 
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
@@ -630,9 +569,9 @@ static interrupt void isr_controller(void)
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
     I_LOAD = temp[0];
-    V_CAPBANK = temp[1];
+    V_DCLINK = temp[1];
 
-    run_dsp_iir_2p2z(IIR_2P2Z_LPF_V_CAPBANK);
+    run_dsp_iir_2p2z(IIR_2P2Z_LPF_V_DCLINK);
 
     /// Check whether power supply is ON
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
@@ -680,9 +619,9 @@ static interrupt void isr_controller(void)
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
             run_dsp_iir_2p2z(IIR_2P2Z_REFERENCE_FEEDFORWARD);
 
-            DUTY_NOMINAL = DUTY_I_LOAD_PI + DUTY_REFERENCE_FF;
+            DUTY_NOMINAL = DUTY_I_LOAD_PI + DUTY_REF_FF;
 
-            run_dsp_vdclink_ff(FF_V_CAPBANK);
+            run_dsp_vdclink_ff(FF_V_DCLINK);
 
             SATURATE(DUTY_CYCLE, PWM_MAX_DUTY, PWM_MIN_DUTY);
         }
@@ -759,17 +698,14 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     #endif
     {
+        g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
+
         PIN_SET_MAGNAPOWER_START;
         DELAY_US(TIMEOUT_MAGNAPOWER_COMMAND_PULSE_US);
         PIN_CLEAR_MAGNAPOWER_START;
 
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
-
         DELAY_US(TIMEOUT_MAGNAPOWER_POWER_ON_US);
 
-        reset_controller();
-
-        g_ipc_ctom.ps_module[0].ps_status.bit.openloop = OPEN_LOOP;
         g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
         enable_pwm_output(0);
         enable_pwm_output(1);
@@ -823,37 +759,31 @@ static inline void check_interlocks(void)
     if(fabs(I_LOAD) > MAX_ILOAD)
     {
         set_hard_interlock(0, Load_Overcurrent);
-        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
-    if(V_CAPBANK > MAX_V_CAPBANK)
+    if(V_DCLINK > MAX_V_DCLINK)
     {
-        set_hard_interlock(0, CapBank_Overvoltage);
-        PIN_SET_MAGNAPOWER_INTERLOCK;
+        set_hard_interlock(0, DCLink_Overvoltage);
     }
 
     if(!PIN_STATUS_EMERGENCY_BUTTON)
     {
         set_hard_interlock(0, Emergency_Button);
-        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(!PIN_STATUS_WATERFLOW_MAGNET)
     {
         set_hard_interlock(0, Load_Waterflow);
-        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(!PIN_STATUS_TEMP_MAGNET)
     {
         set_hard_interlock(0, Load_Overtemperature);
-        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(!PIN_STATUS_DCCT_STATUS)
     {
         set_soft_interlock(0, DCCT_Fault);
-        PIN_SET_MAGNAPOWER_INTERLOCK;
     }
 
     if(PIN_STATUS_DCCT_ACTIVE)
@@ -861,7 +791,6 @@ static inline void check_interlocks(void)
         if(fabs(I_LOAD) < MIN_I_ACTIVE_DCCT)
         {
             set_soft_interlock(0, Load_Feedback_Fault);
-            PIN_SET_MAGNAPOWER_INTERLOCK;
         }
     }
     else
@@ -869,17 +798,15 @@ static inline void check_interlocks(void)
         if(fabs(I_LOAD) > MAX_I_IDLE_DCCT)
         {
             set_soft_interlock(0, Load_Feedback_Fault);
-            PIN_SET_MAGNAPOWER_INTERLOCK;
         }
     }
 
     DINT;
 
     if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
-              && (V_CAPBANK < MIN_V_CAPBANK) )
+              && (V_DCLINK < MIN_V_DCLINK) )
     {
-        set_hard_interlock(0, CapBank_Undervoltage);
-        PIN_SET_MAGNAPOWER_INTERLOCK;
+        set_hard_interlock(0, DCLink_Undervoltage);
     }
 
     EINT;
@@ -887,4 +814,13 @@ static inline void check_interlocks(void)
     //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
     //CLEAR_DEBUG_GPIO1;
+
+    #ifdef USE_ITLK
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+    #else
+    if(g_ipc_ctom.ps_module[0].ps_hard_interlock || g_ipc_ctom.ps_module[0].ps_soft_interlock)
+    #endif
+    {
+        PIN_SET_MAGNAPOWER_INTERLOCK;
+    }
 }
