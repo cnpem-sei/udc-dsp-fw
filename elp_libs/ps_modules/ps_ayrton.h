@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2018 by LNLS - Brazilian Synchrotron Light Laboratory
+ * Copyright (C) 2021 by LNLS - Brazilian Synchrotron Light Laboratory
  *
  * Redistribution, modification or use of this software in source or binary
  * forms is permitted as long as the files maintain this copyright. LNLS and
@@ -9,16 +9,20 @@
  *****************************************************************************/
 
 /**
- * @file version.c
- * @brief Firmware version module
+ * @file ps_ayrton.c
+ * @brief PS Ayrton module
  * 
- * This module contains information about current build version of UDC C28 core.
+ * Module for control of power supply under development by CoP intern. It
+ * implements the controller for load current.
  *
- * @author gabriel.brunheira
- * @date 08/02/2018
+ * @author gabriel.brunheira / ayrton.guedes
+ * @date 07/06/2021
  *
  */
 
-#include "version.h"
+#ifndef PS_AYRTON_H_
+#define PS_AYRTON_H_
 
-const char * udc_c28_version = "V0.42a2021-06-07";
+extern void main_ps_ayrton(void);
+
+#endif /* PS_AYRTON_H_ */

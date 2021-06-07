@@ -43,6 +43,7 @@
 #include "ps_modules/fap_4p.h"
 #include "ps_modules/fac_dcdc_ema.h"
 #include "ps_modules/fap_2p2s.h"
+#include "ps_modules/ps_ayrton.h"
 #include "ps_modules/uninitialized.h"
 
 /**
@@ -206,11 +207,18 @@ void main(void)
                 break;
             }
 
+            case PS_AYRTON:
+            {
+                main_ps_ayrton();
+                break;
+            }
+
             case Uninitialized:
             {
                 main_uninitialized();
                 break;
             }
+
             default:
             {
                 break;
