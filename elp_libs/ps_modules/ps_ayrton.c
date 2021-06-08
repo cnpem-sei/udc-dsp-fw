@@ -35,39 +35,16 @@
 #include "ps_ayrton.h"
 
 /**
- * Control parameters
- */
-#define TIMESLICER_I_SHARE_CONTROLLER_IDX   0
-#define TIMESLICER_I_SHARE_CONTROLLER       g_controller_ctom.timeslicer[TIMESLICER_I_SHARE_CONTROLLER_IDX]
-#define I_SHARE_CONTROLLER_FREQ_SAMP        TIMESLICER_FREQ[TIMESLICER_I_SHARE_CONTROLLER_IDX]
-
-/**
  * Analog variables parameters
  */
 #define MAX_ILOAD               ANALOG_VARS_MAX[0]
-#define MAX_VLOAD               ANALOG_VARS_MAX[1]
 
-#define MAX_I_IGBT              ANALOG_VARS_MAX[2]
-#define MAX_IGBT_DIFF           ANALOG_VARS_MAX[3]
+#define MAX_V_DCLINK            ANALOG_VARS_MAX[1]
+#define MIN_V_DCLINK            ANALOG_VARS_MIN[1]
 
-#define MAX_V_DCLINK            ANALOG_VARS_MAX[4]
-#define MIN_V_DCLINK            ANALOG_VARS_MIN[4]
+#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[2]
+#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[3]
 
-#define MAX_DCCTS_DIFF          ANALOG_VARS_MAX[5]
-
-#define MAX_I_IDLE_DCCT         ANALOG_VARS_MAX[6]
-#define MIN_I_ACTIVE_DCCT       ANALOG_VARS_MIN[6]
-
-#define I_IGBT_DIFF_MODE        ANALOG_VARS_MAX[7]
-
-#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[8]
-#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[9]
-
-#define NUM_DCCTs                               ANALOG_VARS_MAX[10]
-
-#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[11]
-
-#define MAX_V_DCLINK_TURN_ON    ANALOG_VARS_MAX[12]
 /**
  * Controller defines
  */
@@ -123,35 +100,21 @@
 #define PIN_STATUS_DCLINK_CONTACTOR     GET_GPDI5
 #define PIN_STATUS_EMERGENCY_BUTTON     GET_GPDI6
 
-
 /**
  * Interlocks defines
  */
 typedef enum
 {
     Load_Overcurrent,
-    Load_Overvoltage,
     DCLink_Overvoltage,
     DCLink_Undervoltage,
     Welded_Contactor_Fault,
     Opened_Contactor_Fault,
-    IGBT_1_Overcurrent,
-    IGBT_2_Overcurrent,
-    IIB_Itlk
+    Emergency_Button
 } hard_interlocks_t;
 
-typedef enum
-{
-    DCCT_1_Fault,
-    DCCT_2_Fault,
-    DCCT_High_Difference,
-    Load_Feedback_1_Fault,
-    Load_Feedback_2_Fault,
-    IGBTs_Current_High_Difference,
-} soft_interlocks_t;
-
-#define NUM_HARD_INTERLOCKS             IIB_Itlk + 1
-#define NUM_SOFT_INTERLOCKS             IGBTs_Current_High_Difference + 1
+#define NUM_HARD_INTERLOCKS             Emergency_Button + 1
+#define NUM_SOFT_INTERLOCKS             0
 
 /**
  *  Private variables
@@ -250,17 +213,17 @@ static void init_peripherals_drivers(void)
     /// Initialization of PWM modules
     g_pwm_modules.num_modules = 2;
 
-    PWM_MODULATOR_IGBT_1 = &EPwm1Regs;
-    PWM_MODULATOR_IGBT_2 = &EPwm2Regs;
+    PWM_MODULATOR_1 = &EPwm1Regs;
+    PWM_MODULATOR_2 = &EPwm2Regs;
 
     disable_pwm_outputs();
     disable_pwm_tbclk();
     init_pwm_mep_sfo();
 
     /// PWM initialization
-    init_pwm_module(PWM_MODULATOR_IGBT_1, PWM_FREQ, 0, PWM_Sync_Master, 0,
+    init_pwm_module(PWM_MODULATOR_1, PWM_FREQ, 0, PWM_Sync_Master, 0,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
-    init_pwm_module(PWM_MODULATOR_IGBT_2, PWM_FREQ, 1, PWM_Sync_Slave, 180,
+    init_pwm_module(PWM_MODULATOR_2, PWM_FREQ, 1, PWM_Sync_Slave, 180,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
 
     InitEPwm1Gpio();
@@ -367,7 +330,7 @@ static void init_controller(void)
      *         out:     I_LOAD_ERROR
      */
 
-    init_dsp_error(ERROR_I_LOAD, &I_LOAD_REFERENCE, &I_LOAD_MEAN, &I_LOAD_ERROR);
+    init_dsp_error(ERROR_I_LOAD, &I_LOAD_REFERENCE, &I_LOAD, &I_LOAD_ERROR);
 
     /**
      *        name:     PI_CONTROLLER_I_LOAD
@@ -399,8 +362,8 @@ static void init_controller(void)
  */
 static void reset_controller(void)
 {
-    set_pwm_duty_chA(PWM_MODULATOR_IGBT_1, 0.0);
-    set_pwm_duty_chA(PWM_MODULATOR_IGBT_2, 0.0);
+    set_pwm_duty_chA(PWM_MODULATOR_1, 0.0);
+    set_pwm_duty_chA(PWM_MODULATOR_2, 0.0);
 
     g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
 
@@ -410,12 +373,6 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
-
-    reset_dsp_error(ERROR_I_SHARE);
-    reset_dsp_pi(PI_CONTROLLER_I_SHARE);
-
-    reset_dsp_vdclink_ff(FF_V_DCLINK_IGBT_1);
-    reset_dsp_vdclink_ff(FF_V_DCLINK_IGBT_2);
 
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
@@ -457,11 +414,11 @@ static interrupt void isr_init_controller(void)
     PieVectTable.EPWM1_INT = &isr_controller;
     EDIS;
 
-    PWM_MODULATOR_IGBT_1->ETSEL.bit.INTSEL = ET_CTR_ZERO;
-    PWM_MODULATOR_IGBT_1->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_1->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_MODULATOR_1->ETCLR.bit.INT = 1;
 
-    PWM_MODULATOR_IGBT_2->ETSEL.bit.INTSEL = ET_CTR_ZERO;
-    PWM_MODULATOR_IGBT_2->ETCLR.bit.INT = 1;
+    //PWM_MODULATOR_2->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    //PWM_MODULATOR_2->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
@@ -473,7 +430,6 @@ static interrupt void isr_controller(void)
 {
     static float temp[4];
     static uint16_t i;
-
 
     //CLEAR_DEBUG_GPIO1;
     SET_DEBUG_GPIO0;
@@ -512,31 +468,7 @@ static interrupt void isr_controller(void)
     temp[3] *= HRADCs_Info.HRADC_boards[3].gain * decimation_coeff;
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
-    if(NUM_DCCTs)
-    {
-        I_LOAD = temp[0];
-        I_LOAD_2 = temp[1];
-        V_DCLINK = temp[2];
-        g_controller_ctom.net_signals[20].f = temp[2];
-
-        I_LOAD_MEAN = 0.5*(I_LOAD + I_LOAD_2);
-        I_LOAD_DIFF = I_LOAD - I_LOAD_2;
-    }
-    else
-    {
-        I_LOAD = temp[0];
-        V_DCLINK = temp[1];
-        g_controller_ctom.net_signals[20].f = temp[2];
-        g_controller_ctom.net_signals[21].f = temp[3];
-
-        I_LOAD_MEAN = I_LOAD;
-        I_LOAD_DIFF = 0;
-    }
-
-    I_IGBTS_DIFF = I_IGBT_1 - I_IGBT_2;
-
-    /// Run low-pass filter for DC-Link voltage
-    run_dsp_iir_2p2z(IIR_2P2Z_LPF_V_DCLINK);
+    I_LOAD = temp[0];
 
     /// Check whether power supply is ON
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state >= SlowRef)
@@ -573,10 +505,8 @@ static interrupt void isr_controller(void)
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
             SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0]);
-            DUTY_CYCLE_IGBT_1 = 0.01 * I_LOAD_REFERENCE;
-            SATURATE(DUTY_CYCLE_IGBT_1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
-
-            DUTY_CYCLE_IGBT_2 = DUTY_CYCLE_IGBT_1;
+            DUTY_CYCLE = 0.01 * I_LOAD_REFERENCE;
+            SATURATE(DUTY_CYCLE, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
         }
         /// Closed-loop
         else
@@ -584,46 +514,19 @@ static interrupt void isr_controller(void)
             SATURATE(I_LOAD_REFERENCE, MAX_REF[0], MIN_REF[0]);
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
-
-            /*********************************************/
-            RUN_TIMESLICER(TIMESLICER_I_SHARE_CONTROLLER)
-            /*********************************************/
-
-                if(I_IGBT_DIFF_MODE)
-                {
-                    I_IGBTS_DIFF = I_IGBT_1 - 0.5*I_LOAD_MEAN;
-                }
-                else
-                {
-                    run_dsp_error(ERROR_I_SHARE);
-                }
-
-                run_dsp_pi(PI_CONTROLLER_I_SHARE);
-
-            /*********************************************/
-            END_TIMESLICER(TIMESLICER_I_SHARE_CONTROLLER)
-            /*********************************************/
-
-            g_controller_ctom.net_signals[8].f = DUTY_CYCLE - DUTY_DIFF;
-            g_controller_ctom.net_signals[9].f = DUTY_CYCLE + DUTY_DIFF;
-
-            run_dsp_vdclink_ff(FF_V_DCLINK_IGBT_1);
-            run_dsp_vdclink_ff(FF_V_DCLINK_IGBT_2);
-
-            SATURATE(DUTY_CYCLE_IGBT_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
-            SATURATE(DUTY_CYCLE_IGBT_2, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE, PWM_MAX_DUTY, PWM_MIN_DUTY);
         }
 
-        set_pwm_duty_chA(PWM_MODULATOR_IGBT_1, DUTY_CYCLE_IGBT_1);
-        set_pwm_duty_chA(PWM_MODULATOR_IGBT_2, DUTY_CYCLE_IGBT_2);
+        set_pwm_duty_chA(PWM_MODULATOR_1, DUTY_CYCLE);
+        set_pwm_duty_chA(PWM_MODULATOR_2, DUTY_CYCLE);
     }
 
     RUN_SCOPE(SCOPE);
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
 
-    PWM_MODULATOR_IGBT_1->ETCLR.bit.INT = 1;
-    PWM_MODULATOR_IGBT_2->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_1->ETCLR.bit.INT = 1;
+    PWM_MODULATOR_2->ETCLR.bit.INT = 1;
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
@@ -637,13 +540,13 @@ static void init_interruptions(void)
 {
     EALLOW;
     PieVectTable.EPWM1_INT =  &isr_init_controller;
-    PieVectTable.EPWM2_INT =  &isr_controller;
+    //PieVectTable.EPWM2_INT =  &isr_controller;
     EDIS;
 
     PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
-    enable_pwm_interrupt(PWM_MODULATOR_IGBT_1);
-    enable_pwm_interrupt(PWM_MODULATOR_IGBT_2);
+    //PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
+    enable_pwm_interrupt(PWM_MODULATOR_1);
+    //enable_pwm_interrupt(PWM_MODULATOR_2);
 
     IER |= M_INT1;
     IER |= M_INT3;
@@ -666,9 +569,9 @@ static void term_interruptions(void)
     /// Clear enables
     IER = 0;
     PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
-    disable_pwm_interrupt(PWM_MODULATOR_IGBT_1);
-    disable_pwm_interrupt(PWM_MODULATOR_IGBT_2);
+    //PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
+    disable_pwm_interrupt(PWM_MODULATOR_1);
+    //disable_pwm_interrupt(PWM_MODULATOR_2);
 
     /// Clear flags
     PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
@@ -687,10 +590,10 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     #endif
     {
-        if(V_DCLINK > MAX_V_DCLINK_TURN_ON)
+        if(V_DCLINK < MIN_V_DCLINK)
         {
-            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Overvoltage);
-            set_hard_interlock(0, DCLink_Overvoltage);
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Undervoltage);
+            set_hard_interlock(0, DCLink_Undervoltage);
         }
 
         #ifdef USE_ITLK
@@ -698,20 +601,24 @@ static void turn_on(uint16_t dummy)
         {
         #endif
 
+            g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
+
             PIN_CLOSE_DCLINK_CONTACTOR;
             DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
 
             if(!PIN_STATUS_DCLINK_CONTACTOR)
             {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Fault);
-                set_hard_interlock(0, Opened_Contactor_Fault);
+                //BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Fault);
+                //set_hard_interlock(0, Opened_Contactor_Fault);
             }
 
             #ifdef USE_ITLK
             else
             {
             #endif
-                g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
+                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+                enable_pwm_output(0);
+                enable_pwm_output(1);
             #ifdef USE_ITLK
             }
         }
@@ -752,14 +659,6 @@ static void reset_interlocks(uint16_t dummy)
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
-        if(PIN_STATUS_DCLINK_CONTACTOR)
-        {
-            PIN_CLOSE_DCLINK_CONTACTOR;
-            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-            PIN_OPEN_DCLINK_CONTACTOR;
-            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
-        }
-
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
     }
 }
@@ -771,29 +670,9 @@ static inline void check_interlocks(void)
 {
     //SET_DEBUG_GPIO1;
 
-    if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
+    if(fabs(I_LOAD) > MAX_ILOAD)
     {
         set_hard_interlock(0, Load_Overcurrent);
-    }
-
-    if(fabs(I_IGBT_1) > MAX_I_IGBT)
-    {
-        set_hard_interlock(0, IGBT_1_Overcurrent);
-    }
-
-    if(fabs(I_IGBT_2) > MAX_I_IGBT)
-    {
-        set_hard_interlock(0, IGBT_2_Overcurrent);
-    }
-
-    if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
-    {
-        set_soft_interlock(0, DCCT_High_Difference);
-    }
-
-    if(fabs(I_IGBTS_DIFF) > MAX_IGBT_DIFF)
-    {
-        set_soft_interlock(0, IGBTs_Current_High_Difference);
     }
 
     if(fabs(V_DCLINK) > MAX_V_DCLINK)
@@ -801,47 +680,9 @@ static inline void check_interlocks(void)
         set_hard_interlock(0, DCLink_Overvoltage);
     }
 
-    if(!PIN_STATUS_DCCT_1_STATUS)
+    if(!PIN_STATUS_EMERGENCY_BUTTON)
     {
-        set_soft_interlock(0, DCCT_1_Fault);
-    }
-
-    if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
-    {
-        set_soft_interlock(0, DCCT_2_Fault);
-    }
-
-    if(PIN_STATUS_DCCT_1_ACTIVE)
-    {
-        if(fabs(I_LOAD) < MIN_I_ACTIVE_DCCT)
-        {
-            set_soft_interlock(0, Load_Feedback_1_Fault);
-        }
-    }
-    else
-    {
-        if(fabs(I_LOAD) > MAX_I_IDLE_DCCT)
-        {
-            set_soft_interlock(0, Load_Feedback_1_Fault);
-        }
-    }
-
-    if(NUM_DCCTs)
-    {
-        if(PIN_STATUS_DCCT_2_ACTIVE)
-        {
-            if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
-            {
-                set_soft_interlock(0, Load_Feedback_2_Fault);
-            }
-        }
-        else
-        {
-            if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
-            {
-                set_soft_interlock(0, Load_Feedback_2_Fault);
-            }
-        }
+        set_hard_interlock(0, Emergency_Button);
     }
 
     DINT;
@@ -850,31 +691,19 @@ static inline void check_interlocks(void)
     {
         if(PIN_STATUS_DCLINK_CONTACTOR)
         {
-            set_hard_interlock(0, Welded_Contactor_Fault);
+            //set_hard_interlock(0, Welded_Contactor_Fault);
         }
     }
     else
     {
         if(!PIN_STATUS_DCLINK_CONTACTOR)
         {
-            set_hard_interlock(0, Opened_Contactor_Fault);
+            //set_hard_interlock(0, Opened_Contactor_Fault);
         }
 
-        if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
+        if(V_DCLINK < MIN_V_DCLINK)
         {
-            if(V_DCLINK > MIN_V_DCLINK)
-            {
-                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
-                enable_pwm_output(0);
-                enable_pwm_output(1);
-            }
-        }
-        else if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Initializing) /// Power supply ON
-        {
-            if(V_DCLINK < MIN_V_DCLINK)
-            {
-                set_hard_interlock(0, DCLink_Undervoltage);
-            }
+            set_hard_interlock(0, DCLink_Undervoltage);
         }
     }
 
