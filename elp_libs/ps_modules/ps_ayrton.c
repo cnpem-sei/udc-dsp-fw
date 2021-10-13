@@ -94,11 +94,11 @@
  *
  * TODO: Fix ID of digital inputs and output
  */
-#define PIN_OPEN_DCLINK_CONTACTOR       CLEAR_GPDO1;
-#define PIN_CLOSE_DCLINK_CONTACTOR      SET_GPDO1;
+#define PIN_OPEN_DCLINK_CONTACTOR       CLEAR_GPDO2;
+#define PIN_CLOSE_DCLINK_CONTACTOR      SET_GPDO2;
 
-#define PIN_STATUS_DCLINK_CONTACTOR     GET_GPDI5
-#define PIN_STATUS_EMERGENCY_BUTTON     GET_GPDI6
+#define PIN_STATUS_DCLINK_CONTACTOR     GET_GPDI7
+#define PIN_STATUS_EMERGENCY_BUTTON     GET_GPDI5
 
 /**
  * Interlocks defines
@@ -596,33 +596,33 @@ static void turn_on(uint16_t dummy)
             set_hard_interlock(0, DCLink_Undervoltage);
         }
 
-        #ifdef USE_ITLK
-        else
-        {
-        #endif
+//        #ifdef USE_ITLK
+//        else
+//        {
+//        #endif
 
             g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
 
-            PIN_CLOSE_DCLINK_CONTACTOR;
+//            PIN_CLOSE_DCLINK_CONTACTOR;
             DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
 
-            if(!PIN_STATUS_DCLINK_CONTACTOR)
-            {
-                //BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Fault);
-                //set_hard_interlock(0, Opened_Contactor_Fault);
-            }
+//            if(!PIN_STATUS_DCLINK_CONTACTOR)
+//            {
+//                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Fault);
+//                set_hard_interlock(0, Opened_Contactor_Fault);
+//            }
 
-            #ifdef USE_ITLK
-            else
-            {
-            #endif
+//            #ifdef USE_ITLK
+//            else
+//            {
+//            #endif
                 g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
                 enable_pwm_output(0);
                 enable_pwm_output(1);
-            #ifdef USE_ITLK
-            }
-        }
-        #endif
+//            #ifdef USE_ITLK
+//            }
+//        }
+//        #endif
     }
 }
 
@@ -691,19 +691,19 @@ static inline void check_interlocks(void)
     {
         if(PIN_STATUS_DCLINK_CONTACTOR)
         {
-            //set_hard_interlock(0, Welded_Contactor_Fault);
+//            set_hard_interlock(0, Welded_Contactor_Fault);
         }
     }
     else
     {
         if(!PIN_STATUS_DCLINK_CONTACTOR)
         {
-            //set_hard_interlock(0, Opened_Contactor_Fault);
+//            set_hard_interlock(0, Opened_Contactor_Fault);
         }
 
         if(V_DCLINK < MIN_V_DCLINK)
         {
-            set_hard_interlock(0, DCLink_Undervoltage);
+//            set_hard_interlock(0, DCLink_Undervoltage);
         }
     }
 
