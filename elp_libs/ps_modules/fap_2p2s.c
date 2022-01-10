@@ -129,7 +129,24 @@
 #define DUTY_IGBTS_DIFF_MOD_3       g_controller_ctom.net_signals[20].f
 #define DUTY_IGBTS_DIFF_MOD_4       g_controller_ctom.net_signals[21].f
 
-#define DUTY_MEAN_NOTCH_FILTERED    g_controller_ctom.net_signals[22].f
+#define DUTY_CYCLE_IGBT_1_MOD_1_UNFILTERED  g_controller_ctom.net_signals[22].f
+#define DUTY_CYCLE_IGBT_2_MOD_1_UNFILTERED  g_controller_ctom.net_signals[23].f
+#define DUTY_CYCLE_IGBT_1_MOD_2_UNFILTERED  g_controller_ctom.net_signals[24].f
+#define DUTY_CYCLE_IGBT_2_MOD_2_UNFILTERED  g_controller_ctom.net_signals[25].f
+#define DUTY_CYCLE_IGBT_1_MOD_3_UNFILTERED  g_controller_ctom.net_signals[26].f
+#define DUTY_CYCLE_IGBT_2_MOD_3_UNFILTERED  g_controller_ctom.net_signals[27].f
+#define DUTY_CYCLE_IGBT_1_MOD_4_UNFILTERED  g_controller_ctom.net_signals[28].f
+#define DUTY_CYCLE_IGBT_2_MOD_4_UNFILTERED  g_controller_ctom.net_signals[29].f
+
+#define DUTY_CYCLE_IGBT_1_MOD_1     g_controller_ctom.output_signals[0].f
+#define DUTY_CYCLE_IGBT_2_MOD_1     g_controller_ctom.output_signals[1].f
+#define DUTY_CYCLE_IGBT_1_MOD_2     g_controller_ctom.output_signals[2].f
+#define DUTY_CYCLE_IGBT_2_MOD_2     g_controller_ctom.output_signals[3].f
+#define DUTY_CYCLE_IGBT_1_MOD_3     g_controller_ctom.output_signals[4].f
+#define DUTY_CYCLE_IGBT_2_MOD_3     g_controller_ctom.output_signals[5].f
+#define DUTY_CYCLE_IGBT_1_MOD_4     g_controller_ctom.output_signals[6].f
+#define DUTY_CYCLE_IGBT_2_MOD_4     g_controller_ctom.output_signals[7].f
+
 
 /// ARM Net Signals
 #define I_IGBT_1_MOD_1              g_controller_mtoc.net_signals[0].f  // ANI0
@@ -145,15 +162,6 @@
 #define V_DCLINK_MOD_2              g_controller_mtoc.net_signals[9].f  // IIB 2
 #define V_DCLINK_MOD_3              g_controller_mtoc.net_signals[10].f // IIB 3
 #define V_DCLINK_MOD_4              g_controller_mtoc.net_signals[11].f // IIB 4
-
-#define DUTY_CYCLE_IGBT_1_MOD_1     g_controller_ctom.output_signals[0].f
-#define DUTY_CYCLE_IGBT_2_MOD_1     g_controller_ctom.output_signals[1].f
-#define DUTY_CYCLE_IGBT_1_MOD_2     g_controller_ctom.output_signals[2].f
-#define DUTY_CYCLE_IGBT_2_MOD_2     g_controller_ctom.output_signals[3].f
-#define DUTY_CYCLE_IGBT_1_MOD_3     g_controller_ctom.output_signals[4].f
-#define DUTY_CYCLE_IGBT_2_MOD_3     g_controller_ctom.output_signals[5].f
-#define DUTY_CYCLE_IGBT_1_MOD_4     g_controller_ctom.output_signals[6].f
-#define DUTY_CYCLE_IGBT_2_MOD_4     g_controller_ctom.output_signals[7].f
 
 /// Reference
 #define I_LOAD_SETPOINT             g_ipc_ctom.ps_module[0].ps_setpoint
@@ -177,10 +185,6 @@
 #define PI_CONTROLLER_I_LOAD_COEFFS         g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
 #define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
-
-/// 60 Hz notch filter
-#define NOTCH_FILT_60HZ_I_LOAD              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define NOTCH_FILT_60HZ_I_LOAD_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
 /// Arms current share controller
 #define ERROR_I_ARMS_SHARE                  &g_controller_ctom.dsp_modules.dsp_error[1]
@@ -211,6 +215,24 @@
 #define PI_CONTROLLER_I_SHARE_MOD_4_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[5].coeffs.s
 #define KP_I_SHARE_MOD_4                    PI_CONTROLLER_I_SHARE_MOD_4_COEFFS.kp
 #define KI_I_SHARE_MOD_4                    PI_CONTROLLER_I_SHARE_MOD_4_COEFFS.ki
+
+/// 60 Hz notch filters
+#define NOTCH_FILT_60HZ_I_IGBT_1_MOD_1              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define NOTCH_FILT_60HZ_I_IGBT_1_MOD_1_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[0].coeffs.s
+#define NOTCH_FILT_60HZ_I_IGBT_2_MOD_1              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define NOTCH_FILT_60HZ_I_IGBT_2_MOD_1_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+#define NOTCH_FILT_60HZ_I_IGBT_1_MOD_2              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define NOTCH_FILT_60HZ_I_IGBT_1_MOD_2_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+#define NOTCH_FILT_60HZ_I_IGBT_2_MOD_2              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
+#define NOTCH_FILT_60HZ_I_IGBT_2_MOD_2_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+#define NOTCH_FILT_60HZ_I_IGBT_1_MOD_3              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[4]
+#define NOTCH_FILT_60HZ_I_IGBT_1_MOD_3_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[4].coeffs.s
+#define NOTCH_FILT_60HZ_I_IGBT_2_MOD_3              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[5]
+#define NOTCH_FILT_60HZ_I_IGBT_2_MOD_3_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[5].coeffs.s
+#define NOTCH_FILT_60HZ_I_IGBT_1_MOD_4              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[6]
+#define NOTCH_FILT_60HZ_I_IGBT_1_MOD_4_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[6].coeffs.s
+#define NOTCH_FILT_60HZ_I_IGBT_2_MOD_4              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[7]
+#define NOTCH_FILT_60HZ_I_IGBT_2_MOD_4_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[7].coeffs.s
 
 /// PWM modulators
 #define PWM_MODULATOR_IGBT_1_MOD_1          g_pwm_modules.pwm_regs[0]
@@ -576,17 +598,6 @@ static void init_controller(void)
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_MEAN);
 
-    /**
-     *        name:     NOTCH_FILT_60HZ_I_LOAD
-     * description:     60 Hz notch filter
-     *    DP class:     DSP_IIR_2P2Z
-     *          in:     DUTY_MEAN
-     *         out:     DUTY_MEAN_NOTCH_FILTERED
-     */
-
-    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_LOAD, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
-                        FLT_MAX, -FLT_MAX, &DUTY_MEAN, &DUTY_MEAN_NOTCH_FILTERED);
-
     /****************************************************************/
     /** INITIALIZATION OF PARALLEL ARMS CURRENT SHARE CONTROL LOOP **/
     /****************************************************************/
@@ -666,6 +677,106 @@ static void init_controller(void)
                 I_SHARE_CONTROLLER_FREQ_SAMP, PWM_LIM_DUTY_SHARE,
                 -PWM_LIM_DUTY_SHARE, &I_IGBTS_DIFF_MOD_4, &DUTY_IGBTS_DIFF_MOD_4);
 
+    /*******************************************/
+    /** INITIALIZATION OF 60 HZ NOTCH FILTERS **/
+    /*******************************************/
+
+    /**
+     *        name:     NOTCH_FILT_60HZ_I_IGBT_1_MOD_1
+     * description:     60 Hz notch filter
+     *    DP class:     DSP_IIR_2P2Z
+     *          in:     DUTY_CYCLE_IGBT_1_MOD_1_UNFILTERED
+     *         out:     DUTY_CYCLE_IGBT_1_MOD_1
+     */
+
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_1, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+                        FLT_MAX, -FLT_MAX, &DUTY_CYCLE_IGBT_1_MOD_1_UNFILTERED,
+                        &DUTY_CYCLE_IGBT_1_MOD_1);
+
+    /**
+     *        name:     NOTCH_FILT_60HZ_I_IGBT_2_MOD_1
+     * description:     60 Hz notch filter
+     *    DP class:     DSP_IIR_2P2Z
+     *          in:     DUTY_CYCLE_IGBT_2_MOD_1_UNFILTERED
+     *         out:     DUTY_CYCLE_IGBT_2_MOD_1
+     */
+
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_1, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+                        FLT_MAX, -FLT_MAX, &DUTY_CYCLE_IGBT_2_MOD_1_UNFILTERED,
+                        &DUTY_CYCLE_IGBT_2_MOD_1);
+
+    /**
+     *        name:     NOTCH_FILT_60HZ_I_IGBT_1_MOD_2
+     * description:     60 Hz notch filter
+     *    DP class:     DSP_IIR_2P2Z
+     *          in:     DUTY_CYCLE_IGBT_1_MOD_2_UNFILTERED
+     *         out:     DUTY_CYCLE_IGBT_1_MOD_2
+     */
+
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_2, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+                        FLT_MAX, -FLT_MAX, &DUTY_CYCLE_IGBT_1_MOD_2_UNFILTERED,
+                        &DUTY_CYCLE_IGBT_1_MOD_2);
+
+    /**
+     *        name:     NOTCH_FILT_60HZ_I_IGBT_2_MOD_2
+     * description:     60 Hz notch filter
+     *    DP class:     DSP_IIR_2P2Z
+     *          in:     DUTY_CYCLE_IGBT_2_MOD_2_UNFILTERED
+     *         out:     DUTY_CYCLE_IGBT_2_MOD_2
+     */
+
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_2, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+                        FLT_MAX, -FLT_MAX, &DUTY_CYCLE_IGBT_2_MOD_2_UNFILTERED,
+                        &DUTY_CYCLE_IGBT_2_MOD_2);
+
+    /**
+     *        name:     NOTCH_FILT_60HZ_I_IGBT_1_MOD_3
+     * description:     60 Hz notch filter
+     *    DP class:     DSP_IIR_2P2Z
+     *          in:     DUTY_CYCLE_IGBT_1_MOD_3_UNFILTERED
+     *         out:     DUTY_CYCLE_IGBT_1_MOD_3
+     */
+
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_3, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+                        FLT_MAX, -FLT_MAX, &DUTY_CYCLE_IGBT_1_MOD_3_UNFILTERED,
+                        &DUTY_CYCLE_IGBT_1_MOD_3);
+
+    /**
+     *        name:     NOTCH_FILT_60HZ_I_IGBT_2_MOD_3
+     * description:     60 Hz notch filter
+     *    DP class:     DSP_IIR_2P2Z
+     *          in:     DUTY_CYCLE_IGBT_2_MOD_3_UNFILTERED
+     *         out:     DUTY_CYCLE_IGBT_2_MOD_3
+     */
+
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_3, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+                        FLT_MAX, -FLT_MAX, &DUTY_CYCLE_IGBT_2_MOD_3_UNFILTERED,
+                        &DUTY_CYCLE_IGBT_2_MOD_3);
+
+    /**
+     *        name:     NOTCH_FILT_60HZ_I_IGBT_1_MOD_4
+     * description:     60 Hz notch filter
+     *    DP class:     DSP_IIR_2P2Z
+     *          in:     DUTY_CYCLE_IGBT_1_MOD_4_UNFILTERED
+     *         out:     DUTY_CYCLE_IGBT_1_MOD_4
+     */
+
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_4, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+                        FLT_MAX, -FLT_MAX, &DUTY_CYCLE_IGBT_1_MOD_4_UNFILTERED,
+                        &DUTY_CYCLE_IGBT_1_MOD_4);
+
+    /**
+     *        name:     NOTCH_FILT_60HZ_I_IGBT_2_MOD_4
+     * description:     60 Hz notch filter
+     *    DP class:     DSP_IIR_2P2Z
+     *          in:     DUTY_CYCLE_IGBT_2_MOD_4_UNFILTERED
+     *         out:     DUTY_CYCLE_IGBT_2_MOD_4
+     */
+
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_4, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+                        FLT_MAX, -FLT_MAX, &DUTY_CYCLE_IGBT_2_MOD_4_UNFILTERED,
+                        &DUTY_CYCLE_IGBT_2_MOD_4);
+
     /************************************/
     /** INITIALIZATION OF TIME SLICERS **/
     /************************************/
@@ -712,7 +823,6 @@ static void reset_controller(void)
 
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
-    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_LOAD);
 
     reset_dsp_error(ERROR_I_ARMS_SHARE);
     reset_dsp_pi(PI_CONTROLLER_I_ARMS_SHARE);
@@ -721,6 +831,15 @@ static void reset_controller(void)
     reset_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_2);
     reset_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_3);
     reset_dsp_pi(PI_CONTROLLER_I_SHARE_MOD_4);
+
+    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_1);
+    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_1);
+    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_2);
+    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_2);
+    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_3);
+    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_3);
+    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_4);
+    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_4);
 
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
@@ -781,7 +900,7 @@ static interrupt void isr_controller(void)
 
     //CLEAR_DEBUG_GPIO1;
     //SET_DEBUG_GPIO0;
-    //SET_DEBUG_GPIO1;
+    SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -915,9 +1034,6 @@ static interrupt void isr_controller(void)
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
 
-            /// Run 60 Hz notch filters
-            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_LOAD);
-
             /// Arms current share controller
             if(I_ARMS_DIFF_MODE)
             {
@@ -953,14 +1069,24 @@ static interrupt void isr_controller(void)
             END_TIMESLICER(TIMESLICER_I_SHARE_CONTROLLER)
             /*********************************************/
 
-            DUTY_CYCLE_IGBT_1_MOD_1 = DUTY_MEAN_NOTCH_FILTERED - DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_1;
-            DUTY_CYCLE_IGBT_2_MOD_1 = DUTY_MEAN_NOTCH_FILTERED - DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_1;
-            DUTY_CYCLE_IGBT_1_MOD_2 = DUTY_MEAN_NOTCH_FILTERED - DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_2;
-            DUTY_CYCLE_IGBT_2_MOD_2 = DUTY_MEAN_NOTCH_FILTERED - DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_2;
-            DUTY_CYCLE_IGBT_1_MOD_3 = DUTY_MEAN_NOTCH_FILTERED + DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_3;
-            DUTY_CYCLE_IGBT_2_MOD_3 = DUTY_MEAN_NOTCH_FILTERED + DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_3;
-            DUTY_CYCLE_IGBT_1_MOD_4 = DUTY_MEAN_NOTCH_FILTERED + DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_4;
-            DUTY_CYCLE_IGBT_2_MOD_4 = DUTY_MEAN_NOTCH_FILTERED + DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_4;
+            DUTY_CYCLE_IGBT_1_MOD_1_UNFILTERED = DUTY_MEAN - DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_1;
+            DUTY_CYCLE_IGBT_2_MOD_1_UNFILTERED = DUTY_MEAN - DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_1;
+            DUTY_CYCLE_IGBT_1_MOD_2_UNFILTERED = DUTY_MEAN - DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_2;
+            DUTY_CYCLE_IGBT_2_MOD_2_UNFILTERED = DUTY_MEAN - DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_2;
+            DUTY_CYCLE_IGBT_1_MOD_3_UNFILTERED = DUTY_MEAN + DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_3;
+            DUTY_CYCLE_IGBT_2_MOD_3_UNFILTERED = DUTY_MEAN + DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_3;
+            DUTY_CYCLE_IGBT_1_MOD_4_UNFILTERED = DUTY_MEAN + DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_4;
+            DUTY_CYCLE_IGBT_2_MOD_4_UNFILTERED = DUTY_MEAN + DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_4;
+
+            /// Run 60 Hz notch filters
+            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_1);
+            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_1);
+            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_2);
+            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_2);
+            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_3);
+            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_3);
+            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_1_MOD_4);
+            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_IGBT_2_MOD_4);
 
             SATURATE(DUTY_CYCLE_IGBT_1_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
             SATURATE(DUTY_CYCLE_IGBT_2_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
@@ -991,7 +1117,7 @@ static interrupt void isr_controller(void)
 
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    //CLEAR_DEBUG_GPIO1;
+    CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -1226,7 +1352,7 @@ static void reset_interlocks(uint16_t dummy)
  */
 static inline void check_interlocks(void)
 {
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     if(fabs(I_LOAD_MEAN) > MAX_I_LOAD)
     {
@@ -1456,7 +1582,7 @@ static inline void check_interlocks(void)
     //CLEAR_DEBUG_GPIO1;
     //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 
     #ifdef USE_ITLK
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
