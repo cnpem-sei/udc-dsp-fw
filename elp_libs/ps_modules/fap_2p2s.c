@@ -93,6 +93,8 @@
 
 #define MAX_V_DCLINK_TURN_ON                    ANALOG_VARS_MAX[14]
 
+#define NF_ALPHA                                ANALOG_VARS_MAX[15]
+
 /**
  * Controller defines
  */
@@ -126,6 +128,8 @@
 #define DUTY_IGBTS_DIFF_MOD_2       g_controller_ctom.net_signals[19].f
 #define DUTY_IGBTS_DIFF_MOD_3       g_controller_ctom.net_signals[20].f
 #define DUTY_IGBTS_DIFF_MOD_4       g_controller_ctom.net_signals[21].f
+
+#define DUTY_MEAN_NOTCH_FILTERED    g_controller_ctom.net_signals[22].f
 
 /// ARM Net Signals
 #define I_IGBT_1_MOD_1              g_controller_mtoc.net_signals[0].f  // ANI0
@@ -173,6 +177,10 @@
 #define PI_CONTROLLER_I_LOAD_COEFFS         g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
 #define KP_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                           PI_CONTROLLER_I_LOAD_COEFFS.ki
+
+/// 60 Hz notch filter
+#define NOTCH_FILT_60HZ_I_LOAD              &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define NOTCH_FILT_60HZ_I_LOAD_COEFFS       g_controller_ctom.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
 /// Arms current share controller
 #define ERROR_I_ARMS_SHARE                  &g_controller_ctom.dsp_modules.dsp_error[1]
@@ -568,6 +576,17 @@ static void init_controller(void)
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
                 PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &DUTY_MEAN);
 
+    /**
+     *        name:     NOTCH_FILT_60HZ_I_LOAD
+     * description:     60 Hz notch filter
+     *    DP class:     DSP_IIR_2P2Z
+     *          in:     DUTY_MEAN
+     *         out:     DUTY_MEAN_NOTCH_FILTERED
+     */
+
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_LOAD, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+                        FLT_MAX, -FLT_MAX, &DUTY_MEAN, &DUTY_MEAN_NOTCH_FILTERED);
+
     /****************************************************************/
     /** INITIALIZATION OF PARALLEL ARMS CURRENT SHARE CONTROL LOOP **/
     /****************************************************************/
@@ -693,6 +712,7 @@ static void reset_controller(void)
 
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
+    reset_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_LOAD);
 
     reset_dsp_error(ERROR_I_ARMS_SHARE);
     reset_dsp_pi(PI_CONTROLLER_I_ARMS_SHARE);
@@ -796,6 +816,29 @@ static interrupt void isr_controller(void)
     temp[3] *= HRADCs_Info.HRADC_boards[3].gain * decimation_coeff;
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
+    I_LOAD_1 = temp[0];
+    I_LOAD_2 = temp[1];
+    I_ARM_1 = temp[2];
+    I_ARM_2 = temp[3];
+
+    I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
+
+    switch((uint16_t) NUM_DCCTs)
+    {
+        case 0:
+        case 1:
+        {
+            I_LOAD_MEAN = temp[(uint16_t) NUM_DCCTs];
+            break;
+        }
+        default:
+        {
+            I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
+            break;
+        }
+    }
+
+/*
     if(NUM_DCCTs)
     {
         I_LOAD_1 = temp[0];
@@ -815,6 +858,7 @@ static interrupt void isr_controller(void)
         I_LOAD_MEAN = I_LOAD_1;
         I_LOAD_DIFF = 0;
     }
+*/
 
     /// Check whether power supply is ON
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
@@ -871,6 +915,9 @@ static interrupt void isr_controller(void)
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
 
+            /// Run 60 Hz notch filters
+            run_dsp_iir_2p2z(NOTCH_FILT_60HZ_I_LOAD);
+
             /// Arms current share controller
             if(I_ARMS_DIFF_MODE)
             {
@@ -906,14 +953,14 @@ static interrupt void isr_controller(void)
             END_TIMESLICER(TIMESLICER_I_SHARE_CONTROLLER)
             /*********************************************/
 
-            DUTY_CYCLE_IGBT_1_MOD_1 = DUTY_MEAN - DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_1;
-            DUTY_CYCLE_IGBT_2_MOD_1 = DUTY_MEAN - DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_1;
-            DUTY_CYCLE_IGBT_1_MOD_2 = DUTY_MEAN - DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_2;
-            DUTY_CYCLE_IGBT_2_MOD_2 = DUTY_MEAN - DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_2;
-            DUTY_CYCLE_IGBT_1_MOD_3 = DUTY_MEAN + DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_3;
-            DUTY_CYCLE_IGBT_2_MOD_3 = DUTY_MEAN + DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_3;
-            DUTY_CYCLE_IGBT_1_MOD_4 = DUTY_MEAN + DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_4;
-            DUTY_CYCLE_IGBT_2_MOD_4 = DUTY_MEAN + DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_4;
+            DUTY_CYCLE_IGBT_1_MOD_1 = DUTY_MEAN_NOTCH_FILTERED - DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_1;
+            DUTY_CYCLE_IGBT_2_MOD_1 = DUTY_MEAN_NOTCH_FILTERED - DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_1;
+            DUTY_CYCLE_IGBT_1_MOD_2 = DUTY_MEAN_NOTCH_FILTERED - DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_2;
+            DUTY_CYCLE_IGBT_2_MOD_2 = DUTY_MEAN_NOTCH_FILTERED - DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_2;
+            DUTY_CYCLE_IGBT_1_MOD_3 = DUTY_MEAN_NOTCH_FILTERED + DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_3;
+            DUTY_CYCLE_IGBT_2_MOD_3 = DUTY_MEAN_NOTCH_FILTERED + DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_3;
+            DUTY_CYCLE_IGBT_1_MOD_4 = DUTY_MEAN_NOTCH_FILTERED + DUTY_ARMS_DIFF - DUTY_IGBTS_DIFF_MOD_4;
+            DUTY_CYCLE_IGBT_2_MOD_4 = DUTY_MEAN_NOTCH_FILTERED + DUTY_ARMS_DIFF + DUTY_IGBTS_DIFF_MOD_4;
 
             SATURATE(DUTY_CYCLE_IGBT_1_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
             SATURATE(DUTY_CYCLE_IGBT_2_MOD_1, PWM_MAX_DUTY, PWM_MIN_DUTY);
@@ -1271,7 +1318,8 @@ static inline void check_interlocks(void)
         set_soft_interlock(0, DCCT_1_Fault);
     }
 
-    if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
+    //if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
+    if(!PIN_STATUS_DCCT_2_STATUS)
     {
         set_soft_interlock(0, DCCT_2_Fault);
     }
@@ -1291,23 +1339,23 @@ static inline void check_interlocks(void)
         }
     }
 
-    if(NUM_DCCTs)
+    //if(NUM_DCCTs)
+    //{
+    if(PIN_STATUS_DCCT_2_ACTIVE)
     {
-        if(PIN_STATUS_DCCT_2_ACTIVE)
+        if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
         {
-            if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
-            {
-                set_soft_interlock(0, Load_Feedback_2_Fault);
-            }
-        }
-        else
-        {
-            if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
-            {
-                set_soft_interlock(0, Load_Feedback_2_Fault);
-            }
+            set_soft_interlock(0, Load_Feedback_2_Fault);
         }
     }
+    else
+    {
+        if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
+        {
+            set_soft_interlock(0, Load_Feedback_2_Fault);
+        }
+    }
+    //}
 
     DINT;
 
