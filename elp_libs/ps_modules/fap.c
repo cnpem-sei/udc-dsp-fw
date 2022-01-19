@@ -528,7 +528,7 @@ static void init_controller(void)
      *         out:     DUTY_CYCLE_IGBT_2
      */
 
-    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_1, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
+    init_dsp_notch_2p2z(NOTCH_FILT_60HZ_I_IGBT_2, NF_ALPHA, 60.0, ISR_CONTROL_FREQ,
                         FLT_MAX, -FLT_MAX, &DUTY_CYCLE_IGBT_2_UNFILTERED,
                         &DUTY_CYCLE_IGBT_2);
 
