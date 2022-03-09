@@ -161,6 +161,9 @@
 #define PIN_STATUS_DCCT_2_STATUS        GET_GPDI11
 #define PIN_STATUS_DCCT_2_ACTIVE        GET_GPDI12
 
+#define PIN_SET_UDC_INTERLOCK           CLEAR_GPDO2
+#define PIN_CLEAR_UDC_INTERLOCK         SET_GPDO2
+
 /**
  * Interlocks defines
  */
@@ -307,6 +310,9 @@ static void init_peripherals_drivers(void)
     InitCpuTimers();
     ConfigCpuTimer(&CpuTimer0, C28_FREQ_MHZ, 1000000);
     CpuTimer0Regs.TCR.bit.TIE = 0;
+
+    /// Initialize interlock pin
+    PIN_CLEAR_UDC_INTERLOCK;
 }
 
 static void term_peripherals_drivers(void)
@@ -883,6 +889,7 @@ static void reset_interlocks(uint16_t dummy)
         }
 
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
+        PIN_CLEAR_UDC_INTERLOCK;
     }
 }
 
@@ -1006,4 +1013,13 @@ static inline void check_interlocks(void)
     //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
     //CLEAR_DEBUG_GPIO1;
+
+    #ifdef USE_ITLK
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+    #else
+    if(g_ipc_ctom.ps_module[0].ps_hard_interlock || g_ipc_ctom.ps_module[0].ps_soft_interlock)
+    #endif
+    {
+        PIN_SET_UDC_INTERLOCK;
+    }
 }
