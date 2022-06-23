@@ -630,7 +630,7 @@ static interrupt void isr_controller(void)
     static uint16_t i, flag_siggen;
     static float temp[4];
 
-    SET_DEBUG_GPIO0;
+    //SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     /// Get HRADC samples
@@ -743,8 +743,12 @@ static interrupt void isr_controller(void)
 
     flag_siggen = 0;
 
+    /// Re-enable XINT2 (external interrupt 2) interrupt used for sync pulses
+    PieCtrlRegs.PIEIER1.bit.INTx5 = 1;
+
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
+    //CLEAR_DEBUG_GPIO0;
     CLEAR_DEBUG_GPIO1;
 }
 
