@@ -66,6 +66,7 @@ void init_ipc(void)
     g_ipc_ctom.error_mtoc = No_Error_MtoC;
     g_ipc_ctom.counter_set_slowref =  0;
     g_ipc_ctom.counter_sync_pulse =  0;
+    g_ipc_ctom.counter_sync_period =  0;
 
     EALLOW;
 

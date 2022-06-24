@@ -206,6 +206,11 @@ typedef enum
     Heatsink_Overtemperature
 } soft_interlocks_t;
 
+typedef enum
+{
+    High_Sync_Input_Frequency = 0x00000001
+} alarms_t;
+
 #define NUM_HARD_INTERLOCKS             MOSFETs_Driver_Fault + 1
 #define NUM_SOFT_INTERLOCKS             Heatsink_Overtemperature + 1
 
@@ -248,6 +253,8 @@ static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
                                                *p_pwm_module, float duty_pu);
 static inline uint16_t insert_buffer_inline(buf_t *p_buf, float data);
 
+#define MIN_NUM_ISR_CONTROLLER_SYNC     100
+static uint32_t counter_isr_ctrl_4_sync = MIN_NUM_ISR_CONTROLLER_SYNC;
 
 /**
  * Main function for this power supply module
@@ -743,6 +750,26 @@ static interrupt void isr_controller(void)
 
     flag_siggen = 0;
 
+    if(PieCtrlRegs.PIEIER1.bit.INTx5 == 0)
+    {
+        if(counter_isr_ctrl_4_sync < MIN_NUM_ISR_CONTROLLER_SYNC)
+        {
+            /// Loop through active power supplies to set alarm
+           for(i = 0; i < NUM_MAX_PS_MODULES; i++)
+           {
+               if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
+               {
+                   g_ipc_ctom.ps_module[i].ps_alarms = High_Sync_Input_Frequency;
+               }
+           }
+        }
+
+        g_ipc_ctom.counter_sync_period = counter_isr_ctrl_4_sync;
+        counter_isr_ctrl_4_sync = 0;
+    }
+    counter_isr_ctrl_4_sync++;
+
+
     /// Re-enable XINT2 (external interrupt 2) interrupt used for sync pulses
     PieCtrlRegs.PIEIER1.bit.INTx5 = 1;
 
@@ -920,6 +947,7 @@ static void reset_interlocks(uint16_t id)
 {
     g_ipc_ctom.ps_module[id].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[id].ps_soft_interlock = 0;
+    g_ipc_ctom.ps_module[id].ps_alarms = 0;
 
     if(g_ipc_ctom.ps_module[id].ps_status.bit.state < Initializing)
     {
