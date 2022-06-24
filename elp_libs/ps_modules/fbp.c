@@ -18,9 +18,7 @@
  * @date 23/11/2017
  *
  */
-/**
- * Control paramters
- */
+
 #include <float.h>
 
 #include "boards/udc_c28.h"
@@ -42,11 +40,11 @@
 #define MIN_DCLINK(id)          ANALOG_VARS_MIN[8+id]
 #define MAX_DCLINK(id)          ANALOG_VARS_MAX[8+id]
 #define MAX_TEMP(id)            ANALOG_VARS_MAX[12+id]
+
 /**
  * All power supplies defines
  *
  */
-
 #define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/ISR_CONTROL_FREQ)
 
 #define SIGGEN                  SIGGEN_CTOM
@@ -216,7 +214,6 @@ typedef enum
 
 #define ISR_FREQ_INTERLOCK_TIMEBASE     5000.0
 
-
 /**
  * Private functions
  */
@@ -252,9 +249,6 @@ static inline void run_dsp_pi_inline(dsp_pi_t *p_pi);
 static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
                                                *p_pwm_module, float duty_pu);
 static inline uint16_t insert_buffer_inline(buf_t *p_buf, float data);
-
-#define MIN_NUM_ISR_CONTROLLER_SYNC     100
-static uint32_t counter_isr_ctrl_4_sync = MIN_NUM_ISR_CONTROLLER_SYNC;
 
 /**
  * Main function for this power supply module
@@ -752,7 +746,7 @@ static interrupt void isr_controller(void)
 
     if(PieCtrlRegs.PIEIER1.bit.INTx5 == 0)
     {
-        if(counter_isr_ctrl_4_sync < MIN_NUM_ISR_CONTROLLER_SYNC)
+        if(counter_sync_period < MIN_NUM_ISR_CONTROLLER_SYNC)
         {
             /// Loop through active power supplies to set alarm
            for(i = 0; i < NUM_MAX_PS_MODULES; i++)
@@ -764,11 +758,10 @@ static interrupt void isr_controller(void)
            }
         }
 
-        g_ipc_ctom.counter_sync_period = counter_isr_ctrl_4_sync;
-        counter_isr_ctrl_4_sync = 0;
+        g_ipc_ctom.period_sync_pulse = counter_sync_period;
+        counter_sync_period = 0;
     }
-    counter_isr_ctrl_4_sync++;
-
+    counter_sync_period++;
 
     /// Re-enable XINT2 (external interrupt 2) interrupt used for sync pulses
     PieCtrlRegs.PIEIER1.bit.INTx5 = 1;

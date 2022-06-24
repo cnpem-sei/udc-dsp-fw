@@ -35,6 +35,8 @@ volatile float g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM];
 volatile ipc_ctom_t g_ipc_ctom;
 volatile ipc_mtoc_t g_ipc_mtoc;
 
+volatile uint32_t counter_sync_period = MIN_NUM_ISR_CONTROLLER_SYNC;
+
 #pragma CODE_SECTION(isr_ipc_sync_pulse,"ramfuncs");
 
 /**
@@ -66,7 +68,7 @@ void init_ipc(void)
     g_ipc_ctom.error_mtoc = No_Error_MtoC;
     g_ipc_ctom.counter_set_slowref =  0;
     g_ipc_ctom.counter_sync_pulse =  0;
-    g_ipc_ctom.counter_sync_period =  0;
+    g_ipc_ctom.period_sync_pulse =  0;
 
     EALLOW;
 
