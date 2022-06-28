@@ -158,6 +158,11 @@ typedef enum
     Load_Feedback_Fault,
 } soft_interlocks_t;
 
+typedef enum
+{
+    High_Sync_Input_Frequency = 0x00000001
+} alarms_t;
+
 #define NUM_HARD_INTERLOCKS     IIB_Itlk + 1
 #define NUM_SOFT_INTERLOCKS     Load_Feedback_Fault + 1
 
@@ -633,9 +638,30 @@ static interrupt void isr_controller(void)
 
     SET_INTERLOCKS_TIMEBASE_FLAG(0);
 
+    /**
+     * Re-enable external interrupt 2 (XINT2) interrupts to allow sync pulses to
+     * be handled once per isr_controller
+     */
+    if(PieCtrlRegs.PIEIER1.bit.INTx5 == 0)
+    {
+        /// Set alarm if counter is below limit when receiving new sync pulse
+        if(counter_sync_period < MIN_NUM_ISR_CONTROLLER_SYNC)
+        {
+            g_ipc_ctom.ps_module[0].ps_alarms = High_Sync_Input_Frequency;
+        }
+
+        /// Store counter value on BSMP variable
+        g_ipc_ctom.period_sync_pulse = counter_sync_period;
+        counter_sync_period = 0;
+    }
+    counter_sync_period++;
+
+    /// Re-enable XINT2 (external interrupt 2) interrupt used for sync pulses
+    PieCtrlRegs.PIEIER1.bit.INTx5 = 1;
+
+    /// Clear interrupt flags for PWM interrupts
     PWM_MODULATOR_Q1->ETCLR.bit.INT = 1;
     PWM_MODULATOR_Q2->ETCLR.bit.INT = 1;
-
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
     CLEAR_DEBUG_GPIO1;
@@ -743,6 +769,7 @@ static void reset_interlocks(uint16_t dummy)
 {
     g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
     g_ipc_ctom.ps_module[0].ps_soft_interlock = 0;
+    g_ipc_ctom.ps_module[0].ps_alarms = 0;
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {

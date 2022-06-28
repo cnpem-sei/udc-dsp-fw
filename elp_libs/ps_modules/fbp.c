@@ -43,7 +43,6 @@
 
 /**
  * All power supplies defines
- *
  */
 #define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/ISR_CONTROL_FREQ)
 
@@ -628,7 +627,7 @@ static interrupt void isr_init_controller(void)
  */
 static interrupt void isr_controller(void)
 {
-    static uint16_t i, flag_siggen;
+    static uint16_t i;
     static float temp[4];
 
     //SET_DEBUG_GPIO0;
@@ -724,8 +723,6 @@ static interrupt void isr_controller(void)
                                      g_controller_ctom.output_signals[i].f);
             }
         }
-
-        /// TODO: save on buffers
     }
 
     RUN_SCOPE(PS1_SCOPE);
@@ -733,19 +730,13 @@ static interrupt void isr_controller(void)
     RUN_SCOPE(PS3_SCOPE);
     RUN_SCOPE(PS4_SCOPE);
 
-    PS1_PWM_MODULATOR->ETCLR.bit.INT = 1;
-    PS1_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
-    PS2_PWM_MODULATOR->ETCLR.bit.INT = 1;
-    PS2_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
-    PS3_PWM_MODULATOR->ETCLR.bit.INT = 1;
-    PS3_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
-    PS4_PWM_MODULATOR->ETCLR.bit.INT = 1;
-    PS4_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
-
-    flag_siggen = 0;
-
+    /**
+     * Re-enable external interrupt 2 (XINT2) interrupts to allow sync pulses to
+     * be handled once per isr_controller
+     */
     if(PieCtrlRegs.PIEIER1.bit.INTx5 == 0)
     {
+        /// Set alarm if counter is below limit when receiving new sync pulse
         if(counter_sync_period < MIN_NUM_ISR_CONTROLLER_SYNC)
         {
             /// Loop through active power supplies to set alarm
@@ -758,14 +749,25 @@ static interrupt void isr_controller(void)
            }
         }
 
+        /// Store counter value on BSMP variable
         g_ipc_ctom.period_sync_pulse = counter_sync_period;
         counter_sync_period = 0;
     }
+
     counter_sync_period++;
 
     /// Re-enable XINT2 (external interrupt 2) interrupt used for sync pulses
     PieCtrlRegs.PIEIER1.bit.INTx5 = 1;
 
+    /// Clear interrupt flags for PWM interrupts
+    PS1_PWM_MODULATOR->ETCLR.bit.INT = 1;
+    PS1_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
+    PS2_PWM_MODULATOR->ETCLR.bit.INT = 1;
+    PS2_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
+    PS3_PWM_MODULATOR->ETCLR.bit.INT = 1;
+    PS3_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
+    PS4_PWM_MODULATOR->ETCLR.bit.INT = 1;
+    PS4_PWM_MODULATOR_NEG->ETCLR.bit.INT = 1;
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
     //CLEAR_DEBUG_GPIO0;

@@ -127,8 +127,10 @@ void init_ipc(void)
 
     /* Enable interrupts */
 
-    /* XINT2 is now only enabled by isr_controller to keep one ISR for sync
-     * pulses for each controller period*/
+    /**
+     * XINT2 is now only enabled by isr_controller to keep one ISR for sync
+     * pulses for each controller period
+     * */
     //PieCtrlRegs.PIEIER1.bit.INTx5  = 1;                 // XINT2
 
     PieCtrlRegs.PIEIER11.bit.INTx1 = 1;                 // MTOCIPCINT1
@@ -527,7 +529,7 @@ interrupt void isr_ipc_sync_pulse(void)
         SCOPE_CTOM[3].buffer.status = Postmortem;
     }
 
-    /*
+    /**
      * Safe procedure to disable the XINT2 PIEIER bit and preserve associated
      * PIEIFR flags, as described in section 1.5.4.3.2 from F28M36 Technical
      * Reference Manual (SPRUHE8E)
