@@ -36,7 +36,8 @@
 /**
  * Synchronization defines
  */
-#define MIN_NUM_ISR_CONTROLLER_SYNC     100
+#define MIN_NUM_ISR_CONTROLLER_SYNC     1000
+#define MAX_NUM_ISR_CONTROLLER_SYNC     4294967295  // 0xFFFFFFFF
 
 /**
  * Shared resources defines

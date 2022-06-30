@@ -80,11 +80,6 @@
 							</tool>
 							<tool id="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.1962321050" name="C2000 Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex">
 								<option id="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.TOOL_ENABLE.1986016509" name="Enable tool" superClass="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.TOOL_ENABLE" value="true" valueType="boolean"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.BYTE.2145106146" name="Output as bytes rather than target addressing (--byte, -byte)" superClass="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.BYTE" value="false" valueType="boolean"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.OUTPUT_FORMAT.1273887631" name="Output format" superClass="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.OUTPUT_FORMAT" value="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.OUTPUT_FORMAT.TI_TXT" valueType="enumerated"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.SWAPBYTES.87295657" name="Swap output bytes for 16byte memwidth (--swapbytes, --sb)" superClass="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.SWAPBYTES" value="false" valueType="boolean"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.ZERO.541786163" name="Zero based addressing (--zero, -zero, -z)" superClass="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.ZERO" value="false" valueType="boolean"/>
-								<option id="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.LOAD_IMAGE:ENDIAN.2020740811" name="Specify the object file endianness (--load_image:endian)" superClass="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.LOAD_IMAGE:ENDIAN" value="com.ti.ccstudio.buildDefinitions.C2000_20.12.hex.LOAD_IMAGE:ENDIAN._none" valueType="enumerated"/>
 							</tool>
 						</toolChain>
 					</folderInfo>

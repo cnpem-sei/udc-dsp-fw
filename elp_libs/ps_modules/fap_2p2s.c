@@ -753,6 +753,18 @@ static interrupt void isr_init_controller(void)
     PWM_MODULATOR_IGBT_2_MOD_1->ETSEL.bit.INTSEL = ET_CTR_ZERO;
     PWM_MODULATOR_IGBT_2_MOD_1->ETCLR.bit.INT = 1;
 
+    /**
+     *  Enable XINT2 (external interrupt 2) interrupt used for sync pulses for
+     *  the first time
+     *
+     *  TODO: include here mechanism described in section 1.5.4.3 from F28M36
+     *  Technical Reference Manual (SPRUHE8E) to clear flag before enabling, to
+     *  avoid false alarms that may occur when sync pulses are received during
+     *  firmware initialization.
+     */
+    PieCtrlRegs.PIEIER1.bit.INTx5 = 1;
+
+    /// Clear interrupt flag for PWM interrupts group
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
 
@@ -766,7 +778,7 @@ static interrupt void isr_controller(void)
 
     //CLEAR_DEBUG_GPIO1;
     //SET_DEBUG_GPIO0;
-    //SET_DEBUG_GPIO1;
+    SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
     temp[1] = 0.0;
@@ -960,7 +972,16 @@ static interrupt void isr_controller(void)
         g_ipc_ctom.period_sync_pulse = counter_sync_period;
         counter_sync_period = 0;
     }
+
     counter_sync_period++;
+
+    /**
+     * Reset counter to threshold to avoid false alarms during its overflow
+     */
+    if(counter_sync_period == MAX_NUM_ISR_CONTROLLER_SYNC)
+    {
+        counter_sync_period = MIN_NUM_ISR_CONTROLLER_SYNC;
+    }
 
     /// Re-enable XINT2 (external interrupt 2) interrupt used for sync pulses
     PieCtrlRegs.PIEIER1.bit.INTx5 = 1;
@@ -970,7 +991,7 @@ static interrupt void isr_controller(void)
     PWM_MODULATOR_IGBT_2_MOD_1->ETCLR.bit.INT = 1;
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
-    //CLEAR_DEBUG_GPIO1;
+    CLEAR_DEBUG_GPIO1;
 }
 
 /**
@@ -1206,7 +1227,7 @@ static void reset_interlocks(uint16_t dummy)
  */
 static inline void check_interlocks(void)
 {
-    SET_DEBUG_GPIO1;
+    //SET_DEBUG_GPIO1;
 
     if(fabs(I_LOAD_MEAN) > MAX_I_LOAD)
     {
@@ -1435,7 +1456,7 @@ static inline void check_interlocks(void)
     //CLEAR_DEBUG_GPIO1;
     //SET_DEBUG_GPIO1;
     run_interlocks_debouncing(0);
-    CLEAR_DEBUG_GPIO1;
+    //CLEAR_DEBUG_GPIO1;
 
     #ifdef USE_ITLK
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)

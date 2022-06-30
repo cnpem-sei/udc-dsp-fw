@@ -590,6 +590,18 @@ static interrupt void isr_init_controller(void)
     PWM_MODULATOR_IGBT_2->ETSEL.bit.INTSEL = ET_CTR_ZERO;
     PWM_MODULATOR_IGBT_2->ETCLR.bit.INT = 1;
 
+    /**
+     *  Enable XINT2 (external interrupt 2) interrupt used for sync pulses for
+     *  the first time
+     *
+     *  TODO: include here mechanism described in section 1.5.4.3 from F28M36
+     *  Technical Reference Manual (SPRUHE8E) to clear flag before enabling, to
+     *  avoid false alarms that may occur when sync pulses are received during
+     *  firmware initialization.
+     */
+    PieCtrlRegs.PIEIER1.bit.INTx5 = 1;
+
+    /// Clear interrupt flag for PWM interrupts group
     PieCtrlRegs.PIEACK.all |= M_INT3;
 }
 
@@ -603,7 +615,7 @@ static interrupt void isr_controller(void)
 
 
     //CLEAR_DEBUG_GPIO1;
-    SET_DEBUG_GPIO0;
+    //SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
     temp[0] = 0.0;
@@ -767,6 +779,14 @@ static interrupt void isr_controller(void)
     }
 
     counter_sync_period++;
+
+    /**
+     * Reset counter to threshold to avoid false alarms during its overflow
+     */
+    if(counter_sync_period == MAX_NUM_ISR_CONTROLLER_SYNC)
+    {
+        counter_sync_period = MIN_NUM_ISR_CONTROLLER_SYNC;
+    }
 
     /// Re-enable XINT2 (external interrupt 2) interrupt used for sync pulses
     PieCtrlRegs.PIEIER1.bit.INTx5 = 1;
