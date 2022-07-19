@@ -43,6 +43,7 @@
 #include "ps_modules/fap_4p.h"
 #include "ps_modules/fac_dcdc_ema.h"
 #include "ps_modules/fap_2p2s.h"
+#include "ps_modules/resonant_swls.h"
 #include "ps_modules/uninitialized.h"
 
 /**
@@ -174,8 +175,7 @@ void main(void)
 
             case FAC_DCDC_EMA:
             {
-                main_fac_dcdc_ema();
-                //main_uninitialized();
+                //main_fac_dcdc_ema();
                 break;
             }
 
@@ -211,6 +211,13 @@ void main(void)
                 main_uninitialized();
                 break;
             }
+
+            case RESONANT_SWLS:
+            {
+                main_resonant_swls();
+                break;
+            }
+
             default:
             {
                 break;

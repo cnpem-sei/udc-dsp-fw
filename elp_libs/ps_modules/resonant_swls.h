@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2018 by LNLS - Brazilian Synchrotron Light Laboratory
+ * Copyright (C) 2022 by LNLS - Brazilian Synchrotron Light Laboratory
  *
  * Redistribution, modification or use of this software in source or binary
  * forms is permitted as long as the files maintain this copyright. LNLS and
@@ -9,16 +9,21 @@
  *****************************************************************************/
 
 /**
- * @file version.c
- * @brief Firmware version module
- * 
- * This module contains information about current build version of UDC C28 core.
+ * @file resonant_swls.h
+ * @brief Resonant converter module for SWLS
+ *
+ * Module for control of resonant convert power supply designed for the
+ * superconducting Wavelength Shifter. It implements the controller for load
+ * current.
  *
  * @author gabriel.brunheira
- * @date 08/02/2018
+ * @date 18/07/2022
  *
  */
 
-#include "version.h"
+#ifndef RESONANT_SWLS_H_
+#define RESONANT_SWLS_H_
 
-const char * udc_c28_version = "V0.44r2022-07-19";
+extern void main_resonant_swls(void);
+
+#endif /* RESONANT_SWLS_H_ */
