@@ -40,6 +40,7 @@
  * Analog variables parameters
  */
 #define MAX_ILOAD               ANALOG_VARS_MAX[0]
+#define T_ON_US                 ANALOG_VARS_MAX[1] /// Fixed turn-on time for discontinuous-conduction mode operation [us]
 
 #define MAX_V_DCLINK            ANALOG_VARS_MAX[1]
 #define MIN_V_DCLINK            ANALOG_VARS_MIN[1]
@@ -50,9 +51,6 @@
 /**
  * Controller defines
  */
-
-/// Fixed duty-cycle for frequency modulation of resonant converter
-#define DUTY_CYCLE              0.25
 
 /// DSP Net Signals
 #define I_LOAD                  g_controller_ctom.net_signals[0].f  // HRADC0
@@ -164,6 +162,7 @@ void main_resonant_swls(void)
 static void init_peripherals_drivers(void)
 {
     uint16_t i;
+    float duty_cycle;
 
     /// Initialization of HRADC boards
     stop_DMA();
@@ -206,6 +205,16 @@ static void init_peripherals_drivers(void)
                     PWM_ChB_Independent, PWM_DEAD_TIME);
     init_pwm_module(PWM_MODULATOR_2, PWM_FREQ, 1, PWM_Sync_Slave, 180,
                     PWM_ChB_Independent, PWM_DEAD_TIME);
+
+    /// Fix turn-on time
+    duty_cycle = T_ON_US*1e-6*PWM_FREQ;
+
+    set_pwm_duty_chA(PWM_MODULATOR_1, duty_cycle);
+    set_pwm_duty_chA(PWM_MODULATOR_2, duty_cycle);
+
+    /// Set time-base period register on shadow mode (update on next cycle)
+    PWM_MODULATOR_1->TBCTL.bit.PRDLD = TB_SHADOW;
+    PWM_MODULATOR_2->TBCTL.bit.PRDLD = TB_SHADOW;
 
     InitEPwm1Gpio();
     InitEPwm2Gpio();
@@ -344,13 +353,16 @@ static void init_controller(void)
  */
 static void reset_controller(void)
 {
-    set_pwm_duty_chA(PWM_MODULATOR_1, 0.0);
-    set_pwm_duty_chA(PWM_MODULATOR_2, 0.0);
+    set_pwm_freq(PWM_MODULATOR_1, PWM_FREQ);
+    set_pwm_freq(PWM_MODULATOR_2, PWM_FREQ);
+
+    cfg_pwm_sync(PWM_MODULATOR_1, PWM_Sync_Master, 0.0);
+    cfg_pwm_sync(PWM_MODULATOR_2, PWM_Sync_Slave, 180.0);
 
     g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
 
-    I_LOAD_SETPOINT = 0.0;
-    I_LOAD_REFERENCE = 0.0;
+    I_LOAD_SETPOINT = PWM_FREQ;
+    I_LOAD_REFERENCE = PWM_FREQ;
 
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
     reset_dsp_error(ERROR_I_LOAD);
@@ -477,10 +489,14 @@ static interrupt void isr_controller(void)
             }
         }
 
-        FREQ_MODULATED = PWM_FREQ;
+        SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0])
+        FREQ_MODULATED = I_LOAD_REFERENCE;
 
-        set_pwm_duty_chA(PWM_MODULATOR_1, DUTY_CYCLE);
-        set_pwm_duty_chA(PWM_MODULATOR_2, DUTY_CYCLE);
+        set_pwm_freq(PWM_MODULATOR_1, FREQ_MODULATED);
+        set_pwm_freq(PWM_MODULATOR_2, FREQ_MODULATED);
+
+        cfg_pwm_sync(PWM_MODULATOR_1, PWM_Sync_Master, 0.0);
+        cfg_pwm_sync(PWM_MODULATOR_2, PWM_Sync_Slave, 180.0);
     }
 
     RUN_SCOPE(SCOPE);
