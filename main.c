@@ -150,13 +150,15 @@ void main(void)
 
             case FAC_2P4S_ACDC:
             {
-                main_fac_2p4s_acdc();
+                //main_fac_2p4s_acdc();
+                main_uninitialized();
                 break;
             }
 
             case FAC_2P4S_DCDC:
             {
-                main_fac_2p4s_dcdc();
+                //main_fac_2p4s_dcdc();
+                main_uninitialized();
                 break;
             }
 
@@ -174,8 +176,8 @@ void main(void)
 
             case FAC_DCDC_EMA:
             {
-                main_fac_dcdc_ema();
-                //main_uninitialized();
+                //main_fac_dcdc_ema();
+                main_uninitialized();
                 break;
             }
 
@@ -203,6 +205,12 @@ void main(void)
             {
                 //main_fac_2p_dcdc_imas();
                 main_uninitialized();
+                break;
+            }
+
+            case FBP_UFJF:
+            {
+                main_fbp_ufjf();
                 break;
             }
 
