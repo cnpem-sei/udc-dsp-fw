@@ -36,172 +36,108 @@
 /**
  * Analog variables parameters
  */
-#define MAX_ILOAD(id)           ANALOG_VARS_MAX[0+id]
-#define MAX_VLOAD(id)           ANALOG_VARS_MAX[4+id]
-#define MIN_DCLINK(id)          ANALOG_VARS_MIN[8+id]
-#define MAX_DCLINK(id)          ANALOG_VARS_MAX[8+id]
-#define MAX_TEMP(id)            ANALOG_VARS_MAX[12+id]
+#define MAX_ILOAD           ANALOG_VARS_MAX[0]
 
 /**
- * All power supplies defines
+ * Controller defines
  */
-#define DECIMATION_FACTOR       1//(HRADC_FREQ_SAMP/ISR_CONTROL_FREQ)
 
-#define SIGGEN                  SIGGEN_CTOM
-#define SIGGEN_OUTPUT           g_controller_ctom.net_signals[12].f
+/// Reference
+#define DECIMATION_FACTOR               1
 
-#define WFMREF                  g_ipc_ctom.wfmref
-#define WFMREF_OUTPUT           g_controller_ctom.net_signals[13].f
+#define SIGGEN                          SIGGEN_CTOM
+#define SIGGEN_OUTPUT                   g_controller_ctom.net_signals[20].f
+#define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
+#define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
 
-#define PS_SETPOINT(i)          g_ipc_ctom.ps_module[i].ps_setpoint
-#define PS_REFERENCE(i)         g_ipc_ctom.ps_module[i].ps_reference
+#define WFMREF                          g_ipc_ctom.wfmref
+#define WFMREF_OUTPUT                   g_controller_ctom.net_signals[21].f
 
-/**
- * Power supply 1 defines
- */
-#define PS1_ID                          0x0000
+#define I_LOAD_SETPOINT                 g_ipc_ctom.ps_module[0].ps_setpoint
+#define I_LOAD_REFERENCE                g_ipc_ctom.ps_module[0].ps_reference
 
-#define PIN_OPEN_PS1_DCLINK_RELAY       CLEAR_GPDO4;
-#define PIN_CLOSE_PS1_DCLINK_RELAY      SET_GPDO4;
+#define SRLIM_I_LOAD_REFERENCE          &g_controller_ctom.dsp_modules.dsp_srlim[0]
 
-#define PIN_STATUS_PS1_DCLINK_RELAY     GET_GPDI4
-#define PIN_STATUS_PS1_DRIVER_ERROR     GET_GPDI5
-#define PIN_STATUS_PS1_FUSE             GET_GPDI14
+/// DSP Net Signals
+#define I1_LOAD_CURRENT                 g_controller_ctom.net_signals[0].f  // HRADC0
+#define PS2_LOAD_CURRENT                g_controller_ctom.net_signals[1].f  // HRADC1
+#define PS3_LOAD_CURRENT                g_controller_ctom.net_signals[2].f  // HRADC2
+#define I2_LOAD_CURRENT                 g_controller_ctom.net_signals[3].f  // HRADC3
 
-#define PS1_LOAD_CURRENT                g_controller_ctom.net_signals[0].f  // HRADC0
-#define PS1_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[0].f  // ANI2
+#define I1_LOAD_ERROR                   g_controller_ctom.net_signals[4].f
+#define I1_LOAD_ERROR_TO_M11            g_controller_ctom.net_signals[5].f
+#define M11                             g_controller_ctom.net_signals[6].f
+#define I1_LOAD_ERROR_TO_M12            g_controller_ctom.net_signals[7].f
+#define M12                             g_controller_ctom.net_signals[8].f
+
+#define I2_LOAD_ERROR                   g_controller_ctom.net_signals[9].f
+#define I2_LOAD_ERROR_TO_M21            g_controller_ctom.net_signals[10].f
+#define M21                             g_controller_ctom.net_signals[11].f
+#define I2_LOAD_ERROR_TO_M22            g_controller_ctom.net_signals[12].f
+#define M22                             g_controller_ctom.net_signals[13].f
+
+#define DUTY_CYCLE_I1                   g_controller_ctom.output_signals[0].f
+#define DUTY_CYCLE_I2                   g_controller_ctom.output_signals[1].f
+
+/// ARM Net Signals
 #define PS1_LOAD_VOLTAGE                g_controller_mtoc.net_signals[4].f  // ANI6
-#define PS1_TEMPERATURE                 g_controller_mtoc.net_signals[8].f  // I2C Add 0x48
+#define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[5].f  // ANI7
+#define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[6].f  // ANI3
+#define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[7].f  // ANI5
 
-#define PS1_SETPOINT                    g_ipc_ctom.ps_module[0].ps_setpoint
-#define PS1_REFERENCE                   g_ipc_ctom.ps_module[0].ps_reference
+/// I1 load current controller
+#define ERROR_CALCULATOR_I1             &g_controller_ctom.dsp_modules.dsp_error[0]
 
-#define ERROR_CALCULATOR_PS1            &g_controller_ctom.dsp_modules.dsp_error[0]
-#define PI_CONTROLLER_ILOAD_PS1         &g_controller_ctom.dsp_modules.dsp_pi[0]
-#define PI_CONTROLLER_ILOAD_PS1_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[0].coeffs.s
+#define M11_LOAD_CURRENT_CONTROLLER_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
+#define M11_LOAD_CURRENT_CONTROLLER_A_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
-#define PS1_KP                          PI_CONTROLLER_ILOAD_PS1_COEFFS.kp
-#define PS1_KI                          PI_CONTROLLER_ILOAD_PS1_COEFFS.ki
+#define M11_LOAD_CURRENT_CONTROLLER_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
+#define M11_LOAD_CURRENT_CONTROLLER_B_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
 
+#define M21_LOAD_CURRENT_CONTROLLER_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[4]
+#define M21_LOAD_CURRENT_CONTROLLER_A_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[4].coeffs.s
+
+#define M21_LOAD_CURRENT_CONTROLLER_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[5]
+#define M21_LOAD_CURRENT_CONTROLLER_B_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[5].coeffs.s
+
+/// I2 load current controller
+#define ERROR_CALCULATOR_I2            &g_controller_ctom.dsp_modules.dsp_error[1]
+
+#define M12_LOAD_CURRENT_CONTROLLER_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
+#define M12_LOAD_CURRENT_CONTROLLER_A_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+
+#define M12_LOAD_CURRENT_CONTROLLER_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
+#define M12_LOAD_CURRENT_CONTROLLER_B_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+
+#define M22_LOAD_CURRENT_CONTROLLER_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[6]
+#define M22_LOAD_CURRENT_CONTROLLER_A_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[6].coeffs.s
+
+#define M22_LOAD_CURRENT_CONTROLLER_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[7]
+#define M22_LOAD_CURRENT_CONTROLLER_B_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[7].coeffs.s
+
+/// PWM modulators
 #define PS1_PWM_MODULATOR               g_pwm_modules.pwm_regs[0]
 #define PS1_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[1]
-
-#define PS1_SCOPE                       SCOPE_CTOM[0]
-
-/**
- * Power supply 2 defines
- */
-#define PS2_ID                          0x0001
-
-#define PIN_OPEN_PS2_DCLINK_RELAY       CLEAR_GPDO3;
-#define PIN_CLOSE_PS2_DCLINK_RELAY      SET_GPDO3;
-
-#define PIN_STATUS_PS2_DCLINK_RELAY     GET_GPDI11
-#define PIN_STATUS_PS2_DRIVER_ERROR     GET_GPDI9
-#define PIN_STATUS_PS2_FUSE             GET_GPDI16
-
-#define PS2_LOAD_CURRENT                g_controller_ctom.net_signals[1].f  // HRADC1
-#define PS2_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[1].f  // ANI1
-#define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[5].f  // ANI7
-#define PS2_TEMPERATURE                 g_controller_mtoc.net_signals[9].f  // I2C Add 0x49
-
-#define PS2_SETPOINT                    g_ipc_ctom.ps_module[1].ps_setpoint
-#define PS2_REFERENCE                   g_ipc_ctom.ps_module[1].ps_reference
-
-#define ERROR_CALCULATOR_PS2            &g_controller_ctom.dsp_modules.dsp_error[1]
-#define PI_CONTROLLER_ILOAD_PS2         &g_controller_ctom.dsp_modules.dsp_pi[1]
-#define PI_CONTROLLER_ILOAD_PS2_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[1].coeffs.s
-
-#define PS2_KP                          PI_CONTROLLER_ILOAD_PS2_COEFFS.kp
-#define PS2_KI                          PI_CONTROLLER_ILOAD_PS2_COEFFS.ki
-
 #define PS2_PWM_MODULATOR               g_pwm_modules.pwm_regs[2]
 #define PS2_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[3]
-
-#define PS2_SCOPE                       SCOPE_CTOM[1]
-
-/**
- * Power supply 3 defines
- */
-#define PS3_ID                          0x0002
-
-#define PIN_OPEN_PS3_DCLINK_RELAY       CLEAR_GPDO1;
-#define PIN_CLOSE_PS3_DCLINK_RELAY      SET_GPDO1;
-
-#define PIN_STATUS_PS3_DCLINK_RELAY     GET_GPDI8
-#define PIN_STATUS_PS3_DRIVER_ERROR     GET_GPDI1
-#define PIN_STATUS_PS3_FUSE             GET_GPDI13
-
-#define PS3_LOAD_CURRENT                g_controller_ctom.net_signals[2].f  // HRADC2
-#define PS3_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[2].f  // ANI4
-#define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[6].f  // ANI3
-#define PS3_TEMPERATURE                 g_controller_mtoc.net_signals[10].f // I2C Add 0x4A
-
-#define PS3_SETPOINT                    g_ipc_ctom.ps_module[2].ps_setpoint
-#define PS3_REFERENCE                   g_ipc_ctom.ps_module[2].ps_reference
-
-#define ERROR_CALCULATOR_PS3            &g_controller_ctom.dsp_modules.dsp_error[2]
-#define PI_CONTROLLER_ILOAD_PS3         &g_controller_ctom.dsp_modules.dsp_pi[2]
-#define PI_CONTROLLER_ILOAD_PS3_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[2].coeffs.s
-
-#define PS3_KP                          PI_CONTROLLER_ILOAD_PS3_COEFFS.kp
-#define PS3_KI                          PI_CONTROLLER_ILOAD_PS3_COEFFS.ki
-
 #define PS3_PWM_MODULATOR               g_pwm_modules.pwm_regs[4]
 #define PS3_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[5]
-
-#define PS3_SCOPE                       SCOPE_CTOM[2]
-
-/**
- * Power supply 4 defines
- */
-#define PS4_ID                          0x0003
-
-#define PIN_OPEN_PS4_DCLINK_RELAY       CLEAR_GPDO2;
-#define PIN_CLOSE_PS4_DCLINK_RELAY      SET_GPDO2;
-
-#define PIN_STATUS_PS4_DCLINK_RELAY     GET_GPDI2
-#define PIN_STATUS_PS4_DRIVER_ERROR     GET_GPDI3
-#define PIN_STATUS_PS4_FUSE             GET_GPDI15
-
-#define PS4_LOAD_CURRENT                g_controller_ctom.net_signals[3].f  // HRADC3
-#define PS4_DCLINK_VOLTAGE              g_controller_mtoc.net_signals[3].f  // ANI0
-#define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[7].f  // ANI5
-#define PS4_TEMPERATURE                 g_controller_mtoc.net_signals[11].f // I2C Add 0x4C
-
-#define PS4_SETPOINT                    g_ipc_ctom.ps_module[3].ps_setpoint
-#define PS4_REFERENCE                   g_ipc_ctom.ps_module[3].ps_reference
-
-#define ERROR_CALCULATOR_PS4            &g_controller_ctom.dsp_modules.dsp_error[3]
-#define PI_CONTROLLER_ILOAD_PS4         &g_controller_ctom.dsp_modules.dsp_pi[3]
-#define PI_CONTROLLER_ILOAD_PS4_COEFFS  g_controller_mtoc.dsp_modules.dsp_pi[3].coeffs.s
-
-#define PS4_KP                          PI_CONTROLLER_ILOAD_PS4_COEFFS.kp
-#define PS4_KI                          PI_CONTROLLER_ILOAD_PS4_COEFFS.ki
-
 #define PS4_PWM_MODULATOR               g_pwm_modules.pwm_regs[6]
 #define PS4_PWM_MODULATOR_NEG           g_pwm_modules.pwm_regs[7]
 
-#define PS4_SCOPE                       SCOPE_CTOM[3]
+/// Scope
+#define PS_SCOPE                       SCOPE_CTOM[0]
 
 /**
  * Interlocks defines
  */
 typedef enum
 {
-    Load_Overcurrent,
-    Load_Overvoltage,
-    DCLink_Overvoltage,
-    DCLink_Undervoltage,
-    Opened_Relay_Fault,
-    DCLink_Fuse_Fault,
-    MOSFETs_Driver_Fault,
-    Welded_Relay_Fault
+    Load_Overcurrent
 } hard_interlocks_t;
 
 typedef enum
 {
-    Heatsink_Overtemperature
 } soft_interlocks_t;
 
 typedef enum
@@ -209,8 +145,8 @@ typedef enum
     High_Sync_Input_Frequency = 0x00000001
 } alarms_t;
 
-#define NUM_HARD_INTERLOCKS             MOSFETs_Driver_Fault + 1
-#define NUM_SOFT_INTERLOCKS             Heatsink_Overtemperature + 1
+#define NUM_HARD_INTERLOCKS             Load_Overcurrent + 1
+#define NUM_SOFT_INTERLOCKS             0
 
 #define ISR_FREQ_INTERLOCK_TIMEBASE     5000.0
 
@@ -383,196 +319,297 @@ static void term_peripherals_drivers(void)
 
 static void init_controller(void)
 {
-    static uint16_t i;
+    init_ps_module(&g_ipc_ctom.ps_module[0],
+                   g_ipc_mtoc.ps_module[0].ps_status.bit.model,
+                   &turn_on, &turn_off, &isr_soft_interlock,
+                   &isr_hard_interlock, &reset_interlocks);
 
-    for(i = 0; i < NUM_MAX_PS_MODULES; i++)
-    {
-        init_ps_module(&g_ipc_ctom.ps_module[i],
-                       g_ipc_mtoc.ps_module[i].ps_status.bit.model,
-                       &turn_on, &turn_off, &isr_soft_interlock,
-                       &isr_hard_interlock, &reset_interlocks);
+    g_ipc_ctom.ps_module[1].ps_status.all = 0;
+    g_ipc_ctom.ps_module[2].ps_status.all = 0;
+    g_ipc_ctom.ps_module[3].ps_status.all = 0;
 
-        init_event_manager(i, ISR_FREQ_INTERLOCK_TIMEBASE,
-                           NUM_HARD_INTERLOCKS, NUM_SOFT_INTERLOCKS,
-                           &HARD_INTERLOCKS_DEBOUNCE_TIME,
-                           &HARD_INTERLOCKS_RESET_TIME,
-                           &SOFT_INTERLOCKS_DEBOUNCE_TIME,
-                           &SOFT_INTERLOCKS_RESET_TIME);
-
-        if(!g_ipc_mtoc.ps_module[i].ps_status.bit.active)
-        {
-            g_ipc_ctom.ps_module[i].ps_status.bit.active = 0;
-        }
-
-        init_wfmref(&WFMREF[i], WFMREF_SELECTED_PARAM[i], WFMREF_SYNC_MODE_PARAM[i],
-                    ISR_CONTROL_FREQ, WFMREF_FREQUENCY_PARAM[i], WFMREF_GAIN_PARAM[i],
-                    WFMREF_OFFSET_PARAM[i], &g_wfmref_data.data_fbp[i],
-                    SIZE_WFMREF_FBP, &PS_REFERENCE(i));
-
-        init_scope(&SCOPE_CTOM[i], ISR_CONTROL_FREQ,
-                   SCOPE_FREQ_SAMPLING_PARAM[i],
-                   &g_buf_samples_ctom[SIZE_BUF_SAMPLES_CTOM * i / NUM_MAX_PS_MODULES],
-                   SIZE_BUF_SAMPLES_CTOM / NUM_MAX_PS_MODULES,
-                   SCOPE_SOURCE_PARAM[i], &run_scope_shared_ram);
-
-        /// Initialization of signal generator module
-        disable_siggen(&SIGGEN[i]);
-
-        init_siggen(&SIGGEN[i], ISR_CONTROL_FREQ, &PS_REFERENCE(i));
-
-        cfg_siggen(&SIGGEN[i], SIGGEN_TYPE_PARAM, SIGGEN_NUM_CYCLES_PARAM,
-                   SIGGEN_FREQ_PARAM, SIGGEN_AMP_PARAM,
-                   SIGGEN_OFFSET_PARAM, SIGGEN_AUX_PARAM);
-    }
+    init_event_manager(0, ISR_FREQ_INTERLOCK_TIMEBASE,
+                       NUM_HARD_INTERLOCKS, NUM_SOFT_INTERLOCKS,
+                       &HARD_INTERLOCKS_DEBOUNCE_TIME,
+                       &HARD_INTERLOCKS_RESET_TIME,
+                       &SOFT_INTERLOCKS_DEBOUNCE_TIME,
+                       &SOFT_INTERLOCKS_RESET_TIME);
 
     init_control_framework(&g_controller_ctom);
 
     init_ipc();
 
+    init_wfmref(&WFMREF, WFMREF_SELECTED_PARAM[0], WFMREF_SYNC_MODE_PARAM[0],
+                ISR_CONTROL_FREQ, WFMREF_FREQUENCY_PARAM[0], WFMREF_GAIN_PARAM[0],
+                WFMREF_OFFSET_PARAM[0], &g_wfmref_data.data, SIZE_WFMREF,
+                &I_LOAD_REFERENCE);
+
+    /***********************************************/
+    /** INITIALIZATION OF SIGNAL GENERATOR MODULE **/
+    /***********************************************/
+
+    disable_siggen(&SIGGEN);
+
+    init_siggen(&SIGGEN, ISR_CONTROL_FREQ, &I_LOAD_REFERENCE);
+
+    cfg_siggen(&SIGGEN, SIGGEN_TYPE_PARAM, SIGGEN_NUM_CYCLES_PARAM,
+               SIGGEN_FREQ_PARAM, SIGGEN_AMP_PARAM,
+               SIGGEN_OFFSET_PARAM, SIGGEN_AUX_PARAM);
+
     /**
-     * TODO: initialize WfmRef and Samples Buffer
+     *        name:     SRLIM_SIGGEN_AMP
+     * description:     Signal generator amplitude slew-rate limiter
+     *    DP class:     DSP_SRLim
+     *          in:     SIGGEN_MTOC[0].amplitude
+     *         out:     SIGGEN_CTOM[0].amplitude
      */
 
-    /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY
+    init_dsp_srlim(SRLIM_SIGGEN_AMP, MAX_SLEWRATE_SIGGEN_AMP, ISR_CONTROL_FREQ,
+                   &SIGGEN_MTOC[0].amplitude, &SIGGEN.amplitude);
 
     /**
-     *        name:     ERROR_CALCULATOR_PS1
-     * description:     Load current reference error
+     *        name:     SRLIM_SIGGEN_OFFSET
+     * description:     Signal generator offset slew-rate limiter
+     *    DP class:     DSP_SRLim
+     *          in:     SIGGEN_MTOC[0].offset
+     *         out:     SIGGEN_CTOM[0].offset
+     */
+
+    init_dsp_srlim(SRLIM_SIGGEN_OFFSET, MAX_SLEWRATE_SIGGEN_OFFSET,
+                   ISR_CONTROL_FREQ, &SIGGEN_MTOC[0].offset,
+                   &SIGGEN_CTOM[0].offset);
+
+
+    /********************************************************/
+    /** INITIALIZATION OF LOAD CURRENT I1 & I2 CONTROLLERS **/
+    /********************************************************/
+
+    /**
+     *        name:     SRLIM_I_LOAD_REFERENCE
+     * description:     Load current slew-rate limiter
+     *    DP class:     DSP_SRLim
+     *          in:     I_LOAD_SETPOINT
+     *         out:     I_LOAD_REFERENCE
+     */
+
+    init_dsp_srlim(SRLIM_I_LOAD_REFERENCE, MAX_SLEWRATE_SLOWREF, ISR_CONTROL_FREQ,
+                   &I_LOAD_SETPOINT, &I_LOAD_REFERENCE);
+
+    /**
+     *        name:     ERROR_CALCULATOR_I1
+     * description:     Load current I1 reference error
      *  dsp module:     DSP_Error
-     *           +:     ps_module[0].ps_reference
-     *           -:     net_signals[0]
-     *         out:     net_signals[4]
+     *           +:     I_LOAD_REFERENCE
+     *           -:     I1_LOAD_CURRENT
+     *         out:     I1_LOAD_ERROR
      */
 
-    init_dsp_error(ERROR_CALCULATOR_PS1, &PS1_REFERENCE, &PS1_LOAD_CURRENT,
-                   &g_controller_ctom.net_signals[4].f);
+    init_dsp_error(ERROR_CALCULATOR_I1, &I_LOAD_REFERENCE, &I1_LOAD_CURRENT,
+                   &I1_LOAD_ERROR);
 
     /**
-     *        name:     PI_CONTROLLER_ILOAD_PS1
-     * description:     Load current PI controller
-     *  dsp module:     DSP_PI
-     *          in:     net_signals[4]
-     *         out:     output_signals[0]
-     */
-
-    init_dsp_pi(PI_CONTROLLER_ILOAD_PS1, PS1_KP, PS1_KI, ISR_CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[4].f,
-                &g_controller_ctom.output_signals[0].f);
-
-    /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 2
-
-    /**
-     *        name:     ERROR_CALCULATOR_PS2
-     * description:     Load current reference error
+     *        name:     ERROR_CALCULATOR_I2
+     * description:     Load current I2 reference error
      *  dsp module:     DSP_Error
-     *           +:     ps_module[1].ps_reference
-     *           -:     net_signals[1]
-     *         out:     net_signals[5]
+     *           +:     I_LOAD_REFERENCE
+     *           -:     I2_LOAD_CURRENT
+     *         out:     I2_LOAD_ERROR
      */
 
-    init_dsp_error(ERROR_CALCULATOR_PS2, &PS2_REFERENCE, &PS2_LOAD_CURRENT,
-                   &g_controller_ctom.net_signals[5].f);
+    init_dsp_error(ERROR_CALCULATOR_I2, &I_LOAD_REFERENCE, &I2_LOAD_CURRENT,
+                   &I2_LOAD_ERROR);
+
+    /****************************************/
+    /** INITIALIZATION OF M11 CONTROL LOOP **/
+    /****************************************/
 
     /**
-     *        name:     PI_CONTROLLER_ILOAD_PS2
-     * description:     Load current PI controller
-     *  dsp module:     DSP_PI
-     *          in:     net_signals[5]
-     *         out:     output_signals[1]
+     *        name:     M11_LOAD_CURRENT_CONTROLLER_A
+     * description:     Load current I1 M11 IIR 2P2Z controller A
+     *  dsp module:     DSP_IIR_2P2Z
+     *          in:     I1_LOAD_ERROR
+     *         out:     I1_LOAD_ERROR_TO_M11
      */
 
-    init_dsp_pi(PI_CONTROLLER_ILOAD_PS2, PS2_KP, PS2_KI, ISR_CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[5].f,
-                &g_controller_ctom.output_signals[1].f);
-
-    /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 3
+    init_dsp_iir_2p2z(M11_LOAD_CURRENT_CONTROLLER_A,
+                      M11_LOAD_CURRENT_CONTROLLER_A_COEFFS.b0,
+                      M11_LOAD_CURRENT_CONTROLLER_A_COEFFS.b1,
+                      M11_LOAD_CURRENT_CONTROLLER_A_COEFFS.b2,
+                      M11_LOAD_CURRENT_CONTROLLER_A_COEFFS.a1,
+                      M11_LOAD_CURRENT_CONTROLLER_A_COEFFS.a2,
+                      FLT_MAX, -FLT_MAX,
+                      &I1_LOAD_ERROR, &I1_LOAD_ERROR_TO_M11);
 
     /**
-     *        name:     ERROR_CALCULATOR_PS3
-     * description:     Load current reference error
-     *  dsp module:     DSP_Error
-     *           +:     ps_module[2].ps_reference
-     *           -:     net_signals[2]
-     *         out:     net_signals[6]
+     *        name:     M11_LOAD_CURRENT_CONTROLLER_B
+     * description:     Load current I1 M11 IIR 2P2Z controller B
+     *  dsp module:     DSP_IIR_2P2Z
+     *          in:     I1_LOAD_ERROR_TO_M11
+     *         out:     M11
      */
 
-    init_dsp_error(ERROR_CALCULATOR_PS3, &PS3_REFERENCE, &PS3_LOAD_CURRENT,
-                   &g_controller_ctom.net_signals[6].f);
+    init_dsp_iir_2p2z(M11_LOAD_CURRENT_CONTROLLER_B,
+                      M11_LOAD_CURRENT_CONTROLLER_B_COEFFS.b0,
+                      M11_LOAD_CURRENT_CONTROLLER_B_COEFFS.b1,
+                      M11_LOAD_CURRENT_CONTROLLER_B_COEFFS.b2,
+                      M11_LOAD_CURRENT_CONTROLLER_B_COEFFS.a1,
+                      M11_LOAD_CURRENT_CONTROLLER_B_COEFFS.a2,
+                      PWM_MAX_DUTY, PWM_MIN_DUTY,
+                      &I1_LOAD_ERROR_TO_M11, &M11);
+
+    /****************************************/
+    /** INITIALIZATION OF M12 CONTROL LOOP **/
+    /****************************************/
 
     /**
-     *        name:     PI_CONTROLLER_ILOAD_PS3
-     * description:     Load current PI controller
-     *  dsp module:     DSP_PI
-     *          in:     net_signals[6]
-     *         out:     output_signals[2]
+     *        name:     M12_LOAD_CURRENT_CONTROLLER_A
+     * description:     Load current I1 M12 IIR 2P2Z controller A
+     *  dsp module:     DSP_IIR_2P2Z
+     *          in:     I1_LOAD_ERROR
+     *         out:     I1_LOAD_ERROR_TO_M12
      */
 
-    init_dsp_pi(PI_CONTROLLER_ILOAD_PS3, PS3_KP, PS3_KI, ISR_CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[6].f,
-                &g_controller_ctom.output_signals[2].f);
-
-    /// INITIALIZATION OF LOAD CURRENT CONTROL LOOP FOR POWER SUPPLY 4
+    init_dsp_iir_2p2z(M12_LOAD_CURRENT_CONTROLLER_A,
+                      M12_LOAD_CURRENT_CONTROLLER_A_COEFFS.b0,
+                      M12_LOAD_CURRENT_CONTROLLER_A_COEFFS.b1,
+                      M12_LOAD_CURRENT_CONTROLLER_A_COEFFS.b2,
+                      M12_LOAD_CURRENT_CONTROLLER_A_COEFFS.a1,
+                      M12_LOAD_CURRENT_CONTROLLER_A_COEFFS.a2,
+                      FLT_MAX, -FLT_MAX,
+                      &I1_LOAD_ERROR, &I1_LOAD_ERROR_TO_M12);
 
     /**
-     *        name:     ERROR_CALCULATOR_PS4
-     * description:     Load current reference error
-     *  dsp module:     DSP_Error
-     *           +:     ps_module[3].ps_reference
-     *           -:     net_signals[3]
-     *         out:     net_signals[7]
+     *        name:     M12_LOAD_CURRENT_CONTROLLER_B
+     * description:     Load current I1 M12 IIR 2P2Z controller B
+     *  dsp module:     DSP_IIR_2P2Z
+     *          in:     I1_LOAD_ERROR_TO_M12
+     *         out:     M11
      */
 
-    init_dsp_error(ERROR_CALCULATOR_PS4, &PS4_REFERENCE, &PS4_LOAD_CURRENT,
-                   &g_controller_ctom.net_signals[7].f);
+    init_dsp_iir_2p2z(M12_LOAD_CURRENT_CONTROLLER_B,
+                      M12_LOAD_CURRENT_CONTROLLER_B_COEFFS.b0,
+                      M12_LOAD_CURRENT_CONTROLLER_B_COEFFS.b1,
+                      M12_LOAD_CURRENT_CONTROLLER_B_COEFFS.b2,
+                      M12_LOAD_CURRENT_CONTROLLER_B_COEFFS.a1,
+                      M12_LOAD_CURRENT_CONTROLLER_B_COEFFS.a2,
+                      PWM_MAX_DUTY, PWM_MIN_DUTY,
+                      &I1_LOAD_ERROR_TO_M12, &M12);
+
+    /****************************************/
+    /** INITIALIZATION OF M21 CONTROL LOOP **/
+    /****************************************/
 
     /**
-     *        name:     PI_CONTROLLER_ILOAD_PS4
-     * description:     Load current PI controller
-     *  dsp module:     DSP_PI
-     *          in:     net_signals[7]
-     *         out:     output_signals[3]
+     *        name:     M21_LOAD_CURRENT_CONTROLLER_A
+     * description:     Load current I1 M21 IIR 2P2Z controller A
+     *  dsp module:     DSP_IIR_2P2Z
+     *          in:     I2_LOAD_ERROR
+     *         out:     I2_LOAD_ERROR_TO_M21
      */
-    init_dsp_pi(PI_CONTROLLER_ILOAD_PS4, PS4_KP, PS4_KI, ISR_CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &g_controller_ctom.net_signals[7].f,
-                &g_controller_ctom.output_signals[3].f);
+
+    init_dsp_iir_2p2z(M21_LOAD_CURRENT_CONTROLLER_A,
+                      M21_LOAD_CURRENT_CONTROLLER_A_COEFFS.b0,
+                      M21_LOAD_CURRENT_CONTROLLER_A_COEFFS.b1,
+                      M21_LOAD_CURRENT_CONTROLLER_A_COEFFS.b2,
+                      M21_LOAD_CURRENT_CONTROLLER_A_COEFFS.a1,
+                      M21_LOAD_CURRENT_CONTROLLER_A_COEFFS.a2,
+                      FLT_MAX, -FLT_MAX,
+                      &I2_LOAD_ERROR, &I2_LOAD_ERROR_TO_M21);
+
+    /**
+     *        name:     M21_LOAD_CURRENT_CONTROLLER_B
+     * description:     Load current I1 M21 IIR 2P2Z controller B
+     *  dsp module:     DSP_IIR_2P2Z
+     *          in:     I2_LOAD_ERROR_TO_M21
+     *         out:     M21
+     */
+
+    init_dsp_iir_2p2z(M21_LOAD_CURRENT_CONTROLLER_B,
+                      M21_LOAD_CURRENT_CONTROLLER_B_COEFFS.b0,
+                      M21_LOAD_CURRENT_CONTROLLER_B_COEFFS.b1,
+                      M21_LOAD_CURRENT_CONTROLLER_B_COEFFS.b2,
+                      M21_LOAD_CURRENT_CONTROLLER_B_COEFFS.a1,
+                      M21_LOAD_CURRENT_CONTROLLER_B_COEFFS.a2,
+                      PWM_MAX_DUTY, PWM_MIN_DUTY,
+                      &I2_LOAD_ERROR_TO_M21, &M21);
+
+    /****************************************/
+    /** INITIALIZATION OF M22 CONTROL LOOP **/
+    /****************************************/
+
+    /**
+     *        name:     M12_LOAD_CURRENT_CONTROLLER_A
+     * description:     Load current I2 M22 IIR 2P2Z controller A
+     *  dsp module:     DSP_IIR_2P2Z
+     *          in:     I2_LOAD_ERROR
+     *         out:     I2_LOAD_ERROR_TO_M22
+     */
+
+    init_dsp_iir_2p2z(M22_LOAD_CURRENT_CONTROLLER_A,
+                      M22_LOAD_CURRENT_CONTROLLER_A_COEFFS.b0,
+                      M22_LOAD_CURRENT_CONTROLLER_A_COEFFS.b1,
+                      M22_LOAD_CURRENT_CONTROLLER_A_COEFFS.b2,
+                      M22_LOAD_CURRENT_CONTROLLER_A_COEFFS.a1,
+                      M22_LOAD_CURRENT_CONTROLLER_A_COEFFS.a2,
+                      FLT_MAX, -FLT_MAX,
+                      &I2_LOAD_ERROR, &I2_LOAD_ERROR_TO_M22);
+
+    /**
+     *        name:     M22_LOAD_CURRENT_CONTROLLER_B
+     * description:     Load current I2 M22 IIR 2P2Z controller B
+     *  dsp module:     DSP_IIR_2P2Z
+     *          in:     I2_LOAD_ERROR_TO_M22
+     *         out:     M22
+     */
+
+    init_dsp_iir_2p2z(M22_LOAD_CURRENT_CONTROLLER_B,
+                      M22_LOAD_CURRENT_CONTROLLER_B_COEFFS.b0,
+                      M22_LOAD_CURRENT_CONTROLLER_B_COEFFS.b1,
+                      M22_LOAD_CURRENT_CONTROLLER_B_COEFFS.b2,
+                      M22_LOAD_CURRENT_CONTROLLER_B_COEFFS.a1,
+                      M22_LOAD_CURRENT_CONTROLLER_B_COEFFS.a2,
+                      PWM_MAX_DUTY, PWM_MIN_DUTY,
+                      &I2_LOAD_ERROR_TO_M22, &M22);
+
 
     /// Reset all internal variables
-    reset_controllers();
+    reset_controller();
 }
 
 /**
- * Reset all internal variables for controller of specified power supply
- *
- * @param id specified power supply
+ * Reset all internal variables from controller
  */
-static void reset_controller(uint16_t id)
+static void reset_controller(void)
 {
-    set_pwm_duty_hbridge(g_pwm_modules.pwm_regs[id*2], 0.0);
+    set_pwm_duty_hbridge(PS1_PWM_MODULATOR, 0.0);
+    set_pwm_duty_hbridge(PS2_PWM_MODULATOR, 0.0);
+    set_pwm_duty_hbridge(PS3_PWM_MODULATOR, 0.0);
+    set_pwm_duty_hbridge(PS4_PWM_MODULATOR, 0.0);
 
-    g_ipc_ctom.ps_module[id].ps_status.bit.openloop = LOOP_STATE;
+    g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
 
-    PS_SETPOINT(id) = 0.0;
-    PS_REFERENCE(id) = 0.0;
+    PS_SETPOINT = 0.0;
+    PS_REFERENCE = 0.0;
 
-    reset_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[id]);
-    reset_dsp_pi(&g_controller_ctom.dsp_modules.dsp_pi[id]);
+    reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
 
-    reset_wfmref(&WFMREF[id]);
+    reset_dsp_error(ERROR_CALCULATOR_I1);
+    reset_dsp_error(ERROR_CALCULATOR_I2);
 
-    disable_siggen(&SIGGEN[id]);
-}
+    reset_dsp_iir_2p2z(M11_LOAD_CURRENT_CONTROLLER_A);
+    reset_dsp_iir_2p2z(M11_LOAD_CURRENT_CONTROLLER_B);
+    reset_dsp_iir_2p2z(M21_LOAD_CURRENT_CONTROLLER_A);
+    reset_dsp_iir_2p2z(M21_LOAD_CURRENT_CONTROLLER_B);
+    reset_dsp_iir_2p2z(M12_LOAD_CURRENT_CONTROLLER_A);
+    reset_dsp_iir_2p2z(M12_LOAD_CURRENT_CONTROLLER_B);
+    reset_dsp_iir_2p2z(M22_LOAD_CURRENT_CONTROLLER_A);
+    reset_dsp_iir_2p2z(M22_LOAD_CURRENT_CONTROLLER_B);
 
-/**
- * Reset all internal variables for all active power supplies
- */
-static void reset_controllers(void)
-{
-    uint16_t i;
+    reset_dsp_srlim(SRLIM_SIGGEN_AMP);
+    reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
+    disable_siggen(&SIGGEN);
 
-    for(i = 0; i < NUM_PS_MODULES; i++)
-    {
-        reset_controller(i);
-    }
+    reset_wfmref(&WFMREF);
 }
 
 /**
