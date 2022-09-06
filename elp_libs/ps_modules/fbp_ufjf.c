@@ -37,6 +37,7 @@
  * Analog variables parameters
  */
 #define MAX_ILOAD           ANALOG_VARS_MAX[0]
+#define MAX_VLOAD           ANALOG_VARS_MAX[1]
 
 /**
  * Controller defines
@@ -133,7 +134,12 @@
  */
 typedef enum
 {
-    Load_Overcurrent
+    I1_Load_Overcurrent,
+    I2_Load_Overcurrent,
+    Load_Overvoltage_Mod_1,
+    Load_Overvoltage_Mod_2,
+    Load_Overvoltage_Mod_3,
+    Load_Overvoltage_Mod_4
 } hard_interlocks_t;
 
 typedef enum
@@ -145,7 +151,7 @@ typedef enum
     High_Sync_Input_Frequency = 0x00000001
 } alarms_t;
 
-#define NUM_HARD_INTERLOCKS             Load_Overcurrent + 1
+#define NUM_HARD_INTERLOCKS             Load_Overvoltage_Mod_4 + 1
 #define NUM_SOFT_INTERLOCKS             0
 
 #define ISR_FREQ_INTERLOCK_TIMEBASE     5000.0
@@ -172,16 +178,12 @@ static interrupt void isr_controller(void);
 static void init_interruptions(void);
 static void term_interruptions(void);
 
-static void turn_on(uint16_t id);
-static void turn_off(uint16_t id);
+static void turn_on(uint16_t dummy);
+static void turn_off(uint16_t dummy);
 
-static void open_relay(uint16_t id);
-static void close_relay(uint16_t id);
+static void reset_interlocks(uint16_t dummy);
+static void check_interlocks(void);
 
-static void reset_interlocks(uint16_t id);
-static void check_interlocks_ps_module(uint16_t id);
-
-static inline void run_dsp_pi_inline(dsp_pi_t *p_pi);
 static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
                                                *p_pwm_module, float duty_pu);
 
@@ -203,13 +205,7 @@ void main_fbp_ufjf(void)
     /// TODO: include condition for re-initialization
     while(1)
     {
-        for(i = 0; i < NUM_MAX_PS_MODULES; i++)
-        {
-            if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
-            {
-                check_interlocks_ps_module(i);
-            }
-        }
+        check_interlocks();
     }
 
     for(i = 0; i < NUM_MAX_PS_MODULES; i++)
@@ -605,9 +601,9 @@ static void reset_controller(void)
     reset_dsp_iir_2p2z(M22_LOAD_CURRENT_CONTROLLER_A);
     reset_dsp_iir_2p2z(M22_LOAD_CURRENT_CONTROLLER_B);
 
+    disable_siggen(&SIGGEN);
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
-    disable_siggen(&SIGGEN);
 
     reset_wfmref(&WFMREF);
 }
@@ -885,85 +881,25 @@ static void term_interruptions(void)
  *
  * @param id specified power supply
  */
-static void turn_on(uint16_t id)
+static void turn_on(uint16_t dummy)
 {
-    if(g_ipc_ctom.ps_module[id].ps_status.bit.active)
+    #ifdef USE_ITLK
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Off)
+    #else
+    if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
+    #endif
     {
-        #ifdef USE_ITLK
-        if(g_ipc_ctom.ps_module[id].ps_status.bit.state == Off)
-        #else
-        if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
-        #endif
-        {
-            if(fabs(g_controller_mtoc.net_signals[id].f) < MIN_DCLINK(id))
-            {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(id, DCLink_Undervoltage);
-                set_hard_interlock(id, DCLink_Undervoltage);
-            }
 
-            /*switch(id)
-            {
-                case 0:
-                {
-                    if(!PIN_STATUS_PS1_FUSE)
-                    {
-                        BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Fuse_Fault);
-                        set_hard_interlock(0, DCLink_Fuse_Fault);
-                    }
-                    break;
-                }
+        g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
 
-                case 1:
-                {
-                    if(!PIN_STATUS_PS2_FUSE)
-                    {
-                        BYPASS_HARD_INTERLOCK_DEBOUNCE(1, DCLink_Fuse_Fault);
-                        set_hard_interlock(1, DCLink_Fuse_Fault);
-                    }
-                    break;
-                }
-
-                case 2:
-                {
-                    if(!PIN_STATUS_PS3_FUSE)
-                    {
-                        BYPASS_HARD_INTERLOCK_DEBOUNCE(2, DCLink_Fuse_Fault);
-                        set_hard_interlock(2, DCLink_Fuse_Fault);
-                    }
-                    break;
-                }
-
-                case 3:
-                {
-                    if(!PIN_STATUS_PS4_FUSE)
-                    {
-                        BYPASS_HARD_INTERLOCK_DEBOUNCE(3, DCLink_Fuse_Fault);
-                        set_hard_interlock(3, DCLink_Fuse_Fault);
-                    }
-                    break;
-                }
-            }*/
-
-            #ifdef USE_ITLK
-            if(g_ipc_ctom.ps_module[id].ps_status.bit.state == Off)
-            #else
-            if(g_ipc_ctom.ps_module[id].ps_status.bit.state <= Interlock)
-            #endif
-            {
-                close_relay(id);
-
-                g_ipc_ctom.ps_module[id].ps_status.bit.state = SlowRef;
-
-                enable_pwm_output(2*id);
-                enable_pwm_output((2*id)+1);
-            }
-
-            else if(g_ipc_ctom.ps_module[id].ps_status.bit.state == Interlock)
-            {
-                reset_controller(id);
-            }
-
-        }
+        enable_pwm_output(0);
+        enable_pwm_output(1);
+        enable_pwm_output(2);
+        enable_pwm_output(3);
+        enable_pwm_output(4);
+        enable_pwm_output(5);
+        enable_pwm_output(6);
+        enable_pwm_output(7);
     }
 }
 
@@ -972,22 +908,23 @@ static void turn_on(uint16_t id)
  *
  * @param id specified power supply
  */
-static void turn_off(uint16_t id)
+static void turn_off(uint16_t dummy)
 {
-    if(g_ipc_ctom.ps_module[id].ps_status.bit.active)
+    disable_pwm_output(0);
+    disable_pwm_output(1);
+    disable_pwm_output(2);
+    disable_pwm_output(3);
+    disable_pwm_output(4);
+    disable_pwm_output(5);
+    disable_pwm_output(6);
+    disable_pwm_output(7);
+
+    if (g_ipc_ctom.ps_module[0].ps_status.bit.state != Interlock)
     {
-        disable_pwm_output(2*id);
-        disable_pwm_output((2*id)+1);
-
-        open_relay(id);
-
-        g_ipc_ctom.ps_module[id].ps_status.bit.openloop = OPEN_LOOP;
-        if (g_ipc_ctom.ps_module[id].ps_status.bit.state != Interlock)
-        {
-            g_ipc_ctom.ps_module[id].ps_status.bit.state = Off;
-        }
-        reset_controller(id);
+        g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
     }
+
+    reset_controller();
 }
 
 /**
@@ -995,294 +932,56 @@ static void turn_off(uint16_t id)
  *
  * @param id specified power supply
  */
-static void reset_interlocks(uint16_t id)
+static void reset_interlocks(uint16_t dummy)
 {
-    g_ipc_ctom.ps_module[id].ps_hard_interlock = 0;
-    g_ipc_ctom.ps_module[id].ps_soft_interlock = 0;
-    g_ipc_ctom.ps_module[id].ps_alarms = 0;
+    g_ipc_ctom.ps_module[0].ps_hard_interlock = 0;
+    g_ipc_ctom.ps_module[0].ps_soft_interlock = 0;
+    g_ipc_ctom.ps_module[0].ps_alarms = 0;
 
-    if(g_ipc_ctom.ps_module[id].ps_status.bit.state < Initializing)
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
-        g_ipc_ctom.ps_module[id].ps_status.bit.state = Off;
-    }
-}
-
-/**
- * Open relay from specified power supply.
- *
- * @param id specified power supply
- */
-static void open_relay(uint16_t id)
-{
-    switch(id)
-    {
-        case PS1_ID:
-        {
-            PIN_OPEN_PS1_DCLINK_RELAY;
-            break;
-        }
-
-        case PS2_ID:
-        {
-            PIN_OPEN_PS2_DCLINK_RELAY;
-            break;
-        }
-
-        case PS3_ID:
-        {
-            PIN_OPEN_PS3_DCLINK_RELAY;
-            break;
-        }
-
-        case PS4_ID:
-        {
-            PIN_OPEN_PS4_DCLINK_RELAY;
-            break;
-        }
-
-        default:
-        {
-            break;
-        }
-    }
-}
-
-/**
- * Close relay from specified power supply.
- *
- * @param id specified power supply
- */
-static void close_relay(uint16_t id)
-{
-    switch(id)
-    {
-        case PS1_ID:
-        {
-            PIN_CLOSE_PS1_DCLINK_RELAY;
-            break;
-        }
-
-        case PS2_ID:
-        {
-            PIN_CLOSE_PS2_DCLINK_RELAY;
-            break;
-        }
-
-        case PS3_ID:
-        {
-            PIN_CLOSE_PS3_DCLINK_RELAY;
-            break;
-        }
-
-        case PS4_ID:
-        {
-            PIN_CLOSE_PS4_DCLINK_RELAY;
-            break;
-        }
-
-        default:
-        {
-            break;
-        }
+        g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
     }
 }
 
 /**
  * Check variables from specified power supply for interlocks
- *
- * @param id specified power supply
  */
-static void check_interlocks_ps_module(uint16_t id)
+static void check_interlocks(void)
 {
-    if(fabs(g_controller_ctom.net_signals[id].f) > MAX_ILOAD(id))
+    if(fabs(I1_LOAD_CURRENT) > MAX_ILOAD)
     {
-        set_hard_interlock(id, Load_Overcurrent);
+        set_hard_interlock(0, I1_Load_Overcurrent);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id].f) > MAX_DCLINK(id))
+    if(fabs(I2_LOAD_CURRENT) > MAX_ILOAD)
     {
-        set_hard_interlock(id, DCLink_Overvoltage);
-    }
-/*
-    if(fabs(g_controller_mtoc.net_signals[id+4].f) > MAX_VLOAD(id))
-    {
-        set_hard_interlock(id, Load_Overvoltage);
+        set_hard_interlock(0, I2_Load_Overcurrent);
     }
 
-    if(fabs(g_controller_mtoc.net_signals[id+8].f) > MAX_TEMP(id))
+    if(fabs(PS1_LOAD_VOLTAGE) > MAX_VLOAD)
     {
-        set_soft_interlock(id, Heatsink_Overtemperature);
+        set_hard_interlock(0, Load_Overvoltage_Mod_1);
     }
-*/
-    switch(id)
+
+    if(fabs(PS2_LOAD_VOLTAGE) > MAX_VLOAD)
     {
-        case 0:
-        {
-            /*if(!PIN_STATUS_PS1_DRIVER_ERROR)
-            {
-                set_hard_interlock(0, MOSFETs_Driver_Fault);
-            }
+        set_hard_interlock(0, Load_Overvoltage_Mod_2);
+    }
 
-            IER &= ~M_INT11;
+    if(fabs(PS3_LOAD_VOLTAGE) > MAX_VLOAD)
+    {
+        set_hard_interlock(0, Load_Overvoltage_Mod_3);
+    }
 
-            if ( (g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock) &&
-                 (PIN_STATUS_PS1_DCLINK_RELAY) )
-            {
-                set_hard_interlock(0, Welded_Relay_Fault);
-            }
-
-            else*/ if (g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
-            {
-                /*if(!PIN_STATUS_PS1_DCLINK_RELAY)
-                {
-                    set_hard_interlock(0, Opened_Relay_Fault);
-                }
-
-                if(!PIN_STATUS_PS1_FUSE)
-                {
-                    set_hard_interlock(0, DCLink_Fuse_Fault);
-                }*/
-
-                if(fabs(g_controller_mtoc.net_signals[0].f) < MIN_DCLINK(0))
-                {
-                    set_hard_interlock(0, DCLink_Undervoltage);
-                }
-            }
-
-            break;
-        }
-
-        case 1:
-        {
-            /*if(!PIN_STATUS_PS2_DRIVER_ERROR)
-            {
-                set_hard_interlock(1, MOSFETs_Driver_Fault);
-            }
-
-            IER &= ~M_INT11;
-
-            if ( (g_ipc_ctom.ps_module[1].ps_status.bit.state <= Interlock) &&
-                (PIN_STATUS_PS2_DCLINK_RELAY))
-            {
-                set_hard_interlock(1, Welded_Relay_Fault);
-            }
-
-            else*/ if (g_ipc_ctom.ps_module[1].ps_status.bit.state > Interlock)
-            {
-                /*if(!PIN_STATUS_PS2_DCLINK_RELAY)
-                {
-                    set_hard_interlock(1, Opened_Relay_Fault);
-                }
-
-                if(!PIN_STATUS_PS2_FUSE)
-                {
-                    set_hard_interlock(1, DCLink_Fuse_Fault);
-                }*/
-
-                if(fabs(g_controller_mtoc.net_signals[1].f) < MIN_DCLINK(1))
-                {
-                    set_hard_interlock(1, DCLink_Undervoltage);
-                }
-            }
-
-            break;
-        }
-
-        case 2:
-        {
-            /*if(!PIN_STATUS_PS3_DRIVER_ERROR)
-            {
-                set_hard_interlock(2, MOSFETs_Driver_Fault);
-            }
-
-            IER &= ~M_INT11;
-
-            if ( (g_ipc_ctom.ps_module[2].ps_status.bit.state <= Interlock) &&
-                (PIN_STATUS_PS3_DCLINK_RELAY)) {
-                set_hard_interlock(2, Welded_Relay_Fault);
-            }
-
-            else*/ if (g_ipc_ctom.ps_module[2].ps_status.bit.state > Interlock)
-            {
-                /*if(!PIN_STATUS_PS3_DCLINK_RELAY)
-                {
-                    set_hard_interlock(2, Opened_Relay_Fault);
-                }
-
-                if(!PIN_STATUS_PS3_FUSE)
-                {
-                    set_hard_interlock(2, DCLink_Fuse_Fault);
-                }*/
-
-                if(fabs(g_controller_mtoc.net_signals[2].f) < MIN_DCLINK(2))
-                {
-                    set_hard_interlock(2, DCLink_Undervoltage);
-                }
-
-            }
-
-            break;
-        }
-
-        case 3:
-        {
-            /*if(!PIN_STATUS_PS4_DRIVER_ERROR)
-            {
-                set_hard_interlock(3, MOSFETs_Driver_Fault);
-            }
-
-            IER &= ~M_INT11;
-
-            if ( (g_ipc_ctom.ps_module[3].ps_status.bit.state <= Interlock) &&
-                (PIN_STATUS_PS4_DCLINK_RELAY)) {
-                set_hard_interlock(3, Welded_Relay_Fault);
-            }
-
-            else*/ if (g_ipc_ctom.ps_module[3].ps_status.bit.state > Interlock)
-            {
-                /*if(!PIN_STATUS_PS4_DCLINK_RELAY)
-                {
-                    set_hard_interlock(3, Opened_Relay_Fault);
-                }
-
-                if(!PIN_STATUS_PS4_FUSE)
-                {
-                    set_hard_interlock(3, DCLink_Fuse_Fault);
-                }*/
-
-                if(fabs(g_controller_mtoc.net_signals[3].f) < MIN_DCLINK(3))
-                {
-                    set_hard_interlock(3, DCLink_Undervoltage);
-                }
-            }
-
-            break;
-        }
+    if(fabs(PS4_LOAD_VOLTAGE) > MAX_VLOAD)
+    {
+        set_hard_interlock(0, Load_Overvoltage_Mod_4);
     }
 
     IER |= M_INT11;
 
     run_interlocks_debouncing(id);
-}
-
-static inline void run_dsp_pi_inline(dsp_pi_t *p_pi)
-{
-    float dyn_max;
-    float dyn_min;
-    float temp;
-
-    temp = *(p_pi->in) * p_pi->coeffs.s.kp;
-    SATURATE(temp, p_pi->coeffs.s.u_max, p_pi->coeffs.s.u_min);
-    p_pi->u_prop = temp;
-
-    dyn_max = (p_pi->coeffs.s.u_max - temp);
-    dyn_min = (p_pi->coeffs.s.u_min - temp);
-
-    temp = p_pi->u_int + *(p_pi->in) * p_pi->coeffs.s.ki;
-    SATURATE(temp, dyn_max, dyn_min);
-    p_pi->u_int = temp;
-
-    *(p_pi->out) = p_pi->u_int + p_pi->u_prop;
 }
 
 static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
