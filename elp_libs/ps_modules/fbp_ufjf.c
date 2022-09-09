@@ -42,14 +42,17 @@
 /**
  * Controller defines
  */
-
-/// Reference
 #define DECIMATION_FACTOR               1
 
-#define SIGGEN                          SIGGEN_CTOM
+/// Reference
+#define SIGGEN                          SIGGEN_CTOM[0]
 #define SIGGEN_OUTPUT                   g_controller_ctom.net_signals[20].f
 #define SRLIM_SIGGEN_AMP                &g_controller_ctom.dsp_modules.dsp_srlim[1]
 #define SRLIM_SIGGEN_OFFSET             &g_controller_ctom.dsp_modules.dsp_srlim[2]
+
+#define MAX_SLEWRATE_SLOWREF            g_controller_mtoc.dsp_modules.dsp_srlim[0].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_AMP         g_controller_mtoc.dsp_modules.dsp_srlim[1].coeffs.s.max_slewrate
+#define MAX_SLEWRATE_SIGGEN_OFFSET      g_controller_mtoc.dsp_modules.dsp_srlim[2].coeffs.s.max_slewrate
 
 #define WFMREF                          g_ipc_ctom.wfmref
 #define WFMREF_OUTPUT                   g_controller_ctom.net_signals[21].f
@@ -81,40 +84,40 @@
 #define DUTY_CYCLE_I2                   g_controller_ctom.output_signals[1].f
 
 /// ARM Net Signals
-#define PS1_LOAD_VOLTAGE                g_controller_mtoc.net_signals[4].f  // ANI6
-#define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[5].f  // ANI7
-#define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[6].f  // ANI3
-#define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[7].f  // ANI5
+#define PS1_LOAD_VOLTAGE                g_controller_mtoc.net_signals[0].f  // ANI6
+#define PS2_LOAD_VOLTAGE                g_controller_mtoc.net_signals[1].f  // ANI7
+#define PS3_LOAD_VOLTAGE                g_controller_mtoc.net_signals[2].f  // ANI3
+#define PS4_LOAD_VOLTAGE                g_controller_mtoc.net_signals[3].f  // ANI5
 
 /// I1 load current controller
 #define ERROR_CALCULATOR_I1             &g_controller_ctom.dsp_modules.dsp_error[0]
 
 #define M11_LOAD_CURRENT_CONTROLLER_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[0]
-#define M11_LOAD_CURRENT_CONTROLLER_A_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
+#define M11_LOAD_CURRENT_CONTROLLER_A_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[0].coeffs.s
 
 #define M11_LOAD_CURRENT_CONTROLLER_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[1]
-#define M11_LOAD_CURRENT_CONTROLLER_B_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
+#define M11_LOAD_CURRENT_CONTROLLER_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[1].coeffs.s
 
 #define M21_LOAD_CURRENT_CONTROLLER_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[4]
-#define M21_LOAD_CURRENT_CONTROLLER_A_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[4].coeffs.s
+#define M21_LOAD_CURRENT_CONTROLLER_A_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[4].coeffs.s
 
 #define M21_LOAD_CURRENT_CONTROLLER_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[5]
-#define M21_LOAD_CURRENT_CONTROLLER_B_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[5].coeffs.s
+#define M21_LOAD_CURRENT_CONTROLLER_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[5].coeffs.s
 
 /// I2 load current controller
 #define ERROR_CALCULATOR_I2            &g_controller_ctom.dsp_modules.dsp_error[1]
 
 #define M12_LOAD_CURRENT_CONTROLLER_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[2]
-#define M12_LOAD_CURRENT_CONTROLLER_A_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
+#define M12_LOAD_CURRENT_CONTROLLER_A_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[2].coeffs.s
 
 #define M12_LOAD_CURRENT_CONTROLLER_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[3]
-#define M12_LOAD_CURRENT_CONTROLLER_B_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
+#define M12_LOAD_CURRENT_CONTROLLER_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[3].coeffs.s
 
 #define M22_LOAD_CURRENT_CONTROLLER_A            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[6]
-#define M22_LOAD_CURRENT_CONTROLLER_A_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[6].coeffs.s
+#define M22_LOAD_CURRENT_CONTROLLER_A_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[6].coeffs.s
 
 #define M22_LOAD_CURRENT_CONTROLLER_B            &g_controller_ctom.dsp_modules.dsp_iir_2p2z[7]
-#define M22_LOAD_CURRENT_CONTROLLER_B_COEFFS     &g_controller_mtoc.dsp_modules.dsp_iir_2p2z[7].coeffs.s
+#define M22_LOAD_CURRENT_CONTROLLER_B_COEFFS     g_controller_mtoc.dsp_modules.dsp_iir_2p2z[7].coeffs.s
 
 /// PWM modulators
 #define PS1_PWM_MODULATOR               g_pwm_modules.pwm_regs[0]
@@ -144,10 +147,6 @@ typedef enum
 
 typedef enum
 {
-} soft_interlocks_t;
-
-typedef enum
-{
     High_Sync_Input_Frequency = 0x00000001
 } alarms_t;
 
@@ -162,13 +161,12 @@ typedef enum
 #pragma CODE_SECTION(isr_init_controller, "ramfuncs");
 #pragma CODE_SECTION(isr_controller, "ramfuncs");
 #pragma CODE_SECTION(turn_off, "ramfuncs");
-#pragma CODE_SECTION(open_relay, "ramfuncs");
 
 static void init_peripherals_drivers(void);
 static void term_peripherals_drivers(void);
 
 static void init_controller(void);
-static void reset_controller(uint16_t id);
+static void reset_controller(void);
 static void reset_controllers(void);
 static void enable_controller();
 static void disable_controller();
@@ -183,9 +181,6 @@ static void turn_off(uint16_t dummy);
 
 static void reset_interlocks(uint16_t dummy);
 static void check_interlocks(void);
-
-static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
-                                               *p_pwm_module, float duty_pu);
 
 /**
  * Main function for this power supply module
@@ -208,10 +203,7 @@ void main_fbp_ufjf(void)
         check_interlocks();
     }
 
-    for(i = 0; i < NUM_MAX_PS_MODULES; i++)
-    {
-        turn_off(i);
-    }
+    turn_off(0);
 
     disable_controller();
     term_interruptions();
@@ -228,7 +220,7 @@ static void init_peripherals_drivers(void)
 
     HRADCs_Info.enable_Sampling = 0;
 
-    Init_DMA_McBSP_nBuffers(NUM_PS_MODULES, DECIMATION_FACTOR, HRADC_SPI_CLK);
+    Init_DMA_McBSP_nBuffers(NUM_HRADC_BOARDS, DECIMATION_FACTOR, HRADC_SPI_CLK);
 
     Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
@@ -238,7 +230,7 @@ static void init_peripherals_drivers(void)
     send_ipc_lowpriority_msg(0,Enable_HRADC_Boards);
     DELAY_US(2000000);
 
-    for(i = 0; i < NUM_PS_MODULES; i++)
+    for(i = 0; i < NUM_HRADC_BOARDS; i++)
     {
         Init_HRADC_Info(&HRADCs_Info.HRADC_boards[i], i, DECIMATION_FACTOR,
                         buffers_HRADC[i], TRANSDUCER_GAIN[i]);
@@ -246,7 +238,7 @@ static void init_peripherals_drivers(void)
                            HRADC_HEATER_ENABLE[i], HRADC_MONITOR_ENABLE[i]);
     }
 
-    HRADCs_Info.n_HRADC_boards = NUM_PS_MODULES;
+    HRADCs_Info.n_HRADC_boards = NUM_HRADC_BOARDS;
 
     Config_HRADC_SoC(HRADC_FREQ_SAMP);
 
@@ -567,6 +559,12 @@ static void init_controller(void)
                       PWM_MAX_DUTY, PWM_MIN_DUTY,
                       &I2_LOAD_ERROR_TO_M22, &M22);
 
+    /******************************/
+    /** INITIALIZATION OF SCOPES **/
+    /******************************/
+    init_scope(&PS_SCOPE, ISR_CONTROL_FREQ, SCOPE_FREQ_SAMPLING_PARAM[0],
+               &g_buf_samples_ctom[0], SIZE_BUF_SAMPLES_CTOM,
+               SCOPE_SOURCE_PARAM[0], &run_scope_shared_ram);
 
     /// Reset all internal variables
     reset_controller();
@@ -584,8 +582,8 @@ static void reset_controller(void)
 
     g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
 
-    PS_SETPOINT = 0.0;
-    PS_REFERENCE = 0.0;
+    I_LOAD_SETPOINT = 0.0;
+    I_LOAD_REFERENCE = 0.0;
 
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
 
@@ -670,7 +668,7 @@ static interrupt void isr_init_controller(void)
 /**
  * Control ISR
  */
-static interrupt void isr_controller(void)
+static void isr_controller(void)
 {
     static uint16_t i;
     static float temp[4];
@@ -696,84 +694,83 @@ static interrupt void isr_controller(void)
     temp[3] *= HRADCs_Info.HRADC_boards[3].gain;
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
-    PS1_LOAD_CURRENT = temp[0];
+    I1_LOAD_CURRENT = temp[0];
     PS2_LOAD_CURRENT = temp[1];
     PS3_LOAD_CURRENT = temp[2];
-    PS4_LOAD_CURRENT = temp[3];
+    I2_LOAD_CURRENT = temp[3];
 
-    /// Loop through active power supplies
-    for(i = 0; i < NUM_MAX_PS_MODULES; i++)
+    /// Check whether power supply is ON
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
     {
-        /// Check whether power supply is active
-        if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
+        /// Calculate reference according to operation mode
+        switch(g_ipc_ctom.ps_module[0].ps_status.bit.state)
         {
-            /// Check whether power supply is ON
-            if(g_ipc_ctom.ps_module[i].ps_status.bit.state > Interlock)
+            case SlowRef:
+            case SlowRefSync:
             {
-                /// Calculate reference according to operation mode
-                switch(g_ipc_ctom.ps_module[i].ps_status.bit.state)
-                {
-                    case SlowRef:
-                    case SlowRefSync:
-                    {
-                        PS_REFERENCE(i) = PS_SETPOINT(i);
-                        break;
-                    }
-                    case RmpWfm:
-                    case MigWfm:
-                    {
-                        run_wfmref(&WFMREF[i]);
-                        break;
-                    }
-                    case Cycle:
-                    {
-                        SIGGEN[i].amplitude = SIGGEN_MTOC[i].amplitude;
-                        SIGGEN[i].offset = SIGGEN_MTOC[i].offset;
-                        SIGGEN[i].p_run_siggen(&SIGGEN[i]);
-
-                        break;
-                    }
-                    default:
-                    {
-                        break;
-                    }
-                }
-
-                /// Open-loop
-                if(g_ipc_ctom.ps_module[i].ps_status.bit.openloop)
-                {
-                    g_controller_ctom.output_signals[i].f = 0.01 * PS_REFERENCE(i);
-
-                    SATURATE(g_controller_ctom.output_signals[i].f,
-                             PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
-                }
-                /// Closed-loop
-                else
-                {
-                    SATURATE(PS_REFERENCE(i), MAX_REF[i], MIN_REF[i]);
-
-                    //run_dsp_error(&g_controller_ctom.dsp_modules.dsp_error[i]);
-
-                    *g_controller_ctom.dsp_modules.dsp_error[i].error =
-                            *g_controller_ctom.dsp_modules.dsp_error[i].pos -
-                            *g_controller_ctom.dsp_modules.dsp_error[i].neg;
-
-                    run_dsp_pi_inline(&g_controller_ctom.dsp_modules.dsp_pi[i]);
-
-                    //SATURATE(g_controller_ctom.output_signals[i].f,
-                    //         PWM_MAX_DUTY, PWM_MIN_DUTY);
-                }
-
-                set_pwm_duty_hbridge_inline(g_pwm_modules.pwm_regs[i*2],
-                                     g_controller_ctom.output_signals[i].f);
+                run_dsp_srlim(SRLIM_I_LOAD_REFERENCE, USE_MODULE);
+                break;
+            }
+            case Cycle:
+            {
+                run_dsp_srlim(SRLIM_SIGGEN_AMP, USE_MODULE);
+                run_dsp_srlim(SRLIM_SIGGEN_OFFSET, USE_MODULE);
+                SIGGEN.p_run_siggen(&SIGGEN);
+                break;
+            }
+            case RmpWfm:
+            case MigWfm:
+            {
+                run_wfmref(&WFMREF);
+                break;
+            }
+            default:
+            {
+                break;
             }
         }
+
+        /// Open-loop
+        if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
+        {
+            SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0]);
+            DUTY_CYCLE_I1 = 0.01 * I_LOAD_REFERENCE;
+            SATURATE(DUTY_CYCLE_I1, PWM_MAX_DUTY_OL, PWM_MIN_DUTY_OL);
+
+            DUTY_CYCLE_I2 = DUTY_CYCLE_I1;
+        }
+        /// Closed-loop
+        else
+        {
+            SATURATE(I_LOAD_REFERENCE, MAX_REF[0], MIN_REF[0]);
+
+            /// Load current controller
+            run_dsp_error(ERROR_CALCULATOR_I1);
+            run_dsp_error(ERROR_CALCULATOR_I2);
+
+            run_dsp_iir_2p2z(M11_LOAD_CURRENT_CONTROLLER_A);
+            run_dsp_iir_2p2z(M11_LOAD_CURRENT_CONTROLLER_B);
+            run_dsp_iir_2p2z(M12_LOAD_CURRENT_CONTROLLER_A);
+            run_dsp_iir_2p2z(M12_LOAD_CURRENT_CONTROLLER_B);
+            run_dsp_iir_2p2z(M21_LOAD_CURRENT_CONTROLLER_A);
+            run_dsp_iir_2p2z(M21_LOAD_CURRENT_CONTROLLER_B);
+            run_dsp_iir_2p2z(M22_LOAD_CURRENT_CONTROLLER_A);
+            run_dsp_iir_2p2z(M22_LOAD_CURRENT_CONTROLLER_B);
+
+            DUTY_CYCLE_I1 = M11 + M21;
+            DUTY_CYCLE_I2 = M12 + M22;
+
+            SATURATE(DUTY_CYCLE_I1, PWM_MAX_DUTY, PWM_MIN_DUTY);
+            SATURATE(DUTY_CYCLE_I2, PWM_MAX_DUTY, PWM_MIN_DUTY);
+        }
+
+        set_pwm_duty_hbridge(PS1_PWM_MODULATOR, DUTY_CYCLE_I1);
+        set_pwm_duty_hbridge(PS2_PWM_MODULATOR, DUTY_CYCLE_I2);
+        set_pwm_duty_hbridge(PS3_PWM_MODULATOR, DUTY_CYCLE_I1);
+        set_pwm_duty_hbridge(PS4_PWM_MODULATOR, DUTY_CYCLE_I2);
     }
 
-    RUN_SCOPE(PS1_SCOPE);
-    RUN_SCOPE(PS2_SCOPE);
-    RUN_SCOPE(PS3_SCOPE);
-    RUN_SCOPE(PS4_SCOPE);
+    RUN_SCOPE(PS_SCOPE);
 
     /**
      * Re-enable external interrupt 2 (XINT2) interrupts to allow sync pulses to
@@ -784,14 +781,7 @@ static interrupt void isr_controller(void)
         /// Set alarm if counter is below limit when receiving new sync pulse
         if(counter_sync_period < MIN_NUM_ISR_CONTROLLER_SYNC)
         {
-            /// Loop through active power supplies to set alarm
-           for(i = 0; i < NUM_MAX_PS_MODULES; i++)
-           {
-               if(g_ipc_ctom.ps_module[i].ps_status.bit.active)
-               {
-                   g_ipc_ctom.ps_module[i].ps_alarms = High_Sync_Input_Frequency;
-               }
-           }
+            g_ipc_ctom.ps_module[0].ps_alarms = High_Sync_Input_Frequency;
         }
 
         /// Store counter value on BSMP variable
@@ -979,24 +969,5 @@ static void check_interlocks(void)
         set_hard_interlock(0, Load_Overvoltage_Mod_4);
     }
 
-    IER |= M_INT11;
-
-    run_interlocks_debouncing(id);
-}
-
-static inline void set_pwm_duty_hbridge_inline(volatile struct EPWM_REGS
-                                               *p_pwm_module, float duty_pu)
-{
-    uint16_t duty_int;
-    uint16_t duty_frac;
-    float duty;
-
-    duty = (0.5 * duty_pu + 0.5) * (float)p_pwm_module->TBPRD;
-
-    duty_int  = (uint16_t) duty;
-    duty_frac = ((uint16_t) ((duty - (float)duty_int) * MEP_ScaleFactor)) << 8;
-    duty_frac += 0x0180;
-
-    p_pwm_module->CMPAM2.half.CMPA    = duty_int;
-    p_pwm_module->CMPAM2.half.CMPAHR  = duty_frac;
+    run_interlocks_debouncing(0);
 }
