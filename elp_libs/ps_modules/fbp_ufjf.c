@@ -167,7 +167,6 @@ static void term_peripherals_drivers(void);
 
 static void init_controller(void);
 static void reset_controller(void);
-static void reset_controllers(void);
 static void enable_controller();
 static void disable_controller();
 static interrupt void isr_init_controller(void);
