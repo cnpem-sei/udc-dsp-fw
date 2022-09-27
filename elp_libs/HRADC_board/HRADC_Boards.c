@@ -335,7 +335,7 @@ void Config_HRADC_SoC(float freq)
 	 *
 	 * 		ePWM10 is synchronized with CTR = ZERO event from ePWM1
 	 */
-	init_pwm_module(&EPwm10Regs, freq, 0, PWM_Sync_Slave, 0,
+	init_pwm_module(&EPwm10Regs, freq, 0, PWM_Sync_Master, 0,
 	                PWM_ChB_Independent, 0);
 	HRADCs_Info.freq_Sampling = freq;
 
