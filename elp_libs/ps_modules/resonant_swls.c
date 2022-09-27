@@ -85,6 +85,7 @@
 /// PWM modulators
 #define PWM_MODULATOR_1                 g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_2                 g_pwm_modules.pwm_regs[1]
+#define PWM_ISR_CONTROLLER              g_pwm_modules.pwm_regs[2]
 
 /// Scope
 #define SCOPE                           SCOPE_CTOM[0]
@@ -104,6 +105,12 @@ typedef enum
 
 #define NUM_HARD_INTERLOCKS             Load_Overcurrent + 1
 #define NUM_SOFT_INTERLOCKS             0
+
+/**
+ *  Private variables
+ */
+static uint16_t decimation_factor;
+static float decimation_coeff;
 
 /**
  * Private functions
@@ -167,10 +174,13 @@ static void init_peripherals_drivers(void)
     /// Initialization of HRADC boards
     stop_DMA();
 
+    decimation_factor = (uint16_t) roundf(HRADC_FREQ_SAMP / ISR_CONTROL_FREQ);
+    decimation_coeff = 1.0 / (float) decimation_factor;
+
     HRADCs_Info.enable_Sampling = 0;
     HRADCs_Info.n_HRADC_boards = NUM_HRADC_BOARDS;
 
-    Init_DMA_McBSP_nBuffers(NUM_HRADC_BOARDS, 1, HRADC_SPI_CLK);
+    Init_DMA_McBSP_nBuffers(NUM_HRADC_BOARDS, decimation_factor, HRADC_SPI_CLK);
 
     Init_SPIMaster_McBSP(HRADC_SPI_CLK);
     Init_SPIMaster_Gpio();
@@ -182,7 +192,7 @@ static void init_peripherals_drivers(void)
 
     for(i = 0; i < NUM_HRADC_BOARDS; i++)
     {
-        Init_HRADC_Info(&HRADCs_Info.HRADC_boards[i], i, 1,
+        Init_HRADC_Info(&HRADCs_Info.HRADC_boards[i], i, decimation_factor,
                         buffers_HRADC[i], TRANSDUCER_GAIN[i]);
         Config_HRADC_board(&HRADCs_Info.HRADC_boards[i], TRANSDUCER_OUTPUT_TYPE[i],
                            HRADC_HEATER_ENABLE[i], HRADC_MONITOR_ENABLE[i]);
@@ -191,10 +201,11 @@ static void init_peripherals_drivers(void)
     Config_HRADC_SoC(HRADC_FREQ_SAMP);
 
     /// Initialization of PWM modules
-    g_pwm_modules.num_modules = 2;
+    g_pwm_modules.num_modules = 3;
 
     PWM_MODULATOR_1 = &EPwm1Regs;
     PWM_MODULATOR_2 = &EPwm2Regs;
+    PWM_ISR_CONTROLLER = &EPwm3Regs;
 
     disable_pwm_outputs();
     disable_pwm_tbclk();
@@ -216,10 +227,20 @@ static void init_peripherals_drivers(void)
     PWM_MODULATOR_1->TBCTL.bit.PRDLD = TB_SHADOW;
     PWM_MODULATOR_2->TBCTL.bit.PRDLD = TB_SHADOW;
 
-    InitEPwm1Gpio();
-    InitEPwm2Gpio();
+    // This setting allows large frequency steps to happen without error
+    PWM_MODULATOR_2->TBCTL2.bit.PRDLDSYNC = 0x01;
+
 
     FREQ_MODULATED = PWM_FREQ;
+
+    /// PWM module for ISR controller
+    init_pwm_module(PWM_ISR_CONTROLLER, ISR_CONTROL_FREQ, 0, PWM_Sync_Master, 0,
+                    PWM_ChB_Independent, PWM_DEAD_TIME);
+    set_pwm_duty_chA(PWM_ISR_CONTROLLER, 0.5);
+
+
+    InitEPwm1Gpio();
+    InitEPwm2Gpio();
 
     /// Initialization of timers
     InitCpuTimers();
@@ -332,7 +353,7 @@ static void init_controller(void)
      */
 
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
-                PWM_MAX_DUTY, PWM_MIN_DUTY, &I_LOAD_ERROR, &FREQ_MODULATED);
+                MAX_REF_OL[0], MIN_REF_OL[0], &I_LOAD_ERROR, &FREQ_MODULATED);
 
     /******************************/
     /** INITIALIZATION OF SCOPES **/
@@ -405,11 +426,11 @@ static void disable_controller()
 static interrupt void isr_init_controller(void)
 {
     EALLOW;
-    PieVectTable.EPWM1_INT = &isr_controller;
+    PieVectTable.EPWM3_INT = &isr_controller;
     EDIS;
 
-    PWM_MODULATOR_1->ETSEL.bit.INTSEL = ET_CTR_ZERO;
-    PWM_MODULATOR_1->ETCLR.bit.INT = 1;
+    PWM_ISR_CONTROLLER->ETSEL.bit.INTSEL = ET_CTR_ZERO;
+    PWM_ISR_CONTROLLER->ETCLR.bit.INT = 1;
 
     /**
      *  Enable XINT2 (external interrupt 2) interrupt used for sync pulses for
@@ -432,28 +453,42 @@ static interrupt void isr_init_controller(void)
 static interrupt void isr_controller(void)
 {
     static float temp[4];
+    static uint16_t i;
 
     //SET_DEBUG_GPIO0;
     SET_DEBUG_GPIO1;
 
+    temp[0] = 0.0;
+    temp[1] = 0.0;
+    temp[2] = 0.0;
+    temp[3] = 0.0;
+
     /// Get HRADC samples
-    temp[0] = (float) *(HRADCs_Info.HRADC_boards[0].SamplesBuffer);
-    temp[1] = (float) *(HRADCs_Info.HRADC_boards[1].SamplesBuffer);
-    temp[2] = (float) *(HRADCs_Info.HRADC_boards[2].SamplesBuffer);
-    temp[3] = (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer);
+    for(i = 0; i < decimation_factor; i++)
+    {
+        temp[0] += (float) *(HRADCs_Info.HRADC_boards[0].SamplesBuffer++);
+        temp[1] += (float) *(HRADCs_Info.HRADC_boards[1].SamplesBuffer++);
+        temp[2] += (float) *(HRADCs_Info.HRADC_boards[2].SamplesBuffer++);
+        temp[3] += (float) *(HRADCs_Info.HRADC_boards[3].SamplesBuffer++);
+    }
 
     //CLEAR_DEBUG_GPIO1;
 
-    temp[0] *= HRADCs_Info.HRADC_boards[0].gain;
+    HRADCs_Info.HRADC_boards[0].SamplesBuffer = buffers_HRADC[0];
+    HRADCs_Info.HRADC_boards[1].SamplesBuffer = buffers_HRADC[1];
+    HRADCs_Info.HRADC_boards[2].SamplesBuffer = buffers_HRADC[2];
+    HRADCs_Info.HRADC_boards[3].SamplesBuffer = buffers_HRADC[3];
+
+    temp[0] *= HRADCs_Info.HRADC_boards[0].gain * decimation_coeff;
     temp[0] += HRADCs_Info.HRADC_boards[0].offset;
 
-    temp[1] *= HRADCs_Info.HRADC_boards[1].gain;
+    temp[1] *= HRADCs_Info.HRADC_boards[1].gain * decimation_coeff;
     temp[1] += HRADCs_Info.HRADC_boards[1].offset;
 
-    temp[2] *= HRADCs_Info.HRADC_boards[2].gain;
+    temp[2] *= HRADCs_Info.HRADC_boards[2].gain * decimation_coeff;
     temp[2] += HRADCs_Info.HRADC_boards[2].offset;
 
-    temp[3] *= HRADCs_Info.HRADC_boards[3].gain;
+    temp[3] *= HRADCs_Info.HRADC_boards[3].gain * decimation_coeff;
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
     I_LOAD = temp[0];
@@ -489,8 +524,20 @@ static interrupt void isr_controller(void)
             }
         }
 
-        SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0])
-        FREQ_MODULATED = I_LOAD_REFERENCE;
+        /// Open-loop
+        if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
+        {
+            SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0])
+            FREQ_MODULATED = I_LOAD_REFERENCE;
+        }
+        /// Closed-loop
+        else
+        {
+            SATURATE(I_LOAD_REFERENCE, MAX_REF[0], MIN_REF[0]);
+            run_dsp_error(ERROR_I_LOAD);
+            run_dsp_pi(PI_CONTROLLER_I_LOAD);
+            SATURATE(FREQ_MODULATED, MAX_REF_OL[0], MIN_REF_OL[0]);
+        }
 
         set_pwm_freq(PWM_MODULATOR_1, FREQ_MODULATED);
         set_pwm_freq(PWM_MODULATOR_2, FREQ_MODULATED);
@@ -534,8 +581,9 @@ static interrupt void isr_controller(void)
     PieCtrlRegs.PIEIER1.bit.INTx5 = 1;
 
     /// Clear interrupt flags for PWM interrupts
-    PWM_MODULATOR_1->ETCLR.bit.INT = 1;
-    PWM_MODULATOR_2->ETCLR.bit.INT = 1;
+    //PWM_MODULATOR_1->ETCLR.bit.INT = 1;
+    //PWM_MODULATOR_2->ETCLR.bit.INT = 1;
+    PWM_ISR_CONTROLLER->ETCLR.bit.INT = 1;
     PieCtrlRegs.PIEACK.all |= M_INT3;
 
     CLEAR_DEBUG_GPIO1;
@@ -547,14 +595,18 @@ static interrupt void isr_controller(void)
 static void init_interruptions(void)
 {
     EALLOW;
-    PieVectTable.EPWM1_INT =  &isr_init_controller;
+    //PieVectTable.EPWM1_INT =  &isr_init_controller;
     //PieVectTable.EPWM2_INT =  &isr_controller;
+    PieVectTable.EPWM3_INT =  &isr_init_controller;
     EDIS;
 
-    PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
+    //PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
     //PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
-    enable_pwm_interrupt(PWM_MODULATOR_1);
+    PieCtrlRegs.PIEIER3.bit.INTx3 = 1;
+
+    //enable_pwm_interrupt(PWM_MODULATOR_1);
     //enable_pwm_interrupt(PWM_MODULATOR_2);
+    enable_pwm_interrupt(PWM_ISR_CONTROLLER);
 
     IER |= M_INT1;
     IER |= M_INT3;
@@ -576,10 +628,13 @@ static void term_interruptions(void)
 
     /// Clear enables
     IER = 0;
-    PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
+    //PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
     //PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
-    disable_pwm_interrupt(PWM_MODULATOR_1);
+    PieCtrlRegs.PIEIER3.bit.INTx3 = 0;  /// ePWM4
+
+    //disable_pwm_interrupt(PWM_MODULATOR_1);
     //disable_pwm_interrupt(PWM_MODULATOR_2);
+    disable_pwm_interrupt(PWM_ISR_CONTROLLER);
 
     /// Clear flags
     PieCtrlRegs.PIEACK.all |= M_INT1 | M_INT3 | M_INT11;
