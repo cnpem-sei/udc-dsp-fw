@@ -42,12 +42,6 @@
 #define MAX_ILOAD               ANALOG_VARS_MAX[0]
 #define T_ON_US                 ANALOG_VARS_MAX[1] /// Fixed turn-on time for discontinuous-conduction mode operation [us]
 
-#define MAX_V_DCLINK            ANALOG_VARS_MAX[1]
-#define MIN_V_DCLINK            ANALOG_VARS_MIN[1]
-
-#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[2]
-#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[3]
-
 /**
  * Controller defines
  */
@@ -630,7 +624,7 @@ static void term_interruptions(void)
     IER = 0;
     //PieCtrlRegs.PIEIER3.bit.INTx1 = 0;  /// ePWM1
     //PieCtrlRegs.PIEIER3.bit.INTx2 = 0;  /// ePWM2
-    PieCtrlRegs.PIEIER3.bit.INTx3 = 0;  /// ePWM4
+    PieCtrlRegs.PIEIER3.bit.INTx3 = 0;  /// ePWM3
 
     //disable_pwm_interrupt(PWM_MODULATOR_1);
     //disable_pwm_interrupt(PWM_MODULATOR_2);
