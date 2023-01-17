@@ -84,7 +84,7 @@
 #define FF_V_DCLINK                     &g_controller_ctom.dsp_modules.dsp_ff[0]
 #define FF_V_DCLINK_COEFFS              g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
 #define NOM_V_DCLINK_FF                 FF_V_DCLINK_COEFFS.vdc_nom
-#define MIN_V_DCLINK_FF                          FF_V_DCLINK_COEFFS.vdc_min
+#define MIN_V_DCLINK_FF                 FF_V_DCLINK_COEFFS.vdc_min
 
 /// PWM modulators
 #define PWM_MODULATOR_1                 g_pwm_modules.pwm_regs[0]
@@ -109,7 +109,7 @@ typedef enum
     High_Sync_Input_Frequency = 0x00000001
 } alarms_t;
 
-#define NUM_HARD_INTERLOCKS             Load_Overcurrent + 1
+#define NUM_HARD_INTERLOCKS             DCLink_Undervoltage + 1
 #define NUM_SOFT_INTERLOCKS             0
 
 /**
