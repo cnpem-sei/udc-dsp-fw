@@ -153,6 +153,8 @@ void open_loop(ps_module_t *p_ps_module)
         (p_ps_module->ps_status.bit.unlocked == UNLOCKED) )
     {
         p_ps_module->ps_status.bit.openloop = OPEN_LOOP;
+        p_ps_module->ps_setpoint = MIN_REF_OL[0];
+        p_ps_module->ps_reference = MIN_REF_OL[0];
     }
 }
 
@@ -168,6 +170,8 @@ void close_loop(ps_module_t *p_ps_module)
         (p_ps_module->ps_status.bit.unlocked == UNLOCKED) )
     {
         p_ps_module->ps_status.bit.openloop = CLOSED_LOOP;
+        p_ps_module->ps_setpoint = MIN_REF[0];
+        p_ps_module->ps_reference = MIN_REF[0];
     }
 }
 

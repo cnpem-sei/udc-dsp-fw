@@ -399,15 +399,15 @@ static void reset_controller(void)
     g_ipc_ctom.ps_module[0].ps_status.bit.openloop = LOOP_STATE;
 
     /// Change in the default reference according to loop-state:
-    if(LOOP_STATE==CLOSED_LOOP)
+    if(LOOP_STATE == CLOSED_LOOP)
     {
         I_LOAD_SETPOINT = MIN_REF[0];
         I_LOAD_REFERENCE = MIN_REF[0];
     }
     else
     {
-        I_LOAD_SETPOINT = PWM_FREQ;
-        I_LOAD_REFERENCE = PWM_FREQ;
+        I_LOAD_SETPOINT = MIN_REF_OL[0];
+        I_LOAD_REFERENCE = MIN_REF_OL[0];
     }
 
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
