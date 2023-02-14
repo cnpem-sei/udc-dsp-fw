@@ -48,6 +48,8 @@
 #define TIMEOUT_MAGNAPOWER_COMMAND_PULSE_US     ANALOG_VARS_MAX[3]
 #define TIMEOUT_MAGNAPOWER_POWER_ON_US          ANALOG_VARS_MIN[3]
 
+#define MAX_I_LEAKAGE                           ANALOG_VARS_MAX[4]
+
 /**
  * Controller defines
  */
@@ -59,12 +61,15 @@
 #define I_LOAD_ERROR                    g_controller_ctom.net_signals[2].f
 
 #define DUTY_I_LOAD_PI                  g_controller_ctom.net_signals[3].f
-#define DUTY_REF_FF               g_controller_ctom.net_signals[4].f
+#define DUTY_REF_FF                     g_controller_ctom.net_signals[4].f
 #define DUTY_NOMINAL                    g_controller_ctom.net_signals[5].f
 
 #define V_DCLINK_FILTERED               g_controller_ctom.net_signals[6].f
 
 #define DUTY_CYCLE                      g_controller_ctom.output_signals[0].f
+
+/// ARM Net Signals
+#define I_LEAKAGE                       g_controller_mtoc.net_signals[0].f
 
 /// Reference
 #define I_LOAD_SETPOINT                 g_ipc_ctom.ps_module[0].ps_setpoint
@@ -150,6 +155,7 @@ typedef enum
     Load_Waterflow,
     Load_Overtemperature,
     IIB_Itlk,
+    Leakage_Overcurrent
 } hard_interlocks_t;
 
 typedef enum
@@ -163,7 +169,7 @@ typedef enum
     High_Sync_Input_Frequency = 0x00000001
 } alarms_t;
 
-#define NUM_HARD_INTERLOCKS     IIB_Itlk + 1
+#define NUM_HARD_INTERLOCKS     Leakage_Overcurrent + 1
 #define NUM_SOFT_INTERLOCKS     Load_Feedback_Fault + 1
 
 /**
@@ -807,6 +813,11 @@ static inline void check_interlocks(void)
     if(fabs(I_LOAD) > MAX_ILOAD)
     {
         set_hard_interlock(0, Load_Overcurrent);
+    }
+
+    if(fabs(I_LEAKAGE) > MAX_I_LEAKAGE)
+    {
+        set_hard_interlock(0, Leakage_Overcurrent);
     }
 
     if(V_DCLINK > MAX_V_DCLINK)

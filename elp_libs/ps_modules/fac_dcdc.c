@@ -50,6 +50,8 @@
 
 #define NUM_DCCTs               ANALOG_VARS_MAX[5]
 
+#define MAX_I_LEAKAGE           ANALOG_VARS_MAX[6]
+
 /**
  * Controller defines
  */
@@ -75,9 +77,7 @@
 #define DUTY_CYCLE                  g_controller_ctom.output_signals[0].f
 
 /// ARM Net Signals
-#define V_LOAD                      g_controller_mtoc.net_signals[0].f
-#define TEMP_INDUCTORS              g_controller_mtoc.net_signals[1].f
-#define TEMP_IGBT                   g_controller_mtoc.net_signals[2].f
+#define I_LEAKAGE                   g_controller_mtoc.net_signals[0].f
 
 /// Reference
 #define I_LOAD_SETPOINT             g_ipc_ctom.ps_module[0].ps_setpoint
@@ -146,7 +146,8 @@ typedef enum
     CapBank_Undervoltage,
     IIB_Itlk,
     External_Interlock,
-    Rack_Interlock
+    Rack_Interlock,
+    Leakage_Overcurrent
 } hard_interlocks_t;
 
 typedef enum
@@ -163,7 +164,7 @@ typedef enum
     High_Sync_Input_Frequency = 0x00000001
 } alarms_t;
 
-#define NUM_HARD_INTERLOCKS     Rack_Interlock + 1
+#define NUM_HARD_INTERLOCKS     Leakage_Overcurrent + 1
 #define NUM_SOFT_INTERLOCKS     Load_Feedback_2_Fault + 1
 
 /**
@@ -836,6 +837,11 @@ static inline void check_interlocks(void)
     if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
     {
         set_soft_interlock(0, DCCT_High_Difference);
+    }
+
+    if(fabs(I_LEAKAGE) > MAX_I_LEAKAGE)
+    {
+        set_hard_interlock(0, Leakage_Overcurrent);
     }
 
     if(V_CAPBANK > MAX_V_CAPBANK)
