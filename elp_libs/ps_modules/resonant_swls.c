@@ -111,6 +111,20 @@
 #define SCOPE                           SCOPE_CTOM[0]
 
 /**
+ * Digital I/O's status
+ */
+#define PIN_OPEN_DCLINK_CONTACTOR       CLEAR_GPDO1
+#define PIN_CLOSE_DCLINK_CONTACTOR      SET_GPDO1
+
+#define PIN_SET_MAGNAPOWER_INTERLOCK    CLEAR_GPDO4
+#define PIN_CLEAR_MAGNAPOWER_INTERLOCK  SET_GPDO4
+
+#define PIN_STATUS_EXTERNAL_INTERLOCK   GET_GPDI6
+#define PIN_STATUS_DCLINK_CONTACTOR     GET_GPDI5
+#define PIN_STATUS_DCCT_1_STATUS        GET_GPDI4
+#define PIN_STATUS_DCCT_2_STATUS        GET_GPDI3
+
+/**
  * Interlocks and alarms defines
  */
 typedef enum
@@ -765,18 +779,68 @@ static inline void check_interlocks(void)
         set_hard_interlock(0, Load_Overcurrent);
     }
 
+    if(fabs(I_LOAD_DIFF) > MAX_DCCTS_DIFF)
+    {
+        set_soft_interlock(0, DCCT_High_Difference);
+    }
+
     if(V_DCLINK > MAX_V_DCLINK)
     {
         set_hard_interlock(0, DCLink_Overvoltage);
     }
 
-    if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Interlock)
+    if(!PIN_STATUS_DCCT_1_STATUS)
     {
-        if(V_DCLINK < MIN_V_DCLINK)
+        set_soft_interlock(0, DCCT_1_Fault);
+    }
+
+    if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
+    {
+        set_soft_interlock(0, DCCT_2_Fault);
+    }
+
+    if(!PIN_STATUS_DCCT_1_STATUS)
+    {
+        set_soft_interlock(0, External_Itlk);
+    }
+
+    DINT;
+
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
+    {
+        if(PIN_STATUS_DCLINK_CONTACTOR)
         {
-            set_hard_interlock(0, DCLink_Undervoltage);
+            set_hard_interlock(0, Welded_Contactor_Fault);
         }
     }
+
+    else
+    {
+        if(!PIN_STATUS_DCLINK_CONTACTOR)
+        {
+            set_hard_interlock(0, Opened_Contactor_Fault);
+        }
+
+        if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
+        {
+            if(V_DCLINK > MIN_V_DCLINK)
+            {
+                g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
+                enable_pwm_output(0);
+                enable_pwm_output(1);
+            }
+        }
+
+        else if(g_ipc_ctom.ps_module[0].ps_status.bit.state > Initializing) /// Power supply ON
+        {
+            if(V_DCLINK < MIN_V_DCLINK)
+            {
+                set_hard_interlock(0, DCLink_Undervoltage);
+            }
+        }
+    }
+
+    EINT;
 
     run_interlocks_debouncing(0);
     //CLEAR_DEBUG_GPIO1;
