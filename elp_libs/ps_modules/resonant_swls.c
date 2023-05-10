@@ -137,8 +137,8 @@ typedef enum
     DCLink_Undervoltage,
     Welded_Contactor_Fault,
     Opened_Contactor_Fault,
-    IIB_Itlk,
-    External_Itlk
+    External_Itlk,
+    IIB_Itlk
 } hard_interlocks_t;
 
 typedef enum
@@ -153,7 +153,7 @@ typedef enum
     High_Sync_Input_Frequency = 0x00000001
 } alarms_t;
 
-#define NUM_HARD_INTERLOCKS             External_Itlk + 1
+#define NUM_HARD_INTERLOCKS             IIB_Itlk + 1
 #define NUM_SOFT_INTERLOCKS             DCCT_High_Difference + 1
 
 /**
