@@ -799,7 +799,7 @@ static inline void check_interlocks(void)
         set_soft_interlock(0, DCCT_2_Fault);
     }
 
-    if(!PIN_STATUS_DCCT_1_STATUS)
+    if(!PIN_STATUS_EXTERNAL_INTERLOCK)
     {
         set_soft_interlock(0, External_Itlk);
     }
