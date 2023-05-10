@@ -58,6 +58,7 @@
 
 #define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[6]
 #define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[7]
+#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[8]
 
 /**
  * Controller defines
@@ -190,6 +191,9 @@ static inline void check_interlocks(void);
  */
 void main_resonant_swls(void)
 {
+    /// Clear interlock signal to MagnaPower caused by UDC power-on
+    PIN_CLEAR_MAGNAPOWER_INTERLOCK;
+
     init_controller();
     init_peripherals_drivers();
     init_interruptions();
@@ -609,6 +613,7 @@ static interrupt void isr_controller(void)
             SATURATE(FREQ_MODULATED, MAX_REF_OL[0], MIN_REF_OL[0]);
         }
 
+        /// Modulation frequency dead-zone compensation
         FREQ_MODULATED_COMPENS = FREQ_MODULATED + FREQ_DEADZONE_HZ;
         SATURATE(FREQ_MODULATED_COMPENS, MAX_REF_OL[0], MIN_REF_OL[0]);
 
@@ -726,9 +731,35 @@ static void turn_on(uint16_t dummy)
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     #endif
     {
-        g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
-        enable_pwm_output(0);
-        enable_pwm_output(1);
+        if(V_DCLINK > MAX_V_DCLINK_TURN_ON)
+        {
+            BYPASS_HARD_INTERLOCK_DEBOUNCE(0, DCLink_Overvoltage);
+            set_hard_interlock(0, DCLink_Overvoltage);
+        }
+
+        #ifdef USE_ITLK
+        else
+        {
+        #endif
+
+            PIN_CLOSE_DCLINK_CONTACTOR;
+            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
+
+            if(!PIN_STATUS_DCLINK_CONTACTOR)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Fault);
+                set_hard_interlock(0, Opened_Contactor_Fault);
+            }
+
+            #ifdef USE_ITLK
+            else
+            {
+            #endif
+                g_ipc_ctom.ps_module[0].ps_status.bit.state = Initializing;
+            #ifdef USE_ITLK
+            }
+        }
+        #endif
     }
 }
 
@@ -741,6 +772,9 @@ static void turn_off(uint16_t dummy)
 {
     disable_pwm_output(0);
     disable_pwm_output(1);
+
+    PIN_OPEN_DCLINK_CONTACTOR;
+    DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
 
     reset_controller();
 
@@ -763,6 +797,16 @@ static void reset_interlocks(uint16_t dummy)
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
+        if(PIN_STATUS_DCLINK_CONTACTOR)
+        {
+            PIN_CLOSE_DCLINK_CONTACTOR;
+            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
+            PIN_OPEN_DCLINK_CONTACTOR;
+            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
+        }
+
+        PIN_CLEAR_MAGNAPOWER_INTERLOCK;
+
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
     }
 }
@@ -843,5 +887,15 @@ static inline void check_interlocks(void)
     EINT;
 
     run_interlocks_debouncing(0);
+
+    #ifdef USE_ITLK
+    if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Interlock)
+    #else
+    if(g_ipc_ctom.ps_module[0].ps_hard_interlock || g_ipc_ctom.ps_module[0].ps_soft_interlock)
+    #endif
+    {
+        PIN_SET_MAGNAPOWER_INTERLOCK;
+    }
+
     //CLEAR_DEBUG_GPIO1;
 }
