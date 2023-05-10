@@ -69,8 +69,9 @@
 
 #define I_LOAD_MEAN             g_controller_ctom.net_signals[2].f
 #define I_LOAD_ERROR            g_controller_ctom.net_signals[3].f
+#define I_LOAD_DIFF             g_controller_ctom.net_signals[4].f
 
-#define FREQ_MODULATED          g_controller_ctom.net_signals[4].f
+#define FREQ_MODULATED          g_controller_ctom.net_signals[5].f
 
 #define FREQ_MODULATED_COMPENS  g_controller_ctom.output_signals[0].f
 
@@ -370,11 +371,11 @@ static void init_controller(void)
      * description:     Load current reference error
      *  dsp module:     DSP_Error
      *           +:     I_LOAD_REFERENCE
-     *           -:     I_LOAD
+     *           -:     I_LOAD_MEAN
      *         out:     I_LOAD_ERROR
      */
 
-    init_dsp_error(ERROR_I_LOAD, &I_LOAD_REFERENCE, &I_LOAD, &I_LOAD_ERROR);
+    init_dsp_error(ERROR_I_LOAD, &I_LOAD_REFERENCE, &I_LOAD_MEAN, &I_LOAD_ERROR);
 
     /**
      *        name:     PI_CONTROLLER_I_LOAD
@@ -386,16 +387,6 @@ static void init_controller(void)
 
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
                 MAX_REF_OL[0], MIN_REF_OL[0], &I_LOAD_ERROR, &FREQ_MODULATED);
-
-    /**
-     *        name:     FF_V_DCLINK
-     * description:     DCLINK voltage feed-forward controller
-     *  dsp module:     DSP_FF
-     *          in:     FREQ_MODULATED
-     *         out:     FREQ_MODULATED_FF
-     */
-
-    init_dsp_vdclink_ff(FF_V_DCLINK, NOM_V_DCLINK_FF, MIN_V_DCLINK_FF, &V_DCLINK, &FREQ_MODULATED, &FREQ_MODULATED_FF);
 
     /******************************/
     /** INITIALIZATION OF SCOPES **/
@@ -439,7 +430,6 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
-    reset_dsp_vdclink_ff(FF_V_DCLINK);
 
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
@@ -543,8 +533,21 @@ static interrupt void isr_controller(void)
     temp[3] *= HRADCs_Info.HRADC_boards[3].gain * decimation_coeff;
     temp[3] += HRADCs_Info.HRADC_boards[3].offset;
 
-    I_LOAD = temp[0];
-    V_DCLINK = temp[1];
+    if(NUM_DCCTs)
+    {
+        I_LOAD_1 = temp[0];
+        I_LOAD_2 = temp[1];
+
+        I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
+        I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
+    }
+    else
+    {
+        I_LOAD_1 = temp[0];
+
+        I_LOAD_MEAN = I_LOAD_1;
+        I_LOAD_DIFF = 0;
+    }
 
     /// Check whether power supply is ON
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state >= SlowRef)
@@ -581,7 +584,7 @@ static interrupt void isr_controller(void)
         if(g_ipc_ctom.ps_module[0].ps_status.bit.openloop)
         {
             SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0])
-            FREQ_MODULATED_FF = I_LOAD_REFERENCE;
+            FREQ_MODULATED = I_LOAD_REFERENCE;
         }
         /// Closed-loop
         else
@@ -589,12 +592,14 @@ static interrupt void isr_controller(void)
             SATURATE(I_LOAD_REFERENCE, MAX_REF[0], MIN_REF[0]);
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
-            run_dsp_vdclink_ff(FF_V_DCLINK);
-            SATURATE(FREQ_MODULATED_FF, MAX_REF_OL[0], MIN_REF_OL[0]);
+            SATURATE(FREQ_MODULATED, MAX_REF_OL[0], MIN_REF_OL[0]);
         }
 
-        set_pwm_freq(PWM_MODULATOR_1, FREQ_MODULATED_FF);
-        set_pwm_freq(PWM_MODULATOR_2, FREQ_MODULATED_FF);
+        FREQ_MODULATED_COMPENS = FREQ_MODULATED + FREQ_DEADZONE_HZ;
+        SATURATE(FREQ_MODULATED_COMPENS, MAX_REF_OL[0], MIN_REF_OL[0]);
+
+        set_pwm_freq(PWM_MODULATOR_1, FREQ_MODULATED_COMPENS);
+        set_pwm_freq(PWM_MODULATOR_2, FREQ_MODULATED_COMPENS);
 
         cfg_pwm_sync(PWM_MODULATOR_1, PWM_Sync_Master, 0.0);
         cfg_pwm_sync(PWM_MODULATOR_2, PWM_Sync_Slave, 180.0);
@@ -755,7 +760,7 @@ static inline void check_interlocks(void)
 {
     //SET_DEBUG_GPIO1;
 
-    if(fabs(I_LOAD) > MAX_ILOAD)
+    if(fabs(I_LOAD_MEAN) > MAX_ILOAD)
     {
         set_hard_interlock(0, Load_Overcurrent);
     }
