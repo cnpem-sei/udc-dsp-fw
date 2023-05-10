@@ -54,11 +54,13 @@
 /// Fixed frequency offset summed to control effort to compensate dead-zone [Hz]
 #define FREQ_DEADZONE_HZ                        ANALOG_VARS_MAX[5]
 
-#define NUM_DCCTs                               ANALOG_VARS_MAX[8]
+/// NUM_DCCTs == 0 : 1 DCCT
+/// NUM_DCCTs > 0  : 2 DCCT's
+#define NUM_DCCTs                               ANALOG_VARS_MAX[6]
 
-#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[6]
-#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[7]
-#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[8]
+#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[7]
+#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[8]
+#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[9]
 
 /**
  * Controller defines
