@@ -39,23 +39,43 @@
 /**
  * Analog variables parameters
  */
-#define MAX_ILOAD               ANALOG_VARS_MAX[0]
-#define T_ON_US                 ANALOG_VARS_MAX[1] /// Fixed turn-on time for discontinuous-conduction mode operation [us]
-#define MAX_V_DCLINK            ANALOG_VARS_MAX[2]
-#define MIN_V_DCLINK            ANALOG_VARS_MIN[2]
+#define MAX_ILOAD                               ANALOG_VARS_MAX[0]
+
+#define MAX_V_DCLINK                            ANALOG_VARS_MAX[1]
+#define MIN_V_DCLINK                            ANALOG_VARS_MIN[1]
+
+#define MAX_V_DCLINK_TURN_ON                    ANALOG_VARS_MAX[2]
+
+#define MAX_DCCTS_DIFF                          ANALOG_VARS_MAX[3]
+
+/// Fixed turn-on time for discontinuous-conduction mode operation [us]
+#define T_ON_US                                 ANALOG_VARS_MAX[4]
+
+/// Fixed frequency offset summed to control effort to compensate dead-zone [Hz]
+#define FREQ_DEADZONE_HZ                        ANALOG_VARS_MAX[5]
+
+#define NUM_DCCTs                               ANALOG_VARS_MAX[8]
+
+#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[6]
+#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[7]
 
 /**
  * Controller defines
  */
 
 /// DSP Net Signals
-#define I_LOAD                  g_controller_ctom.net_signals[0].f  // HRADC0
-#define V_DCLINK                g_controller_ctom.net_signals[1].f  // HRADC1
-#define I_LOAD_ERROR            g_controller_ctom.net_signals[2].f
-#define FREQ_MODULATED          g_controller_ctom.net_signals[3].f
-#define FREQ_MODULATED_FF       g_controller_ctom.output_signals[0].f
+#define I_LOAD_1                g_controller_ctom.net_signals[0].f  // HRADC0
+#define I_LOAD_2                g_controller_ctom.net_signals[1].f  // HRADC1
+
+#define I_LOAD_MEAN             g_controller_ctom.net_signals[2].f
+#define I_LOAD_ERROR            g_controller_ctom.net_signals[3].f
+
+#define FREQ_MODULATED          g_controller_ctom.net_signals[4].f
+
+#define FREQ_MODULATED_COMPENS  g_controller_ctom.output_signals[0].f
 
 /// ARM Net Signals
+#define V_DCLINK                g_controller_mtoc.net_signals[0].f
 
 /// Reference
 #define I_LOAD_SETPOINT             g_ipc_ctom.ps_module[0].ps_setpoint
@@ -81,11 +101,6 @@
 #define KP_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.ki
 
-#define FF_V_DCLINK                     &g_controller_ctom.dsp_modules.dsp_ff[0]
-#define FF_V_DCLINK_COEFFS              g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
-#define NOM_V_DCLINK_FF                 FF_V_DCLINK_COEFFS.vdc_nom
-#define MIN_V_DCLINK_FF                 FF_V_DCLINK_COEFFS.vdc_min
-
 /// PWM modulators
 #define PWM_MODULATOR_1                 g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_2                 g_pwm_modules.pwm_regs[1]
@@ -101,16 +116,27 @@ typedef enum
 {
     Load_Overcurrent,
     DCLink_Overvoltage,
-    DCLink_Undervoltage
+    DCLink_Undervoltage,
+    Welded_Contactor_Fault,
+    Opened_Contactor_Fault,
+    IIB_Itlk,
+    External_Itlk
 } hard_interlocks_t;
+
+typedef enum
+{
+    DCCT_1_Fault,
+    DCCT_2_Fault,
+    DCCT_High_Difference
+} soft_interlocks_t;
 
 typedef enum
 {
     High_Sync_Input_Frequency = 0x00000001
 } alarms_t;
 
-#define NUM_HARD_INTERLOCKS             DCLink_Undervoltage + 1
-#define NUM_SOFT_INTERLOCKS             0
+#define NUM_HARD_INTERLOCKS             External_Itlk + 1
+#define NUM_SOFT_INTERLOCKS             DCCT_High_Difference + 1
 
 /**
  *  Private variables
