@@ -111,6 +111,7 @@
 #if (HRADC_v2_1)
     #define TRANSDUCER_GAIN         g_param_bank.hradc.gain_transducer
 #endif
+#define TRANSDUCER_OFFSET           g_param_bank.hradc.offset_transducer
 
 /**
  * SigGen parameters

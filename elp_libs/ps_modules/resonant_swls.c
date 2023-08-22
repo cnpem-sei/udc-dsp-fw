@@ -555,8 +555,8 @@ static interrupt void isr_controller(void)
 
     if(NUM_DCCTs)
     {
-        I_LOAD_1 = temp[0];
-        I_LOAD_2 = temp[1];
+        I_LOAD_1 = temp[0] - TRANSDUCER_OFFSET[0];
+        I_LOAD_2 = temp[1] - TRANSDUCER_OFFSET[1];
 
         I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
         I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
@@ -565,7 +565,7 @@ static interrupt void isr_controller(void)
     {
         I_LOAD_1 = temp[0];
 
-        I_LOAD_MEAN = I_LOAD_1;
+        I_LOAD_MEAN = I_LOAD_1 - TRANSDUCER_OFFSET[0];
         I_LOAD_DIFF = 0;
     }
 
@@ -847,7 +847,7 @@ static inline void check_interlocks(void)
 
     if(!PIN_STATUS_EXTERNAL_INTERLOCK)
     {
-        set_soft_interlock(0, External_Itlk);
+        set_hard_interlock(0, External_Itlk);
     }
 
     DINT;
