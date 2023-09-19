@@ -73,7 +73,7 @@ pwm_modules_t g_pwm_modules;
 uint16_t set_pwm_freq(volatile struct EPWM_REGS *p_pwm_module, double freq)
 {
     uint16_t period;
-    period = ((double) C28_FREQ_MHZ * (double) 1E6) / freq - 1;
+    period = ((double) C28_FREQ_MHZ * (double) 1E6) / (freq * (double) (0x1 << p_pwm_module->TBCTL.bit.CLKDIV)) - 1;
     p_pwm_module->TBPRD = period;
     return period;
 }
@@ -89,7 +89,7 @@ uint16_t set_pwm_freq(volatile struct EPWM_REGS *p_pwm_module, double freq)
 void set_pwm_deadtime(volatile struct EPWM_REGS *p_pwm_module, uint16_t deadtime)
 {
     uint16_t dt_clk;
-    dt_clk = ((float) ((Uint32) C28_FREQ_MHZ * deadtime) * 1E-3);
+    dt_clk = ((float) ((Uint32) C28_FREQ_MHZ * deadtime) * 1E-3) / ((double) (0x1 << p_pwm_module->TBCTL.bit.CLKDIV));
     p_pwm_module->DBFED = dt_clk;         // Falling-edge
     p_pwm_module->DBRED = dt_clk;         // Rising-edge
 }
@@ -286,9 +286,24 @@ void init_pwm_module(volatile struct EPWM_REGS *p_pwm_module, double freq,
                      uint16_t phase_degrees, cfg_pwm_channel_b_t cfg_channel_b,
                      uint16_t deadtime)
 {
-    /* Counter-register configuration */
+	uint16_t TB_DIV_N;
+
+	if(freq < 2288 && freq >= 1144)
+	{
+		TB_DIV_N = TB_DIV2;
+	}
+	else if(freq < 1144 && freq >= 572)
+	{
+		TB_DIV_N = TB_DIV4;
+	}
+	else
+	{
+		TB_DIV_N = TB_DIV1;
+	}
+
+	/* Counter-register configuration */
     p_pwm_module->TBCTL.bit.HSPCLKDIV = TB_DIV1;
-    p_pwm_module->TBCTL.bit.CLKDIV = TB_DIV1;
+    p_pwm_module->TBCTL.bit.CLKDIV = TB_DIV_N;
     p_pwm_module->TBCTL.bit.PRDLD = TB_IMMEDIATE;
     p_pwm_module->TBCTL.bit.CTRMODE = TB_COUNT_UP;
     p_pwm_module->TBCTR = 0;
