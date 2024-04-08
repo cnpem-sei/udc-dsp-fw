@@ -65,6 +65,8 @@ extern uint16_t set_pwm_freq(volatile struct EPWM_REGS *p_pwm_module,
                              double freq);
 extern void set_pwm_deadtime(volatile struct EPWM_REGS *p_pwm_module,
                              uint16_t deadtime);
+extern void set_pwm_deadtime_edge(volatile struct EPWM_REGS *p_pwm_module,
+								  uint16_t deadtime_rising, uint16_t deadtime_falling);
 extern void set_pwm_sync_phase(volatile struct EPWM_REGS *p_pwm_module,
                                uint16_t degrees);
 extern void cfg_pwm_sync(volatile struct EPWM_REGS *p_pwm_module,

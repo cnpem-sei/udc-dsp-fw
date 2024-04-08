@@ -54,6 +54,10 @@
 /// Fixed frequency offset summed to control effort to compensate dead-zone [Hz]
 #define FREQ_DEADZONE_HZ                        ANALOG_VARS_MAX[5]
 
+/// Dead time for PWMs -> rising and falling edge [ns]
+#define PWM_DEAD_TIME_RISING                    ANALOG_VARS_MIN[2]
+#define PWM_DEAD_TIME_FALLING                   ANALOG_VARS_MIN[3]
+
 /// NUM_DCCTs == 0 : 1 DCCT
 /// NUM_DCCTs > 0  : 2 DCCT's
 #define NUM_DCCTs                               ANALOG_VARS_MAX[6]
@@ -266,12 +270,15 @@ static void init_peripherals_drivers(void)
 
     /// PWM initialization
     init_pwm_module(PWM_MODULATOR_1, PWM_FREQ, 0, PWM_Sync_Master, 0,
-                    PWM_ChB_Independent, PWM_DEAD_TIME);
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
     init_pwm_module(PWM_MODULATOR_2, PWM_FREQ, 1, PWM_Sync_Slave, 180,
-                    PWM_ChB_Independent, PWM_DEAD_TIME);
+                    PWM_ChB_Complementary, PWM_DEAD_TIME);
+
+    set_pwm_deadtime_edge(PWM_MODULATOR_1, PWM_DEAD_TIME_RISING, PWM_DEAD_TIME_FALLING);
+    set_pwm_deadtime_edge(PWM_MODULATOR_2, PWM_DEAD_TIME_RISING, PWM_DEAD_TIME_FALLING);
 
     /// Fix turn-on time
-    duty_cycle = T_ON_US*1e-6*PWM_FREQ;
+    duty_cycle = (((T_ON_US*1e-6) + (PWM_DEAD_TIME_RISING*1e-9))*PWM_FREQ);
 
     set_pwm_duty_chA(PWM_MODULATOR_1, duty_cycle);
     set_pwm_duty_chA(PWM_MODULATOR_2, duty_cycle);

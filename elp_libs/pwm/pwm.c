@@ -95,6 +95,24 @@ void set_pwm_deadtime(volatile struct EPWM_REGS *p_pwm_module, uint16_t deadtime
 }
 
 /**
+ * Set dead time between channel A and B from specified PWM module. It applies
+ * only when channel B configured as complementary. See `cfg_pwm_channel_b()`
+ * function)
+ *
+ * @param p_pwm_module specified PWM module
+ * @param deadtime dead-time between channel A and B [ns]
+ */
+void set_pwm_deadtime_edge(volatile struct EPWM_REGS *p_pwm_module, uint16_t deadtime_rising, uint16_t deadtime_falling)
+{
+	uint16_t dt_clk_rising;
+	uint16_t dt_clk_falling;
+	dt_clk_rising = ((float) ((Uint32) C28_FREQ_MHZ * deadtime_rising) * 1E-3) / ((double) (0x1 << p_pwm_module->TBCTL.bit.CLKDIV));
+	dt_clk_falling = ((float) ((Uint32) C28_FREQ_MHZ * (deadtime_falling - deadtime_rising)) * 1E-3) / ((double) (0x1 << p_pwm_module->TBCTL.bit.CLKDIV));
+	p_pwm_module->DBRED = dt_clk_rising;         // Rising-edge
+	p_pwm_module->DBFED = dt_clk_falling;        // Falling-edge
+}
+
+/**
  * Configure counter synchronization of specified PWM module. See section
  * 7.1.4.3.2 (Time-Base Counter Synchronization) from F28M36x Technical
  * Reference for more information.
