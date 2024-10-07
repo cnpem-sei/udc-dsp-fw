@@ -314,6 +314,10 @@ void init_pwm_module(volatile struct EPWM_REGS *p_pwm_module, double freq,
 	{
 		TB_DIV_N = TB_DIV4;
 	}
+	else if(freq < 572 && freq >= 286)
+	{
+		TB_DIV_N = TB_DIV8;
+	}
 	else
 	{
 		TB_DIV_N = TB_DIV1;

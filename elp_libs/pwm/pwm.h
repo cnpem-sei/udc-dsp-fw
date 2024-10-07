@@ -32,6 +32,8 @@
 
 #define NUM_MAX_PWM_MODULES   8
 
+#define TB_DIV8		0x3
+
 typedef enum {
         PWM_Sync_Master,
         PWM_Sync_Slave
