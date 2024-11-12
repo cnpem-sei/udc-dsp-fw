@@ -58,6 +58,9 @@
 #define PWM_DEAD_TIME_RISING                    ANALOG_VARS_MIN[2]
 #define PWM_DEAD_TIME_FALLING                   ANALOG_VARS_MIN[3]
 
+#define MAX_REF_CL                              ANALOG_VARS_MAX[10]
+#define MIN_REF_CL                              ANALOG_VARS_MIN[4]
+
 /// NUM_DCCTs == 0 : 1 DCCT
 /// NUM_DCCTs > 0  : 2 DCCT's
 #define NUM_DCCTs                               ANALOG_VARS_MAX[6]
@@ -413,7 +416,7 @@ static void init_controller(void)
      */
 
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
-                MAX_REF_OL[0], MIN_REF_OL[0], &I_LOAD_ERROR, &FREQ_MODULATED);
+                MAX_REF_CL, MIN_REF_CL, &I_LOAD_ERROR, &FREQ_MODULATED);
 
     /******************************/
     /** INITIALIZATION OF SCOPES **/
@@ -612,6 +615,8 @@ static interrupt void isr_controller(void)
         {
             SATURATE(I_LOAD_REFERENCE, MAX_REF_OL[0], MIN_REF_OL[0])
             FREQ_MODULATED = I_LOAD_REFERENCE;
+            FREQ_MODULATED_COMPENS = FREQ_MODULATED;
+            SATURATE(FREQ_MODULATED_COMPENS, MAX_REF_OL[0], MIN_REF_OL[0]);
         }
         /// Closed-loop
         else
@@ -619,12 +624,12 @@ static interrupt void isr_controller(void)
             SATURATE(I_LOAD_REFERENCE, MAX_REF[0], MIN_REF[0]);
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
-            SATURATE(FREQ_MODULATED, MAX_REF_OL[0], MIN_REF_OL[0]);
-        }
+            SATURATE(FREQ_MODULATED, MAX_REF_CL, MIN_REF_CL);
 
-        /// Modulation frequency dead-zone compensation
-        FREQ_MODULATED_COMPENS = FREQ_MODULATED + FREQ_DEADZONE_HZ;
-        SATURATE(FREQ_MODULATED_COMPENS, MAX_REF_OL[0], MIN_REF_OL[0]);
+            /// Modulation frequency dead-zone compensation
+            FREQ_MODULATED_COMPENS = FREQ_MODULATED + FREQ_DEADZONE_HZ;
+            SATURATE(FREQ_MODULATED_COMPENS, MAX_REF_CL, MIN_REF_CL);
+        }
 
         set_pwm_freq(PWM_MODULATOR_1, FREQ_MODULATED_COMPENS);
         set_pwm_freq(PWM_MODULATOR_2, FREQ_MODULATED_COMPENS);
