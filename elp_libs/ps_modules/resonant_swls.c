@@ -46,28 +46,32 @@
 
 #define MAX_V_DCLINK_TURN_ON                    ANALOG_VARS_MAX[2]
 
-#define MAX_DCCTS_DIFF                          ANALOG_VARS_MAX[3]
+/// NUM_DCCTs == 0 : 1 DCCT
+/// NUM_DCCTs > 0  : 2 DCCT's
+#define NUM_DCCTs                               ANALOG_VARS_MAX[3]
+
+#define MAX_DCCTS_DIFF                          ANALOG_VARS_MAX[4]
+
+#define MAX_I_IDLE_DCCT                         ANALOG_VARS_MAX[5]
+#define MIN_I_ACTIVE_DCCT                       ANALOG_VARS_MIN[5]
 
 /// Fixed turn-on time for discontinuous-conduction mode operation [us]
-#define T_ON_US                                 ANALOG_VARS_MAX[4]
+#define T_ON_US                                 ANALOG_VARS_MAX[6]
 
 /// Fixed frequency offset summed to control effort to compensate dead-zone [Hz]
-#define FREQ_DEADZONE_HZ                        ANALOG_VARS_MAX[5]
+#define FREQ_DEADZONE_HZ                        ANALOG_VARS_MAX[7]
+
+#define TIMEOUT_CONTACTOR_K1_CLOSED_MS          ANALOG_VARS_MAX[8]
+#define TIMEOUT_CONTACTOR_K1_OPENED_MS          ANALOG_VARS_MAX[9]
+#define RESET_PULSE_TIME_CONTACTOR_K1_MS        ANALOG_VARS_MAX[10]
 
 /// Dead time for PWMs -> rising and falling edge [ns]
 #define PWM_DEAD_TIME_RISING                    ANALOG_VARS_MIN[2]
 #define PWM_DEAD_TIME_FALLING                   ANALOG_VARS_MIN[3]
 
-#define MAX_REF_CL                              ANALOG_VARS_MAX[10]
+/// used for compensate dead-zone [Hz]
+#define MAX_REF_CL                              ANALOG_VARS_MAX[11]
 #define MIN_REF_CL                              ANALOG_VARS_MIN[4]
-
-/// NUM_DCCTs == 0 : 1 DCCT
-/// NUM_DCCTs > 0  : 2 DCCT's
-#define NUM_DCCTs                               ANALOG_VARS_MAX[6]
-
-#define TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS      ANALOG_VARS_MAX[7]
-#define TIMEOUT_DCLINK_CONTACTOR_OPENED_MS      ANALOG_VARS_MAX[8]
-#define RESET_PULSE_TIME_DCLINK_CONTACTOR_MS    ANALOG_VARS_MAX[9]
 
 /**
  * Controller defines
@@ -76,17 +80,15 @@
 /// DSP Net Signals
 #define I_LOAD_1                g_controller_ctom.net_signals[0].f  // HRADC0
 #define I_LOAD_2                g_controller_ctom.net_signals[1].f  // HRADC1
+#define V_DCLINK                g_controller_ctom.net_signals[2].f  // HRADC2
 
-#define I_LOAD_MEAN             g_controller_ctom.net_signals[2].f
-#define I_LOAD_ERROR            g_controller_ctom.net_signals[3].f
-#define I_LOAD_DIFF             g_controller_ctom.net_signals[4].f
+#define I_LOAD_MEAN             g_controller_ctom.net_signals[3].f
+#define I_LOAD_ERROR            g_controller_ctom.net_signals[4].f
+#define I_LOAD_DIFF             g_controller_ctom.net_signals[5].f
 
-#define FREQ_MODULATED          g_controller_ctom.net_signals[5].f
+#define FREQ_MODULATED          g_controller_ctom.net_signals[6].f
 
 #define FREQ_MODULATED_COMPENS  g_controller_ctom.output_signals[0].f
-
-/// ARM Net Signals
-#define V_DCLINK                g_controller_mtoc.net_signals[0].f
 
 /// Reference
 #define I_LOAD_SETPOINT             g_ipc_ctom.ps_module[0].ps_setpoint
@@ -112,6 +114,12 @@
 #define KP_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.kp
 #define KI_I_LOAD                       PI_CONTROLLER_I_LOAD_COEFFS.ki
 
+/// DC-link voltage feedforward controller
+#define FF_V_DCLINK                     &g_controller_ctom.dsp_modules.dsp_ff[0]
+#define FF_V_DCLINK_COEFFS              g_controller_mtoc.dsp_modules.dsp_ff[0].coeffs.s
+#define NOM_V_DCLINK_FF                 FF_V_DCLINK_COEFFS.vdc_nom
+#define MIN_V_DCLINK_FF                 FF_V_DCLINK_COEFFS.vdc_min
+
 /// PWM modulators
 #define PWM_MODULATOR_1                 g_pwm_modules.pwm_regs[0]
 #define PWM_MODULATOR_2                 g_pwm_modules.pwm_regs[1]
@@ -123,16 +131,19 @@
 /**
  * Digital I/O's status
  */
-#define PIN_OPEN_DCLINK_CONTACTOR       CLEAR_GPDO1
-#define PIN_CLOSE_DCLINK_CONTACTOR      SET_GPDO1
+#define PIN_OPEN_CONTACTOR_K1           CLEAR_GPDO1
+#define PIN_CLOSE_CONTACTOR_K1          SET_GPDO1
 
-#define PIN_SET_MAGNAPOWER_INTERLOCK    CLEAR_GPDO2
-#define PIN_CLEAR_MAGNAPOWER_INTERLOCK  SET_GPDO2
+#define PIN_STATUS_CONTACTOR_K1         GET_GPDI5
 
-#define PIN_STATUS_EXTERNAL_INTERLOCK   GET_GPDI6
-#define PIN_STATUS_DCLINK_CONTACTOR     GET_GPDI5
-#define PIN_STATUS_DCCT_1_STATUS        GET_GPDI4
-#define PIN_STATUS_DCCT_2_STATUS        GET_GPDI3
+#define PIN_STATUS_CONTACTOR_K2         GET_GPDI6
+
+#define PIN_STATUS_EXTERNAL_INTERLOCK   GET_GPDI7
+
+#define PIN_STATUS_DCCT_1_STATUS        GET_GPDI9
+#define PIN_STATUS_DCCT_1_ACTIVE        GET_GPDI10
+#define PIN_STATUS_DCCT_2_STATUS        GET_GPDI11
+#define PIN_STATUS_DCCT_2_ACTIVE        GET_GPDI12
 
 /**
  * Interlocks and alarms defines
@@ -142,8 +153,10 @@ typedef enum
     Load_Overcurrent,
     DCLink_Overvoltage,
     DCLink_Undervoltage,
-    Welded_Contactor_Fault,
-    Opened_Contactor_Fault,
+    Welded_Contactor_K1_Fault,
+	Welded_Contactor_K2_Fault,
+    Opened_Contactor_K1_Fault,
+	Opened_Contactor_K2_Fault,
     External_Itlk,
     IIB_Itlk
 } hard_interlocks_t;
@@ -152,7 +165,9 @@ typedef enum
 {
     DCCT_1_Fault,
     DCCT_2_Fault,
-    DCCT_High_Difference
+    DCCT_High_Difference,
+    Load_Feedback_1_Fault,
+    Load_Feedback_2_Fault
 } soft_interlocks_t;
 
 typedef enum
@@ -161,7 +176,7 @@ typedef enum
 } alarms_t;
 
 #define NUM_HARD_INTERLOCKS             IIB_Itlk + 1
-#define NUM_SOFT_INTERLOCKS             DCCT_High_Difference + 1
+#define NUM_SOFT_INTERLOCKS             Load_Feedback_2_Fault + 1
 
 /**
  *  Private variables
@@ -200,9 +215,6 @@ static inline void check_interlocks(void);
  */
 void main_resonant_swls(void)
 {
-    /// Clear interlock signal to MagnaPower caused by UDC power-on
-    PIN_CLEAR_MAGNAPOWER_INTERLOCK;
-
     init_controller();
     init_peripherals_drivers();
     init_interruptions();
@@ -418,6 +430,24 @@ static void init_controller(void)
     init_dsp_pi(PI_CONTROLLER_I_LOAD, KP_I_LOAD, KI_I_LOAD, ISR_CONTROL_FREQ,
                 MAX_REF_CL, MIN_REF_CL, &I_LOAD_ERROR, &FREQ_MODULATED);
 
+    /***************************************************/
+    /** INITIALIZATION OF DC-LINK VOLTAGE FEEDFORWARD **/
+    /***************************************************/
+
+    /**
+     *        name:     FF_V_DCLINK
+     * description:     DCLINK voltage feed-forward controller
+     *    DP class:     DSP_FF
+     *    vdc_meas:     V_DCLINK_FILTERED
+     *          in:     FREQ_MODULATED
+     *         out:     FREQ_MODULATED_COMPENS
+     */
+
+    init_dsp_vdclink_ff(FF_V_DCLINK, NOM_V_DCLINK_FF,
+                        MIN_V_DCLINK_FF,
+                        &V_DCLINK, &FREQ_MODULATED,
+                        &FREQ_MODULATED_COMPENS);
+
     /******************************/
     /** INITIALIZATION OF SCOPES **/
     /******************************/
@@ -460,7 +490,7 @@ static void reset_controller(void)
     reset_dsp_srlim(SRLIM_I_LOAD_REFERENCE);
     reset_dsp_error(ERROR_I_LOAD);
     reset_dsp_pi(PI_CONTROLLER_I_LOAD);
-
+    reset_dsp_vdclink_ff(FF_V_DCLINK);
     reset_dsp_srlim(SRLIM_SIGGEN_AMP);
     reset_dsp_srlim(SRLIM_SIGGEN_OFFSET);
     disable_siggen(&SIGGEN);
@@ -567,6 +597,7 @@ static interrupt void isr_controller(void)
     {
         I_LOAD_1 = temp[0] - TRANSDUCER_OFFSET[0];
         I_LOAD_2 = temp[1] - TRANSDUCER_OFFSET[1];
+        V_DCLINK = temp[2];
 
         I_LOAD_MEAN = 0.5*(I_LOAD_1 + I_LOAD_2);
         I_LOAD_DIFF = I_LOAD_1 - I_LOAD_2;
@@ -574,6 +605,7 @@ static interrupt void isr_controller(void)
     else
     {
         I_LOAD_1 = temp[0];
+        V_DCLINK = temp[1];
 
         I_LOAD_MEAN = I_LOAD_1 - TRANSDUCER_OFFSET[0];
         I_LOAD_DIFF = 0;
@@ -624,11 +656,13 @@ static interrupt void isr_controller(void)
             SATURATE(I_LOAD_REFERENCE, MAX_REF[0], MIN_REF[0]);
             run_dsp_error(ERROR_I_LOAD);
             run_dsp_pi(PI_CONTROLLER_I_LOAD);
+            run_dsp_vdclink_ff(FF_V_DCLINK);
             SATURATE(FREQ_MODULATED, MAX_REF_CL, MIN_REF_CL);
 
             /// Modulation frequency dead-zone compensation
             FREQ_MODULATED_COMPENS = FREQ_MODULATED + FREQ_DEADZONE_HZ;
             SATURATE(FREQ_MODULATED_COMPENS, MAX_REF_CL, MIN_REF_CL);
+
         }
 
         set_pwm_freq(PWM_MODULATOR_1, FREQ_MODULATED_COMPENS);
@@ -756,13 +790,19 @@ static void turn_on(uint16_t dummy)
         {
         #endif
 
-            PIN_CLOSE_DCLINK_CONTACTOR;
-            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_CLOSED_MS*1000);
-
-            if(!PIN_STATUS_DCLINK_CONTACTOR)
+            if(PIN_STATUS_CONTACTOR_K2)
             {
-                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_Fault);
-                set_hard_interlock(0, Opened_Contactor_Fault);
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Welded_Contactor_K2_Fault);
+                set_hard_interlock(0, Welded_Contactor_K2_Fault);
+            }
+
+            PIN_CLOSE_CONTACTOR_K1;
+            DELAY_US(TIMEOUT_CONTACTOR_K1_CLOSED_MS*1000);
+
+            if(!PIN_STATUS_CONTACTOR_K1)
+            {
+                BYPASS_HARD_INTERLOCK_DEBOUNCE(0, Opened_Contactor_K1_Fault);
+                set_hard_interlock(0, Opened_Contactor_K1_Fault);
             }
 
             #ifdef USE_ITLK
@@ -787,8 +827,8 @@ static void turn_off(uint16_t dummy)
     disable_pwm_output(0);
     disable_pwm_output(1);
 
-    PIN_OPEN_DCLINK_CONTACTOR;
-    DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
+    PIN_OPEN_CONTACTOR_K1;
+    DELAY_US(TIMEOUT_CONTACTOR_K1_OPENED_MS*1000);
 
     reset_controller();
 
@@ -811,15 +851,13 @@ static void reset_interlocks(uint16_t dummy)
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state < Initializing)
     {
-        if(PIN_STATUS_DCLINK_CONTACTOR)
+        if(PIN_STATUS_CONTACTOR_K1)
         {
-            PIN_CLOSE_DCLINK_CONTACTOR;
-            DELAY_US(RESET_PULSE_TIME_DCLINK_CONTACTOR_MS*1000);
-            PIN_OPEN_DCLINK_CONTACTOR;
-            DELAY_US(TIMEOUT_DCLINK_CONTACTOR_OPENED_MS*1000);
+            PIN_CLOSE_CONTACTOR_K1;
+            DELAY_US(RESET_PULSE_TIME_CONTACTOR_K1_MS*1000);
+            PIN_OPEN_CONTACTOR_K1;
+            DELAY_US(TIMEOUT_CONTACTOR_K1_OPENED_MS*1000);
         }
-
-        PIN_CLEAR_MAGNAPOWER_INTERLOCK;
 
         g_ipc_ctom.ps_module[0].ps_status.bit.state = Off;
     }
@@ -852,36 +890,79 @@ static inline void check_interlocks(void)
         set_soft_interlock(0, DCCT_1_Fault);
     }
 
-    if( NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS )
+    if(NUM_DCCTs && !PIN_STATUS_DCCT_2_STATUS)
     {
         set_soft_interlock(0, DCCT_2_Fault);
     }
 
+    if(PIN_STATUS_DCCT_1_ACTIVE)
+    {
+    	if(fabs(I_LOAD_1) < MIN_I_ACTIVE_DCCT)
+    	{
+    		set_soft_interlock(0, Load_Feedback_1_Fault);
+    	}
+    }
+    else
+    {
+    	if(fabs(I_LOAD_1) > MAX_I_IDLE_DCCT)
+    	{
+    		set_soft_interlock(0, Load_Feedback_1_Fault);
+    	}
+    }
+
+    if(NUM_DCCTs)
+    {
+    	if(PIN_STATUS_DCCT_2_ACTIVE)
+    	{
+    		if(fabs(I_LOAD_2) < MIN_I_ACTIVE_DCCT)
+    		{
+    			set_soft_interlock(0, Load_Feedback_2_Fault);
+    		}
+    	}
+    	else
+    	{
+    		if(fabs(I_LOAD_2) > MAX_I_IDLE_DCCT)
+    		{
+    			set_soft_interlock(0, Load_Feedback_2_Fault);
+    		}
+    	}
+    }
+
     if(!PIN_STATUS_EXTERNAL_INTERLOCK)
     {
-        set_hard_interlock(0, External_Itlk);
+    	set_hard_interlock(0, External_Itlk);
     }
 
     DINT;
 
     if(g_ipc_ctom.ps_module[0].ps_status.bit.state <= Interlock)
     {
-        if(PIN_STATUS_DCLINK_CONTACTOR)
+        if(PIN_STATUS_CONTACTOR_K1)
         {
-            set_hard_interlock(0, Welded_Contactor_Fault);
+            set_hard_interlock(0, Welded_Contactor_K1_Fault);
+        }
+
+        if(PIN_STATUS_CONTACTOR_K2)
+        {
+            set_hard_interlock(0, Welded_Contactor_K2_Fault);
         }
     }
 
     else
     {
-        if(!PIN_STATUS_DCLINK_CONTACTOR)
+        if(!PIN_STATUS_CONTACTOR_K1)
         {
-            set_hard_interlock(0, Opened_Contactor_Fault);
+            set_hard_interlock(0, Opened_Contactor_K1_Fault);
+        }
+
+        if(!PIN_STATUS_CONTACTOR_K2)
+        {
+            set_hard_interlock(0, Opened_Contactor_K2_Fault);
         }
 
         if(g_ipc_ctom.ps_module[0].ps_status.bit.state == Initializing)
         {
-            if(V_DCLINK > MIN_V_DCLINK)
+            if(V_DCLINK > MIN_V_DCLINK && PIN_STATUS_CONTACTOR_K2)
             {
                 g_ipc_ctom.ps_module[0].ps_status.bit.state = SlowRef;
                 enable_pwm_output(0);
@@ -908,7 +989,7 @@ static inline void check_interlocks(void)
     if(g_ipc_ctom.ps_module[0].ps_hard_interlock || g_ipc_ctom.ps_module[0].ps_soft_interlock)
     #endif
     {
-        PIN_SET_MAGNAPOWER_INTERLOCK;
+
     }
 
     //CLEAR_DEBUG_GPIO1;
